@@ -1,0 +1,72 @@
+[
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6768" },
+    "seat_ID": "S001",
+    "seat_Class": "Business",
+    "price": 500.0,
+    "availability": true
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6769" },
+    "seat_ID": "S002",
+    "seat_Class": "Economy",
+    "price": 200.0,
+    "availability": true
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c676A" },
+    "seat_ID": "S003",
+    "seat_Class": "First Class",
+    "price": 1000,
+    "availability": true
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c676B" },
+    "seat_ID": "S004",
+    "seat_Class": "Economy",
+    "price": 180.0,
+    "availability": false
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c676C" },
+    "seat_ID": "S005",
+    "seat_Class": "Business",
+    "price": 550.0,
+    "availability": true
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c676D" },
+    "seat_ID": "S006",
+    "seat_Class": "First Class",
+    "price": 1200.0,
+    "availability": true
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c676E" },
+    "seat_ID": "S007",
+    "seat_Class": "Economy",
+    "price": 220.0,
+    "availability": true
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c676F" },
+    "seat_ID": "S008",
+    "seat_Class": "Business",
+    "price": 600.0,
+    "availability": false
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6770" },
+    "seat_ID": "S009",
+    "seat_Class": "First Class",
+    "price": 1100.0,
+    "availability": true
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6771" },
+    "seat_ID": "S010",
+    "seat_Class": "Economy",
+    "price": 210.0,
+    "availability": true
+  }
+]

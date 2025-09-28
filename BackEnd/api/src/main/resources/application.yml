@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017
+      database: wanderlust
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: 918854001812-e2bg3a2guaolbjt3qbc00vcstvh8donu.apps.googleusercontent.com
+            clientSecret: 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
+            redirect-uri: "{baseUrl}/login/oauth2/code/google"
+            client-name: Google
+          facebook:
+            clientId: 3049561311868177
+            clientSecret: da74e30a644d9e78ee33e2e2338382d7
+            scope:
+              - email
+              - public_profile
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub

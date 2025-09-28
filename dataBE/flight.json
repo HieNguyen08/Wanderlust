@@ -1,0 +1,92 @@
+[
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6769" },
+    "id": "F001",
+    "flight_Number": "VN123",
+    "departure_Time": "2023-11-01T10:00:00",
+    "arrival_Time": "2023-11-01T12:00:00",
+    "duration": { "seconds": 7200 },
+    "airline_ID": 1
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6772" },
+    "id": "F002",
+    "flight_Number": "VN124",
+    "departure_Time": "2023-11-02T15:00:00",
+    "arrival_Time": "2023-11-02T17:00:00",
+    "duration": { "seconds": 7200 },
+    "airline_ID": 2
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6773" },
+    "id": "F003",
+    "flight_Number": "VN125",
+    "departure_Time": "2023-11-03T08:00:00",
+    "arrival_Time": "2023-11-03T10:00:00",
+    "duration": { "seconds": 7200 },
+    "airline_ID": 1
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6774" },
+    "id": "F004",
+    "flight_Number": "VN126",
+    "departure_Time": "2023-11-04T12:00:00",
+    "arrival_Time": "2023-11-04T14:00:00",
+    "duration": { "seconds": 7200 },
+    "airline_ID": 3
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6775" },
+    "id": "F005",
+    "flight_Number": "VN127",
+    "departure_Time": "2023-11-05T09:00:00",
+    "arrival_Time": "2023-11-05T11:00:00",
+    "duration": { "seconds": 7200 },
+    "airline_ID": 2
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6776" },
+    "id": "F006",
+    "flight_Number": "VN128",
+    "departure_Time": "2023-11-06T14:00:00",
+    "arrival_Time": "2023-11-06T16:00:00",
+    "duration": { "seconds": 7200 },
+    "airline_ID": 1
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6777" },
+    "id": "F007",
+    "flight_Number": "VN129",
+    "departure_Time": "2023-11-07T11:00:00",
+    "arrival_Time": "2023-11-07T13:00:00",
+    "duration": { "seconds": 7200 },
+    "airline_ID": 3
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6778" },
+    "id": "F008",
+    "flight_Number": "VN130",
+    "departure_Time": "2023-11-08T16:00:00",
+    "arrival_Time": "2023-11-08T18:00:00",
+    "duration": { "seconds": 7200 },
+    "airline_ID": 2
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6779" },
+    "id": "F009",
+    "flight_Number": "VN131",
+    "departure_Time": "2023-11-09T07:00:00",
+    "arrival_Time": "2023-11-09T09:00:00",
+    "duration": { "seconds": 7200 },
+    "airline_ID": 1
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c677A" },
+    "id": "F010",
+    "flight_Number": "VN132",
+    "departure_Time": "2023-11-10T13:00:00",
+    "arrival_Time": "2023-11-10T15:00:00",
+    "duration": { "seconds": 7200 },
+    "airline_ID": 3
+  }
+]

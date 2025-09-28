@@ -1,0 +1,229 @@
+[{
+  "_id": {
+    "$oid": "66837ab446b2b42fe02c6754"
+  },
+  "firstName": "ThànhAnh",
+  "lastName": "Đặng",
+  "avatar": "https://scontent.fsgn19-1.fna.fbcdn.net/v/t39.30808-6/301001372_587157913055272_6433316245330578129_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=RWOK93hnJRgQ7kNvgGnqH8u&_nc_oc=Adhb0fBB4GjZV4eO2QVTB05HLOhmoUylgZe30SX5TFkSTc41MNdNRcvHxPxbstFsIKk&_nc_zt=23&_nc_ht=scontent.fsgn19-1.fna&_nc_gid=A53nEIChH7YpWbc-w7UZRHx&oh=00_AYAP3z8auFbYvPZCqwU2VJTLTWhLO6aDs0q5XJXZz4quMw&oe=6777F497",
+  "email": "dangthanhanh186@gmail.com",
+  "mobile": "0906482890",
+  "password": "",
+  "role": "ADMIN",
+  "address": "TP HCM",
+  "refreshToken": "",
+  "isBlocked": true,
+  "passwordChangeAt": "2003-10-31T17:00:00.000Z",
+  "passwordResetToken": "",
+  "registerToken": "",
+  "_class": "com.example.demo.entities.User"
+},
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c6754"
+    },
+    "firstName": "ThànhAnh",
+    "lastName": "Đặng",
+    "avatar": "https://scontent.fsgn19-1.fna.fbcdn.net/v/t39.30808-6/301001372_587157913055272_6433316245330578129_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=RWOK93hnJRgQ7kNvgGnqH8u&_nc_oc=Adhb0fBB4GjZV4eO2QVTB05HLOhmoUylgZe30SX5TFkSTc41MNdNRcvHxPxbstFsIKk&_nc_zt=23&_nc_ht=scontent.fsgn19-1.fna&_nc_gid=A53nEIChH7YpWbc-w7UZRHx&oh=00_AYAP3z8auFbYvPZCqwU2VJTLTWhLO6aDs0q5XJXZz4quMw&oe=6777F497",
+    "email": "dangthanhanh186@gmail.com",
+    "mobile": "0906482890",
+    "password": "",
+    "role": "ADMIN",
+    "address": "TP HCM",
+    "refreshToken": "",
+    "isBlocked": true,
+    "passwordChangeAt": "2003-10-31T17:00:00.000Z",
+    "passwordResetToken": "",
+    "registerToken": "",
+    "_class": "com.example.demo.entities.User"
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c6755"
+    },
+    "firstName": "Nguyễn",
+    "lastName": "Văn A",
+    "avatar": "https://example.com/avatar1.jpg",
+    "email": "nguyenvana@example.com",
+    "mobile": "0901234567",
+    "password": "hashed_password",
+    "role": "USER",
+    "address": "Hà Nội",
+    "refreshToken": "",
+    "isBlocked": false,
+    "passwordChangeAt": "2023-01-01T00:00:00.000Z",
+    "passwordResetToken": "",
+    "registerToken": "",
+    "_class": "com.example.demo.entities.User"
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c6756"
+    },
+    "firstName": "Trần",
+    "lastName": "B",
+    "avatar": "https://example.com/avatar2.jpg",
+    "email": "tranb@example.com",
+    "mobile": "0902345678",
+    "password": "hashed_password",
+    "role": "USER",
+    "address": "Đà Nẵng",
+    "refreshToken": "",
+    "isBlocked": false,
+    "passwordChangeAt": "2023-02-01T00:00:00.000Z",
+    "passwordResetToken": "",
+    "registerToken": "",
+    "_class": "com.example.demo.entities.User"
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c6757"
+    },
+    "firstName": "Lê",
+    "lastName": "C",
+    "avatar": "https://example.com/avatar3.jpg",
+    "email": "lec@example.com",
+    "mobile": "0903456789",
+    "password": "hashed_password",
+    "role": "USER",
+    "address": "Hải Phòng",
+    "refreshToken": "",
+    "isBlocked": false,
+    "passwordChangeAt": "2023-03-01T00:00:00.000Z",
+    "passwordResetToken": "",
+    "registerToken": "",
+    "_class": "com.example.demo.entities.User"
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c6758"
+    },
+    "firstName": "Phạm",
+    "lastName": "D",
+    "avatar": "https://example.com/avatar4.jpg",
+    "email": "phamd@example.com",
+    "mobile": "0904567890",
+    "password": "hashed_password",
+    "role": "USER",
+    "address": "Nha Trang",
+    "refreshToken ": "",
+    "isBlocked": false,
+    "passwordChangeAt": "2023-04-01T00:00:00.000Z",
+    "passwordResetToken": "",
+    "registerToken": "",
+    "_class": "com.example.demo.entities.User"
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c6759"
+    },
+    "firstName": "Ngô",
+    "lastName": "E",
+    "avatar": "https://example.com/avatar5.jpg",
+    "email": "ngoe@example.com",
+    "mobile": "0905678901",
+    "password": "hashed_password",
+    "role": "USER",
+    "address": "Cần Thơ",
+    "refreshToken": "",
+    "isBlocked": false,
+    "passwordChangeAt": "2023-05-01T00:00:00.000Z",
+    "passwordResetToken": "",
+    "registerToken": "",
+    "_class": "com.example.demo.entities.User"
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c675A"
+    },
+    "firstName": "Đỗ",
+    "lastName": "F",
+    "avatar": "https://example.com/avatar6.jpg",
+    "email": "dof@example.com",
+    "mobile": "0906789012",
+    "password": "hashed_password",
+    "role": "USER",
+    "address": "Vũng Tàu",
+    "refreshToken": "",
+    "isBlocked": false,
+    "passwordChangeAt": "2023-06-01T00:00:00.000Z",
+    "passwordResetToken": "",
+    "registerToken": "",
+    "_class": "com.example.demo.entities.User"
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c675B"
+    },
+    "firstName": "Bùi",
+    "lastName": "G",
+    "avatar": "https://example.com/avatar7.jpg",
+    "email": "buig@example.com",
+    "mobile": "0907890123",
+    "password": "hashed_password",
+    "role": "USER",
+    "address": "Hà Giang",
+    "refreshToken": "",
+    "isBlocked": false,
+    "passwordChangeAt": "2023-07-01T00:00:00.000Z",
+    "passwordResetToken": "",
+    "registerToken": "",
+    "_class": "com.example.demo.entities.User"
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c675C"
+    },
+    "firstName": "Vũ",
+    "lastName": "H",
+    "avatar": "https://example.com/avatar8.jpg",
+    "email": "vuh@example.com",
+    "mobile": "0908901234",
+    "password": "hashed_password",
+    "role": "USER",
+    "address": "Quảng Ninh",
+    "refreshToken": "",
+    "isBlocked": false,
+    "passwordChangeAt": "2023-08-01T00:00:00.000Z",
+    "passwordResetToken": "",
+    "registerToken": "",
+    "_class": "com.example.demo.entities.User"
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c675D"
+    },
+    "firstName": "Lý",
+    "lastName": "I",
+    "avatar": "https://example.com/avatar9.jpg",
+    "email": "lyi@example.com",
+    "mobile": "0909012345",
+    "password": "hashed_password",
+    "role": "USER",
+    "address": "Nam Định",
+    "refreshToken": "",
+    "isBlocked": false,
+    "passwordChangeAt": "2023-09-01T00:00:00.000Z",
+    "passwordResetToken": "",
+    "registerToken": "",
+    "_class": "com.example.demo.entities.User"
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c675E"
+    },
+    "firstName": "Hồ",
+    "lastName": "J",
+    "avatar": "https://example.com/avatar10.jpg",
+    "email": "hoj@example.com",
+    "mobile": "0910123456",
+    "password": "hashed_password",
+    "role": "USER",
+    "address": "Thái Bình",
+    "refreshToken": "",
+    "isBlocked": false,
+    "passwordChangeAt": "2023-10-01T00:00:00.000Z",
+    "passwordResetToken": "",
+    "registerToken": "",
+    "_class": "com.example.demo.entities.User"
+  }
+]

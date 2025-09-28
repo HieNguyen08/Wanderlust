@@ -1,0 +1,62 @@
+[
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c676C" },
+    "ad_ID": "AD001",
+    "news": "Special offer for the holiday season!",
+    "ad_Type": "Promotion"
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c678D" },
+    "ad_ID": "AD002",
+    "news": "Book now and save 20% on your next trip!",
+    "ad_Type": "Discount"
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c678E" },
+    "ad_ID": "AD003",
+    "news": "Exclusive deals for members!",
+    "ad_Type": "Membership"
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c678F" },
+    "ad_ID": "AD004",
+    "news": "Last minute flight deals available!",
+    "ad_Type": "Flash Sale"
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6790" },
+    "ad_ID": "AD005",
+    "news": "Join our loyalty program for amazing rewards!",
+    "ad_Type": "Loyalty"
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6791" },
+    "ad_ID": "AD006",
+    "news": "Explore new destinations with our travel packages!",
+    "ad_Type": "Package"
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6792" },
+    "ad_ID": "AD007",
+    "news": "Refer a friend and earn discounts!",
+    "ad_Type": "Referral"
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6793" },
+    "ad_ID": "AD008",
+    "news": "Limited time offer: Free breakfast with your stay!",
+    "ad_Type": "Promotion"
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6794" },
+    "ad_ID": "AD009",
+    "news": "Book early and enjoy the best rates!",
+    "ad_Type": "Early Bird"
+  },
+  {
+    "_id": { "$oid": "66837ab446b2b42fe02c6795" },
+    "ad_ID": "AD010",
+    "news": "Travel insurance now available with every booking!",
+    "ad_Type": "Insurance"
+  }
+]

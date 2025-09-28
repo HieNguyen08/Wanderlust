@@ -1,0 +1,82 @@
+[
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c6756"
+    },
+    "num_of_rating_ID": "RC001",
+    "comment": "Great experience, will come back!",
+    "ratings": 4.5
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c6757"
+    },
+    "num_of_rating_ID": "RC002",
+    "comment": "The service was excellent and the staff were very friendly.",
+    "ratings": 5.0
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c6758"
+    },
+    "num_of_rating_ID": "RC003",
+    "comment": "Room was clean but a bit noisy at night.",
+    "ratings": 3.5
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c6759"
+    },
+    "num_of_rating_ID": "RC004",
+    "comment": "Amazing food and great location!",
+    "ratings": 4.8
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c675A"
+    },
+    "num_of_rating_ID": "RC005",
+    "comment": "Not worth the price, very basic amenities.",
+    "ratings": 2.0
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c675B"
+    },
+    "num_of_rating_ID": "RC006",
+    "comment": "Had a wonderful time, highly recommend!",
+    "ratings": 4.7
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c675C"
+    },
+    "num_of_rating_ID": "RC007",
+    "comment": "The check-in process was slow, but overall a good stay.",
+    "ratings": 3.8
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c675D"
+    },
+    "num_of_rating_ID": "RC008",
+    "comment": "Beautiful views and very relaxing atmosphere.",
+    "ratings": 4.9
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c675E"
+    },
+    "num_of_rating_ID": "RC009",
+    "comment": "Staff were helpful, but the room was not as described.",
+    "ratings": 3.0
+  },
+  {
+    "_id": {
+      "$oid": "66837ab446b2b42fe02c675F"
+    },
+    "num_of_rating_ID": "RC010",
+    "comment": "Fantastic experience, will definitely return!",
+    "ratings": 5.0
+  }
+]

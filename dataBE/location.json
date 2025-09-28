@@ -1,0 +1,10 @@
+{
+  "_id": {
+    "$oid": "66837ab446b2b42fe02c6759"
+  },
+  "location_ID": "LOC001",
+  "city": "Ho Chi Minh City",
+  "country": "Vietnam",
+  "airport_Code": "SGN",
+  "postCode": "700000"
+}

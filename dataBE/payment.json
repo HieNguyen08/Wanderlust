@@ -1,0 +1,10 @@
+{
+  "_id": {
+    "$oid": "66837ab446b2b42fe02c6758"
+  },
+  "paymentId": "PAY001",
+  "payment_Amount": 150.0,
+  "payment_Method": "Credit Card",
+  "payment_Date": "2023-10-15T14:30:00",
+  "Status": "Completed"
+}

@@ -1,0 +1,61 @@
+.app-header {
+    background-color: #1890ff; /* Màu xanh như trong ảnh */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 64px;
+}
+
+.logo {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.nav-menu {
+    flex: 1;
+    justify-content: center;
+    font-size: 16px;
+    background: transparent;
+    color: white;
+}
+
+.nav-menu .ant-menu-item,
+.nav-menu .ant-menu-submenu-title {
+    color: white;
+}
+
+.nav-menu .ant-menu-item:hover,
+.nav-menu .ant-menu-submenu-title:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.auth-section {
+    display: flex;
+    align-items: center;
+}
+
+.auth-section .ant-btn-link {
+    color: white;
+}
+
+.auth-section .ant-btn-primary {
+    background-color: white;
+    color: #1890ff;
+    border: none;
+}
+
+.auth-section .ant-btn-primary:hover {
+    background-color: #e6f7ff;
+}
+
+.ant-dropdown-menu {
+    min-width: 160px;
+}
+
+.ant-avatar {
+    background-color: #87d068;
+    cursor: pointer;
+}
