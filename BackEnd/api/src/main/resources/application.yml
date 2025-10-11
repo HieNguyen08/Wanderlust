@@ -6,15 +6,20 @@ spring:
     mongodb:
       uri: mongodb://localhost:27017
       database: wanderlust
+      #mongodb+srv://dangthanhanh_db_user:01862001@cluster0.ozaixgp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
   security:
     oauth2:
       client:
         registration:
           google:
-            clientId: 918854001812-e2bg3a2guaolbjt3qbc00vcstvh8donu.apps.googleusercontent.com
-            clientSecret: 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
+            clientId: 539952006239-0s0encdik2u3tlmho12tb67v5vttt0gn.apps.googleusercontent.com
+            clientSecret: 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
             redirect-uri: "{baseUrl}/login/oauth2/code/google"
             client-name: Google
+            scope:
+              - email
+              - profile
+              - openid
           facebook:
             clientId: 3049561311868177
             clientSecret: da74e30a644d9e78ee33e2e2338382d7
