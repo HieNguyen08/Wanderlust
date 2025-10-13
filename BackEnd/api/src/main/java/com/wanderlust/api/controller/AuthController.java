@@ -1,54 +1,46 @@
 package com.wanderlust.api.controller;
 
+import com.wanderlust.api.dto.AuthResponseDTO; // Tạo DTO này
+import com.wanderlust.api.dto.LoginRequestDTO; // Tạo DTO này
 import com.wanderlust.api.entity.User;
+import com.wanderlust.api.services.JwtService;
 import com.wanderlust.api.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor // Sử dụng constructor injection
 public class AuthController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final JwtService jwtService;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
+    // --- Sửa đổi hoàn toàn phương thức login ---
     @PostMapping("/login")
-    public String login(@RequestBody User loginRequest) {
-        String email = loginRequest.getEmail();
-        String password = loginRequest.getPassword();
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
+        Optional<User> userOptional = userService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
 
-        Optional<User> userOptional = userService.authenticate(email, password);
         if (userOptional.isPresent()) {
-            Authentication authentication = new UsernamePasswordAuthenticationToken(email, password);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            return "Login successful"; // You can return a JWT token here if needed
+            User user = userOptional.get();
+            String token = jwtService.generateToken(user);
+            
+            AuthResponseDTO response = new AuthResponseDTO(token, user.getFirstName(), user.getLastName(), user.getEmail(), user.getAvatar());
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(401).body("Invalid email or password");
         }
-        return "Invalid email or password";
     }
+    // ------------------------------------------
 
     @PostMapping("/register")
     public User register(@RequestBody User user) {
-        return userService.registerUser (user);
+        return userService.registerUser(user);
     }
-
-    // @PostMapping("/forgot-password")
-    // public ResponseEntity<?> forgotPassword(@RequestBody String email) {
-    //     // Gọi service để xử lý quên mật khẩu
-    //     boolean isSent = userService.sendPasswordResetEmail(email);
-    //     if (isSent) {
-    //         return ResponseEntity.ok("Password reset email sent successfully.");
-    //     } else {
-    //         return ResponseEntity.badRequest().body("Failed to send password reset email.");
-    //     }
-    // }
 }

@@ -50,7 +50,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
             Optional<User> optionalUser = userService.findByEmail(email);
             if (optionalUser.isPresent()) {
                 user = optionalUser.get();
-                username = user.getFirstName() + user.getLastName();
+                username = String.format("%s %s", user.getFirstName(), user.getLastName()).trim();
             } else {
                 String redirectUrl = frontendUrl + "/login?error=UserNotFound";
                 response.sendRedirect(redirectUrl);
