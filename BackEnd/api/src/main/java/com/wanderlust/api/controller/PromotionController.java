@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user/promotions")
+@RequestMapping("/api/promotions")
 public class PromotionController {
 
     private final PromotionService promotionService;
@@ -22,6 +23,7 @@ public class PromotionController {
 
     // Get all promotions
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Promotion>> getAllPromotions() {
         List<Promotion> allPromotions = promotionService.findAll();
         return new ResponseEntity<>(allPromotions, HttpStatus.OK);
@@ -29,6 +31,7 @@ public class PromotionController {
 
     // Add a promotion
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
     public ResponseEntity<Promotion> addPromotion(@RequestBody Promotion promotion) {
         Promotion newPromotion = promotionService.create(promotion);
         return new ResponseEntity<>(newPromotion, HttpStatus.CREATED);
@@ -36,6 +39,7 @@ public class PromotionController {
 
     // Update an existing promotion
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isPromotionOwner(authentication, #id))")
     public ResponseEntity<?> updatePromotion(@PathVariable String id, @RequestBody Promotion updatedPromotion) {
         updatedPromotion.setPromotion_ID(id); // Ensure the ID in the entity matches the path variable
         try {
@@ -48,6 +52,7 @@ public class PromotionController {
 
     // Delete a promotion by ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isPromotionOwner(authentication, #id))")
     public ResponseEntity<String> deletePromotion(@PathVariable String id) {
         try {
             promotionService.delete(id);

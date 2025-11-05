@@ -22,4 +22,8 @@ public class ReviewComment {
     private String comment;
     private Float ratings;
     
+    private String userId;
+    private String hotel_ID;
+    private String flight_ID;
+    private String car_Rental_ID;
 }

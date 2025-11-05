@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user/payments")
+@RequestMapping("/api/payments")
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -22,6 +23,7 @@ public class PaymentController {
 
     // Get all payments
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Payment>> getAllPayments() {
         List<Payment> allPayments = paymentService.findAll();
         return new ResponseEntity<>(allPayments, HttpStatus.OK);
@@ -29,6 +31,7 @@ public class PaymentController {
 
     // Add a payment
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Payment> addPayment(@RequestBody Payment payment) {
         Payment newPayment = paymentService.create(payment);
         return new ResponseEntity<>(newPayment, HttpStatus.CREATED);
@@ -36,6 +39,7 @@ public class PaymentController {
 
     // Update an existing payment
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updatePayment(@PathVariable String id, @RequestBody Payment updatedPayment) {
         updatedPayment.setPaymentId(id); // Ensure the ID in the entity matches the path variable
         try {
@@ -48,6 +52,7 @@ public class PaymentController {
 
     // Delete a payment by ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deletePayment(@PathVariable String id) {
         try {
             paymentService.delete(id);
@@ -59,6 +64,7 @@ public class PaymentController {
 
     // Delete all payments
     @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAllPayments() {
         paymentService.deleteAll();
         return new ResponseEntity<>("All payments have been deleted successfully!", HttpStatus.OK);
@@ -66,6 +72,7 @@ public class PaymentController {
 
     // Get a specific payment by id
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getPaymentById(@PathVariable String id) {
         try {
             Payment payment = paymentService.findByID(id);

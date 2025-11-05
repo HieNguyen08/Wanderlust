@@ -25,4 +25,6 @@ public class Payment {
     private LocalDateTime payment_Date;
     private String Status;
 
+    private String userId;
+    private String booking_ID;
 }

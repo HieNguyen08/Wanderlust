@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user/flight-seats")
+@RequestMapping("/api/flight-seats")
 public class FlightSeatController {
 
     private final FlightSeatService flightSeatService;
@@ -22,6 +23,7 @@ public class FlightSeatController {
 
     // Get all flight seats
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<FlightSeat>> getAllFlightSeats() {
         List<FlightSeat> allFlightSeats = flightSeatService.findAll();
         return new ResponseEntity<>(allFlightSeats, HttpStatus.OK);
@@ -29,6 +31,7 @@ public class FlightSeatController {
 
     // Add a flight seat
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<FlightSeat> addFlightSeat(@RequestBody FlightSeat flightSeat) {
         FlightSeat newFlightSeat = flightSeatService.create(flightSeat);
         return new ResponseEntity<>(newFlightSeat, HttpStatus.CREATED);
@@ -36,6 +39,7 @@ public class FlightSeatController {
 
     // Update an existing flight seat
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateFlightSeat(@PathVariable String id, @RequestBody FlightSeat updatedFlightSeat) {
         updatedFlightSeat.setSeat_ID(id); // Ensure the ID in the entity matches the path variable
         try {
@@ -48,6 +52,7 @@ public class FlightSeatController {
 
     // Delete a flight seat by ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteFlightSeat(@PathVariable String id) {
         try {
             flightSeatService.delete(id);
@@ -59,6 +64,7 @@ public class FlightSeatController {
 
     // Delete all flight seats
     @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAllFlightSeats() {
         flightSeatService.deleteAll();
         return new ResponseEntity<>("All flight seats have been deleted successfully!", HttpStatus.OK);
@@ -66,6 +72,7 @@ public class FlightSeatController {
 
     // Get a specific flight seat by id
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getFlightSeatById(@PathVariable String id) {
         try {
             FlightSeat flightSeat = flightSeatService.findByID(id);

@@ -25,4 +25,6 @@ public class Flight {
     private LocalDateTime arrival_Time;
     private Duration duration;
     private Integer airline_ID;
+
+    private String userId;
 }

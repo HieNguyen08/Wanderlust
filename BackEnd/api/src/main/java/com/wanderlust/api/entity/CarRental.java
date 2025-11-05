@@ -12,6 +12,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 
+
 @Document(collection = "carRental")
 @Data
 @AllArgsConstructor
@@ -23,4 +24,6 @@ public class CarRental {
     private String car_Model;
     private Float rental_Cost;
     private String status;
+
+    private String userId;
 }

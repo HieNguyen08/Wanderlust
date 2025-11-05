@@ -1,10 +1,12 @@
 package com.wanderlust.api.services;
 
 import com.wanderlust.api.entity.User;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -25,7 +27,17 @@ public class JwtService {
 
     public String generateToken(User user) {
         Claims claims = Jwts.claims().setSubject(user.getEmail());
-        claims.put("role", user.getRole());
+        
+        // **THAY ĐỔI: Thêm Role và Gender vào claims**
+        // Chúng ta dùng .name() để lưu trữ chuỗi ("USER", "MALE"...)
+        if (user.getRole() != null) {
+            claims.put("role", user.getRole().name());
+        }
+        if (user.getGender() != null) {
+            claims.put("gender", user.getGender().name());
+        }
+        // ---------------------------------------------
+
         claims.put("firstName", user.getFirstName());
         claims.put("lastName", user.getLastName());
         claims.put("avatar", user.getAvatar());
@@ -56,5 +68,18 @@ public class JwtService {
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    private boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 }

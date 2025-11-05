@@ -9,26 +9,36 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.wanderlust.api.entity.User;
+import com.wanderlust.api.entity.types.Role;
 
 public class CustomUserDetails implements UserDetails {
     private String username;
     private String password;
     private List<GrantedAuthority> authorities;
+    private String userId;
 
     public CustomUserDetails(User user) {
         this.username = user.getEmail();
         this.password = user.getPassword();
+        this.userId = user.getUserId();
         this.authorities = new ArrayList<>();
 
         // Add the user's role to the authorities
         if (user.getRole() != null) {
-            // Assuming user.getRole() returns a string like "ADMIN" or "USER"
-            String role = user.getRole().toUpperCase(); // Chuyển đổi thành chữ hoa để đảm bảo tính nhất quán
+            // **THAY ĐỔI TẠI ĐÂY:**
+            // user.getRole() giờ là một đối tượng (ví dụ: enum)
+            // Chúng ta dùng .name() để lấy tên của nó (ví dụ: "ADMIN")
+            String role = user.getRole().name();
             authorities.add(new SimpleGrantedAuthority("ROLE_" + role)); // Thêm "ROLE_" vào trước vai trò
         }
     }
 
     // Implement other methods from UserDetails interface
+    public String getUserId() {
+        return userId;
+    }
+
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;

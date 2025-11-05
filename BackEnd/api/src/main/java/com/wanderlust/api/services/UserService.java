@@ -1,10 +1,9 @@
 package com.wanderlust.api.services;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 // import org.springframework.mail.SimpleMailMessage;
@@ -13,12 +12,14 @@ import org.springframework.stereotype.Service;
 
 import com.wanderlust.api.entity.User;
 import com.wanderlust.api.repository.UserRepository;
+import com.wanderlust.api.entity.types.Role;
+import com.wanderlust.api.dto.UserProfileUpdateDTO;
 
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 @Service
-public class UserService implements BaseServices<User>, UserDetailsService {
+public class UserService implements BaseServices<User> {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -28,9 +29,14 @@ public class UserService implements BaseServices<User>, UserDetailsService {
         return userRepository.findAll();
     }
 
-    // Add a user
+    // Add a user (Dùng bởi Admin Controller)
     public User create(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword())); // Encode password
+        
+        if (user.getRole() == null) {
+            user.setRole(Role.USER);
+        }
+        
         return userRepository.insert(user);
     }
 
@@ -42,17 +48,23 @@ public class UserService implements BaseServices<User>, UserDetailsService {
         if (user.getFirstName() != null) updatedUser .setFirstName(user.getFirstName());
         if (user.getLastName() != null) updatedUser .setLastName(user.getLastName());
         if (user.getAvatar() != null) updatedUser .setAvatar(user.getAvatar());
+        if (user.getGender() != null) updatedUser .setGender(user.getGender()); 
         if (user.getEmail() != null) updatedUser .setEmail(user.getEmail());
         if (user.getMobile() != null) updatedUser .setMobile(user.getMobile());
-        if (user.getPassword() != null) updatedUser .setPassword(passwordEncoder.encode(user.getPassword())); // Encode password
-        if (user.getRole() != null) updatedUser .setRole(user.getRole());
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            updatedUser.setPassword(passwordEncoder.encode(user.getPassword())); // Encode password
+            updatedUser.setPasswordChangeAt(LocalDateTime.now()); // **Ghi lại thời gian**
+        }
+        if (user.getRole() != null) updatedUser .setRole(user.getRole()); 
         if (user.getAddress() != null) updatedUser .setAddress(user.getAddress());
         if (user.getIsBlocked() != null) updatedUser .setIsBlocked(user.getIsBlocked());
-        if (user.getRefreshToken() != null) updatedUser .setRefreshToken(user.getRefreshToken());
-        if (user.getPasswordChangeAt() != null) updatedUser .setPasswordChangeAt(user.getPasswordChangeAt());
-        if (user.getPasswordResetToken() != null) updatedUser .setPasswordResetToken(user.getPasswordResetToken());
-        if (user.getRegisterToken() != null) updatedUser .setRegisterToken(user.getRegisterToken());
-
+        // === SỬA LỖI BẢO MẬT: Không cho Admin tự ý cập nhật các trường hệ thống ===
+        // Các trường này nên được quản lý bởi các logic nghiệp vụ cụ thể 
+        // (ví dụ: logic đổi mật khẩu, logic refresh token) chứ không phải qua API update tùy ý.
+        // if (user.getRefreshToken() != null) updatedUser .setRefreshToken(user.getRefreshToken());
+        // if (user.getPasswordChangeAt() != null) updatedUser .setPasswordChangeAt(user.getPasswordChangeAt());
+        // if (user.getPasswordResetToken() != null) updatedUser .setPasswordResetToken(user.getPasswordResetToken());
+        // if (user.getRegisterToken() != null) updatedUser .setRegisterToken(user.getRegisterToken());
         return userRepository.save(updatedUser );
     }
 
@@ -76,24 +88,14 @@ public class UserService implements BaseServices<User>, UserDetailsService {
                 .orElseThrow(() -> new RuntimeException("User  not found with id " + id));
     }
 
-    // Load user by email for authentication
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User  not found with email: " + email));
 
-        // Convert User to UserDetails
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getEmail())
-                .password(user.getPassword())
-                .roles(user.getRole().toString()) // Assuming role is a single string, like "ADMIN"
-                .build();
-    }
     public Optional<User> findByEmail(String email){
         return userRepository.findByEmail(email);
     }
     public User registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(Role.USER);
+        user.setIsBlocked(false);
         return userRepository.save(user);
     }
 
@@ -104,6 +106,80 @@ public class UserService implements BaseServices<User>, UserDetailsService {
         }
         return Optional.empty();
     }
+
+        // **PHƯƠNG THỨC MỚI: Tạo người dùng OAuth2 (Google/Facebook)**
+    public User createOauthUser(String email, String name, String avatarUrl) {
+        User newUser = new User();
+        newUser.setEmail(email);
+        newUser.setAvatar(avatarUrl);
+        
+        String[] names = name.split(" ", 2);
+        newUser.setFirstName(names[0]);
+        if (names.length > 1) {
+            newUser.setLastName(names[1]);
+        } else {
+            newUser.setLastName(""); // Hoặc để null tùy logic
+        }
+
+        newUser.setRole(Role.USER); // **Mặc định là USER**
+        newUser.setIsBlocked(false); // **Mặc định là không khóa**
+        // Người dùng OAuth2 không có mật khẩu do Spring Security quản lý
+        
+        return userRepository.insert(newUser);
+    }
+
+    public void changeUserPassword(String email, String oldPassword, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+        // Kiểm tra mật khẩu cũ
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Incorrect old password");
+        }
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPasswordChangeAt(LocalDateTime.now());
+        
+        userRepository.save(user);
+    }
+    
+    // PHƯƠNG THỨC MỚI: Cập nhật hồ sơ người dùng (an toàn)
+    public User updateUserProfile(String email, UserProfileUpdateDTO dto) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+        if (dto.getFirstName() != null) user.setFirstName(dto.getFirstName());
+        if (dto.getLastName() != null) user.setLastName(dto.getLastName());
+        if (dto.getMobile() != null) user.setMobile(dto.getMobile());
+        if (dto.getAddress() != null) user.setAddress(dto.getAddress());
+        if (dto.getAvatar() != null) user.setAvatar(dto.getAvatar()); // Cập nhật avatar link
+
+        return userRepository.save(user);
+    }
+
+    // PHƯƠNG THỨC MỚI: Yêu cầu làm PARTNER
+    public void requestPartnerRole(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        
+        // Kiểm tra nếu đã là PARTNER hoặc ADMIN
+        if (user.getRole() == Role.PARTNER || user.getRole() == Role.ADMIN) {
+            throw new RuntimeException("User is already a partner or admin.");
+        }
+
+        // Kiểm tra nếu đã gửi yêu cầu
+        if ("PENDING".equals(user.getPartnerRequestStatus())) {
+            throw new RuntimeException("A partner request is already pending.");
+        }
+
+        user.setPartnerRequestStatus("PENDING");
+        userRepository.save(user);
+        
+        // (Logic nâng cao): Gửi email thông báo cho Admin tại đây
+    }
+
+
+
     // public boolean sendPasswordResetEmail(String email) {
     //     Optional<User> userOptional = userRepository.findByEmail(email);
     //     if (userOptional.isPresent()) {

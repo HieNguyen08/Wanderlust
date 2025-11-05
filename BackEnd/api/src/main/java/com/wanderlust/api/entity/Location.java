@@ -24,4 +24,6 @@ public class Location {
     private String country;
     private String airport_Code;
     private String postCode;
+
+    private String userId;
 }

@@ -4,6 +4,10 @@ import com.wanderlust.api.entity.Activity;
 import com.wanderlust.api.repository.ActivityRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import com.wanderlust.api.services.CustomUserDetails;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +17,19 @@ import java.util.Optional;
 public class ActivityService implements BaseServices<Activity> {
     private final ActivityRepository activityRepository;
 
+    private String getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("No authenticated user found");
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            return ((CustomUserDetails) principal).getUserId();
+        } else {
+            throw new RuntimeException("Unexpected principal type: " + principal.getClass().getName());
+        }
+    }
+
     // Get all activities
     public List<Activity> findAll() {
         return activityRepository.findAll();
@@ -20,6 +37,9 @@ public class ActivityService implements BaseServices<Activity> {
 
     // Add a new activity
     public Activity create(Activity activity) {
+        String ownerId = getCurrentUserId();
+        activity.setUserId(ownerId);
+
         return activityRepository.insert(activity);
     }
 

@@ -24,4 +24,5 @@ public class Room {
     private Float price;
     private String status;
     
+    private String hotel_ID;
 }

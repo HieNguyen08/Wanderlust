@@ -20,7 +20,8 @@ public class Advertisement {
     @Id
     private String ad_ID;
     
-    // private String title;
     private String news;
     private String ad_Type;
+
+    private String userId;
 }

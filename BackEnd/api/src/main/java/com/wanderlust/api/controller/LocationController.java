@@ -6,11 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user/locations")
+@RequestMapping("/api/locations")
 public class LocationController {
 
     private final LocationService locationService;
@@ -22,6 +24,7 @@ public class LocationController {
 
     // Get all locations
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Location>> getAllLocations() {
         List<Location> allLocations = locationService.findAll();
         return new ResponseEntity<>(allLocations, HttpStatus.OK);
@@ -29,6 +32,7 @@ public class LocationController {
 
     // Add a location
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
     public ResponseEntity<Location> addLocation(@RequestBody Location location) {
         Location newLocation = locationService.create(location);
         return new ResponseEntity<>(newLocation, HttpStatus.CREATED);
@@ -36,6 +40,7 @@ public class LocationController {
 
     // Update an existing location
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isLocationOwner(authentication, #id))")
     public ResponseEntity<?> updateLocation(@PathVariable String id, @RequestBody Location updatedLocation) {
         updatedLocation.setLocation_ID(id); // Ensure the ID in the entity matches the path variable
         try {
@@ -48,6 +53,7 @@ public class LocationController {
 
     // Delete a location by ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isLocationOwner(authentication, #id))")
     public ResponseEntity<String> deleteLocation(@PathVariable String id) {
         try {
             locationService.delete(id);
@@ -59,6 +65,7 @@ public class LocationController {
 
     // Delete all locations
     @DeleteMapping
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<String> deleteAllLocations() {
         locationService.deleteAll();
         return new ResponseEntity<>("All locations have been deleted successfully!", HttpStatus.OK);
@@ -66,6 +73,7 @@ public class LocationController {
 
     // Get a specific location by id
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getLocationById(@PathVariable String id) {
         try {
             Location location = locationService.findByID(id);

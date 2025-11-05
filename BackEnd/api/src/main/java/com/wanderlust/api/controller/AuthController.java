@@ -1,7 +1,7 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.dto.AuthResponseDTO; // Tạo DTO này
-import com.wanderlust.api.dto.LoginRequestDTO; // Tạo DTO này
+import com.wanderlust.api.dto.AuthResponseDTO;
+import com.wanderlust.api.dto.LoginRequestDTO;
 import com.wanderlust.api.entity.User;
 import com.wanderlust.api.services.JwtService;
 import com.wanderlust.api.services.UserService;
@@ -16,13 +16,12 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor // Sử dụng constructor injection
+@RequiredArgsConstructor
 public class AuthController {
 
     private final UserService userService;
     private final JwtService jwtService;
 
-    // --- Sửa đổi hoàn toàn phương thức login ---
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
         Optional<User> userOptional = userService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
@@ -30,14 +29,21 @@ public class AuthController {
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             String token = jwtService.generateToken(user);
-            
-            AuthResponseDTO response = new AuthResponseDTO(token, user.getFirstName(), user.getLastName(), user.getEmail(), user.getAvatar());
+
+            AuthResponseDTO response = new AuthResponseDTO(
+                    token,
+                    user.getFirstName(),
+                    user.getLastName(),
+                    user.getEmail(),
+                    user.getAvatar(),
+                    user.getRole(),
+                    user.getGender()
+            );
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
     }
-    // ------------------------------------------
 
     @PostMapping("/register")
     public User register(@RequestBody User user) {

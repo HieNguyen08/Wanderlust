@@ -23,4 +23,6 @@ public class Hotel {
     private String contact_Number;
     private Float rating;
     private String amenities;
+
+    private String userId;
 }

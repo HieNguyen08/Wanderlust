@@ -25,4 +25,10 @@ public class Booking {
     private String status;
     private Float total_Price;
 
+    private String userId;
+    private String hotel_ID;
+    private String flight_ID;
+    private String car_Rental_ID;
+    private String booking_RequestStatus;
+
 }

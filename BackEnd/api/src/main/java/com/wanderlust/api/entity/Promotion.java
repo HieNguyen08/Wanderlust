@@ -25,4 +25,6 @@ public class Promotion {
     private LocalDate start_date;
     private LocalDate end_date;
     private Duration duration;
+
+    private String userId;
 }

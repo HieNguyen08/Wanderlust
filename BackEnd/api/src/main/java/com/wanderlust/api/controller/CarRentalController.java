@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user/car-rentals")
+@RequestMapping("/api/car-rentals")
 public class CarRentalController {
 
     private final CarRentalService carRentalService;
@@ -22,6 +23,7 @@ public class CarRentalController {
 
     // Get all car rentals
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CarRental>> getAllCarRentals() {
         List<CarRental> allCarRentals = carRentalService.findAll();
         return new ResponseEntity<>(allCarRentals, HttpStatus.OK);
@@ -29,6 +31,7 @@ public class CarRentalController {
 
     // Add a car rental
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
     public ResponseEntity<CarRental> addCarRental(@RequestBody CarRental carRental) {
         CarRental newCarRental = carRentalService.create(carRental);
         return new ResponseEntity<>(newCarRental, HttpStatus.CREATED);
@@ -36,6 +39,7 @@ public class CarRentalController {
 
     // Update an existing car rental
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isCarRentalOwner(authentication, #id))")
     public ResponseEntity<?> updateCarRental(@PathVariable String id, @RequestBody CarRental updatedCarRental) {
         updatedCarRental.setRental_ID(id); // Ensure the ID in the entity matches the path variable
         try {
@@ -48,6 +52,7 @@ public class CarRentalController {
 
     // Delete a car rental by ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isCarRentalOwner(authentication, #id))")
     public ResponseEntity<String> deleteCarRental(@PathVariable String id) {
         try {
             carRentalService.delete(id);
@@ -59,6 +64,7 @@ public class CarRentalController {
 
     // Delete all car rentals
     @DeleteMapping
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<String> deleteAllCarRentals() {
         carRentalService .deleteAll();
         return new ResponseEntity<>("All car rentals have been deleted successfully!", HttpStatus.OK);
@@ -66,6 +72,7 @@ public class CarRentalController {
 
     // Get a specific car rental by id
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getCarRentalById(@PathVariable String id) {
         try {
             CarRental carRental = carRentalService.findByID(id);

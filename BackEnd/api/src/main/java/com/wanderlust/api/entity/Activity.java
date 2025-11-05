@@ -12,6 +12,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 
+
 @Document(collection = "activity")
 @Data
 @AllArgsConstructor
@@ -24,4 +25,6 @@ public class Activity {
     private float price;
     private LocalDate startDate;
     private Integer max_Participants;
+
+    private String userId;
 }

@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user/review-comments")
+@RequestMapping("/api/review-comments")
 public class ReviewCommentController {
 
     private final ReviewCommentService reviewCommentService;
@@ -22,6 +23,7 @@ public class ReviewCommentController {
 
     // Get all review comments
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ReviewComment>> getAllReviewComments() {
         List<ReviewComment> allComments = reviewCommentService.findAll();
         return new ResponseEntity<>(allComments, HttpStatus.OK);
@@ -29,6 +31,7 @@ public class ReviewCommentController {
 
     // Add a review comment
     @PostMapping
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ReviewComment> addReviewComment(@RequestBody ReviewComment reviewComment) {
         ReviewComment newComment = reviewCommentService.create(reviewComment);
         return new ResponseEntity<>(newComment, HttpStatus.CREATED);
@@ -36,6 +39,7 @@ public class ReviewCommentController {
 
     // Update an existing review comment
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('USER') and @webSecurity.isReviewCommentOwner(authentication, #id)")
     public ResponseEntity<?> updateReviewComment(@PathVariable String id, @RequestBody ReviewComment updatedComment) {
         updatedComment.setNum_of_rating_ID(id); // Ensure the ID in the entity matches the path variable
         try {
@@ -48,6 +52,7 @@ public class ReviewCommentController {
 
     // Delete a review comment by ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and @webSecurity.isReviewCommentOwner(authentication, #id))")
     public ResponseEntity<String> deleteReviewComment(@PathVariable String id) {
         try {
             reviewCommentService.delete(id);
@@ -59,6 +64,7 @@ public class ReviewCommentController {
 
     // Delete all review comments
     @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAllReviewComments() {
         reviewCommentService.deleteAll();
         return new ResponseEntity<>("All review comments have been deleted successfully!", HttpStatus.OK);
@@ -66,6 +72,7 @@ public class ReviewCommentController {
 
     // Get a specific review comment by id
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getReviewCommentById(@PathVariable String id) {
         try {
             ReviewComment comment = reviewCommentService.findByID(id);

@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user/flights")
+@RequestMapping("/api/flights")
 public class FlightController {
 
     private final FlightService flightService;
@@ -22,6 +23,7 @@ public class FlightController {
 
     // Get all flights
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Flight>> getAllFlights() {
         List<Flight> allFlights = flightService.findAll();
         return new ResponseEntity<>(allFlights, HttpStatus.OK);
@@ -29,6 +31,7 @@ public class FlightController {
 
     // Add a flight
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Flight> addFlight(@RequestBody Flight flight) {
         Flight newFlight = flightService.create(flight);
         return new ResponseEntity<>(newFlight, HttpStatus.CREATED);
@@ -36,6 +39,7 @@ public class FlightController {
 
     // Update an existing flight
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateFlight(@PathVariable String id, @RequestBody Flight updatedFlight) {
         updatedFlight.setId(id); // Ensure the ID in the entity matches the path variable
         try {
@@ -48,6 +52,7 @@ public class FlightController {
 
     // Delete a flight by ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteFlight(@PathVariable String id) {
         try {
             flightService.delete(id);
@@ -59,6 +64,7 @@ public class FlightController {
 
     // Delete all flights
     @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAllFlights() {
         flightService.deleteAll();
         return new ResponseEntity<>("All flights have been deleted successfully!", HttpStatus.OK);
@@ -66,6 +72,7 @@ public class FlightController {
 
     // Get a specific flight by id
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getFlightById(@PathVariable String id) {
         try {
             Flight flight = flightService.findByID(id);

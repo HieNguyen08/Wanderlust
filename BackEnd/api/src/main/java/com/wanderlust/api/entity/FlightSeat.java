@@ -23,4 +23,7 @@ public class FlightSeat {
     private String seat_Class;
     private Float price;
     private Boolean availability;
+
+    //ID của chuyến bay
+    private String flight_ID;
 }

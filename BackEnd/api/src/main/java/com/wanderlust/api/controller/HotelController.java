@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user/hotels")
+@RequestMapping("/api/hotels")
 public class HotelController {
 
     private final HotelService hotelService;
@@ -22,6 +23,7 @@ public class HotelController {
 
     // Get all hotels
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Hotel>> getAllHotels() {
         List<Hotel> allHotels = hotelService.findAll();
         return new ResponseEntity<>(allHotels, HttpStatus.OK);
@@ -29,6 +31,7 @@ public class HotelController {
 
     // Add a hotel
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
     public ResponseEntity<Hotel> addHotel(@RequestBody Hotel hotel) {
         Hotel newHotel = hotelService.create(hotel);
         return new ResponseEntity<>(newHotel, HttpStatus.CREATED);
@@ -36,6 +39,7 @@ public class HotelController {
 
     // Update an existing hotel
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isHotelOwner(authentication, #id))")
     public ResponseEntity<?> updateHotel(@PathVariable String id, @RequestBody Hotel updatedHotel) {
         updatedHotel.setHotel_ID(id); // Ensure the ID in the entity matches the path variable
         try {
@@ -48,6 +52,7 @@ public class HotelController {
 
     // Delete a hotel by ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isHotelOwner(authentication, #id))")
     public ResponseEntity<String> deleteHotel(@PathVariable String id) {
         try {
             hotelService.delete(id);
@@ -59,6 +64,7 @@ public class HotelController {
 
     // Delete all hotels
     @DeleteMapping
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<String> deleteAllHotels() {
         hotelService.deleteAll();
         return new ResponseEntity<>("All hotels have been deleted successfully!", HttpStatus.OK);
@@ -66,6 +72,7 @@ public class HotelController {
 
     // Get a specific hotel by id
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getHotelById(@PathVariable String id) {
         try {
             Hotel hotel = hotelService.findByID(id);

@@ -29,14 +29,10 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
 
     private final UserService userService;
     private final JwtService jwtService;
-    User user;
+
 
     @Value("${frontend.url:http://localhost:5173}")
     private String frontendUrl;
-
-    String jwtToken = null;
-    String username = null;
-    String avatarUrl = null;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {
@@ -45,30 +41,47 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         Map<String, Object> attributes = defaultOAuth2User.getAttributes();
         String email = attributes.getOrDefault("email", "").toString();
         String name = attributes.getOrDefault("name", "").toString();
-        if("google".equals(oAuth2AuthenticationToken.getAuthorizedClientRegistrationId())) {
+        String avatarUrl = "";
+
+        String provider = oAuth2AuthenticationToken.getAuthorizedClientRegistrationId();
+
+        if ("google".equals(provider)) {
             avatarUrl = attributes.getOrDefault("picture", "").toString();
-            Optional<User> optionalUser = userService.findByEmail(email);
-            if (optionalUser.isPresent()) {
-                user = optionalUser.get();
-                username = String.format("%s %s", user.getFirstName(), user.getLastName()).trim();
-            } else {
-                String redirectUrl = frontendUrl + "/login?error=UserNotFound";
-                response.sendRedirect(redirectUrl);
-                return;
+        } else if ("facebook".equals(provider)) {
+            // Facebook trả về avatar trong cấu trúc data.url
+            if (attributes.containsKey("picture")) {
+                Map<String, Object> pictureObj = (Map<String, Object>) attributes.get("picture");
+                if (pictureObj.containsKey("data")) {
+                    Map<String, Object> dataObj = (Map<String, Object>) pictureObj.get("data");
+                    avatarUrl = dataObj.getOrDefault("url", "").toString();
+                }
             }
         }
-        if("facebook".equals(oAuth2AuthenticationToken.getAuthorizedClientRegistrationId())) {
-            Optional<User> optionalUser = userService.findByEmail(email);
-                    
-            if (optionalUser.isPresent()) {
-                user = optionalUser.get();
-                username = user.getFirstName() + user.getLastName();
-            } else {
-                String redirectUrl = frontendUrl + "/login?error=UserNotFound";
-                response.sendRedirect(redirectUrl);
-                return;
-            }
+        
+        if (email.isEmpty()) {
+            // Nếu không có email, không thể tiếp tục
+            String redirectUrl = frontendUrl + "/login?error=EmailNotFound";
+            response.sendRedirect(redirectUrl);
+            return;
         }
+
+        // **THAY ĐỔI: Logic TÌM HOẶC TẠO (FIND OR CREATE)**
+        Optional<User> optionalUser = userService.findByEmail(email);
+        User user;
+
+        if (optionalUser.isPresent()) {
+            // 1. Nếu tìm thấy: Sử dụng người dùng hiện có
+            user = optionalUser.get();
+            // (Tùy chọn: Cập nhật avatar nếu avatar mới khác avatar cũ)
+            if (avatarUrl != null && user.getAvatar() == null ) {
+                user.setAvatar(avatarUrl);
+                userService.update(user); // Cập nhật lại avatar
+            }
+        } else {
+            // 2. Nếu không tìm thấy: Tạo người dùng mới
+            user = userService.createOauthUser(email, name, avatarUrl);
+        }
+
         CustomOAuth2User oauth2User = new CustomOAuth2User(user, attributes);
         Authentication newAuthentication = new OAuth2AuthenticationToken(
             oauth2User,
@@ -76,10 +89,14 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
             oAuth2AuthenticationToken.getAuthorizedClientRegistrationId()
         );
         SecurityContextHolder.getContext().setAuthentication(newAuthentication);
-        jwtToken = jwtService.generateToken(user);
+        
+        String jwtToken = jwtService.generateToken(user);
+        String username = String.format("%s %s", user.getFirstName(), user.getLastName()).trim();
+        
         String encodedJwtToken = URLEncoder.encode(jwtToken, StandardCharsets.UTF_8.toString());
         String encodedUsername = URLEncoder.encode(username, StandardCharsets.UTF_8.toString());
         String encodedAvatarUrl = URLEncoder.encode(avatarUrl, StandardCharsets.UTF_8.toString());
+        
         String redirectUrl = frontendUrl + "/login-success?token=" + encodedJwtToken + "&username=" + encodedUsername + "&avatar=" + encodedAvatarUrl;        
         response.sendRedirect(redirectUrl);
     }

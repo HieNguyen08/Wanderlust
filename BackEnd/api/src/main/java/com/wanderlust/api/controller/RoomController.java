@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user/rooms")
+@RequestMapping("/api/rooms")
 public class RoomController {
 
     private final RoomService roomService;
@@ -22,6 +23,7 @@ public class RoomController {
 
     // Get all rooms
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Room>> getAllRooms() {
         List<Room> allRooms = roomService.findAll();
         return new ResponseEntity<>(allRooms, HttpStatus.OK);
@@ -29,6 +31,7 @@ public class RoomController {
 
     // Add a room
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Room> addRoom(@RequestBody Room room) {
         Room newRoom = roomService.create(room);
         return new ResponseEntity<>(newRoom, HttpStatus.CREATED);
@@ -36,6 +39,7 @@ public class RoomController {
 
     // Update an existing room
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateRoom(@PathVariable String id, @RequestBody Room updatedRoom) {
         updatedRoom.setRoom_ID(id); // Ensure the ID in the entity matches the path variable
         try {
@@ -48,6 +52,7 @@ public class RoomController {
 
     // Delete a room by ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteRoom(@PathVariable String id) {
         try {
             roomService.delete(id);
@@ -59,6 +64,7 @@ public class RoomController {
 
     // Delete all rooms
     @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAllRooms() {
         roomService.deleteAll();
         return new ResponseEntity<>("All rooms have been deleted successfully!", HttpStatus.OK);
@@ -66,6 +72,7 @@ public class RoomController {
 
     // Get a specific room by id
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getRoomById(@PathVariable String id) {
         try {
             Room room = roomService.findByID(id);
