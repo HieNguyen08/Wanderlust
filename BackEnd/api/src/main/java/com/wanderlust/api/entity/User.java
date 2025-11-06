@@ -2,6 +2,7 @@ package com.wanderlust.api.entity;
 
 import com.wanderlust.api.entity.types.Gender;
 import com.wanderlust.api.entity.types.Role;
+import com.wanderlust.api.entity.types.MembershipLevel;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,7 +34,19 @@ public class User {
     private String mobile;
     private String password;
     private Role role;
+    private LocalDate dateOfBirth;
     private String address;
+    private String city;
+    private String country;
+    private String passportNumber;
+    private LocalDate passportExpiryDate;
+    private MembershipLevel membershipLevel;  // BRONZE, SILVER, GOLD, PLATINUM
+    private Integer loyaltyPoints;         // Điểm tích lũy (hiện: 2,450)
+    private Integer totalTrips;            // Tổng số chuyến đi (hiện: 12)
+    private Integer totalReviews;          // Số đánh giá đã viết (hiện: 8)
+    private LocalDateTime createdAt;       // Ngày tạo tài khoản
+    private LocalDateTime updatedAt;       // Lần cập nhật cuối
+    private LocalDateTime lastLoginAt;     // Lần đăng nhập cuố
     private Boolean isBlocked;
     private String refreshToken;
     private LocalDateTime passwordChangeAt;

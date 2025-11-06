@@ -14,6 +14,9 @@ import com.wanderlust.api.entity.User;
 import com.wanderlust.api.repository.UserRepository;
 import com.wanderlust.api.entity.types.Role;
 import com.wanderlust.api.dto.UserProfileUpdateDTO;
+import com.wanderlust.api.dto.MembershipInfoDTO;
+import com.wanderlust.api.dto.UserProfileResponseDTO;
+import com.wanderlust.api.dto.UserStatsDTO;
 
 import lombok.AllArgsConstructor;
 
@@ -36,7 +39,14 @@ public class UserService implements BaseServices<User> {
         if (user.getRole() == null) {
             user.setRole(Role.USER);
         }
-        
+        user.setCreatedAt(LocalDateTime.now());
+        user.setIsBlocked(false);
+        if (user.getMembershipLevel() == null) user.setMembershipLevel(com.wanderlust.api.entity.types.MembershipLevel.BRONZE);
+        if (user.getLoyaltyPoints() == null) user.setLoyaltyPoints(0);
+        if (user.getTotalTrips() == null) user.setTotalTrips(0);
+        if (user.getTotalReviews() == null) user.setTotalReviews(0);
+
+
         return userRepository.insert(user);
     }
 
@@ -58,13 +68,19 @@ public class UserService implements BaseServices<User> {
         if (user.getRole() != null) updatedUser .setRole(user.getRole()); 
         if (user.getAddress() != null) updatedUser .setAddress(user.getAddress());
         if (user.getIsBlocked() != null) updatedUser .setIsBlocked(user.getIsBlocked());
-        // === SỬA LỖI BẢO MẬT: Không cho Admin tự ý cập nhật các trường hệ thống ===
-        // Các trường này nên được quản lý bởi các logic nghiệp vụ cụ thể 
-        // (ví dụ: logic đổi mật khẩu, logic refresh token) chứ không phải qua API update tùy ý.
-        // if (user.getRefreshToken() != null) updatedUser .setRefreshToken(user.getRefreshToken());
-        // if (user.getPasswordChangeAt() != null) updatedUser .setPasswordChangeAt(user.getPasswordChangeAt());
-        // if (user.getPasswordResetToken() != null) updatedUser .setPasswordResetToken(user.getPasswordResetToken());
-        // if (user.getRegisterToken() != null) updatedUser .setRegisterToken(user.getRegisterToken());
+        
+        if (user.getDateOfBirth() != null) updatedUser.setDateOfBirth(user.getDateOfBirth());
+        if (user.getCity() != null) updatedUser.setCity(user.getCity());
+        if (user.getCountry() != null) updatedUser.setCountry(user.getCountry());
+        if (user.getPassportNumber() != null) updatedUser.setPassportNumber(user.getPassportNumber());
+        if (user.getPassportExpiryDate() != null) updatedUser.setPassportExpiryDate(user.getPassportExpiryDate());
+        if (user.getMembershipLevel() != null) updatedUser.setMembershipLevel(user.getMembershipLevel());
+		if (user.getLoyaltyPoints() != null) updatedUser.setLoyaltyPoints(user.getLoyaltyPoints());
+		if (user.getTotalTrips() != null) updatedUser.setTotalTrips(user.getTotalTrips());
+		if (user.getTotalReviews() != null) updatedUser.setTotalReviews(user.getTotalReviews());
+        if (user.getPartnerRequestStatus() != null) updatedUser.setPartnerRequestStatus(user.getPartnerRequestStatus());
+
+        updatedUser.setUpdatedAt(LocalDateTime.now());
         return userRepository.save(updatedUser );
     }
 
@@ -96,12 +112,20 @@ public class UserService implements BaseServices<User> {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(Role.USER);
         user.setIsBlocked(false);
+        user.setCreatedAt(LocalDateTime.now());
+        if (user.getMembershipLevel() == null) user.setMembershipLevel(com.wanderlust.api.entity.types.MembershipLevel.BRONZE);
+        if (user.getLoyaltyPoints() == null) user.setLoyaltyPoints(0);
+        if (user.getTotalTrips() == null) user.setTotalTrips(0);
+        if (user.getTotalReviews() == null) user.setTotalReviews(0);
         return userRepository.save(user);
     }
 
     public Optional<User> authenticate(String email, String password) {
         Optional<User> userOptional = findByEmail(email);
         if (userOptional.isPresent() && passwordEncoder.matches(password, userOptional.get().getPassword())) {
+            User user = userOptional.get();
+            user.setLastLoginAt(LocalDateTime.now());
+            userRepository.save(user);
             return userOptional;
         }
         return Optional.empty();
@@ -123,8 +147,12 @@ public class UserService implements BaseServices<User> {
 
         newUser.setRole(Role.USER); // **Mặc định là USER**
         newUser.setIsBlocked(false); // **Mặc định là không khóa**
-        // Người dùng OAuth2 không có mật khẩu do Spring Security quản lý
-        
+        newUser.setCreatedAt(LocalDateTime.now());
+        newUser.setMembershipLevel(com.wanderlust.api.entity.types.MembershipLevel.BRONZE);
+        newUser.setLoyaltyPoints(0);
+        newUser.setTotalTrips(0);
+        newUser.setTotalReviews(0);
+
         return userRepository.insert(newUser);
     }
 
@@ -133,18 +161,24 @@ public class UserService implements BaseServices<User> {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
         // Kiểm tra mật khẩu cũ
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new IllegalArgumentException("Incorrect old password");
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+                throw new IllegalArgumentException("Incorrect old password");
+            }
+        } else if (oldPassword != null && !oldPassword.isEmpty()) {
+            // User OAuth2 không có mật khẩu cũ
+            throw new IllegalArgumentException("OAuth2 user cannot change password this way.");
         }
         
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setPasswordChangeAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
         
         userRepository.save(user);
     }
     
     // PHƯƠNG THỨC MỚI: Cập nhật hồ sơ người dùng (an toàn)
-    public User updateUserProfile(String email, UserProfileUpdateDTO dto) {
+    public UserProfileResponseDTO updateUserProfile(String email, UserProfileUpdateDTO dto) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
@@ -152,55 +186,122 @@ public class UserService implements BaseServices<User> {
         if (dto.getLastName() != null) user.setLastName(dto.getLastName());
         if (dto.getMobile() != null) user.setMobile(dto.getMobile());
         if (dto.getAddress() != null) user.setAddress(dto.getAddress());
-        if (dto.getAvatar() != null) user.setAvatar(dto.getAvatar()); // Cập nhật avatar link
+        if (dto.getAvatar() != null) user.setAvatar(dto.getAvatar());
+        
+        // **THÊM CÁC TRƯỜNG MỚI**
+        if (dto.getDateOfBirth() != null) user.setDateOfBirth(dto.getDateOfBirth());
+        if (dto.getCity() != null) user.setCity(dto.getCity());
+        if (dto.getCountry() != null) user.setCountry(dto.getCountry());
+        if (dto.getPassportNumber() != null) user.setPassportNumber(dto.getPassportNumber());
+        if (dto.getPassportExpiry() != null) user.setPassportExpiryDate(dto.getPassportExpiry());
+        if (dto.getGender() != null) user.setGender(dto.getGender());
 
-        return userRepository.save(user);
+        user.setUpdatedAt(LocalDateTime.now());
+        
+        User savedUser = userRepository.save(user);
+        return mapToUserProfileResponseDTO(savedUser); // Trả về DTO
     }
 
-    // PHƯƠNG THỨC MỚI: Yêu cầu làm PARTNER
+    // PHƯƠNG THỨC MỚI: Yêu cầu làm PARTNER (Đã có)
     public void requestPartnerRole(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         
-        // Kiểm tra nếu đã là PARTNER hoặc ADMIN
         if (user.getRole() == Role.PARTNER || user.getRole() == Role.ADMIN) {
             throw new RuntimeException("User is already a partner or admin.");
         }
-
-        // Kiểm tra nếu đã gửi yêu cầu
         if ("PENDING".equals(user.getPartnerRequestStatus())) {
             throw new RuntimeException("A partner request is already pending.");
         }
 
         user.setPartnerRequestStatus("PENDING");
+        user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
-        
-        // (Logic nâng cao): Gửi email thông báo cho Admin tại đây
     }
 
+    public UserProfileResponseDTO getCurrentUserProfile(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        return mapToUserProfileResponseDTO(user);
+    }
 
+    public UserStatsDTO getUserStats(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+                
+        UserStatsDTO statsDTO = new UserStatsDTO();
+        statsDTO.setTotalTrips(user.getTotalTrips() != null ? user.getTotalTrips() : 0);
+        statsDTO.setLoyaltyPoints(user.getLoyaltyPoints() != null ? user.getLoyaltyPoints() : 0);
+        statsDTO.setTotalReviews(user.getTotalReviews() != null ? user.getTotalReviews() : 0);
+        
+        return statsDTO;
+    }
 
-    // public boolean sendPasswordResetEmail(String email) {
-    //     Optional<User> userOptional = userRepository.findByEmail(email);
-    //     if (userOptional.isPresent()) {
-    //         User user = userOptional.get();
-    //         String token = generatePasswordResetToken(user); // Tạo token cho việc đặt lại mật khẩu
-    //         String resetLink = "http://localhost:5173/reset-password?token=" + token;
+    public MembershipInfoDTO getMembershipInfo(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+                
+        MembershipInfoDTO membershipDTO = new MembershipInfoDTO();
+        membershipDTO.setCurrentLevel(user.getMembershipLevel() != null ? user.getMembershipLevel() : com.wanderlust.api.entity.types.MembershipLevel.BRONZE);
+        membershipDTO.setCurrentPoints(user.getLoyaltyPoints() != null ? user.getLoyaltyPoints() : 0);
+        
+        // Logic tính toán điểm lên hạng (ví dụ)
+        int totalTrips = user.getTotalTrips() != null ? user.getTotalTrips() : 0;
+        int totalReviews = user.getTotalReviews() != null ? user.getTotalReviews() : 0;
+        
+        int calculatedPoints = (totalTrips * 100) + (totalReviews * 20);
+        membershipDTO.setCurrentPoints(calculatedPoints);
 
-    //         SimpleMailMessage message = new SimpleMailMessage();
-    //         message.setTo(user.getEmail());
-    //         message.setSubject("Password Reset Request");
-    //         message.setText("To reset your password, click the link below:\n" + resetLink);
+        int pointsForNextLevel = 0;
+        com.wanderlust.api.entity.types.MembershipLevel nextLevel = null;
+        
+        switch (membershipDTO.getCurrentLevel()) {
+            case BRONZE:
+                pointsForNextLevel = 5000;
+                nextLevel = com.wanderlust.api.entity.types.MembershipLevel.SILVER;
+                break;
+            case SILVER:
+                pointsForNextLevel = 15000;
+                nextLevel = com.wanderlust.api.entity.types.MembershipLevel.GOLD;
+                break;
+            case GOLD:
+                pointsForNextLevel = 30000;
+                nextLevel = com.wanderlust.api.entity.types.MembershipLevel.PLATINUM;
+                break;
+            case PLATINUM:
+                pointsForNextLevel = 30000; // Đã ở hạng cao nhất
+                nextLevel = com.wanderlust.api.entity.types.MembershipLevel.PLATINUM;
+                break;
+        }
+        
+        membershipDTO.setNextLevel(nextLevel);
+        membershipDTO.setPointsForNextLevel(pointsForNextLevel);
+        
+        double progress = (pointsForNextLevel > 0) ? ((double) membershipDTO.getCurrentPoints() / pointsForNextLevel) * 100 : 100;
+        membershipDTO.setProgressPercentage(Math.min(progress, 100.0)); // Giới hạn ở 100%
+        
+        return membershipDTO;
+    }
 
-    //         mailSender.send(message);
-    //         return true;
-    //     }
-    //     return false;
-    // }
-
-    // private String generatePasswordResetToken(User user) {
-    //     // Tạo token cho việc đặt lại mật khẩu (có thể sử dụng JWT hoặc một phương pháp khác)
-    //     // Lưu token vào cơ sở dữ liệu hoặc bộ nhớ tạm thời
-    //     return "generated-token"; // Thay thế bằng logic thực tế
-    // }
+    private UserProfileResponseDTO mapToUserProfileResponseDTO(User user) {
+        UserProfileResponseDTO dto = new UserProfileResponseDTO();
+        dto.setUserId(user.getUserId());
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
+        dto.setEmail(user.getEmail());
+        dto.setAvatar(user.getAvatar());
+        dto.setMobile(user.getMobile());
+        dto.setGender(user.getGender());
+        dto.setAddress(user.getAddress());
+        dto.setDateOfBirth(user.getDateOfBirth());
+        dto.setCity(user.getCity());
+        dto.setCountry(user.getCountry());
+        dto.setPassportNumber(user.getPassportNumber());
+        dto.setPassportExpiryDate(user.getPassportExpiryDate());
+        dto.setRole(user.getRole());
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setPartnerRequestStatus(user.getPartnerRequestStatus());
+        return dto;
+    }
+    
 }

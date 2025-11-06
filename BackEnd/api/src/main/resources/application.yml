@@ -4,7 +4,7 @@ server:
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017
+      uri: mongodb+srv://dangthanhanh_db_user:01862001@cluster0.ozaixgp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
       database: wanderlust
       #mongodb+srv://dangthanhanh_db_user:01862001@cluster0.ozaixgp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
       # mongodb://localhost:27017
