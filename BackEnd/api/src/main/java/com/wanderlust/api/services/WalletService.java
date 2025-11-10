@@ -56,10 +56,9 @@ public interface WalletService {
     boolean hasSufficientBalance(String userId, BigDecimal amount);
 
     /**
-     * [cite_start]Update balance (atomic operation) [cite: 21]
-     * * TODO: Cần file Enum: TransactionType
+     * Update balance (atomic operation)
      */
-    // void updateBalance(String walletId, BigDecimal amount, TransactionType type);
+    void updateBalance(String walletId, BigDecimal amount, TransactionType type);
 
     /**
      * [cite_start]Tính tổng nạp, chi, hoàn tiền [cite: 22]

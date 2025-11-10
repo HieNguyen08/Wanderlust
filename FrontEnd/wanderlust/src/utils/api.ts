@@ -1,10 +1,10 @@
 // API Base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 // Auth API endpoints
 export const authApi = {
   login: async (email: string, password: string) => {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ export const authApi = {
     city?: string;
     country?: string;
   }) => {
-    const url = `${API_BASE_URL}/auth/register`;
+    const url = `${API_BASE_URL}/api/auth/register`;
     console.log("🌐 API URL:", url);
     console.log("📦 Request body:", userData);
     
@@ -119,4 +119,40 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
   }
 
   return response;
+};
+
+// Profile API endpoints
+export const profileApi = {
+  getProfile: async () => {
+    const response = await authenticatedFetch('/api/user/profile');
+    if (!response.ok) {
+      throw new Error('Failed to fetch profile');
+    }
+    return response.json();
+  },
+
+  updateProfile: async (profileData: {
+    firstName: string;
+    lastName: string;
+    mobile?: string;
+    dateOfBirth?: string;
+    gender?: string;
+    address?: string;
+    city?: string;
+    country?: string;
+    passportNumber?: string;
+    passportExpiryDate?: string;
+  }) => {
+    const response = await authenticatedFetch('/api/user/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || 'Failed to update profile');
+    }
+
+    return response.json();
+  },
 };

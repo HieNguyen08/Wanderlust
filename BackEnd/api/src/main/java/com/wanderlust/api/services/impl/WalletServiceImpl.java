@@ -6,8 +6,8 @@ import com.wanderlust.api.entity.Wallet;
 import com.wanderlust.api.entity.types.WalletStatus;
 import com.wanderlust.api.exception.ResourceNotFoundException;
 import com.wanderlust.api.repository.WalletRepository;
-import com.wanderlust.api.service.WalletService;
-import com.wanderlust.api.service.TransactionService; // Giả định đã có TransactionService
+import com.wanderlust.api.services.WalletService;
+import com.wanderlust.api.entity.types.TransactionType;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ import java.time.LocalDateTime;
 public class WalletServiceImpl implements WalletService {
 
     private final WalletRepository walletRepository;
-    [cite_start]// Giả định bạn có TransactionService để tính toán thống kê [cite: 25, 29]
+    // Giả định bạn có TransactionService để tính toán thống kê
     // private final TransactionService transactionService; 
     private final ModelMapper modelMapper;
 
@@ -160,18 +160,23 @@ public class WalletServiceImpl implements WalletService {
     }
     */
     
-    /*
     @Override
     @Transactional
     public void updateBalance(String walletId, BigDecimal amount, TransactionType type) {
-        [cite_start]// [cite: 21]
-        // TODO: Cần TransactionType Enum
-        // Đây là hàm quan trọng, cần đảm bảo atomic
-        // Wallet wallet = walletRepository.findById(walletId)...
-        // wallet.setBalance(wallet.getBalance().add(amount)); // amount có thể âm (DEBIT) hoặc dương (CREDIT/REFUND)
-        // walletRepository.save(wallet);
-        // Sau đó gọi recalculateWalletStatistics(walletId) hoặc cập nhật riêng lẻ
-        throw new UnsupportedOperationException("Not implemented yet. Missing Enum: TransactionType");
+        Wallet wallet = walletRepository.findById(walletId)
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found: " + walletId));
+        
+        // Cập nhật balance
+        wallet.setBalance(wallet.getBalance().add(amount));
+        
+        // Cập nhật statistics dựa trên loại giao dịch
+        switch (type) {
+            case CREDIT -> wallet.setTotalTopUp(wallet.getTotalTopUp().add(amount));
+            case DEBIT -> wallet.setTotalSpent(wallet.getTotalSpent().add(amount.abs()));
+            case REFUND -> wallet.setTotalRefund(wallet.getTotalRefund().add(amount));
+        }
+        
+        wallet.setUpdatedAt(LocalDateTime.now());
+        walletRepository.save(wallet);
     }
-    */
 }

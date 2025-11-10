@@ -31,7 +31,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
     private final JwtService jwtService;
 
 
-    @Value("${frontend.url:http://localhost:5173}")
+    @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
     @Override

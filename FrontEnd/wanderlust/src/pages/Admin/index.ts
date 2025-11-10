@@ -1,0 +1,12 @@
+export { default as AdminDashboard } from './AdminDashboard';
+export { default as AdminUsersPage } from './AdminUsersPage';
+export { default as AdminBookingsPage } from './AdminBookingsPage';
+export { default as AdminHotelsPage } from './AdminHotelsPage';
+export { default as AdminActivitiesPage } from './AdminActivitiesPage';
+export { default as AdminReviewsPage } from './AdminReviewsPage';
+export { default as AdminReportsPage } from './AdminReportsPage';
+export { default as AdminSettingsPage } from './AdminSettingsPage';
+export { default as AdminRefundsPage } from './AdminRefundsPage';
+export { default as AdminRefundWalletPage } from './AdminRefundWalletPage';
+export { default as AdminPendingServicesPage } from './AdminPendingServicesPage';
+export { default as AdminVouchersPage } from './AdminVouchersPage';

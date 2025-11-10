@@ -46,7 +46,30 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public User register(@RequestBody User user) {
-        return userService.registerUser(user);
+    public ResponseEntity<?> register(@RequestBody User user) {
+        // Kiểm tra email đã tồn tại
+        Optional<User> existingUser = userService.findByEmail(user.getEmail());
+        if (existingUser.isPresent()) {
+            return ResponseEntity.status(400).body("Email already exists");
+        }
+        
+        // Đăng ký user mới
+        User newUser = userService.registerUser(user);
+        
+        // Tạo JWT token
+        String token = jwtService.generateToken(newUser);
+        
+        // Trả về response giống login
+        AuthResponseDTO response = new AuthResponseDTO(
+                token,
+                newUser.getFirstName(),
+                newUser.getLastName(),
+                newUser.getEmail(),
+                newUser.getAvatar(),
+                newUser.getRole(),
+                newUser.getGender()
+        );
+        
+        return ResponseEntity.ok(response);
     }
 }

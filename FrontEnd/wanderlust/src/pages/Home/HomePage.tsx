@@ -12,6 +12,7 @@ interface HomePageProps {
 }
 
 export default function HomePage({ onNavigate }: HomePageProps) {
+  console.log("🏠 HomePage rendered!");
   const [isSearching, setIsSearching] = useState(false);
   const [searchType, setSearchType] = useState<"flight" | "hotel" | "car" | "activity">("hotel");
   const [destinationsPage, setDestinationsPage] = useState(0);

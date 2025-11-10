@@ -1,83 +1,101 @@
 import { useState, useEffect } from "react";
 import { Header } from "./components/Header";
-import { tokenService } from "./utils/api"; // Import tokenService
+import { tokenService } from "./utils/api";
 
-// NEW STRUCTURE - Import from /pages
+// ===== PAGE IMPORTS (Organized by Feature) =====
+// Home
 import HomePage from "./pages/Home/HomePage";
-import { LoginPage } from "./LoginPage"; // CHANGED: Use root LoginPage with real API
-import { LoginSuccessPage } from "./LoginSuccessPage"; // OAuth2 callback handler
 
-// OLD STRUCTURE - Still using root imports for now
-import FlightsPage from "./FlightsPage";
-import SearchPage from "./SearchPage";
-import BookingDetailsPage from "./BookingDetailsPage";
-import ConfirmationPage from "./ConfirmationPage";
-import OffersPage from "./OffersPage";
-import HotelLandingPage from "./HotelLandingPage";
-import HotelListPage from "./HotelListPage";
-import HotelDetailPage from "./HotelDetailPage";
-import VisaLandingPage from "./VisaLandingPage";
-import VisaArticleDetailPage from "./VisaArticleDetailPage";
-import VisaConsultationPage from "./VisaConsultationPage";
-import VisaTrackingPage from "./VisaTrackingPage";
-import VisaApplicationPage from "./VisaApplicationPage";
-import VisaDocumentsPage from "./VisaDocumentsPage";
-import VisaPaymentPage from "./VisaPaymentPage";
-import VisaConfirmationPage from "./VisaConfirmationPage";
-import ActivitiesPage from "./ActivitiesPage";
-import ActivityDetailPage from "./ActivityDetailPage";
-import TravelGuidePage from "./TravelGuidePage";
-import GuideDetailPage from "./GuideDetailPage";
-import AboutPage from "./AboutPage";
-import PromotionsPage from "./PromotionsPage";
-import TourDetailPage from "./TourDetailPage";
-import CarRentalLandingPage from "./CarRentalLandingPage";
-import CarRentalListPage from "./CarRentalListPage";
-import CarDetailPage from "./CarDetailPage";
-import ProfilePage from "./ProfilePage";
-import BookingHistoryPage from "./BookingHistoryPage";
-import SavedItemsPage from "./SavedItemsPage";
-import SettingsPage from "./SettingsPage";
-import PaymentMethodsPage from "./PaymentMethodsPage";
-import AdminDashboard from "./AdminDashboard";
-import AdminUsersPage from "./AdminUsersPage";
-import AdminBookingsPage from "./AdminBookingsPage";
-import AdminHotelsPage from "./AdminHotelsPage";
-import AdminActivitiesPage from "./AdminActivitiesPage";
-import AdminReviewsPage from "./AdminReviewsPage";
-import AdminReportsPage from "./AdminReportsPage";
-import AdminSettingsPage from "./AdminSettingsPage";
-import AdminRefundsPage from "./AdminRefundsPage";
-import AdminRefundWalletPage from "./AdminRefundWalletPage";
-import AdminPendingServicesPage from "./AdminPendingServicesPage";
-import VendorDashboard from "./VendorDashboard";
-import VendorServicesPage from "./VendorServicesPage";
-import VendorBookingsPage from "./VendorBookingsPage";
-import VendorReviewsPage from "./VendorReviewsPage";
-import VendorReportsPage from "./VendorReportsPage";
-import VendorSettingsPage from "./VendorSettingsPage";
-import UserWalletPage from "./UserWalletPage";
-import TopUpWalletPage from "./TopUpWalletPage";
-import TravelArticlePage from "./TravelArticlePage";
-import AdminVouchersPage from "./AdminVouchersPage";
-import VendorVouchersPage from "./VendorVouchersPage";
-import UserVouchersPage from "./UserVouchersPage";
-import FlightReviewPage from "./FlightReviewPage";
-import HotelReviewPage from "./HotelReviewPage";
-import CarRentalReviewPage from "./CarRentalReviewPage";
-import ActivityReviewPage from "./ActivityReviewPage";
+// Auth
+import { LoginPage, LoginSuccessPage } from "./pages/Auth";
+
+// Flights
+import { FlightsPage, FlightReviewPage } from "./pages/Flights";
+
+// Hotels
+import { HotelLandingPage, HotelListPage, HotelDetailPage, HotelReviewPage } from "./pages/Hotels";
+
+// Car Rental
+import { CarRentalLandingPage, CarRentalListPage, CarDetailPage, CarRentalReviewPage } from "./pages/CarRental";
+
+// Activities
+import { ActivitiesPage, ActivityDetailPage, ActivityReviewPage } from "./pages/Activities";
+
+// Visa
+import { 
+  VisaLandingPage, 
+  VisaArticleDetailPage, 
+  VisaConsultationPage, 
+  VisaTrackingPage, 
+  VisaApplicationPage, 
+  VisaDocumentsPage, 
+  VisaPaymentPage, 
+  VisaConfirmationPage 
+} from "./pages/Visa";
+
+// Travel Guide
+import { TravelGuidePage, GuideDetailPage, TravelArticlePage, TourDetailPage } from "./pages/TravelGuide";
+
+// Booking
+import { SearchPage, BookingDetailsPage, ConfirmationPage } from "./pages/Booking";
+
+// Profile (User)
+import { 
+  ProfilePage, 
+  BookingHistoryPage, 
+  SavedItemsPage, 
+  UserVouchersPage, 
+  UserWalletPage, 
+  TopUpWalletPage, 
+  SettingsPage, 
+  PaymentMethodsPage 
+} from "./pages/Profile";
+
+// Admin
+import { 
+  AdminDashboard, 
+  AdminUsersPage, 
+  AdminBookingsPage, 
+  AdminHotelsPage, 
+  AdminActivitiesPage, 
+  AdminReviewsPage, 
+  AdminReportsPage, 
+  AdminSettingsPage, 
+  AdminRefundsPage, 
+  AdminRefundWalletPage, 
+  AdminPendingServicesPage, 
+  AdminVouchersPage 
+} from "./pages/Admin";
+
+// Vendor
+import { 
+  VendorDashboard, 
+  VendorServicesPage, 
+  VendorBookingsPage, 
+  VendorReviewsPage, 
+  VendorReportsPage, 
+  VendorSettingsPage, 
+  VendorVouchersPage 
+} from "./pages/Vendor";
+
+// Others
+import { AboutPage, PromotionsPage, OffersPage } from "./pages/Others";
 
 export type PageType = "home" | "flights" | "search" | "booking" | "confirmation" | "offers" | "hotel" | "hotel-list" | "hotel-detail" | "visa" | "visa-article" | "visa-consultation" | "visa-tracking" | "visa-application" | "visa-documents" | "visa-payment" | "visa-confirmation" | "activities" | "activity-detail" | "travel-guide" | "guide-detail" | "travel-article" | "about" | "promotions" | "tour-detail" | "car-rental" | "car-list" | "car-detail" | "profile" | "booking-history" | "saved-items" | "vouchers" | "wallet" | "topup-wallet" | "settings" | "payment-methods" | "flight-review" | "hotel-review" | "car-review" | "activity-review" | "admin-dashboard" | "admin-users" | "admin-bookings" | "admin-hotels" | "admin-activities" | "admin-reviews" | "admin-reports" | "admin-settings" | "admin-refunds" | "admin-refund-wallet" | "admin-pending-services" | "admin-vouchers" | "vendor-dashboard" | "vendor-services" | "vendor-bookings" | "vendor-reviews" | "vendor-reports" | "vendor-settings" | "vendor-vouchers" | "login" | "login-success";
 
 export default function MainApp() {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
+  const [pageData, setPageData] = useState<any>(null);
+  const [userRole, setUserRole] = useState<"user" | "admin" | "vendor" | null>(null);
   
   // DEBUG: Log current page to console
   useEffect(() => {
     console.log("📍 Current page:", currentPage);
-  }, [currentPage]);
-  const [pageData, setPageData] = useState<any>(null);
-  const [userRole, setUserRole] = useState<"user" | "admin" | "vendor" | null>(null);
+    console.log("📦 Page data:", pageData);
+    console.log("👤 User role:", userRole);
+    console.log("🌐 Current URL:", window.location.href);
+    console.log("🔍 URL has token?", window.location.search.includes('token'));
+  }, [currentPage, pageData, userRole]);
 
   // Restore user session from localStorage on mount
   useEffect(() => {
@@ -88,7 +106,19 @@ export default function MainApp() {
     }
   }, []);
 
+  // **NEW: Detect URL path and auto-navigate**
+  useEffect(() => {
+    const path = window.location.pathname;
+    console.log("🛣️ Detected URL path:", path);
+    
+    if (path === '/login-success' && window.location.search.includes('token')) {
+      console.log("🚀 Auto-navigating to login-success page!");
+      setCurrentPage('login-success');
+    }
+  }, []);
+
   const handleNavigate = (page: PageType, data?: any) => {
+    console.log("🧭 handleNavigate called:", { from: currentPage, to: page, data });
     setCurrentPage(page);
     setPageData(data);
   };

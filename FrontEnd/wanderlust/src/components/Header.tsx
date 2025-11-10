@@ -28,6 +28,15 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
   const isLoggedIn = userRole !== null;
   const isAdmin = userRole === "admin";
   const isVendor = userRole === "vendor";
+  
+  // DEBUG: Log role changes
+  useEffect(() => {
+    console.log("🎭 Header - userRole:", userRole);
+    console.log("🎭 Header - isAdmin:", isAdmin);
+    console.log("🎭 Header - isVendor:", isVendor);
+    console.log("🎭 Header - currentPage:", currentPage);
+  }, [userRole, isAdmin, isVendor, currentPage]);
+  
   // Mock wallet balance
   const [walletBalance] = useState(2450000);
 
@@ -403,9 +412,9 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                           <div className="my-1 border-t border-gray-200"></div>
                           <button
                             onClick={() => {
-                              onLogout?.();
                               setProfileDropdownOpen(false);
-                              onNavigate("home");
+                              onLogout?.();
+                              onNavigate("login");
                             }}
                             className="w-full text-left px-4 py-2 hover:bg-red-50 transition-colors flex items-center gap-3 text-red-600 text-sm"
                           >
@@ -427,13 +436,19 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                         ? 'bg-gray-100 hover:bg-gray-200 text-blue-600' 
                         : 'bg-white hover:bg-gray-50 text-blue-600'
                     }`}
-                    onClick={() => onNavigate("login")}
+                    onClick={() => {
+                      console.log("🔘 ĐĂNG NHẬP button clicked!");
+                      onNavigate("login");
+                    }}
                   >
                     Đăng nhập
                   </Button>
                   <Button 
                     className="bg-blue-600 hover:bg-blue-700 text-white px-5 h-[36px]"
-                    onClick={() => onNavigate("login")}
+                    onClick={() => {
+                      console.log("🔘 ĐĂNG KÝ button clicked!");
+                      onNavigate("login");
+                    }}
                   >
                     Đăng ký
                   </Button>
@@ -577,9 +592,9 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                   </button>
                   <button
                     onClick={() => {
-                      setIsLoggedIn(false);
                       setMobileMenuOpen(false);
-                      onNavigate("home");
+                      onLogout?.();
+                      onNavigate("login");
                     }}
                     className={`
                       w-full text-left px-4 py-3 rounded-md flex items-center gap-3
