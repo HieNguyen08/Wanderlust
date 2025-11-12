@@ -1,13 +1,32 @@
 package com.wanderlust.api.services.impl;
 
-import com.wanderlust.api.dto.TopUpRequestDTO;
-import com.wanderlust.api.dto.WalletResponseDTO;
+// Import các DTOs cần thiết
+import com.wanderlust.api.dto.walletDTO.TransactionDetailDTO;
+import com.wanderlust.api.dto.walletDTO.TransactionSummaryDTO;
+import com.wanderlust.api.dto.walletDTO.TopUpRequestDTO;
+import com.wanderlust.api.dto.walletDTO.WalletResponseDTO;
+import com.wanderlust.api.dto.walletDTO.TopUpResponseDTO;
+import com.wanderlust.api.dto.walletDTO.PaymentCallbackDTO;
+import com.wanderlust.api.dto.walletDTO.PaymentResponseDTO;
+import com.wanderlust.api.dto.walletDTO.WalletPaymentRequestDTO;
+import com.wanderlust.api.dto.walletDTO.RefundRequestDTO;
+import com.wanderlust.api.dto.walletDTO.WithdrawRequestDTO;
+import com.wanderlust.api.dto.walletDTO.WithdrawResponseDTO;
+
+// Import Entity, Enum, và Exception
 import com.wanderlust.api.entity.Wallet;
+import com.wanderlust.api.entity.WalletTransaction;
 import com.wanderlust.api.entity.types.WalletStatus;
+import com.wanderlust.api.entity.types.TransactionType;
+import com.wanderlust.api.entity.types.TransactionStatus;
 import com.wanderlust.api.exception.ResourceNotFoundException;
+
+// Import Repository và Service
 import com.wanderlust.api.repository.WalletRepository;
-import com.wanderlust.api.service.WalletService;
-import com.wanderlust.api.service.TransactionService; // Giả định đã có TransactionService
+import com.wanderlust.api.services.WalletService;
+import com.wanderlust.api.services.TransactionService;
+
+// Import các thư viện khác
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -16,35 +35,26 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-// TODO: Import các DTO và Enum còn thiếu khi bạn tạo chúng
-// import com.wanderlust.api.dto.TopUpResponseDTO;
-// import com.wanderlust.api.dto.PaymentCallbackDTO;
-// import com.wanderlust.api.dto.PaymentResponseDTO;
-// import com.wanderlust.api.dto.WalletPaymentRequestDTO;
-// import com.wanderlust.api.dto.RefundRequestDTO;
-// import com.wanderlust.api.entity.types.TransactionType;
-
 @Service
 @RequiredArgsConstructor
 public class WalletServiceImpl implements WalletService {
 
     private final WalletRepository walletRepository;
-    [cite_start]// Giả định bạn có TransactionService để tính toán thống kê [cite: 25, 29]
-    // private final TransactionService transactionService; 
+    // Đã mở khóa TransactionService
+    private final TransactionService transactionService;
     private final ModelMapper modelMapper;
 
     @Override
     public WalletResponseDTO getWalletByUserId(String userId) {
         Wallet wallet = walletRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found for user ID: " + userId));
-        
+
         return modelMapper.map(wallet, WalletResponseDTO.class);
     }
 
     @Override
     @Transactional
     public Wallet createWalletForNewUser(String userId) {
-        // Kiểm tra xem ví đã tồn tại chưa
         if (walletRepository.findByUserId(userId).isPresent()) {
             throw new IllegalStateException("Wallet already exists for user ID: " + userId);
         }
@@ -52,11 +62,11 @@ public class WalletServiceImpl implements WalletService {
         Wallet newWallet = Wallet.builder()
                 .userId(userId)
                 .balance(BigDecimal.ZERO)
-                .currency("VND") // Mặc định là VND
+                .currency("VND")
                 .totalTopUp(BigDecimal.ZERO)
                 .totalSpent(BigDecimal.ZERO)
                 .totalRefund(BigDecimal.ZERO)
-                .status(WalletStatus.ACTIVE) // Giả định bạn có Enum WalletStatus
+                .status(WalletStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -69,7 +79,7 @@ public class WalletServiceImpl implements WalletService {
         Wallet wallet = walletRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
         
-        // Kiểm tra số dư phải lớn hơn hoặc bằng số tiền cần thanh toán
+        // Số dư phải lớn hơn hoặc bằng số tiền cần thanh toán
         return wallet.getBalance().compareTo(amount) >= 0;
     }
 
@@ -79,99 +89,224 @@ public class WalletServiceImpl implements WalletService {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
 
-        // TODO: Logic tính toán lại tổng nạp, chi, hoàn tiền
-        // Ví dụ: Cần gọi TransactionService để lấy tổng
-        // BigDecimal totalTopUp = transactionService.getTotalByType(wallet.getUserId(), TransactionType.CREDIT);
-        // BigDecimal totalSpent = transactionService.getTotalByType(wallet.getUserId(), TransactionType.DEBIT);
-        // BigDecimal totalRefund = transactionService.getTotalByType(wallet.getUserId(), TransactionType.REFUND);
-        
-        // wallet.setTotalTopUp(totalTopUp);
-        // wallet.setTotalSpent(totalSpent);
-        // wallet.setTotalRefund(totalRefund);
-        
-        // Cập nhật lại số dư dựa trên các tổng
-        // wallet.setBalance(totalTopUp.add(totalRefund).subtract(totalSpent));
+        // Dùng TransactionService để lấy tổng
+        TransactionSummaryDTO summary = transactionService.getTransactionSummary(wallet.getUserId());
 
+        wallet.setTotalTopUp(summary.getTotalCredit());
+        wallet.setTotalSpent(summary.getTotalDebit());
+        wallet.setTotalRefund(summary.getTotalRefund());
+
+        // Tính toán lại số dư dựa trên các tổng
+        BigDecimal newBalance = summary.getTotalCredit()
+                .add(summary.getTotalRefund())
+                .subtract(summary.getTotalDebit());
+        
+        wallet.setBalance(newBalance);
         wallet.setUpdatedAt(LocalDateTime.now());
         walletRepository.save(wallet);
     }
 
     // ==================================================================
-    // CÁC TÍNH NĂNG CHỜ DTO
+    // CÁC TÍNH NĂNG ĐÃ ĐƯỢC MỞ KHÓA
     // ==================================================================
 
-    /*
     @Override
+    @Transactional
     public TopUpResponseDTO initiateTopUp(String userId, TopUpRequestDTO topUpRequest) {
-        [cite_start]// [cite: 16]
-        // TODO: Cần TopUpResponseDTO
-        // 1. Validate TopUpRequestDTO (amount min/max)
-        [cite_start]// 2. Gọi TransactionService.createTransaction(CREDIT, PENDING) [cite: 55]
-        // 3. Gọi PaymentGatewayService để lấy URL thanh toán
-        // 4. Trả về TopUpResponseDTO chứa URL
-        throw new UnsupportedOperationException("Not implemented yet. Missing DTO: TopUpResponseDTO");
-    }
-    */
+        // 1. Validate (ví dụ: số tiền phải > 0)
+        if (topUpRequest.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Top-up amount must be positive.");
+        }
 
-    /*
+        // 2. Gọi TransactionService.createTransaction(CREDIT, PENDING)
+        WalletTransaction transaction = transactionService.createTransaction(
+                userId,
+                TransactionType.CREDIT,
+                TransactionStatus.PENDING,
+                topUpRequest.getAmount(),
+                "Top-up wallet via " + topUpRequest.getPaymentMethod(),
+                null, // Không có orderId cho việc nạp tiền
+                topUpRequest.getPaymentMethod()
+        );
+
+        // 3. Giả lập việc gọi PaymentGatewayService để lấy URL
+        // Trong thực tế, bạn sẽ gọi một service khác ở đây
+        String paymentUrl = "https://simulated-payment-gateway.com/pay?tx_id=" + transaction.getTransactionId();
+
+        // 4. Trả về TopUpResponseDTO chứa URL
+        return TopUpResponseDTO.builder()
+                .transactionId(transaction.getTransactionId())
+                .paymentUrl(paymentUrl)
+                .build();
+    }
+
     @Override
     @Transactional
     public void processTopUpCallback(PaymentCallbackDTO callbackDTO) {
-        [cite_start]// [cite: 17]
-        // TODO: Cần PaymentCallbackDTO
-        // 1. Validate callback (checksum, signature)
-        // 2. Tìm giao dịch PENDING
-        // 3. Nếu thành công:
-        [cite_start]//    - TransactionService.updateStatus(COMPLETED) [cite: 55]
-        //    - updateBalance(walletId, amount, TransactionType.CREDIT)
-        // 4. Nếu thất bại:
-        //    - TransactionService.updateStatus(FAILED)
-        throw new UnsupportedOperationException("Not implemented yet. Missing DTO: PaymentCallbackDTO");
-    }
-    */
+        // 1. (Bỏ qua) Validate callback (checksum, signature)
+        // Trong thực tế, đây là bước quan trọng để bảo mật
 
-    /*
+        // 2. Lấy chi tiết giao dịch để biết userId và amount
+        // Dùng orderId của callback (là transactionId của hệ thống)
+        String transactionId = callbackDTO.getOrderId();
+        TransactionDetailDTO transactionDetail = transactionService.getTransactionDetail(transactionId);
+
+        // 3. Kiểm tra xem giao dịch có đang PENDING không
+        if (transactionDetail.getStatus() != TransactionStatus.PENDING) {
+            // Ghi log: Giao dịch đã được xử lý hoặc ở trạng thái không hợp lệ
+            return;
+        }
+
+        // 4. Xử lý dựa trên status của callback
+        if ("00".equals(callbackDTO.getStatus())) {
+            // 5. Thành công:
+            // Cập nhật trạng thái giao dịch
+            transactionService.updateTransactionStatus(
+                    transactionId,
+                    TransactionStatus.COMPLETED,
+                    callbackDTO.getPaymentCode() // Lưu mã giao dịch của cổng thanh toán
+            );
+
+            // Cập nhật số dư ví
+            Wallet wallet = walletRepository.findByUserId(transactionDetail.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
+            
+            // Dùng số tiền từ DB (transactionDetail) thay vì từ callback để đảm bảo
+            updateBalance(wallet.getWalletId(), transactionDetail.getAmount(), TransactionType.CREDIT);
+            
+        } else {
+            // 6. Thất bại:
+            // Cập nhật trạng thái giao dịch
+            transactionService.updateTransactionStatus(
+                    transactionId,
+                    TransactionStatus.FAILED,
+                    callbackDTO.getPaymentCode()
+            );
+        }
+    }
+
     @Override
     @Transactional
     public PaymentResponseDTO processWalletPayment(String userId, WalletPaymentRequestDTO paymentRequest) {
-        [cite_start]// [cite: 18]
-        // TODO: Cần WalletPaymentRequestDTO, PaymentResponseDTO
-        [cite_start]// 1. Kiểm tra hasSufficientBalance(userId, paymentRequest.getAmount()) [cite: 20]
-        // 2. Nếu đủ:
-        [cite_start]//    - TransactionService.createTransaction(DEBIT, COMPLETED) [cite: 56]
-        //    - updateBalance(walletId, amount.negate(), TransactionType.DEBIT)
-        //    - Trả về PaymentResponseDTO (thành công)
-        // 3. Nếu không đủ:
-        //    - Throw exception (InsufficientFundsException)
-        throw new UnsupportedOperationException("Not implemented yet. Missing DTOs: WalletPaymentRequestDTO, PaymentResponseDTO");
-    }
-    */
+        // 1. Kiểm tra số dư
+        if (!hasSufficientBalance(userId, paymentRequest.getAmount())) {
+            // Có thể throw exception custom (InsufficientFundsException)
+            throw new IllegalStateException("Insufficient funds for this payment.");
+        }
+        
+        Wallet wallet = walletRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
 
-    /*
-    @Override
-    public void processRefund(String userId, RefundRequestDTO refundRequest) {
-        [cite_start]// [cite: 19]
-        // TODO: Cần RefundRequestDTO
-        // Logic này có thể phức tạp, tùy vào auto refund hay manual
-        // Ví dụ:
-        [cite_start]// 1. TransactionService.createTransaction(REFUND, COMPLETED) [cite: 54]
-        // 2. updateBalance(walletId, amount, TransactionType.REFUND)
-        throw new UnsupportedOperationException("Not implemented yet. Missing DTO: RefundRequestDTO");
+        // 2. Nếu đủ: Tạo giao dịch DEBIT, COMPLETED
+        WalletTransaction transaction = transactionService.createTransaction(
+                userId,
+                TransactionType.DEBIT,
+                TransactionStatus.COMPLETED,
+                paymentRequest.getAmount(),
+                paymentRequest.getDescription(),
+                paymentRequest.getOrderId(),
+                "WALLET_PAYMENT"
+        );
+
+        // 3. Cập nhật số dư (truyền vào số tiền âm để trừ)
+        updateBalance(wallet.getWalletId(), paymentRequest.getAmount().negate(), TransactionType.DEBIT);
+
+        // 4. Trả về response thành công
+        return PaymentResponseDTO.builder()
+                .transactionId(transaction.getTransactionId())
+                .orderId(transaction.getBookingId())
+                .status("COMPLETED")
+                .message("Payment successful.")
+                .build();
     }
-    */
-    
-    /*
+
+    @Override
+    @Transactional
+    public void processRefund(String userId, RefundRequestDTO refundRequest) {
+        Wallet wallet = walletRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
+
+        // 1. TransactionService tạo giao dịch REFUND, COMPLETED
+        // (Giả định `processAutoRefund` làm việc này)
+        transactionService.processAutoRefund(
+                refundRequest.getOrderId(),
+                userId,
+                refundRequest.getAmount(),
+                refundRequest.getReason()
+        );
+
+        // 2. Cập nhật số dư (cộng tiền vào ví)
+        updateBalance(wallet.getWalletId(), refundRequest.getAmount(), TransactionType.REFUND);
+    }
+
     @Override
     @Transactional
     public void updateBalance(String walletId, BigDecimal amount, TransactionType type) {
-        [cite_start]// [cite: 21]
-        // TODO: Cần TransactionType Enum
-        // Đây là hàm quan trọng, cần đảm bảo atomic
-        // Wallet wallet = walletRepository.findById(walletId)...
-        // wallet.setBalance(wallet.getBalance().add(amount)); // amount có thể âm (DEBIT) hoặc dương (CREDIT/REFUND)
-        // walletRepository.save(wallet);
-        // Sau đó gọi recalculateWalletStatistics(walletId) hoặc cập nhật riêng lẻ
-        throw new UnsupportedOperationException("Not implemented yet. Missing Enum: TransactionType");
+        // Hàm này đảm bảo tính toàn vẹn (atomic) nhờ @Transactional
+        Wallet wallet = walletRepository.findById(walletId)
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found: " + walletId));
+
+        // Cập nhật số dư
+        // amount: dương (CREDIT/REFUND), âm (DEBIT/WITHDRAW)
+        wallet.setBalance(wallet.getBalance().add(amount));
+
+        // Cập nhật các trường thống kê
+        switch (type) {
+            case CREDIT:
+                wallet.setTotalTopUp(wallet.getTotalTopUp().add(amount));
+                break;
+            case DEBIT:
+                wallet.setTotalSpent(wallet.getTotalSpent().add(amount.abs())); // amount là âm
+                break;
+            case REFUND:
+                wallet.setTotalRefund(wallet.getTotalRefund().add(amount));
+                break;
+            case WITHDRAW:
+                wallet.setTotalSpent(wallet.getTotalSpent().add(amount.abs())); // Coi rút tiền là 'spent'
+                break;
+        }
+
+        wallet.setUpdatedAt(LocalDateTime.now());
+        walletRepository.save(wallet);
     }
-    */
+    
+    @Override
+    @Transactional
+    public WithdrawResponseDTO requestWithdraw(String userId, WithdrawRequestDTO withdrawRequest) {
+        // 1. Validate số tiền
+        if (withdrawRequest.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Withdrawal amount must be positive.");
+        }
+
+        // 2. Kiểm tra số dư
+        if (!hasSufficientBalance(userId, withdrawRequest.getAmount())) {
+            throw new IllegalStateException("Insufficient funds for this withdrawal.");
+        }
+
+        // 3. Tạo mô tả cho giao dịch
+        String description = String.format("Withdraw to bank %s - Account: %s (%s)",
+                withdrawRequest.getBankCode(),
+                withdrawRequest.getBankAccountNumber(),
+                withdrawRequest.getAccountName()
+        );
+
+        // 4. TransactionService.createTransaction(WITHDRAW, PENDING)
+        // Giao dịch này ở trạng thái PENDING, chờ admin duyệt
+        WalletTransaction transaction = transactionService.createTransaction(
+                userId,
+                TransactionType.WITHDRAW, // Giả định bạn có Enum TransactionType.WITHDRAW
+                TransactionStatus.PENDING,  // Trạng thái chờ duyệt
+                withdrawRequest.getAmount(),
+                description,
+                null, // Không có orderId liên quan
+                withdrawRequest.getBankCode() // Lưu mã ngân hàng làm paymentMethod
+        );
+
+        // 5. Trả về WithdrawResponseDTO
+        return WithdrawResponseDTO.builder()
+                .withdrawId(transaction.getTransactionId())
+                .status("PENDING")
+                .message("Withdrawal request received and is pending approval.")
+                .build();
+    }
 }

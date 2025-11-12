@@ -1,7 +1,8 @@
 package com.wanderlust.api.controller;
 
 import com.wanderlust.api.entity.Room; // Use the Room entity directly
-import com.wanderlust.api.services.RoomService; // Assuming you have a RoomService class
+import com.wanderlust.api.services.RoomService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

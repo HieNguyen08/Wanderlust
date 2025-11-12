@@ -3,6 +3,7 @@ package com.wanderlust.api.entity;
 import com.wanderlust.api.entity.types.Gender;
 import com.wanderlust.api.entity.types.Role;
 import com.wanderlust.api.entity.types.MembershipLevel;
+import com.wanderlust.api.entity.NotificationSettings;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -47,6 +48,7 @@ public class User {
     private LocalDateTime createdAt;       // Ngày tạo tài khoản
     private LocalDateTime updatedAt;       // Lần cập nhật cuối
     private LocalDateTime lastLoginAt;     // Lần đăng nhập cuố
+    private NotificationSettings notificationSettings;
     private Boolean isBlocked;
     private String refreshToken;
     private LocalDateTime passwordChangeAt;

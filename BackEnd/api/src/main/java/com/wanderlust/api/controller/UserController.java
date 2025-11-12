@@ -2,6 +2,7 @@ package com.wanderlust.api.controller;
 
 import com.wanderlust.api.entity.User;
 import com.wanderlust.api.services.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

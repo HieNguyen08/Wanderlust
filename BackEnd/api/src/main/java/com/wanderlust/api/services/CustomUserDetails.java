@@ -15,12 +15,12 @@ public class CustomUserDetails implements UserDetails {
     private String username;
     private String password;
     private List<GrantedAuthority> authorities;
-    private String userId;
+    private String userID;
 
     public CustomUserDetails(User user) {
         this.username = user.getEmail();
         this.password = user.getPassword();
-        this.userId = user.getUserId();
+        this.userID = user.getUserId();
         this.authorities = new ArrayList<>();
 
         // Add the user's role to the authorities
@@ -34,8 +34,8 @@ public class CustomUserDetails implements UserDetails {
     }
 
     // Implement other methods from UserDetails interface
-    public String getUserId() {
-        return userId;
+    public String getUserID() {
+        return userID;
     }
 
 
@@ -53,6 +53,7 @@ public class CustomUserDetails implements UserDetails {
     public String getUsername() {
         return username;
     }
+
 
     @Override
     public boolean isAccountNonExpired() {

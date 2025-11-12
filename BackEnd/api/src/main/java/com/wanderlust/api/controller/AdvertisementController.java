@@ -2,6 +2,7 @@ package com.wanderlust.api.controller;
 
 import com.wanderlust.api.entity.Advertisement;
 import com.wanderlust.api.services.AdvertisementService;
+
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

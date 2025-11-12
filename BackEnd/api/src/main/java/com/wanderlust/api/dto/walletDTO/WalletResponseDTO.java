@@ -1,4 +1,4 @@
-package com.wanderlust.api.dto;
+package com.wanderlust.api.dto.walletDTO;
 
 import lombok.Data;
 import java.math.BigDecimal;

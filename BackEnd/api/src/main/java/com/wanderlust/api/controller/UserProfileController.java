@@ -1,107 +1,108 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.dto.ChangePasswordDTO; // DTO MỚI
-import com.wanderlust.api.dto.MembershipInfoDTO; // DTO MỚI
-import com.wanderlust.api.dto.UserProfileResponseDTO; // DTO MỚI
+import com.wanderlust.api.dto.ChangePasswordDTO;
+import com.wanderlust.api.dto.MembershipInfoDTO;
+import com.wanderlust.api.dto.UserProfileResponseDTO;
 import com.wanderlust.api.dto.UserProfileUpdateDTO;
-import com.wanderlust.api.dto.UserStatsDTO; // DTO MỚI
-import com.wanderlust.api.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.wanderlust.api.dto.UserStatsDTO;
+import com.wanderlust.api.dto.NotificationSettingsDTO;
+import com.wanderlust.api.services.UserProfileService;
+import com.wanderlust.api.services.CustomUserDetails;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/v1/users")
+@RequiredArgsConstructor
 public class UserProfileController {
 
-    private final UserService userService;
+    private final UserProfileService userProfileService;
 
-    @Autowired
-    public UserProfileController(UserService userService) {
-        this.userService = userService;
-    }
+    // <<< XÓA BỎ HÀM getUsername(UserDetails userDetails) TẠI ĐÂY
 
-    // 1. LẤY THÔNG TIN USER HIỆN TẠI (cho Header, ProfilePage)
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getCurrentUser(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
         }
         try {
-            UserProfileResponseDTO userProfile = userService.getCurrentUserProfile(userDetails.getUsername());
+            UserProfileResponseDTO userProfile = userProfileService.getCurrentUserProfile(userDetails.getUserID());
             return new ResponseEntity<>(userProfile, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
-    // 2. CẬP NHẬT THÔNG TIN CÁ NHÂN (cho ProfilePage - Edit mode)
+    // 2. CẬP NHẬT THÔNG TIN CÁ NHÂN
     @PutMapping("/me/profile")
-    public ResponseEntity<?> updateProfile(@AuthenticationPrincipal UserDetails userDetails,
-                                           @RequestBody UserProfileUpdateDTO updateDTO) {
+    public ResponseEntity<?> updateProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody UserProfileUpdateDTO updateDTO) {
         if (userDetails == null) {
             return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
         }
         try {
-            UserProfileResponseDTO updatedUser = userService.updateUserProfile(userDetails.getUsername(), updateDTO);
+            UserProfileResponseDTO updatedUser = userProfileService.updateUserProfile(userDetails.getUserID(), updateDTO);
             return new ResponseEntity<>(updatedUser, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
-    // 3. LẤY THỐNG KÊ USER (Trips, Points, Reviews cho ProfilePage stats)
+    // 3. LẤY THỐNG KÊ USER
     @GetMapping("/me/stats")
-    public ResponseEntity<?> getUserStats(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getUserStats(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
         }
         try {
-            UserStatsDTO stats = userService.getUserStats(userDetails.getUsername());
+            UserStatsDTO stats = userProfileService.getUserStats(userDetails.getUserID());
             return new ResponseEntity<>(stats, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
     
-    // 4. LẤY THÔNG TIN MEMBERSHIP (Gold/Platinum progress bar)
+    // 4. LẤY THÔNG TIN MEMBERSHIP
     @GetMapping("/me/membership")
-    public ResponseEntity<?> getMembershipInfo(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getMembershipInfo(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
         }
         try {
-            MembershipInfoDTO membershipInfo = userService.getMembershipInfo(userDetails.getUsername());
+            MembershipInfoDTO membershipInfo = userProfileService.getMembershipInfo(userDetails.getUserID());
             return new ResponseEntity<>(membershipInfo, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
-    // 5. ĐỔI MẬT KHẨU (cho SettingsPage)
-    @PutMapping("/me/password") // Thay đổi từ POST sang PUT và đổi DTO
-    public ResponseEntity<String> changePassword(@AuthenticationPrincipal UserDetails userDetails,
-                                                 @RequestBody ChangePasswordDTO passwordDTO) { // Dùng DTO mới
+    // 5. ĐỔI MẬT KHẨU
+    @PutMapping("/me/password")
+    public ResponseEntity<String> changePassword(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody ChangePasswordDTO passwordDTO) {
         if (userDetails == null) {
             return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
         }
         
-        // Validate mật khẩu mới
-        if (passwordDTO.getNewPassword() == null || passwordDTO.getNewPassword().length() < 6) {
-            return new ResponseEntity<>("New password must be at least 6 characters", HttpStatus.BAD_REQUEST);
-        }
-        if (!passwordDTO.getNewPassword().equals(passwordDTO.getConfirmPassword())) {
+        if (passwordDTO.getNewPassword() == null || !passwordDTO.getNewPassword().equals(passwordDTO.getConfirmPassword())) {
             return new ResponseEntity<>("New passwords do not match", HttpStatus.BAD_REQUEST);
         }
 
         try {
-            userService.changeUserPassword(
-                userDetails.getUsername(),
-                passwordDTO.getCurrentPassword(), // Đổi tên từ oldPassword
-                passwordDTO.getNewPassword()
+            userProfileService.changePassword(
+                userDetails.getUserID(),
+                passwordDTO
             );
             return new ResponseEntity<>("Password updated successfully", HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -110,25 +111,60 @@ public class UserProfileController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
+    
+    // // 6. CẬP NHẬT AVATAR (upload file)
+    // @PostMapping("/me/avatar")
+    // public ResponseEntity<?> uploadAvatar(
+    //         @AuthenticationPrincipal CustomUserDetails userDetails, // <<< THAY ĐỔI
+    //         @RequestParam("file") MultipartFile file) {
+    //     // ... (logic)
+    //     // String fileUrl = userProfileService.uploadAvatar(userDetails.getUserID(), file); // <<< THAY ĐỔI
+    //     // ...
+    // }
 
-    // 6. YÊU CẦU NÂNG CẤP VAI TRÒ (Giữ lại từ ProfileController cũ)
-    @PostMapping("/me/request-partner-role")
-    public ResponseEntity<String> requestPartnerRole(@AuthenticationPrincipal UserDetails userDetails) {
+    // 7. LẤY CÀI ĐẶT THÔNG BÁO
+    @GetMapping("/me/notification-settings")
+    public ResponseEntity<?> getNotificationSettings(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
         }
         try {
-            userService.requestPartnerRole(userDetails.getUsername());
-            return new ResponseEntity<>("Partner role request submitted. An admin will review it.", HttpStatus.OK);
+            NotificationSettingsDTO settings = userProfileService.getNotificationSettings(userDetails.getUserID());
+            return new ResponseEntity<>(settings, HttpStatus.OK);
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST); // 400 cho lỗi nghiệp vụ
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
     
-    // 7. CẬP NHẬT AVATAR (upload file) - (Chưa implement, cần service xử lý file)
-    // @PostMapping("/me/avatar")
+    // 8. CẬP NHẬT CÀI ĐẶT THÔNG BÁO
+    @PutMapping("/me/notification-settings")
+    public ResponseEntity<?> updateNotificationSettings(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody NotificationSettingsDTO settingsDTO) {
+        if (userDetails == null) {
+            return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            userProfileService.updateNotificationSettings(userDetails.getUserID(), settingsDTO);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
     
-    // 8. CẬP NHẬT CÀI ĐẶT THÔNG BÁO (cho SettingsPage) - (Chưa implement, cần DTO/Entity)
-    // @PutMapping("/me/notification-settings")
-
+    // 9. YÊU CẦU NÂNG CẤP VAI TRÒ
+    @PostMapping("/me/request-partner-role")
+    public ResponseEntity<String> requestPartnerRole(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            userProfileService.requestPartnerRole(userDetails.getUserID());
+            return new ResponseEntity<>("Partner role request submitted. An admin will review it.", HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
 }

@@ -1,7 +1,8 @@
 package com.wanderlust.api.controller;
 
 import com.wanderlust.api.entity.ReviewComment; // Use the ReviewComment entity directly
-import com.wanderlust.api.services.ReviewCommentService; // Assuming you have a ReviewCommentService class
+import com.wanderlust.api.services.ReviewCommentService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

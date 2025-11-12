@@ -35,7 +35,7 @@ public class WalletTransaction {
     private TransactionStatus status;         // COMPLETED, PENDING, FAILED
     
     // Metadata
-    private String booking_Id;                   // ID đơn hàng liên quan (nếu có)
+    private String bookingId;                   // ID đơn hàng liên quan (nếu có)
     private String paymentMethod;             // CARD, MOMO, VNPAY (với topup)
     private String paymentGatewayRef;         // Reference từ payment gateway
     

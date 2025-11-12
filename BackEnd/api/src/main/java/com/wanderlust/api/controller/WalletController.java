@@ -1,25 +1,24 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.dto.TopUpRequestDTO;
-import com.wanderlust.api.dto.WalletResponseDTO;
+// Import đầy đủ các DTO từ package walletDTO
+import com.wanderlust.api.dto.walletDTO.TopUpRequestDTO;
+import com.wanderlust.api.dto.walletDTO.WalletResponseDTO;
+import com.wanderlust.api.dto.walletDTO.TopUpResponseDTO;
+import com.wanderlust.api.dto.walletDTO.PaymentCallbackDTO;
+import com.wanderlust.api.dto.walletDTO.PaymentResponseDTO;
+import com.wanderlust.api.dto.walletDTO.WalletPaymentRequestDTO;
+import com.wanderlust.api.dto.walletDTO.WithdrawRequestDTO;
+import com.wanderlust.api.dto.walletDTO.WithdrawResponseDTO;
+
 import com.wanderlust.api.services.WalletService;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-// TODO: Import các DTO còn thiếu khi bạn tạo chúng
-import com.wanderlust.api.dto.TopUpResponseDTO;
-import com.wanderlust.api.dto.PaymentCallbackDTO;
-import com.wanderlust.api.dto.PaymentResponseDTO;
-import com.wanderlust.api.dto.WalletPaymentRequestDTO;
-import com.wanderlust.api.dto.WithdrawRequestDTO;
-import com.wanderlust.api.dto.WithdrawResponseDTO;
-
-// Giả định bạn dùng Spring Security để lấy user ID
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/wallet")
@@ -29,79 +28,62 @@ public class WalletController {
     private final WalletService walletService;
 
     /**
-     * [cite_start]1. LẤY THÔNG TIN VÍ (cho Header và UserWalletPage) [cite: 1]
+     * 1. LẤY THÔNG TIN VÍ (cho Header và UserWalletPage)
      */
     @GetMapping
     public ResponseEntity<WalletResponseDTO> getWallet() {
-        String userId = getCurrentUserId(); // Lấy userId từ token
+        String userId = getCurrentUserId();
         WalletResponseDTO wallet = walletService.getWalletByUserId(userId);
         return ResponseEntity.ok(wallet);
     }
 
     /**
-     * [cite_start]2. NẠP TIỀN VÀO VÍ (cho TopUpWalletPage) [cite: 1]
-     * * TODO: Cần file DTO: TopUpResponseDTO
+     * 2. NẠP TIỀN VÀO VÍ (cho TopUpWalletPage)
      */
     @PostMapping("/topup")
-    public ResponseEntity<?> topUpWallet(
-            @RequestBody TopUpRequestDTO topUpRequest
+    public ResponseEntity<TopUpResponseDTO> topUpWallet(
+            @Valid @RequestBody TopUpRequestDTO topUpRequest
     ) {
-        // String userId = getCurrentUserId();
-        // TopUpResponseDTO response = walletService.initiateTopUp(userId, topUpRequest);
-        // return ResponseEntity.ok(response);
-        
-        // Mã tạm thời vì DTO chưa có
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body("Tính năng chưa hoàn thiện. Cần TopUpResponseDTO.");
+        String userId = getCurrentUserId();
+        TopUpResponseDTO response = walletService.initiateTopUp(userId, topUpRequest);
+        return ResponseEntity.ok(response);
     }
 
     /**
-     * [cite_start]3. XÁC NHẬN THANH TOÁN TỪ PAYMENT GATEWAY (Webhook) [cite: 13]
-     * * TODO: Cần file DTO: PaymentCallbackDTO
+     * 3. XÁC NHẬN THANH TOÁN TỪ PAYMENT GATEWAY (Webhook)
      */
     @PostMapping("/topup/callback")
     public ResponseEntity<Void> handleTopUpCallback(
-            // @RequestBody PaymentCallbackDTO callbackDTO
+            @RequestBody PaymentCallbackDTO callbackDTO
     ) {
-        // walletService.processTopUpCallback(callbackDTO);
-        // return ResponseEntity.ok().build();
-        
-        // Mã tạm thời vì DTO chưa có
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        walletService.processTopUpCallback(callbackDTO);
+        return ResponseEntity.ok().build();
     }
 
     /**
-     * [cite_start]4. THANH TOÁN BẰNG VÍ (khi user booking) [cite: 1]
-     * * TODO: Cần file DTO: PaymentResponseDTO, WalletPaymentRequestDTO
+     * 4. THANH TOÁN BẰNG VÍ (khi user booking)
      */
     @PostMapping("/pay")
-    public ResponseEntity<?> payWithWallet(
-            // @RequestBody WalletPaymentRequestDTO paymentRequest
+    public ResponseEntity<PaymentResponseDTO> payWithWallet(
+            @Valid @RequestBody WalletPaymentRequestDTO paymentRequest
     ) {
-        // String userId = getCurrentUserId();
-        // PaymentResponseDTO response = walletService.processWalletPayment(userId, paymentRequest);
-        // return ResponseEntity.ok(response);
-        
-        // Mã tạm thời vì DTO chưa có
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body("Tính năng chưa hoàn thiện. Cần WalletPaymentRequestDTO và PaymentResponseDTO.");
+        String userId = getCurrentUserId();
+        PaymentResponseDTO response = walletService.processWalletPayment(userId, paymentRequest);
+        return ResponseEntity.ok(response);
     }
 
     /**
-     * [cite_start]5. YÊU CẦU RÚT TIỀN (future feature) [cite: 1]
-     * * TODO: Cần file DTO: WithdrawRequestDTO, WithdrawResponseDTO
+     * 5. YÊU CẦU RÚT TIỀN (future feature)
+     * (Đã cập nhật để hoạt động)
      */
     @PostMapping("/withdraw")
-    public ResponseEntity<?> requestWithdraw(
-            // @RequestBody WithdrawRequestDTO withdrawRequest
+    public ResponseEntity<WithdrawResponseDTO> requestWithdraw(
+            @Valid @RequestBody WithdrawRequestDTO withdrawRequest
     ) {
-        // String userId = getCurrentUserId();
-        // WithdrawResponseDTO response = walletService.requestWithdraw(userId, withdrawRequest);
-        // return ResponseEntity.ok(response);
-        
-        // Mã tạm thời vì DTO chưa có
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body("Tính năng chưa hoàn thiện. Cần WithdrawRequestDTO và WithdrawResponseDTO.");
+        String userId = getCurrentUserId();
+        // Giả định walletService đã có phương thức requestWithdraw
+        WithdrawResponseDTO response = walletService.requestWithdraw(userId, withdrawRequest);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -113,6 +95,6 @@ public class WalletController {
             throw new SecurityException("User not authenticated");
         }
         // Giả định 'name' trong token là userId
-        return authentication.getName(); 
+        return authentication.getName();
     }
 }

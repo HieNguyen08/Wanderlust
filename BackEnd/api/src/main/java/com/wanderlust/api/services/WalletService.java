@@ -1,68 +1,72 @@
 package com.wanderlust.api.services;
 
-import com.wanderlust.api.dto.TopUpRequestDTO;
-import com.wanderlust.api.dto.WalletResponseDTO;
+// Import các DTO từ package mới
+import com.wanderlust.api.dto.walletDTO.TopUpRequestDTO;
+import com.wanderlust.api.dto.walletDTO.WalletResponseDTO;
+import com.wanderlust.api.dto.walletDTO.TopUpResponseDTO;
+import com.wanderlust.api.dto.walletDTO.PaymentCallbackDTO;
+import com.wanderlust.api.dto.walletDTO.PaymentResponseDTO;
+import com.wanderlust.api.dto.walletDTO.WalletPaymentRequestDTO;
+import com.wanderlust.api.dto.walletDTO.RefundRequestDTO;
+// Import DTOs mới cho tính năng rút tiền
+import com.wanderlust.api.dto.walletDTO.WithdrawRequestDTO;
+import com.wanderlust.api.dto.walletDTO.WithdrawResponseDTO;
+
+// Import Entity và Enum
 import com.wanderlust.api.entity.Wallet;
-import com.wanderlust.api.entity.types.TransactionType; // Giả định bạn sẽ tạo enum này
+import com.wanderlust.api.entity.types.TransactionType;
 
 import java.math.BigDecimal;
-
-// Các DTO chưa được cung cấp
-import com.wanderlust.api.dto.TopUpResponseDTO;
-// import com.wanderlust.api.dto.PaymentCallbackDTO;
-// import com.wanderlust.api.dto.PaymentResponseDTO;
-// import com.wanderlust.api.dto.WalletPaymentRequestDTO;
-import com.wanderlust.api.dto.RefundRequestDTO;
 
 public interface WalletService {
 
     /**
-     * [cite_start]Lấy thông tin ví của user [cite: 14]
+     * Lấy thông tin ví của user
      */
     WalletResponseDTO getWalletByUserId(String userId);
 
     /**
-     * [cite_start]Auto-create ví khi user đăng ký [cite: 15]
+     * Auto-create ví khi user đăng ký
      */
     Wallet createWalletForNewUser(String userId);
 
     /**
-     * [cite_start]Nạp tiền: tạo pending transaction và redirect đến payment gateway [cite: 16]
-     * * TODO: Cần file DTO: TopUpResponseDTO
+     * Nạp tiền: tạo pending transaction và redirect đến payment gateway
      */
-    // TopUpResponseDTO initiateTopUp(String userId, TopUpRequestDTO topUpRequest);
+    TopUpResponseDTO initiateTopUp(String userId, TopUpRequestDTO topUpRequest);
 
     /**
-     * [cite_start]Xử lý callback từ payment gateway [cite: 17]
-     * * TODO: Cần file DTO: PaymentCallbackDTO
+     * Xử lý callback từ payment gateway
      */
-    // void processTopUpCallback(PaymentCallbackDTO callbackDTO);
+    void processTopUpCallback(PaymentCallbackDTO callbackDTO);
 
     /**
-     * [cite_start]Thanh toán bằng ví (debit) [cite: 18]
-     * * TODO: Cần file DTO: PaymentResponseDTO, WalletPaymentRequestDTO
+     * Thanh toán bằng ví (debit)
      */
-    // PaymentResponseDTO processWalletPayment(String userId, WalletPaymentRequestDTO paymentRequest);
+    PaymentResponseDTO processWalletPayment(String userId, WalletPaymentRequestDTO paymentRequest);
 
     /**
-     * [cite_start]Hoàn tiền vào ví (refund) [cite: 19]
-     * * TODO: Cần file DTO: RefundRequestDTO
+     * Hoàn tiền vào ví (refund)
      */
-    // void processRefund(String userId, RefundRequestDTO refundRequest);
+    void processRefund(String userId, RefundRequestDTO refundRequest);
 
     /**
-     * [cite_start]Validate đủ tiền trước khi thanh toán [cite: 20]
+     * Validate đủ tiền trước khi thanh toán
      */
     boolean hasSufficientBalance(String userId, BigDecimal amount);
 
     /**
-     * [cite_start]Update balance (atomic operation) [cite: 21]
-     * * TODO: Cần file Enum: TransactionType
+     * Update balance (atomic operation)
      */
-    // void updateBalance(String walletId, BigDecimal amount, TransactionType type);
+    void updateBalance(String walletId, BigDecimal amount, TransactionType type);
 
     /**
-     * [cite_start]Tính tổng nạp, chi, hoàn tiền [cite: 22]
+     * Tính tổng nạp, chi, hoàn tiền
      */
     void recalculateWalletStatistics(String walletId);
+
+    /**
+     * [MỚI] Yêu cầu rút tiền
+     */
+    WithdrawResponseDTO requestWithdraw(String userId, WithdrawRequestDTO withdrawRequest);
 }

@@ -1,7 +1,8 @@
 package com.wanderlust.api.controller;
 
 import com.wanderlust.api.entity.CarRental; // Use the CarRental entity directly
-import com.wanderlust.api.services.CarRentalService; // Assuming you have a CarRentalService class
+import com.wanderlust.api.services.CarRentalService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

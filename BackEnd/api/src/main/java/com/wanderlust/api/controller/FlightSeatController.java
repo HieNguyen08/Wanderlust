@@ -1,7 +1,8 @@
 package com.wanderlust.api.controller;
 
 import com.wanderlust.api.entity.FlightSeat; // Use the FlightSeat entity directly
-import com.wanderlust.api.services.FlightSeatService; // Assuming you have a FlightSeatService class
+import com.wanderlust.api.services.FlightSeatService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

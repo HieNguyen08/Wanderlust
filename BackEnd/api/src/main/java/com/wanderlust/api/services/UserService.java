@@ -4,19 +4,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-// import org.springframework.mail.SimpleMailMessage;
-// import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import com.wanderlust.api.entity.User;
-import com.wanderlust.api.repository.UserRepository;
 import com.wanderlust.api.entity.types.Role;
-import com.wanderlust.api.dto.UserProfileUpdateDTO;
-import com.wanderlust.api.dto.MembershipInfoDTO;
-import com.wanderlust.api.dto.UserProfileResponseDTO;
-import com.wanderlust.api.dto.UserStatsDTO;
+import com.wanderlust.api.repository.UserRepository;
 
 import lombok.AllArgsConstructor;
 
@@ -156,152 +149,4 @@ public class UserService implements BaseServices<User> {
         return userRepository.insert(newUser);
     }
 
-    public void changeUserPassword(String email, String oldPassword, String newPassword) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-
-        // Kiểm tra mật khẩu cũ
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-                throw new IllegalArgumentException("Incorrect old password");
-            }
-        } else if (oldPassword != null && !oldPassword.isEmpty()) {
-            // User OAuth2 không có mật khẩu cũ
-            throw new IllegalArgumentException("OAuth2 user cannot change password this way.");
-        }
-        
-        user.setPassword(passwordEncoder.encode(newPassword));
-        user.setPasswordChangeAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
-        
-        userRepository.save(user);
-    }
-    
-    // PHƯƠNG THỨC MỚI: Cập nhật hồ sơ người dùng (an toàn)
-    public UserProfileResponseDTO updateUserProfile(String email, UserProfileUpdateDTO dto) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-
-        if (dto.getFirstName() != null) user.setFirstName(dto.getFirstName());
-        if (dto.getLastName() != null) user.setLastName(dto.getLastName());
-        if (dto.getMobile() != null) user.setMobile(dto.getMobile());
-        if (dto.getAddress() != null) user.setAddress(dto.getAddress());
-        if (dto.getAvatar() != null) user.setAvatar(dto.getAvatar());
-        
-        // **THÊM CÁC TRƯỜNG MỚI**
-        if (dto.getDateOfBirth() != null) user.setDateOfBirth(dto.getDateOfBirth());
-        if (dto.getCity() != null) user.setCity(dto.getCity());
-        if (dto.getCountry() != null) user.setCountry(dto.getCountry());
-        if (dto.getPassportNumber() != null) user.setPassportNumber(dto.getPassportNumber());
-        if (dto.getPassportExpiry() != null) user.setPassportExpiryDate(dto.getPassportExpiry());
-        if (dto.getGender() != null) user.setGender(dto.getGender());
-
-        user.setUpdatedAt(LocalDateTime.now());
-        
-        User savedUser = userRepository.save(user);
-        return mapToUserProfileResponseDTO(savedUser); // Trả về DTO
-    }
-
-    // PHƯƠNG THỨC MỚI: Yêu cầu làm PARTNER (Đã có)
-    public void requestPartnerRole(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-        
-        if (user.getRole() == Role.PARTNER || user.getRole() == Role.ADMIN) {
-            throw new RuntimeException("User is already a partner or admin.");
-        }
-        if ("PENDING".equals(user.getPartnerRequestStatus())) {
-            throw new RuntimeException("A partner request is already pending.");
-        }
-
-        user.setPartnerRequestStatus("PENDING");
-        user.setUpdatedAt(LocalDateTime.now());
-        userRepository.save(user);
-    }
-
-    public UserProfileResponseDTO getCurrentUserProfile(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-        return mapToUserProfileResponseDTO(user);
-    }
-
-    public UserStatsDTO getUserStats(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-                
-        UserStatsDTO statsDTO = new UserStatsDTO();
-        statsDTO.setTotalTrips(user.getTotalTrips() != null ? user.getTotalTrips() : 0);
-        statsDTO.setLoyaltyPoints(user.getLoyaltyPoints() != null ? user.getLoyaltyPoints() : 0);
-        statsDTO.setTotalReviews(user.getTotalReviews() != null ? user.getTotalReviews() : 0);
-        
-        return statsDTO;
-    }
-
-    public MembershipInfoDTO getMembershipInfo(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-                
-        MembershipInfoDTO membershipDTO = new MembershipInfoDTO();
-        membershipDTO.setCurrentLevel(user.getMembershipLevel() != null ? user.getMembershipLevel() : com.wanderlust.api.entity.types.MembershipLevel.BRONZE);
-        membershipDTO.setCurrentPoints(user.getLoyaltyPoints() != null ? user.getLoyaltyPoints() : 0);
-        
-        // Logic tính toán điểm lên hạng (ví dụ)
-        int totalTrips = user.getTotalTrips() != null ? user.getTotalTrips() : 0;
-        int totalReviews = user.getTotalReviews() != null ? user.getTotalReviews() : 0;
-        
-        int calculatedPoints = (totalTrips * 100) + (totalReviews * 20);
-        membershipDTO.setCurrentPoints(calculatedPoints);
-
-        int pointsForNextLevel = 0;
-        com.wanderlust.api.entity.types.MembershipLevel nextLevel = null;
-        
-        switch (membershipDTO.getCurrentLevel()) {
-            case BRONZE:
-                pointsForNextLevel = 5000;
-                nextLevel = com.wanderlust.api.entity.types.MembershipLevel.SILVER;
-                break;
-            case SILVER:
-                pointsForNextLevel = 15000;
-                nextLevel = com.wanderlust.api.entity.types.MembershipLevel.GOLD;
-                break;
-            case GOLD:
-                pointsForNextLevel = 30000;
-                nextLevel = com.wanderlust.api.entity.types.MembershipLevel.PLATINUM;
-                break;
-            case PLATINUM:
-                pointsForNextLevel = 30000; // Đã ở hạng cao nhất
-                nextLevel = com.wanderlust.api.entity.types.MembershipLevel.PLATINUM;
-                break;
-        }
-        
-        membershipDTO.setNextLevel(nextLevel);
-        membershipDTO.setPointsForNextLevel(pointsForNextLevel);
-        
-        double progress = (pointsForNextLevel > 0) ? ((double) membershipDTO.getCurrentPoints() / pointsForNextLevel) * 100 : 100;
-        membershipDTO.setProgressPercentage(Math.min(progress, 100.0)); // Giới hạn ở 100%
-        
-        return membershipDTO;
-    }
-
-    private UserProfileResponseDTO mapToUserProfileResponseDTO(User user) {
-        UserProfileResponseDTO dto = new UserProfileResponseDTO();
-        dto.setUserId(user.getUserId());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
-        dto.setEmail(user.getEmail());
-        dto.setAvatar(user.getAvatar());
-        dto.setMobile(user.getMobile());
-        dto.setGender(user.getGender());
-        dto.setAddress(user.getAddress());
-        dto.setDateOfBirth(user.getDateOfBirth());
-        dto.setCity(user.getCity());
-        dto.setCountry(user.getCountry());
-        dto.setPassportNumber(user.getPassportNumber());
-        dto.setPassportExpiryDate(user.getPassportExpiryDate());
-        dto.setRole(user.getRole());
-        dto.setCreatedAt(user.getCreatedAt());
-        dto.setPartnerRequestStatus(user.getPartnerRequestStatus());
-        return dto;
-    }
-    
 }

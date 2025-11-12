@@ -1,7 +1,8 @@
 package com.wanderlust.api.controller;
 
 import com.wanderlust.api.entity.Promotion; // Use the Promotion entity directly
-import com.wanderlust.api.services.PromotionService; // Assuming you have a PromotionService class
+import com.wanderlust.api.services.PromotionService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

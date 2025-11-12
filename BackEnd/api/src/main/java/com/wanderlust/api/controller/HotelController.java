@@ -1,7 +1,8 @@
 package com.wanderlust.api.controller;
 
 import com.wanderlust.api.entity.Hotel; // Use the Hotel entity directly
-import com.wanderlust.api.services.HotelService; // Assuming you have a HotelService class
+import com.wanderlust.api.services.HotelService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
