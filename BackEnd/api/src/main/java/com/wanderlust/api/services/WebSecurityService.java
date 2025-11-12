@@ -162,15 +162,9 @@ public class WebSecurityService {
 
 
     public boolean isPromotionOwner(Authentication authentication, String promotionId) {
-        String currentUserId = getUserIdFromAuthentication(authentication);
-        if (currentUserId == null) {
-            return false;
-        }
-        Promotion promotion = promotionRepository.findById(promotionId).orElse(null);
-        if (promotion == null) {
-            return false;
-        }
-        return promotion.getUserId() != null && promotion.getUserId().equals(currentUserId);
+        // Promotions are public, no ownership check needed
+        // Only admins should be able to modify promotions (handled by @PreAuthorize)
+        return false;
     }
 
     public boolean isReviewCommentOwner(Authentication authentication, String reviewCommentId) {

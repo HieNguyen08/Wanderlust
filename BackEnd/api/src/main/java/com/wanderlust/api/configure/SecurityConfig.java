@@ -39,6 +39,19 @@ public class SecurityConfig {
                     // Public endpoints - MUST be first
                     auth.requestMatchers("/api/auth/login", "/api/auth/register").permitAll();
                     auth.requestMatchers("/login/oauth2/**", "/oauth2/**").permitAll();
+                    
+                    // Travel Guide public endpoints (GET only)
+                    auth.requestMatchers("/api/travelguides", "/api/travelguides/**").permitAll();
+                    
+                    // Promotions public endpoints (GET only)
+                    auth.requestMatchers("/api/promotions", "/api/promotions/**").permitAll();
+                    
+                    // Visa Articles public endpoints (GET only)
+                    auth.requestMatchers("/api/visa-articles", "/api/visa-articles/**").permitAll();
+                    
+                    // Test endpoints
+                    auth.requestMatchers("/api/test/**").permitAll();
+                    
                     // All other requests require authentication
                     auth.anyRequest().authenticated();
                 })

@@ -169,7 +169,7 @@ export default function MainApp() {
       {currentPage === "activities" && <ActivitiesPage initialCategory={pageData?.category} onNavigate={handleNavigate} />}
       {currentPage === "activity-detail" && pageData && <ActivityDetailPage activity={pageData} onNavigate={handleNavigate} />}
       {currentPage === "travel-guide" && <TravelGuidePage onNavigate={handleNavigate} />}
-      {currentPage === "guide-detail" && pageData && <GuideDetailPage destination={pageData} onNavigate={handleNavigate} />}
+      {currentPage === "guide-detail" && pageData && <GuideDetailPage guide={pageData.guide} onNavigate={handleNavigate} />}
       {currentPage === "travel-article" && pageData && <TravelArticlePage article={pageData.article} onNavigate={handleNavigate} />}
       {currentPage === "about" && <AboutPage onNavigate={handleNavigate} />}
       {currentPage === "promotions" && <PromotionsPage onNavigate={handleNavigate} />}

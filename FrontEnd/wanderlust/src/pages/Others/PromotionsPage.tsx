@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { PageType } from "../../MainApp";
 import { toast } from "sonner@2.0.3";
+import { promotionApi } from "../../utils/api";
 
 interface PromotionsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -22,220 +23,112 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [selectedPromo, setSelectedPromo] = useState<any>(null);
-  const [collectedVouchers, setCollectedVouchers] = useState<number[]>([1, 3]); // Mock collected vouchers
   const [showFilters, setShowFilters] = useState(true);
+  const [allVouchers, setAllVouchers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  // Fi
+  // Load collected vouchers from localStorage
+  const [collectedVouchers, setCollectedVouchers] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('collectedVouchers');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  
+  // Filters
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedDestinations, setSelectedDestinations] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
 
-  // Hero Banners - Ưu đãi khủng
-  const heroBanners = [
-    {
-      id: 1,
-      title: "BLACK FRIDAY - GIẢM 50%",
-      subtitle: "Toàn bộ khách sạn cao cấp",
-      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1920&h=600&fit=crop",
-      code: "BLACKFRIDAY50",
-      gradient: "from-purple-900/70 via-pink-900/70 to-transparent"
-    },
-    {
-      id: 2,
-      title: "FLASH SALE - MUA 1 TẶNG 1",
-      subtitle: "Vé máy bay nội địa",
-      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&h=600&fit=crop",
-      code: "FLASH11",
-      gradient: "from-orange-900/70 via-red-900/70 to-transparent"
-    },
-    {
-      id: 3,
-      title: "ƯU ĐÃI CUỐI TUẦN",
-      subtitle: "Giảm 30% tất cả hoạt động vui chơi",
-      image: "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1920&h=600&fit=crop",
-      code: "WEEKEND30",
-      gradient: "from-blue-900/70 via-cyan-900/70 to-transparent"
-    }
-  ];
+  // Fetch promotions from backend
+  useEffect(() => {
+    const fetchPromotions = async () => {
+      try {
+        setLoading(true);
+        const data = await promotionApi.getAll();
+        
+        // Transform backend data to match frontend structure
+        const transformedData = data.map((promo: any) => ({
+          id: promo.id,
+          code: promo.code,
+          title: promo.title,
+          description: promo.description,
+          image: promo.image || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=400&fit=crop",
+          type: promo.type, // PERCENTAGE or FIXED_AMOUNT
+          value: promo.value,
+          maxDiscount: promo.maxDiscount,
+          minSpend: promo.minSpend,
+          startDate: promo.startDate,
+          endDate: promo.endDate,
+          category: promo.category,
+          destination: promo.destination,
+          badge: promo.type === 'PERCENTAGE' 
+            ? `GIẢM ${promo.value}%` 
+            : `${promo.value.toLocaleString('vi-VN')}Đ`,
+          badgeColor: getCategoryColor(promo.category),
+          isFeatured: promo.isFeatured,
+          daysLeft: calculateDaysLeft(promo.endDate),
+          totalUsesLimit: promo.totalUsesLimit,
+          usedCount: promo.usedCount,
+          conditions: promo.conditions || [],
+          applicableServices: []
+        }));
+        
+        setAllVouchers(transformedData);
+      } catch (error) {
+        console.error('Error fetching promotions:', error);
+        toast.error('Không thể tải danh sách khuyến mãi');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Mock vouchers data
-  const allVouchers = [
-    {
-      id: 1,
-      code: "HOTEL15",
-      title: "Giảm 15% Khách sạn Đà Nẵng",
-      description: "Áp dụng cho tất cả khách sạn tại Đà Nẵng",
-      image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&h=400&fit=crop",
-      type: "PERCENTAGE",
-      value: 15,
-      maxDiscount: 200000,
-      minSpend: 1000000,
-      startDate: "2025-11-01",
-      endDate: "2025-11-30",
-      category: "hotel",
-      destination: "Đà Nẵng",
-      badge: "GIẢM 15%",
-      badgeColor: "bg-blue-600",
-      isFeatured: true,
-      daysLeft: 25,
-      totalUsesLimit: 100,
-      usedCount: 45,
-      conditions: [
-        "Áp dụng cho khách sạn 4-5 sao",
-        "Đặt tối thiểu 2 đêm",
-        "Không áp dụng vào cuối tuần"
-      ],
-      applicableServices: [
-        {
-          id: 1,
-          name: "InterContinental Danang Sun Peninsula",
-          image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&h=300&fit=crop",
-          price: 3500000
-        },
-        {
-          id: 2,
-          name: "Fusion Maia Danang",
-          image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&h=300&fit=crop",
-          price: 2800000
-        }
-      ]
-    },
-    {
-      id: 2,
-      code: "TOUR50K",
-      title: "Giảm 50.000đ Tour Cù Lao Chàm",
-      description: "Giảm ngay 50.000đ cho tour khám phá Cù Lao Chàm",
-      image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=400&fit=crop",
-      type: "FIXED_AMOUNT",
-      value: 50000,
-      maxDiscount: null,
-      minSpend: 500000,
-      startDate: "2025-11-01",
-      endDate: "2025-12-31",
-      category: "activity",
-      destination: "Hội An",
-      badge: "50.000Đ",
-      badgeColor: "bg-green-600",
-      isFeatured: false,
-      daysLeft: 56,
-      totalUsesLimit: 200,
-      usedCount: 123,
-      conditions: [
-        "Áp dụng cho tour nguyên ngày",
-        "Bao gồm bữa trưa",
-        "Không hoàn tiền"
-      ],
-      applicableServices: []
-    },
-    {
-      id: 3,
-      code: "FLIGHT200K",
-      title: "Giảm 200.000đ Vé máy bay",
-      description: "Giảm 200.000đ cho vé máy bay nội địa",
-      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&h=400&fit=crop",
-      type: "FIXED_AMOUNT",
-      value: 200000,
-      maxDiscount: null,
-      minSpend: 1500000,
-      startDate: "2025-11-05",
-      endDate: "2025-11-10",
-      category: "flight",
-      destination: "Toàn quốc",
-      badge: "200.000Đ",
-      badgeColor: "bg-orange-600",
-      isFeatured: true,
-      daysLeft: 2,
-      totalUsesLimit: 50,
-      usedCount: 48,
-      conditions: [
-        "Chỉ áp dụng cho chuyến bay khứ hồi",
-        "Đặt trước 7 ngày",
-        "Hạn chót: 10/11/2025"
-      ],
-      applicableServices: []
-    },
-    {
-      id: 4,
-      code: "CAR20",
-      title: "Giảm 20% Thuê xe tự lái",
-      description: "Giảm 20% cho tất cả dịch vụ thuê xe",
-      image: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&h=400&fit=crop",
-      type: "PERCENTAGE",
-      value: 20,
-      maxDiscount: 300000,
-      minSpend: 800000,
-      startDate: "2025-11-01",
-      endDate: "2025-11-15",
-      category: "car",
-      destination: "Toàn quốc",
-      badge: "GIẢM 20%",
-      badgeColor: "bg-purple-600",
-      isFeatured: false,
-      daysLeft: 10,
-      totalUsesLimit: 75,
-      usedCount: 32,
-      conditions: [
-        "Thuê tối thiểu 3 ngày",
-        "Áp dụng cho xe 4-7 chỗ",
-        "Miễn phí giao xe"
-      ],
-      applicableServices: []
-    },
-    {
-      id: 5,
-      code: "PHUQUOC25",
-      title: "Giảm 25% Resort Phú Quốc",
-      description: "Giảm 25% cho các resort cao cấp tại Phú Quốc",
-      image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=400&fit=crop",
-      type: "PERCENTAGE",
-      value: 25,
-      maxDiscount: 500000,
-      minSpend: 2000000,
-      startDate: "2025-11-01",
-      endDate: "2025-12-31",
-      category: "hotel",
-      destination: "Phú Quốc",
-      badge: "GIẢM 25%",
-      badgeColor: "bg-pink-600",
-      isFeatured: true,
-      daysLeft: 56,
-      totalUsesLimit: 150,
-      usedCount: 67,
-      conditions: [
-        "Áp dụng cho resort 5 sao",
-        "Đặt tối thiểu 3 đêm",
-        "Bao gồm bữa sáng"
-      ],
-      applicableServices: []
-    },
-    {
-      id: 6,
-      code: "NEWUSER100K",
-      title: "Chào mừng thành viên mới",
-      description: "Giảm 100.000đ cho đơn hàng đầu tiên",
-      image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=400&fit=crop",
-      type: "FIXED_AMOUNT",
-      value: 100000,
-      maxDiscount: null,
-      minSpend: 500000,
-      startDate: "2025-10-01",
-      endDate: "2025-12-31",
-      category: "all",
-      destination: "Toàn quốc",
-      badge: "100.000Đ",
-      badgeColor: "bg-yellow-600",
-      isFeatured: false,
-      daysLeft: 56,
-      totalUsesLimit: 1000,
-      usedCount: 678,
-      conditions: [
-        "Chỉ cho khách hàng mới",
-        "Sử dụng 1 lần duy nhất",
-        "Áp dụng cho tất cả dịch vụ"
-      ],
-      applicableServices: []
-    }
-  ];
+    fetchPromotions();
+  }, []);
+
+  // Helper functions
+  const getCategoryColor = (category: string) => {
+    const colors: Record<string, string> = {
+      'hotel': 'bg-blue-600',
+      'flight': 'bg-orange-600',
+      'activity': 'bg-green-600',
+      'car': 'bg-purple-600',
+      'all': 'bg-yellow-600'
+    };
+    return colors[category] || 'bg-gray-600';
+  };
+
+  const calculateDaysLeft = (endDate: string) => {
+    const end = new Date(endDate);
+    const now = new Date();
+    const diff = end.getTime() - now.getTime();
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  };
+
+  // Hero Banners - Lấy từ backend (4 voucher featured đầu tiên)
+  const heroBanners = allVouchers
+    .filter(v => v.isFeatured)
+    .slice(0, 4)
+    .map((voucher, index) => {
+      const gradients = [
+        "from-purple-900/70 via-pink-900/70 to-transparent",
+        "from-orange-900/70 via-red-900/70 to-transparent",
+        "from-blue-900/70 via-cyan-900/70 to-transparent",
+        "from-green-900/70 via-teal-900/70 to-transparent"
+      ];
+      
+      return {
+        id: voucher.id,
+        title: voucher.title.toUpperCase(),
+        subtitle: voucher.description,
+        image: voucher.image,
+        code: voucher.code,
+        gradient: gradients[index % gradients.length],
+        voucher: voucher
+      };
+    });
 
   // Filter vouchers
   const filteredVouchers = allVouchers.filter(voucher => {
@@ -277,17 +170,26 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
     }
   };
 
-  const handleCollectVoucher = (voucherId: number, voucherCode: string) => {
+  const handleCollectVoucher = (voucherId: string, voucherCode: string) => {
     if (collectedVouchers.includes(voucherId)) {
       toast.info("Bạn đã có voucher này trong ví!");
       return;
     }
     
-    setCollectedVouchers([...collectedVouchers, voucherId]);
+    const updatedVouchers = [...collectedVouchers, voucherId];
+    setCollectedVouchers(updatedVouchers);
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem('collectedVouchers', JSON.stringify(updatedVouchers));
+    } catch (error) {
+      console.error('Failed to save to localStorage:', error);
+    }
+    
     toast.success(`Đã lưu mã ${voucherCode} vào Ví Voucher của bạn!`);
   };
 
-  const isCollected = (voucherId: number) => {
+  const isCollected = (voucherId: string) => {
     return collectedVouchers.includes(voucherId);
   };
 
@@ -414,7 +316,23 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
   return (
     <div className="min-h-screen bg-gray-50">      {/* Hero Slider */}
       <section className="relative h-[500px] overflow-hidden bg-gray-900">
-        {heroBanners.map((banner, index) => (
+        {loading ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-white text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
+              <p className="text-lg">Đang tải ưu đãi...</p>
+            </div>
+          </div>
+        ) : heroBanners.length === 0 ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-white text-center">
+              <Sparkles className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p className="text-lg">Chưa có ưu đãi nào</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {heroBanners.map((banner, index) => (
           <div
             key={banner.id}
             className={`absolute inset-0 transition-opacity duration-700 ${
@@ -437,7 +355,7 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
                   <p className="text-xl md:text-2xl mb-6 text-white/90">
                     {banner.subtitle}
                   </p>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 flex-wrap">
                     <code className="bg-white text-gray-900 px-4 py-2 rounded text-lg">
                       {banner.code}
                     </code>
@@ -446,7 +364,39 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
                       onClick={() => handleCopyCode(banner.code)}
                       className="bg-yellow-500 hover:bg-yellow-600 text-gray-900"
                     >
-                      Sao chép mã
+                      {copiedCode === banner.code ? (
+                        <>
+                          <Check className="w-5 h-5 mr-2" />
+                          Đã sao chép
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-5 h-5 mr-2" />
+                          Sao chép mã
+                        </>
+                      )}
+                    </Button>
+                    <Button 
+                      size="lg"
+                      onClick={() => banner.voucher && handleCollectVoucher(banner.voucher.id, banner.code)}
+                      disabled={banner.voucher && isCollected(banner.voucher.id)}
+                      className={`${
+                        banner.voucher && isCollected(banner.voucher.id)
+                          ? 'bg-white/20 cursor-not-allowed' 
+                          : 'bg-white hover:bg-white/90'
+                      } text-gray-900`}
+                    >
+                      {banner.voucher && isCollected(banner.voucher.id) ? (
+                        <>
+                          <Check className="w-5 h-5 mr-2" />
+                          Đã lấy mã
+                        </>
+                      ) : (
+                        <>
+                          <Ticket className="w-5 h-5 mr-2" />
+                          Lấy mã
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -456,31 +406,37 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
         ))}
 
         {/* Navigation Arrows */}
-        <button
-          onClick={() => setCurrentSlide((currentSlide - 1 + heroBanners.length) % heroBanners.length)}
-          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all z-10"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <button
-          onClick={() => setCurrentSlide((currentSlide + 1) % heroBanners.length)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all z-10"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-
-        {/* Dots Indicator */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-          {heroBanners.map((_, index) => (
+        {!loading && heroBanners.length > 0 && (
+          <>
             <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`h-2 rounded-full transition-all ${
-                index === currentSlide ? 'w-8 bg-white' : 'w-2 bg-white/50'
-              }`}
-            />
-          ))}
-        </div>
+              onClick={() => setCurrentSlide((currentSlide - 1 + heroBanners.length) % heroBanners.length)}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all z-10"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => setCurrentSlide((currentSlide + 1) % heroBanners.length)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all z-10"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+
+            {/* Dots Indicator */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+              {heroBanners.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`h-2 rounded-full transition-all ${
+                    index === currentSlide ? 'w-8 bg-white' : 'w-2 bg-white/50'
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+        </>
+        )}
       </section>
 
       {/* Main Content */}
@@ -602,56 +558,67 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
                 </TabsTrigger>
               </TabsList>
 
-              {/* Featured Tab */}
-              <TabsContent value="featured">
-                {featuredVouchers.length === 0 ? (
-                  <Card className="p-12 text-center">
-                    <Ticket className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-lg text-gray-900 mb-2">Không tìm thấy ưu đãi</h3>
-                    <p className="text-gray-600">Thử thay đổi bộ lọc để xem thêm ưu đãi khác</p>
-                  </Card>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {featuredVouchers.map(voucher => (
-                      <PromotionCard key={voucher.id} voucher={voucher} />
-                    ))}
+              {loading ? (
+                <Card className="p-12 text-center">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-gray-600">Đang tải danh sách ưu đãi...</p>
                   </div>
-                )}
-              </TabsContent>
+                </Card>
+              ) : (
+                <>
+                  {/* Featured Tab */}
+                  <TabsContent value="featured">
+                    {featuredVouchers.length === 0 ? (
+                      <Card className="p-12 text-center">
+                        <Ticket className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                        <h3 className="text-lg text-gray-900 mb-2">Không tìm thấy ưu đãi</h3>
+                        <p className="text-gray-600">Thử thay đổi bộ lọc để xem thêm ưu đãi khác</p>
+                      </Card>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {featuredVouchers.map(voucher => (
+                          <PromotionCard key={voucher.id} voucher={voucher} />
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
 
-              {/* Expiring Tab */}
-              <TabsContent value="expiring">
-                {expiringVouchers.length === 0 ? (
-                  <Card className="p-12 text-center">
-                    <Clock className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-lg text-gray-900 mb-2">Không có ưu đãi sắp hết hạn</h3>
-                    <p className="text-gray-600">Tất cả ưu đãi vẫn còn nhiều thời gian</p>
-                  </Card>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {expiringVouchers.map(voucher => (
-                      <PromotionCard key={voucher.id} voucher={voucher} />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
+                  {/* Expiring Tab */}
+                  <TabsContent value="expiring">
+                    {expiringVouchers.length === 0 ? (
+                      <Card className="p-12 text-center">
+                        <Clock className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                        <h3 className="text-lg text-gray-900 mb-2">Không có ưu đãi sắp hết hạn</h3>
+                        <p className="text-gray-600">Tất cả ưu đãi vẫn còn nhiều thời gian</p>
+                      </Card>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {expiringVouchers.map(voucher => (
+                          <PromotionCard key={voucher.id} voucher={voucher} />
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
 
-              {/* Newest Tab */}
-              <TabsContent value="newest">
-                {newestVouchers.length === 0 ? (
-                  <Card className="p-12 text-center">
-                    <Sparkles className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-lg text-gray-900 mb-2">Không tìm thấy ưu đãi</h3>
-                    <p className="text-gray-600">Thử thay đổi bộ lọc để xem thêm ưu đãi khác</p>
-                  </Card>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {newestVouchers.map(voucher => (
-                      <PromotionCard key={voucher.id} voucher={voucher} />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
+                  {/* Newest Tab */}
+                  <TabsContent value="newest">
+                    {newestVouchers.length === 0 ? (
+                      <Card className="p-12 text-center">
+                        <Sparkles className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                        <h3 className="text-lg text-gray-900 mb-2">Không tìm thấy ưu đãi</h3>
+                        <p className="text-gray-600">Thử thay đổi bộ lọc để xem thêm ưu đãi khác</p>
+                      </Card>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {newestVouchers.map(voucher => (
+                          <PromotionCard key={voucher.id} voucher={voucher} />
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+                </>
+              )}
             </Tabs>
           </div>
         </div>

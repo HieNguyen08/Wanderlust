@@ -1,80 +1,24 @@
+import { useState, useEffect } from "react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import type { PageType } from "../../MainApp";
 import { Footer } from "../../components/Footer";
+// Sử dụng API thật kết nối MongoDB local:
+import { travelGuideApi } from "../../utils/api";
+// Test API (không dùng nữa):
+// import { testTravelGuideApi as travelGuideApi } from "../../utils/testApi";
+import type { TravelGuide } from "../../types/travelGuide";
+
 interface TravelGuidePageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
 export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
-  const vietnamDestinations = [
-    {
-      id: "saigon",
-      name: "Sài Gòn",
-      image: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800&h=600&fit=crop",
-    },
-    {
-      id: "danang",
-      name: "Đà Nẵng", 
-      image: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=800&h=600&fit=crop",
-    },
-    {
-      id: "hanoi",
-      name: "Hà Nội",
-      image: "https://images.unsplash.com/photo-1604391681301-2c1e5c6e0e9f?w=800&h=600&fit=crop",
-    },
-    {
-      id: "sapa",
-      name: "Sa Pa",
-      image: "https://images.unsplash.com/photo-1528127269322-539801943592?w=800&h=600&fit=crop",
-    },
-  ];
-
-  const popularDestinations = [
-    {
-      id: "japan",
-      name: "Nhật Bản",
-      image: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=800&h=600&fit=crop",
-      description: "Xứ sở hoa anh đào",
-    },
-    {
-      id: "korea",
-      name: "Hàn Quốc",
-      image: "https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&h=600&fit=crop",
-      description: "Xứ sở kim chi",
-    },
-    {
-      id: "turkey",
-      name: "Thổ Nhĩ Kỳ",
-      image: "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=800&h=600&fit=crop",
-      description: "Cầu nối Á - Âu",
-    },
-    {
-      id: "france",
-      name: "Pháp",
-      image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&h=600&fit=crop",
-      description: "Kinh đô ánh sáng",
-    },
-  ];
-
-  const blogPosts = [
-    {
-      id: 1,
-      title: "Getting from Osaka to Tokyo: Best Transportation to Choose, Route, and Fares",
-      image: "https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=800&h=600&fit=crop",
-    },
-    {
-      id: 2,
-      title: "Top Lombok Places to Visit: Top Attractions and Getting Around",
-      image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&h=600&fit=crop",
-    },
-    {
-      id: 3,
-      title: "Đồng hồ Big Ben - Công trình kiến trúc biểu tượng của nước Anh",
-      image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&h=600&fit=crop",
-    },
-  ];
+  const [vietnamDestinations, setVietnamDestinations] = useState<TravelGuide[]>([]);
+  const [popularDestinations, setPopularDestinations] = useState<TravelGuide[]>([]);
+  const [blogPosts, setBlogPosts] = useState<TravelGuide[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const continents = [
     {
@@ -99,9 +43,60 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
     },
   ];
 
-  const handleDestinationClick = (destination: any) => {
-    onNavigate("guide-detail", destination);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Lấy guides Việt Nam (type = destination, country = Việt Nam)
+        const vietnamGuides = await travelGuideApi.getByCountry("Việt Nam");
+        setVietnamDestinations(vietnamGuides.filter((g: TravelGuide) => g.type === "destination").slice(0, 4));
+        
+        // Lấy featured destinations (không phải Việt Nam)
+        const featuredGuides = await travelGuideApi.getFeatured();
+        setPopularDestinations(
+          featuredGuides
+            .filter((g: TravelGuide) => g.type === "destination" && g.country !== "Việt Nam")
+            .slice(0, 4)
+        );
+        
+        // Lấy blog posts
+        const blogs = await travelGuideApi.getByType("blog");
+        setBlogPosts(blogs.slice(0, 3));
+        
+      } catch (error) {
+        console.error("Error fetching travel guides:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleDestinationClick = (guide: TravelGuide) => {
+    onNavigate("guide-detail", { guide });
   };
+
+  const handleContinentClick = async (continent: string) => {
+    try {
+      const guides = await travelGuideApi.getByContinent(continent);
+      onNavigate("travel-guide-list", { continent, guides });
+    } catch (error) {
+      console.error("Error fetching continent guides:", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -155,13 +150,13 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
                 className="relative h-80 rounded-2xl overflow-hidden cursor-pointer group"
               >
                 <ImageWithFallback
-                  src={dest.image}
-                  alt={dest.name}
+                  src={dest.coverImage}
+                  alt={dest.destination}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                 <h4 className="absolute bottom-6 left-6 text-white text-2xl font-bold">
-                  {dest.name}
+                  {dest.destination}
                 </h4>
               </div>
             ))}
@@ -184,13 +179,13 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
                 className="relative h-80 rounded-2xl overflow-hidden cursor-pointer group"
               >
                 <ImageWithFallback
-                  src={dest.image}
-                  alt={dest.name}
+                  src={dest.coverImage}
+                  alt={dest.destination}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                 <div className="absolute bottom-6 left-6">
-                  <h4 className="text-white text-2xl font-bold mb-1">{dest.name}</h4>
+                  <h4 className="text-white text-2xl font-bold mb-1">{dest.country}</h4>
                   <p className="text-white/90 text-sm">{dest.description}</p>
                 </div>
               </div>
@@ -211,20 +206,11 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
               <div
                 key={post.id}
                 className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow cursor-pointer group"
-                onClick={() => onNavigate("travel-article", { 
-                  article: { 
-                    id: post.id,
-                    title: post.title, 
-                    image: post.image,
-                    readTime: "8 phút đọc",
-                    category: "Cảm hứng du lịch",
-                    destination: "Thế giới"
-                  } 
-                })}
+                onClick={() => handleDestinationClick(post)}
               >
                 <div className="h-64 overflow-hidden">
                   <ImageWithFallback
-                    src={post.image}
+                    src={post.coverImage}
                     alt={post.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
@@ -233,6 +219,9 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
                   <p className="text-gray-800 leading-relaxed group-hover:text-blue-600 transition-colors">
                     {post.title}
                   </p>
+                  {post.readTime && (
+                    <p className="text-sm text-gray-500 mt-2">{post.readTime}</p>
+                  )}
                 </div>
               </div>
             ))}

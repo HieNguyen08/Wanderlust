@@ -28,6 +28,8 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<!-- Force MongoDB driver to older version compatible with Atlas SSL -->
+		<mongodb.version>4.11.1</mongodb.version>
 	</properties>
 	<dependencies>
 		<dependency>

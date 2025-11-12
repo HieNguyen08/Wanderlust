@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Footer } from "../../components/Footer";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Button } from "../../components/ui/button";
@@ -19,241 +20,18 @@ import {
   Flame
 } from "lucide-react";
 import type { PageType } from "../../MainApp";
+import { visaArticleApi } from "../../utils/api";
+import { toast } from "sonner";
 
 interface VisaLandingPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
-const VISA_HOT = [
-  {
-    id: 1,
-    title: "Hướng dẫn làm Visa Nhật Bản 2025",
-    country: "Nhật Bản",
-    flag: "🇯🇵",
-    continent: "Châu Á",
-    excerpt: "Tìm hiểu chi tiết về quy trình, hồ sơ cần thiết và thời gian xử lý visa du lịch Nhật Bản.",
-    image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600&h=400&fit=crop",
-    readTime: "5 phút",
-    category: "Hướng dẫn",
-    processingTime: "7-10 ngày",
-    popular: true
-  },
-  {
-    id: 2,
-    title: "Visa Hàn Quốc: Thủ tục và yêu cầu",
-    country: "Hàn Quốc",
-    flag: "🇰🇷",
-    continent: "Châu Á",
-    excerpt: "Những điều bạn cần biết về visa du lịch Hàn Quốc, từ giấy tờ đến phí dịch vụ.",
-    image: "https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=600&h=400&fit=crop",
-    readTime: "4 phút",
-    category: "Hướng dẫn",
-    processingTime: "5-7 ngày",
-    popular: true
-  },
-  {
-    id: 3,
-    title: "Làm Visa Mỹ: Bí quyết thành công",
-    country: "Mỹ",
-    flag: "🇺🇸",
-    continent: "Châu Mỹ",
-    excerpt: "Kinh nghiệm và hướng dẫn chi tiết để tăng tỷ lệ đậu visa Mỹ.",
-    image: "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=600&h=400&fit=crop",
-    readTime: "8 phút",
-    category: "Kinh nghiệm",
-    processingTime: "15-30 ngày",
-    popular: true
-  }
-];
-
-const VISA_CHAU_A = [
-  {
-    id: 4,
-    title: "Hướng dẫn làm Visa Nhật Bản 2025",
-    country: "Nhật Bản",
-    flag: "🇯🇵",
-    continent: "Châu Á",
-    excerpt: "Tìm hiểu chi tiết về quy trình, hồ sơ cần thiết và thời gian xử lý visa du lịch Nhật Bản.",
-    image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600&h=400&fit=crop",
-    readTime: "5 phút",
-    category: "Hướng dẫn",
-    processingTime: "7-10 ngày"
-  },
-  {
-    id: 5,
-    title: "Visa Hàn Quốc: Thủ tục và yêu cầu",
-    country: "Hàn Quốc",
-    flag: "🇰🇷",
-    continent: "Châu Á",
-    excerpt: "Những điều bạn cần biết về visa du lịch Hàn Quốc, từ giấy tờ đến phí dịch vụ.",
-    image: "https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=600&h=400&fit=crop",
-    readTime: "4 phút",
-    category: "Hướng dẫn",
-    processingTime: "5-7 ngày"
-  },
-  {
-    id: 6,
-    title: "Visa Singapore - Điều kiện xin visa",
-    country: "Singapore",
-    flag: "🇸🇬",
-    continent: "Châu Á",
-    excerpt: "Hướng dẫn chi tiết về visa Singapore cho người Việt Nam, thủ tục đơn giản và nhanh chóng.",
-    image: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600&h=400&fit=crop",
-    readTime: "3 phút",
-    category: "Hướng dẫn",
-    processingTime: "3-5 ngày"
-  },
-  {
-    id: 7,
-    title: "Visa Thái Lan: Hồ sơ và quy trình",
-    country: "Thái Lan",
-    flag: "🇹🇭",
-    continent: "Châu Á",
-    excerpt: "Hướng dẫn làm visa Thái Lan nhanh chóng, đơn giản cho người Việt Nam.",
-    image: "https://images.unsplash.com/photo-1688032406789-138fbe9a98b9?w=600&h=400&fit=crop",
-    readTime: "3 phút",
-    category: "Hướng dẫn",
-    processingTime: "3-5 ngày"
-  }
-];
-
-const VISA_CHAU_AU = [
-  {
-    id: 8,
-    title: "Visa Schengen: Du lịch châu Âu",
-    country: "Schengen",
-    flag: "🇪🇺",
-    continent: "Châu Âu",
-    excerpt: "Hướng dẫn xin visa Schengen để du lịch 26 quốc gia châu Âu.",
-    image: "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=600&h=400&fit=crop",
-    readTime: "7 phút",
-    category: "Hướng dẫn",
-    processingTime: "10-15 ngày"
-  },
-  {
-    id: 9,
-    title: "Visa Anh Quốc: Thủ tục và hồ sơ",
-    country: "Anh",
-    flag: "🇬🇧",
-    continent: "Châu Âu",
-    excerpt: "Hướng dẫn chi tiết làm visa Anh cho người Việt Nam, visa du lịch và công tác.",
-    image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&h=400&fit=crop",
-    readTime: "6 phút",
-    category: "Hướng dẫn",
-    processingTime: "15-20 ngày"
-  },
-  {
-    id: 10,
-    title: "Visa Pháp: Kinh nghiệm xin visa",
-    country: "Pháp",
-    flag: "🇫🇷",
-    continent: "Châu Âu",
-    excerpt: "Chia sẻ kinh nghiệm làm visa Pháp thành công, hồ sơ cần chuẩn bị.",
-    image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&h=400&fit=crop",
-    readTime: "6 phút",
-    category: "Kinh nghiệm",
-    processingTime: "10-15 ngày"
-  }
-];
-
-const VISA_CHAU_MY = [
-  {
-    id: 11,
-    title: "Làm Visa Mỹ: Bí quyết thành công",
-    country: "Mỹ",
-    flag: "🇺🇸",
-    continent: "Châu Mỹ",
-    excerpt: "Kinh nghiệm và hướng dẫn chi tiết để tăng tỷ lệ đậu visa Mỹ.",
-    image: "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=600&h=400&fit=crop",
-    readTime: "8 phút",
-    category: "Kinh nghiệm",
-    processingTime: "15-30 ngày"
-  },
-  {
-    id: 12,
-    title: "Visa Canada: Hướng dẫn chi tiết",
-    country: "Canada",
-    flag: "🇨🇦",
-    continent: "Châu Mỹ",
-    excerpt: "Quy trình xin visa Canada du lịch và thăm thân cho người Việt Nam.",
-    image: "https://images.unsplash.com/photo-1503614472-8c93d56e92ce?w=600&h=400&fit=crop",
-    readTime: "7 phút",
-    category: "Hướng dẫn",
-    processingTime: "10-20 ngày"
-  },
-  {
-    id: 13,
-    title: "Visa Brazil: Thủ tục và yêu cầu",
-    country: "Brazil",
-    flag: "🇧🇷",
-    continent: "Châu Mỹ",
-    excerpt: "Hướng dẫn làm visa Brazil, điều kiện và hồ sơ cần thiết.",
-    image: "https://images.unsplash.com/photo-1655700628980-e483109c1b88?w=600&h=400&fit=crop",
-    readTime: "5 phút",
-    category: "Hướng dẫn",
-    processingTime: "10-15 ngày"
-  }
-];
-
-const VISA_CHAU_UC = [
-  {
-    id: 14,
-    title: "Visa Úc: Hồ sơ và quy trình",
-    country: "Úc",
-    flag: "🇦🇺",
-    continent: "Châu Úc",
-    excerpt: "Tất tần tật về visa du lịch Úc, visa thăm thân và các loại visa phổ biến khác.",
-    image: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=600&h=400&fit=crop",
-    readTime: "6 phút",
-    category: "Hướng dẫn",
-    processingTime: "10-15 ngày"
-  },
-  {
-    id: 15,
-    title: "Visa New Zealand: Hướng dẫn đầy đủ",
-    country: "New Zealand",
-    flag: "🇳🇿",
-    continent: "Châu Úc",
-    excerpt: "Quy trình làm visa New Zealand du lịch, công tác và học tập.",
-    image: "https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=600&h=400&fit=crop",
-    readTime: "6 phút",
-    category: "Hướng dẫn",
-    processingTime: "10-15 ngày"
-  }
-];
-
-const VISA_CHAU_PHI = [
-  {
-    id: 16,
-    title: "Visa Nam Phi: Du lịch châu Phi",
-    country: "Nam Phi",
-    flag: "🇿🇦",
-    continent: "Châu Phi",
-    excerpt: "Hướng dẫn làm visa Nam Phi, khám phá vẻ đẹp hoang dã châu Phi.",
-    image: "https://images.unsplash.com/photo-1551969014-7d2c4cddf0b6?w=600&h=400&fit=crop",
-    readTime: "5 phút",
-    category: "Hướng dẫn",
-    processingTime: "10-15 ngày"
-  },
-  {
-    id: 17,
-    title: "Visa Ai Cập: Hồ sơ và thủ tục",
-    country: "Ai Cập",
-    flag: "🇪🇬",
-    continent: "Châu Phi",
-    excerpt: "Làm visa Ai Cập để khám phá Kim Tự Tháp và nền văn minh cổ đại.",
-    image: "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=600&h=400&fit=crop",
-    readTime: "4 phút",
-    category: "Hướng dẫn",
-    processingTime: "7-10 ngày"
-  }
-];
-
 const WHY_CHOOSE_US = [
   {
     icon: Users,
     title: "Tư vấn chuyên nghiệp",
-    description: "Đội ngũ chuyên viên giàu kinh nghiệm, tư vấn tận tình"
+    description: "Đội ngũ chuyên viên giàu kinh nghiệm, tư vấn tận tâm"
   },
   {
     icon: CheckCircle2,
@@ -331,8 +109,46 @@ const ArticleCard = ({ article, onNavigate }: { article: any; onNavigate: (page:
 );
 
 export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
+  const [allArticles, setAllArticles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchVisaArticles = async () => {
+      try {
+        setLoading(true);
+        const data = await visaArticleApi.getAll();
+        setAllArticles(data);
+      } catch (error) {
+        console.error('Error fetching visa articles:', error);
+        toast.error('Không thể tải danh sách visa');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchVisaArticles();
+  }, []);
+
+  const VISA_HOT = allArticles.filter(article => article.popular);
+  const VISA_CHAU_A = allArticles.filter(article => article.continent === 'Châu Á');
+  const VISA_CHAU_AU = allArticles.filter(article => article.continent === 'Châu Âu');
+  const VISA_CHAU_MY = allArticles.filter(article => article.continent === 'Châu Mỹ');
+  const VISA_CHAU_UC = allArticles.filter(article => article.continent === 'Châu Úc');
+  const VISA_CHAU_PHI = allArticles.filter(article => article.continent === 'Châu Phi');
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải danh sách visa...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">      {/* Hero Section */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
       <div className="relative h-[500px] overflow-hidden">
         <ImageWithFallback
           src="https://images.unsplash.com/photo-1743193143977-bc57e2c100ad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aXNhJTIwcGFzc3BvcnQlMjB0cmF2ZWwlMjBkb2N1bWVudHN8ZW58MXx8fHwxNzYxOTk3NDQ1fDA&ixlib=rb-4.1.0&q=80&w=1080"
@@ -377,106 +193,118 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
 
       <div className="max-w-7xl mx-auto px-4 py-16">
         {/* Visa Hot */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
-              <Flame className="w-6 h-6 text-white" />
+        {VISA_HOT.length > 0 && (
+          <div className="mb-16">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
+                <Flame className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-4xl">Visa Hot</h2>
+                <p className="text-gray-600">Thông tin visa được quan tâm nhất</p>
+              </div>
+              <Badge className="bg-red-500 text-white border-0 px-4 py-2 ml-auto">
+                <TrendingUp className="w-4 h-4 mr-1" />
+                Hot
+              </Badge>
             </div>
-            <div>
-              <h2 className="text-4xl">Visa Hot</h2>
-              <p className="text-gray-600">Thông tin visa được quan tâm nhất</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {VISA_HOT.map((article) => (
+                <ArticleCard key={article.id} article={article} onNavigate={onNavigate} />
+              ))}
             </div>
-            <Badge className="bg-red-500 text-white border-0 px-4 py-2 ml-auto">
-              <TrendingUp className="w-4 h-4 mr-1" />
-              Hot
-            </Badge>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {VISA_HOT.map((article) => (
-              <ArticleCard key={article.id} article={article} onNavigate={onNavigate} />
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* Visa Châu Á */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="text-5xl">🌏</div>
-            <div>
-              <h2 className="text-4xl">Visa Châu Á</h2>
-              <p className="text-gray-600">Thông tin visa các nước châu Á</p>
+        {VISA_CHAU_A.length > 0 && (
+          <div className="mb-16">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="text-5xl">🌏</div>
+              <div>
+                <h2 className="text-4xl">Visa Châu Á</h2>
+                <p className="text-gray-600">Thông tin visa các nước châu Á</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {VISA_CHAU_A.map((article) => (
+                <ArticleCard key={article.id} article={article} onNavigate={onNavigate} />
+              ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {VISA_CHAU_A.map((article) => (
-              <ArticleCard key={article.id} article={article} onNavigate={onNavigate} />
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* Visa Châu Âu */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="text-5xl">🇪🇺</div>
-            <div>
-              <h2 className="text-4xl">Visa Châu Âu</h2>
-              <p className="text-gray-600">Thông tin visa các nước châu Âu</p>
+        {VISA_CHAU_AU.length > 0 && (
+          <div className="mb-16">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="text-5xl">🇪🇺</div>
+              <div>
+                <h2 className="text-4xl">Visa Châu Âu</h2>
+                <p className="text-gray-600">Thông tin visa các nước châu Âu</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {VISA_CHAU_AU.map((article) => (
+                <ArticleCard key={article.id} article={article} onNavigate={onNavigate} />
+              ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {VISA_CHAU_AU.map((article) => (
-              <ArticleCard key={article.id} article={article} onNavigate={onNavigate} />
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* Visa Châu Mỹ */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="text-5xl">🌎</div>
-            <div>
-              <h2 className="text-4xl">Visa Châu Mỹ</h2>
-              <p className="text-gray-600">Thông tin visa các nước châu Mỹ</p>
+        {VISA_CHAU_MY.length > 0 && (
+          <div className="mb-16">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="text-5xl">🌎</div>
+              <div>
+                <h2 className="text-4xl">Visa Châu Mỹ</h2>
+                <p className="text-gray-600">Thông tin visa các nước châu Mỹ</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {VISA_CHAU_MY.map((article) => (
+                <ArticleCard key={article.id} article={article} onNavigate={onNavigate} />
+              ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {VISA_CHAU_MY.map((article) => (
-              <ArticleCard key={article.id} article={article} onNavigate={onNavigate} />
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* Visa Châu Úc */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="text-5xl">🦘</div>
-            <div>
-              <h2 className="text-4xl">Visa Châu Úc</h2>
-              <p className="text-gray-600">Thông tin visa các nước châu Úc</p>
+        {VISA_CHAU_UC.length > 0 && (
+          <div className="mb-16">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="text-5xl">🦘</div>
+              <div>
+                <h2 className="text-4xl">Visa Châu Úc</h2>
+                <p className="text-gray-600">Thông tin visa các nước châu Úc</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {VISA_CHAU_UC.map((article) => (
+                <ArticleCard key={article.id} article={article} onNavigate={onNavigate} />
+              ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {VISA_CHAU_UC.map((article) => (
-              <ArticleCard key={article.id} article={article} onNavigate={onNavigate} />
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* Visa Châu Phi */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="text-5xl">🦁</div>
-            <div>
-              <h2 className="text-4xl">Visa Châu Phi</h2>
-              <p className="text-gray-600">Thông tin visa các nước châu Phi</p>
+        {VISA_CHAU_PHI.length > 0 && (
+          <div className="mb-16">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="text-5xl">🦁</div>
+              <div>
+                <h2 className="text-4xl">Visa Châu Phi</h2>
+                <p className="text-gray-600">Thông tin visa các nước châu Phi</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {VISA_CHAU_PHI.map((article) => (
+                <ArticleCard key={article.id} article={article} onNavigate={onNavigate} />
+              ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {VISA_CHAU_PHI.map((article) => (
-              <ArticleCard key={article.id} article={article} onNavigate={onNavigate} />
-            ))}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Why Choose Us */}
