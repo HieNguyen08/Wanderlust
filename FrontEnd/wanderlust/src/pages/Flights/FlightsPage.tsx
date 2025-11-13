@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -21,6 +21,7 @@ import type { PageType } from "../../MainApp";
 import { toast } from "sonner@2.0.3";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { promotionApi, userVoucherApi, tokenService } from "../../utils/api";
 
 interface FlightsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -65,6 +66,74 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
   
   // Loading state
   const [isSearching, setIsSearching] = useState(false);
+
+  // Promotions state
+  const [promotions, setPromotions] = useState<any[]>([]);
+  const [loadingPromotions, setLoadingPromotions] = useState(true);
+  const [savedVouchers, setSavedVouchers] = useState<string[]>([]);
+  const [savingVoucher, setSavingVoucher] = useState(false);
+
+  // Load saved vouchers from backend
+  useEffect(() => {
+    const loadSavedVouchers = async () => {
+      try {
+        if (tokenService.isAuthenticated()) {
+          const available = await userVoucherApi.getAvailable();
+          setSavedVouchers(available.map((v: any) => v.voucherCode));
+        }
+      } catch (error: any) {
+        // Silently fail if not authenticated - user just won't see saved vouchers
+        if (error.message !== 'UNAUTHORIZED') {
+          console.error('Error loading saved vouchers:', error);
+        }
+      }
+    };
+
+    loadSavedVouchers();
+  }, []);
+
+  // Fetch flight promotions on mount
+  useEffect(() => {
+    const fetchFlightPromotions = async () => {
+      try {
+        setLoadingPromotions(true);
+        const data = await promotionApi.getActiveByCategory('flight');
+        setPromotions(data);
+      } catch (error) {
+        console.error('Error fetching flight promotions:', error);
+        toast.error('Không thể tải ưu đãi');
+      } finally {
+        setLoadingPromotions(false);
+      }
+    };
+
+    fetchFlightPromotions();
+  }, []);
+
+  const handleSaveVoucher = async (voucher: any) => {
+    try {
+      // Check authentication
+      if (!tokenService.isAuthenticated()) {
+        toast.error('Vui lòng đăng nhập để lưu voucher');
+        onNavigate('login');
+        return;
+      }
+
+      setSavingVoucher(true);
+      await userVoucherApi.saveToWallet(voucher.code);
+      toast.success(`Đã lưu mã ${voucher.code} vào Ví Voucher!`);
+      
+      // Refresh available vouchers
+      const available = await userVoucherApi.getAvailable();
+      setSavedVouchers(available.map((v: any) => v.voucherCode));
+      
+      setSelectedVoucher(null);
+    } catch (error: any) {
+      toast.error(error.message || 'Không thể lưu voucher');
+    } finally {
+      setSavingVoucher(false);
+    }
+  };
 
   const handleSwapAirports = () => {
     const temp = fromAirport;
@@ -672,69 +741,54 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
           </Button>
         </div>
 
-        <Carousel className="w-full">
-          <CarouselContent className="-ml-2 md:-ml-4">
-            {[
-              {
-                id: 1,
-                code: "FLIGHT15",
-                title: "Giảm 15% vé máy bay nội địa",
-                description: "Áp dụng cho tất cả chuyến bay trong nước",
-                image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&h=400&fit=crop",
-                discount: "15%"
-              },
-              {
-                id: 2,
-                code: "SUMMER200K",
-                title: "Giảm 200.000đ mùa hè",
-                description: "Cho đơn hàng từ 2.000.000đ",
-                image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=400&fit=crop",
-                discount: "200K"
-              },
-              {
-                id: 3,
-                code: "WEEKEND25",
-                title: "Giảm 25% cuối tuần",
-                description: "Bay thứ 7 & Chủ nhật",
-                image: "https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=800&h=400&fit=crop",
-                discount: "25%"
-              }
-            ].map((deal) => (
-              <CarouselItem key={deal.id} className="md:basis-1/2 lg:basis-1/3">
-                <div 
-                  onClick={() => setSelectedVoucher(deal)}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer group"
-                >
-                  <div className="relative h-48">
-                    <ImageWithFallback
-                      alt={deal.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      src={deal.image}
-                    />
-                    <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full">
-                      {deal.discount}
+        {loadingPromotions ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : promotions.length === 0 ? (
+          <div className="text-center py-20 text-gray-500">
+            <p>Hiện chưa có ưu đãi nào cho vé máy bay</p>
+          </div>
+        ) : (
+          <Carousel className="w-full">
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {promotions.map((promo: any) => (
+                <CarouselItem key={promo.id} className="md:basis-1/2 lg:basis-1/3">
+                  <div 
+                    onClick={() => setSelectedVoucher(promo)}
+                    className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer group"
+                  >
+                    <div className="relative h-48">
+                      <ImageWithFallback
+                        alt={promo.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        src={promo.image || "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&h=400&fit=crop"}
+                      />
+                      <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full">
+                        {promo.type === 'PERCENTAGE' ? `${promo.value}%` : `${(promo.value / 1000).toFixed(0)}K`}
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <div className="text-sm text-gray-600 mb-1">Wanderlust Travel</div>
+                      <h3 className="text-lg mb-2">{promo.title}</h3>
+                      <p className="text-sm text-gray-600 mb-4">{promo.description}</p>
+                      <div className="flex items-center justify-between">
+                        <code className="border-2 border-dashed border-purple-600 text-purple-600 rounded px-3 py-1">
+                          {promo.code}
+                        </code>
+                        <Button variant="link" className="text-blue-600 p-0">
+                          Xem chi tiết →
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  <div className="p-5">
-                    <div className="text-sm text-gray-600 mb-1">Wanderlust Travel</div>
-                    <h3 className="text-lg mb-2">{deal.title}</h3>
-                    <p className="text-sm text-gray-600 mb-4">{deal.description}</p>
-                    <div className="flex items-center justify-between">
-                      <code className="border-2 border-dashed border-purple-600 text-purple-600 rounded px-3 py-1">
-                        {deal.code}
-                      </code>
-                      <Button variant="link" className="text-blue-600 p-0">
-                        Xem chi tiết →
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="hidden md:flex" />
-          <CarouselNext className="hidden md:flex" />
-        </Carousel>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="hidden md:flex" />
+            <CarouselNext className="hidden md:flex" />
+          </Carousel>
+        )}
       </section>
 
       {/* FAQ Section */}
@@ -802,7 +856,9 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-full">
-                  {selectedVoucher.discount}
+                  {selectedVoucher.type === 'PERCENTAGE' 
+                    ? `${selectedVoucher.value}%` 
+                    : `${(selectedVoucher.value / 1000).toFixed(0)}K`}
                 </div>
               </div>
 
@@ -838,22 +894,32 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
               <div className="border-t pt-4">
                 <h4 className="mb-3">Điều kiện áp dụng</h4>
                 <ul className="space-y-2 text-sm text-gray-600">
-                  <li>• Áp dụng cho tất cả các chuyến bay nội địa</li>
-                  <li>• Không áp dụng cùng các chương trình khuyến mãi khác</li>
-                  <li>• Mỗi tài khoản chỉ được sử dụng 1 lần</li>
-                  <li>• Không hoàn tiền khi hủy vé</li>
+                  {selectedVoucher.conditions && Array.isArray(selectedVoucher.conditions) && selectedVoucher.conditions.length > 0 ? (
+                    selectedVoucher.conditions.map((condition: string, index: number) => (
+                      <li key={index}>• {condition}</li>
+                    ))
+                  ) : (
+                    <>
+                      <li>• Áp dụng cho vé máy bay</li>
+                      <li>• Không áp dụng cùng các chương trình khuyến mãi khác</li>
+                      <li>• Mỗi tài khoản chỉ được sử dụng 1 lần</li>
+                    </>
+                  )}
                 </ul>
               </div>
 
               <Button 
                 className="w-full bg-blue-600 hover:bg-blue-700"
-                onClick={() => {
-                  toast.success(`Đã lưu mã ${selectedVoucher.code} vào Ví Voucher!`);
-                  setSelectedVoucher(null);
-                }}
+                onClick={() => handleSaveVoucher(selectedVoucher)}
+                disabled={savedVouchers.includes(selectedVoucher.code) || savingVoucher}
               >
                 <Tag className="w-4 h-4 mr-2" />
-                Lưu vào Ví Voucher
+                {savingVoucher 
+                  ? 'Đang lưu...' 
+                  : savedVouchers.includes(selectedVoucher.code) 
+                    ? 'Đã lưu vào Ví Voucher' 
+                    : 'Lưu vào Ví Voucher'
+                }
               </Button>
             </div>
           </DialogContent>

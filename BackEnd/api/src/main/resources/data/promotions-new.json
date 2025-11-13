@@ -1,0 +1,254 @@
+[
+  {
+    "code": "WELCOME2024",
+    "title": "Chào mừng thành viên mới",
+    "description": "Giảm 100.000đ cho đơn hàng đầu tiên",
+    "type": "FIXED_AMOUNT",
+    "value": 100000,
+    "minSpend": 500000,
+    "maxDiscount": 100000,
+    "category": "ALL",
+    "startDate": "2024-01-01",
+    "endDate": "2025-12-31",
+    "usageLimit": 1000,
+    "usedCount": 45,
+    "status": "ACTIVE",
+    "image": "https://images.unsplash.com/photo-1464998857633-50e59fbf2fe6",
+    "conditions": [
+      "Áp dụng cho tài khoản mới",
+      "Chỉ sử dụng 1 lần/tài khoản",
+      "Không áp dụng cùng voucher khác"
+    ]
+  },
+  {
+    "code": "FLIGHT50K",
+    "title": "Giảm 50K vé máy bay",
+    "description": "Ưu đãi đặc biệt cho chuyến bay nội địa",
+    "type": "FIXED_AMOUNT",
+    "value": 50000,
+    "minSpend": 1000000,
+    "maxDiscount": 50000,
+    "category": "flight",
+    "startDate": "2024-01-01",
+    "endDate": "2025-12-31",
+    "usageLimit": 500,
+    "usedCount": 230,
+    "status": "ACTIVE",
+    "image": "https://images.unsplash.com/photo-1436491865332-7a61a109cc05",
+    "conditions": [
+      "Áp dụng cho vé nội địa",
+      "Đơn hàng tối thiểu 1.000.000đ",
+      "Không hoàn tiền"
+    ]
+  },
+  {
+    "code": "HOTEL15",
+    "title": "Giảm 15% khách sạn",
+    "description": "Tiết kiệm cho kỳ nghỉ của bạn",
+    "type": "PERCENTAGE",
+    "value": 15,
+    "minSpend": 800000,
+    "maxDiscount": 200000,
+    "category": "hotel",
+    "startDate": "2024-01-01",
+    "endDate": "2025-12-31",
+    "usageLimit": 300,
+    "usedCount": 120,
+    "status": "ACTIVE",
+    "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945",
+    "conditions": [
+      "Đặt phòng tối thiểu 2 đêm",
+      "Giảm tối đa 200.000đ",
+      "Áp dụng cho khách sạn 3-5 sao"
+    ]
+  },
+  {
+    "code": "ACTIVITY20",
+    "title": "Giảm 20% hoạt động giải trí",
+    "description": "Khám phá trải nghiệm mới với giá ưu đãi",
+    "type": "PERCENTAGE",
+    "value": 20,
+    "minSpend": 300000,
+    "maxDiscount": 150000,
+    "category": "activity",
+    "startDate": "2024-01-01",
+    "endDate": "2025-12-31",
+    "usageLimit": 400,
+    "usedCount": 89,
+    "status": "ACTIVE",
+    "image": "https://images.unsplash.com/photo-1527004013197-933c4bb611b3",
+    "conditions": [
+      "Áp dụng cho tour, vui chơi",
+      "Giảm tối đa 150.000đ",
+      "Đặt trước 24h"
+    ]
+  },
+  {
+    "code": "WEEKEND100K",
+    "title": "Cuối tuần vui vẻ",
+    "description": "Giảm 100.000đ cho đơn cuối tuần",
+    "type": "FIXED_AMOUNT",
+    "value": 100000,
+    "minSpend": 1500000,
+    "maxDiscount": 100000,
+    "category": "ALL",
+    "startDate": "2024-01-01",
+    "endDate": "2025-12-31",
+    "usageLimit": 200,
+    "usedCount": 67,
+    "status": "ACTIVE",
+    "image": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800",
+    "conditions": [
+      "Áp dụng T7-CN",
+      "Đơn hàng từ 1.500.000đ",
+      "Thanh toán trước 100%"
+    ]
+  },
+  {
+    "code": "FLASH30",
+    "title": "Flash Sale 30%",
+    "description": "Giảm sốc trong thời gian giới hạn",
+    "type": "PERCENTAGE",
+    "value": 30,
+    "minSpend": 2000000,
+    "maxDiscount": 500000,
+    "category": "ALL",
+    "startDate": "2024-01-01",
+    "endDate": "2025-03-31",
+    "usageLimit": 100,
+    "usedCount": 78,
+    "status": "ACTIVE",
+    "image": "https://images.unsplash.com/photo-1488646953014-85cb44e25828",
+    "conditions": [
+      "Số lượng có hạn",
+      "Giảm tối đa 500.000đ",
+      "First come first served"
+    ]
+  },
+  {
+    "code": "CARRENTAL25",
+    "title": "Thuê xe tiết kiệm 25%",
+    "description": "Ưu đãi thuê xe tự lái",
+    "type": "PERCENTAGE",
+    "value": 25,
+    "minSpend": 1000000,
+    "maxDiscount": 300000,
+    "category": "car_rental",
+    "startDate": "2024-01-01",
+    "endDate": "2025-12-31",
+    "usageLimit": 250,
+    "usedCount": 34,
+    "status": "ACTIVE",
+    "image": "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d",
+    "conditions": [
+      "Thuê tối thiểu 3 ngày",
+      "Giảm tối đa 300.000đ",
+      "Không áp dụng ngày lễ"
+    ]
+  },
+  {
+    "code": "TOUR200K",
+    "title": "Du lịch trọn gói giảm 200K",
+    "description": "Combo tour tiết kiệm",
+    "type": "FIXED_AMOUNT",
+    "value": 200000,
+    "minSpend": 3000000,
+    "maxDiscount": 200000,
+    "category": "tour",
+    "startDate": "2024-01-01",
+    "endDate": "2025-12-31",
+    "usageLimit": 150,
+    "usedCount": 56,
+    "status": "ACTIVE",
+    "image": "https://images.unsplash.com/photo-1502920917128-1aa500764cbd",
+    "conditions": [
+      "Áp dụng tour 3 ngày trở lên",
+      "Đặt trước 7 ngày",
+      "Bao gồm vé + khách sạn"
+    ]
+  },
+  {
+    "code": "INTFLIGHT10",
+    "title": "Bay quốc tế giảm 10%",
+    "description": "Tiết kiệm cho chuyến bay xa",
+    "type": "PERCENTAGE",
+    "value": 10,
+    "minSpend": 5000000,
+    "maxDiscount": 1000000,
+    "category": "flight",
+    "startDate": "2024-01-01",
+    "endDate": "2025-12-31",
+    "usageLimit": 200,
+    "usedCount": 92,
+    "status": "ACTIVE",
+    "image": "https://images.unsplash.com/photo-1544016768-982d1554f0b9",
+    "conditions": [
+      "Chỉ vé quốc tế",
+      "Giảm tối đa 1.000.000đ",
+      "Đặt trước 15 ngày"
+    ]
+  },
+  {
+    "code": "LUXURY5STAR",
+    "title": "Khách sạn 5 sao giảm 20%",
+    "description": "Trải nghiệm sang trọng với giá tốt",
+    "type": "PERCENTAGE",
+    "value": 20,
+    "minSpend": 2500000,
+    "maxDiscount": 800000,
+    "category": "hotel",
+    "startDate": "2024-01-01",
+    "endDate": "2025-12-31",
+    "usageLimit": 100,
+    "usedCount": 23,
+    "status": "ACTIVE",
+    "image": "https://images.unsplash.com/photo-1582719508461-905c673771fd",
+    "conditions": [
+      "Chỉ khách sạn 5 sao",
+      "Đặt tối thiểu 3 đêm",
+      "Giảm tối đa 800.000đ"
+    ]
+  },
+  {
+    "code": "EARLYBIRD",
+    "title": "Đặt sớm giảm 150K",
+    "description": "Ưu đãi cho người đặt trước",
+    "type": "FIXED_AMOUNT",
+    "value": 150000,
+    "minSpend": 2000000,
+    "maxDiscount": 150000,
+    "category": "ALL",
+    "startDate": "2024-01-01",
+    "endDate": "2025-12-31",
+    "usageLimit": 300,
+    "usedCount": 145,
+    "status": "ACTIVE",
+    "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
+    "conditions": [
+      "Đặt trước 30 ngày",
+      "Thanh toán ngay 100%",
+      "Không hoàn hủy"
+    ]
+  },
+  {
+    "code": "GROUPDEAL",
+    "title": "Đi nhóm giảm 25%",
+    "description": "Càng đông càng rẻ",
+    "type": "PERCENTAGE",
+    "value": 25,
+    "minSpend": 5000000,
+    "maxDiscount": 1500000,
+    "category": "tour",
+    "startDate": "2024-01-01",
+    "endDate": "2025-12-31",
+    "usageLimit": 80,
+    "usedCount": 12,
+    "status": "ACTIVE",
+    "image": "https://images.unsplash.com/photo-1528543606781-2f6e6857f318",
+    "conditions": [
+      "Từ 6 người trở lên",
+      "Giảm tối đa 1.500.000đ",
+      "Đặt chung 1 đơn"
+    ]
+  }
+]

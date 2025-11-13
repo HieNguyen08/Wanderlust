@@ -8,7 +8,7 @@ interface ProfileLayoutProps {
   children: ReactNode;
   currentPage: PageType;
   onNavigate: (page: PageType, data?: any) => void;
-  activePage?: "profile" | "bookings" | "saved" | "vouchers" | "wallet" | "settings" | "payment-methods";
+  activePage?: "profile" | "bookings" | "saved" | "vouchers" | "wallet" | "settings" | "saved-payment-methods";
 }
 
 export function ProfileLayout({ children, currentPage, onNavigate, activePage = "profile" }: ProfileLayoutProps) {
@@ -44,10 +44,10 @@ export function ProfileLayout({ children, currentPage, onNavigate, activePage = 
       page: "wallet" as PageType,
     },
     {
-      id: "payment-methods",
+      id: "saved-payment-methods",
       label: "Phương thức thanh toán",
       icon: CreditCard,
-      page: "payment-methods" as PageType,
+      page: "saved-payment-methods" as PageType,
     },
     {
       id: "settings",

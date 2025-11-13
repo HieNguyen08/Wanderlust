@@ -16,6 +16,9 @@ public interface PromotionRepository extends MongoRepository<Promotion, String> 
     // Find by code
     Optional<Promotion> findByCode(String code);
     
+    // Check if code exists
+    boolean existsByCode(String code);
+    
     // Find by category
     List<Promotion> findByCategory(String category);
     

@@ -25,12 +25,12 @@ public class FlightSeatService implements BaseServices<FlightSeat> {
 
     // Update an existing flight seat
     public FlightSeat update(FlightSeat flightSeat) {
-        FlightSeat updatedFlightSeat = flightSeatRepository.findById(flightSeat.getSeat_ID())
-                .orElseThrow(() -> new RuntimeException("FlightSeat not found with id " + flightSeat.getSeat_ID()));
+        FlightSeat updatedFlightSeat = flightSeatRepository.findById(flightSeat.getId())
+                .orElseThrow(() -> new RuntimeException("FlightSeat not found with id " + flightSeat.getId()));
 
-        if (flightSeat.getSeat_Class() != null) updatedFlightSeat.setSeat_Class(flightSeat.getSeat_Class());
+        if (flightSeat.getCabinClass() != null) updatedFlightSeat.setCabinClass(flightSeat.getCabinClass());
         if (flightSeat.getPrice() != null) updatedFlightSeat.setPrice(flightSeat.getPrice());
-        if (flightSeat.getAvailability() != null) updatedFlightSeat.setAvailability(flightSeat.getAvailability());
+        if (flightSeat.getStatus() != null) updatedFlightSeat.setStatus(flightSeat.getStatus());
 
         return flightSeatRepository.save(updatedFlightSeat);
     }

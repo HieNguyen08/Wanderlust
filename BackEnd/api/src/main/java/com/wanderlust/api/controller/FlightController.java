@@ -1,85 +1,70 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.entity.Flight; // Use the Flight entity directly
-import com.wanderlust.api.services.FlightService;
-
+import com.wanderlust.api.entity.Flight;
+import com.wanderlust.api.service.FlightService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/flights")
+@CrossOrigin(origins = "*")
 public class FlightController {
 
-    private final FlightService flightService;
-
     @Autowired
-    public FlightController(FlightService flightService) {
-        this.flightService = flightService;
-    }
+    private FlightService flightService;
 
-    // Get all flights
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Flight>> getAllFlights() {
-        List<Flight> allFlights = flightService.findAll();
-        return new ResponseEntity<>(allFlights, HttpStatus.OK);
+        return ResponseEntity.ok(flightService.getAllFlights());
     }
 
-    // Add a flight
+    @GetMapping("/{id}")
+    public ResponseEntity<Flight> getFlightById(@PathVariable String id) {
+        return flightService.getFlightById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Flight>> searchFlights(
+            @RequestParam String from,
+            @RequestParam String to,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false, defaultValue = "false") boolean directOnly,
+            @RequestParam(required = false) List<String> airlines) {
+        
+        List<Flight> flights = flightService.searchFlights(from, to, date, directOnly, airlines);
+        return ResponseEntity.ok(flights);
+    }
+
+    @GetMapping("/range")
+    public ResponseEntity<List<Flight>> getFlightsByDateRange(
+            @RequestParam String from,
+            @RequestParam String to,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        
+        List<Flight> flights = flightService.getFlightsByDateRange(from, to, startDate, endDate);
+        return ResponseEntity.ok(flights);
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Flight> addFlight(@RequestBody Flight flight) {
-        Flight newFlight = flightService.create(flight);
-        return new ResponseEntity<>(newFlight, HttpStatus.CREATED);
+    public ResponseEntity<Flight> createFlight(@RequestBody Flight flight) {
+        Flight createdFlight = flightService.createFlight(flight);
+        return ResponseEntity.ok(createdFlight);
     }
 
-    // Update an existing flight
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateFlight(@PathVariable String id, @RequestBody Flight updatedFlight) {
-        updatedFlight.setId(id); // Ensure the ID in the entity matches the path variable
-        try {
-            Flight resultFlight = flightService.update(updatedFlight);
-            return new ResponseEntity<>(resultFlight, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
-    }
-
-    // Delete a flight by ID
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteFlight(@PathVariable String id) {
-        try {
-            flightService.delete(id);
-            return new ResponseEntity<>("Flight has been deleted successfully!", HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
-    }
-
-    // Delete all flights
-    @DeleteMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteAllFlights() {
-        flightService.deleteAll();
-        return new ResponseEntity<>("All flights have been deleted successfully!", HttpStatus.OK);
-    }
-
-    // Get a specific flight by id
-    @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getFlightById(@PathVariable String id) {
-        try {
-            Flight flight = flightService.findByID(id);
-            return new ResponseEntity<>(flight, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Void> deleteFlight(@PathVariable String id) {
+        flightService.deleteFlight(id);
+        return ResponseEntity.noContent().build();
     }
 }

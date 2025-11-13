@@ -48,7 +48,8 @@ import {
   UserWalletPage, 
   TopUpWalletPage, 
   SettingsPage, 
-  PaymentMethodsPage 
+  PaymentMethodsPage,
+  SavedPaymentMethodsPage
 } from "./pages/Profile";
 
 // Admin
@@ -81,7 +82,7 @@ import {
 // Others
 import { AboutPage, PromotionsPage, OffersPage } from "./pages/Others";
 
-export type PageType = "home" | "flights" | "search" | "booking" | "confirmation" | "offers" | "hotel" | "hotel-list" | "hotel-detail" | "visa" | "visa-article" | "visa-consultation" | "visa-tracking" | "visa-application" | "visa-documents" | "visa-payment" | "visa-confirmation" | "activities" | "activity-detail" | "travel-guide" | "guide-detail" | "travel-article" | "about" | "promotions" | "tour-detail" | "car-rental" | "car-list" | "car-detail" | "profile" | "booking-history" | "saved-items" | "vouchers" | "wallet" | "topup-wallet" | "settings" | "payment-methods" | "flight-review" | "hotel-review" | "car-review" | "activity-review" | "admin-dashboard" | "admin-users" | "admin-bookings" | "admin-hotels" | "admin-activities" | "admin-reviews" | "admin-reports" | "admin-settings" | "admin-refunds" | "admin-refund-wallet" | "admin-pending-services" | "admin-vouchers" | "vendor-dashboard" | "vendor-services" | "vendor-bookings" | "vendor-reviews" | "vendor-reports" | "vendor-settings" | "vendor-vouchers" | "login" | "login-success";
+export type PageType = "home" | "flights" | "search" | "booking" | "confirmation" | "offers" | "hotel" | "hotel-list" | "hotel-detail" | "visa" | "visa-article" | "visa-consultation" | "visa-tracking" | "visa-application" | "visa-documents" | "visa-payment" | "visa-confirmation" | "activities" | "activity-detail" | "travel-guide" | "guide-detail" | "travel-article" | "about" | "promotions" | "tour-detail" | "car-rental" | "car-list" | "car-detail" | "profile" | "booking-history" | "saved-items" | "vouchers" | "wallet" | "topup-wallet" | "settings" | "saved-payment-methods" | "payment-methods" | "flight-review" | "hotel-review" | "car-review" | "activity-review" | "admin-dashboard" | "admin-users" | "admin-bookings" | "admin-hotels" | "admin-activities" | "admin-reviews" | "admin-reports" | "admin-settings" | "admin-refunds" | "admin-refund-wallet" | "admin-pending-services" | "admin-vouchers" | "vendor-dashboard" | "vendor-services" | "vendor-bookings" | "vendor-reviews" | "vendor-reports" | "vendor-settings" | "vendor-vouchers" | "login" | "login-success";
 
 export default function MainApp() {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
@@ -184,6 +185,7 @@ export default function MainApp() {
       {currentPage === "wallet" && <UserWalletPage onNavigate={handleNavigate} />}
       {currentPage === "topup-wallet" && <TopUpWalletPage onNavigate={handleNavigate} />}
       {currentPage === "settings" && <SettingsPage onNavigate={handleNavigate} />}
+      {currentPage === "saved-payment-methods" && <SavedPaymentMethodsPage onNavigate={handleNavigate} />}
       {currentPage === "payment-methods" && <PaymentMethodsPage onNavigate={handleNavigate} bookingData={pageData} />}
       {currentPage === "flight-review" && <FlightReviewPage onNavigate={handleNavigate} flightData={pageData} />}
       {currentPage === "hotel-review" && <HotelReviewPage onNavigate={handleNavigate} hotelData={pageData} />}

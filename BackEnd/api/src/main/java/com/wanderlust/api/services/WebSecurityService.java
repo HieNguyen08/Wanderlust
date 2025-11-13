@@ -133,7 +133,8 @@ public class WebSecurityService {
         if (flight == null) {
             return false;
         }
-        return flight.getUserId() != null && flight.getUserId().equals(currentUserId);
+        // Flights are system data, not user-created, so only admins can manage
+        return false;
     }
 
     public boolean isLocationOwner(Authentication authentication, String locationId) {

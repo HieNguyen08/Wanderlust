@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
@@ -16,28 +16,36 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { 
   PlaneTakeoff, PlaneLanding, Calendar as CalendarIcon, Users, Search,
   ArrowRightLeft, ChevronsUpDown, Check, Filter, ChevronDown, ChevronUp,
-  Clock, Plane, Luggage, RefreshCcw, Ban, Plus, Minus, X
+  Clock, Plane, Luggage, RefreshCcw, Ban, Plus, Minus, X, Loader2
 } from "lucide-react";
 import type { PageType } from "../../MainApp";
 import { format, addDays, subDays } from "date-fns";
 import { vi } from "date-fns/locale";
 import { toast } from "sonner@2.0.3";
+import { flightApi } from "../../utils/api";
 
 interface SearchPageProps {
   onNavigate: (page: PageType, data?: any) => void;
   searchData?: any;
 }
 
-// Mock airports
+// Airports data (sử dụng cho UI, backend có data riêng)
 const airports = [
   { code: "SGN", city: "TP. Hồ Chí Minh", name: "Sân bay Tân Sơn Nhất" },
   { code: "HAN", city: "Hà Nội", name: "Sân bay Nội Bài" },
   { code: "DAD", city: "Đà Nẵng", name: "Sân bay Đà Nẵng" },
   { code: "PQC", city: "Phú Quốc", name: "Sân bay Phú Quốc" },
   { code: "CXR", city: "Nha Trang", name: "Sân bay Cam Ranh" },
+  { code: "HPH", city: "Hải Phòng", name: "Sân bay Cát Bi" },
+  { code: "DLI", city: "Đà Lạt", name: "Sân bay Liên Khương" },
+  { code: "VCA", city: "Cần Thơ", name: "Sân bay Cần Thơ" },
+  { code: "SIN", city: "Singapore", name: "Changi Airport" },
+  { code: "BKK", city: "Bangkok", name: "Suvarnabhumi Airport" },
+  { code: "KUL", city: "Kuala Lumpur", name: "KLIA" },
+  { code: "HKT", city: "Phuket", name: "Phuket Airport" },
 ];
 
-// Mock airlines
+// Airlines data
 const airlines = [
   { code: "VN", name: "Vietnam Airlines" },
   { code: "VJ", name: "VietJet Air" },
@@ -46,6 +54,10 @@ const airlines = [
 ];
 
 export default function SearchPage({ onNavigate, searchData }: SearchPageProps) {
+  // Loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingPrices, setIsLoadingPrices] = useState(false);
+  
   // Search modification state
   const [showModifySearch, setShowModifySearch] = useState(false);
   const [tripType, setTripType] = useState(searchData?.tripType || "round-trip");
@@ -80,220 +92,126 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
   const [outboundFlight, setOutboundFlight] = useState<any>(searchData?.outboundFlight || null);
   const [inboundFlight, setInboundFlight] = useState<any>(searchData?.inboundFlight || null);
 
+  // Backend data state
+  const [flights, setFlights] = useState<any[]>([]);
+  const [dayPricesData, setDayPricesData] = useState<any[]>([]);
+
   // Get current flight details based on leg
-  // Get current flight details based on leg (for round-trip only, one-way always uses outbound)
   const getCurrentFrom = () => (tripType === 'one-way' || flightLeg === 'outbound') ? fromAirport : toAirport;
   const getCurrentTo = () => (tripType === 'one-way' || flightLeg === 'outbound') ? toAirport : fromAirport;
   const getCurrentBaseDate = () => (tripType === 'one-way' || flightLeg === 'outbound') ? departDate : returnDate;
 
-  // Mock 7-day prices
-  const getDayPrices = () => {
-    const days = [];
-    const baseDate = getCurrentBaseDate();
-    for (let i = -3; i <= 3; i++) {
-      const date = addDays(baseDate, i);
-      days.push({
-        date,
-        price: 892000 + Math.random() * 500000,
-        isSelected: format(date, "yyyy-MM-dd") === format(selectedDay, "yyyy-MM-dd")
-      });
-    }
-    return days;
-  };
+  // Fetch flights from backend
+  useEffect(() => {
+    const fetchFlights = async () => {
+      setIsLoading(true);
+      try {
+        const currentFrom = getCurrentFrom();
+        const currentTo = getCurrentTo();
+        const results = await flightApi.search({
+          from: currentFrom.code,
+          to: currentTo.code,
+          date: format(selectedDay, 'yyyy-MM-dd'),
+          directOnly: flightType === 'direct',
+          airlines: selectedAirlines.length > 0 ? selectedAirlines : undefined,
+        });
+        setFlights(results);
+      } catch (error) {
+        console.error('Error fetching flights:', error);
+        toast.error('Không thể tải danh sách chuyến bay. Vui lòng thử lại!');
+        setFlights([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // Mock flights data - dynamically based on flight leg
+    fetchFlights();
+  }, [selectedDay, fromAirport, toAirport, flightLeg, selectedAirlines, flightType]);
+
+  // Fetch 7-day price range (only when route/filters change, NOT when selectedDay changes)
+  useEffect(() => {
+    const fetch7DayPrices = async () => {
+      setIsLoadingPrices(true);
+      try {
+        const currentFrom = getCurrentFrom();
+        const currentTo = getCurrentTo();
+        const baseDate = getCurrentBaseDate();
+        
+        const startDate = format(subDays(baseDate, 3), 'yyyy-MM-dd');
+        const endDate = format(addDays(baseDate, 3), 'yyyy-MM-dd');
+        
+        const results = await flightApi.searchByDateRange({
+          from: currentFrom.code,
+          to: currentTo.code,
+          startDate,
+          endDate,
+          directOnly: flightType === 'direct',
+        });
+
+        // Group by date and find cheapest price per day
+        const priceMap = new Map<string, number>();
+        results.forEach((flight: any) => {
+          const flightDate = flight.departureTime.split('T')[0];
+          const cheapestPrice = Math.min(
+            ...Object.values(flight.cabinClasses || {}).map((cabin: any) => cabin.fromPrice || Infinity)
+          );
+          if (!priceMap.has(flightDate) || priceMap.get(flightDate)! > cheapestPrice) {
+            priceMap.set(flightDate, cheapestPrice);
+          }
+        });
+
+        // Build 7-day array with initial selected state
+        const days = [];
+        for (let i = -3; i <= 3; i++) {
+          const date = addDays(baseDate, i);
+          const dateStr = format(date, 'yyyy-MM-dd');
+          days.push({
+            date,
+            price: priceMap.get(dateStr) || null,
+            isSelected: format(date, "yyyy-MM-dd") === format(selectedDay, "yyyy-MM-dd")
+          });
+        }
+        setDayPricesData(days);
+      } catch (error) {
+        console.error('Error fetching 7-day prices:', error);
+        // Fallback to empty prices
+        const days = [];
+        const baseDate = getCurrentBaseDate();
+        for (let i = -3; i <= 3; i++) {
+          const date = addDays(baseDate, i);
+          days.push({
+            date,
+            price: null,
+            isSelected: format(date, "yyyy-MM-dd") === format(selectedDay, "yyyy-MM-dd")
+          });
+        }
+        setDayPricesData(days);
+      } finally {
+        setIsLoadingPrices(false);
+      }
+    };
+
+    fetch7DayPrices();
+  }, [fromAirport, toAirport, departDate, returnDate, flightLeg, flightType]);
+
+  // Update isSelected immediately when selectedDay changes (instant UI update without re-fetch)
+  useEffect(() => {
+    if (dayPricesData.length === 0) return;
+    
+    setDayPricesData(prevDays => 
+      prevDays.map(day => ({
+        ...day,
+        isSelected: format(day.date, "yyyy-MM-dd") === format(selectedDay, "yyyy-MM-dd")
+      }))
+    );
+  }, [selectedDay]);
+
+  // Helper to get day prices
+  const dayPrices = dayPricesData;
+
+  // Helper to get current flight details based on leg (legacy code kept for compatibility)
   const currentFrom = getCurrentFrom();
   const currentTo = getCurrentTo();
-  
-  const mockFlights = [
-    {
-      id: flightLeg === 'outbound' ? 1 : 101,
-      airline: "VN",
-      airlineName: "Vietnam Airlines",
-      flightNumber: flightLeg === 'outbound' ? "VN 6123" : "VN 6124",
-      aircraft: "Airbus A321",
-      from: currentFrom.code,
-      to: currentTo.code,
-      departTime: flightLeg === 'outbound' ? "09:55" : "14:20",
-      arriveTime: flightLeg === 'outbound' ? "11:05" : "15:30",
-      duration: "1h 10p",
-      isDirect: true,
-      terminal: "Nhà ga 3",
-      date: format(selectedDay, "dd/MM/yyyy"),
-      cabinClasses: {
-        economy: {
-          available: true,
-          from: 1098000,
-          fares: [
-            {
-              id: "eco-standard",
-              name: "Phổ thông Tiêu chuẩn",
-              price: 1098000,
-              baggage: "7kg xách tay",
-              checkedBag: "Không",
-              refundable: false,
-              changeable: false,
-              miles: 500
-            },
-            {
-              id: "eco-flex",
-              name: "Phổ thông Linh hoạt",
-              price: 1598000,
-              baggage: "7kg xách tay",
-              checkedBag: "20kg",
-              refundable: true,
-              changeable: true,
-              miles: 750
-            }
-          ]
-        },
-        premiumEconomy: {
-          available: true,
-          from: 2013000,
-          fares: [
-            {
-              id: "peco-standard",
-              name: "Phổ thông Đặc biệt",
-              price: 2013000,
-              baggage: "7kg xách tay",
-              checkedBag: "25kg",
-              refundable: true,
-              changeable: true,
-              miles: 1000
-            }
-          ]
-        },
-        business: {
-          available: true,
-          from: 3334000,
-          fares: [
-            {
-              id: "biz-standard",
-              name: "Thương gia Tiêu chuẩn",
-              price: 3334000,
-              baggage: "10kg xách tay",
-              checkedBag: "30kg",
-              refundable: true,
-              changeable: true,
-              miles: 2000
-            },
-            {
-              id: "biz-flex",
-              name: "Thương gia Linh hoạt",
-              price: 3834000,
-              baggage: "10kg xách tay",
-              checkedBag: "40kg",
-              refundable: true,
-              changeable: true,
-              miles: 2500
-            }
-          ]
-        }
-      }
-    },
-    {
-      id: flightLeg === 'outbound' ? 2 : 102,
-      airline: "VJ",
-      airlineName: "VietJet Air",
-      flightNumber: flightLeg === 'outbound' ? "VJ 234" : "VJ 235",
-      aircraft: "Airbus A320",
-      from: currentFrom.code,
-      to: currentTo.code,
-      departTime: flightLeg === 'outbound' ? "14:30" : "17:15",
-      arriveTime: flightLeg === 'outbound' ? "15:45" : "18:30",
-      duration: "1h 15p",
-      isDirect: true,
-      terminal: "Nhà ga 1",
-      date: format(selectedDay, "dd/MM/yyyy"),
-      cabinClasses: {
-        economy: {
-          available: true,
-          from: 892000,
-          fares: [
-            {
-              id: "eco-saver",
-              name: "Tiết kiệm",
-              price: 892000,
-              baggage: "7kg xách tay",
-              checkedBag: "Không",
-              refundable: false,
-              changeable: false,
-              miles: 300
-            },
-            {
-              id: "eco-standard",
-              name: "Tiêu chuẩn",
-              price: 1192000,
-              baggage: "7kg xách tay",
-              checkedBag: "20kg",
-              refundable: false,
-              changeable: true,
-              miles: 500
-            }
-          ]
-        }
-      }
-    },
-    {
-      id: flightLeg === 'outbound' ? 3 : 103,
-      airline: "QH",
-      airlineName: "Bamboo Airways",
-      flightNumber: flightLeg === 'outbound' ? "QH 456" : "QH 457",
-      aircraft: "Embraer E195",
-      from: currentFrom.code,
-      to: currentTo.code,
-      departTime: flightLeg === 'outbound' ? "18:20" : "20:45",
-      arriveTime: flightLeg === 'outbound' ? "19:30" : "21:55",
-      duration: "1h 10p",
-      isDirect: true,
-      terminal: "Nhà ga 2",
-      date: format(selectedDay, "dd/MM/yyyy"),
-      cabinClasses: {
-        economy: {
-          available: true,
-          from: 1250000,
-          fares: [
-            {
-              id: "eco-basic",
-              name: "Phổ thông Cơ bản",
-              price: 1250000,
-              baggage: "7kg xách tay",
-              checkedBag: "Không",
-              refundable: false,
-              changeable: false,
-              miles: 400
-            },
-            {
-              id: "eco-plus",
-              name: "Phổ thông Plus",
-              price: 1650000,
-              baggage: "7kg xách tay",
-              checkedBag: "23kg",
-              refundable: true,
-              changeable: true,
-              miles: 700
-            }
-          ]
-        },
-        business: {
-          available: true,
-          from: 2890000,
-          fares: [
-            {
-              id: "biz-class",
-              name: "Thương gia",
-              price: 2890000,
-              baggage: "10kg xách tay",
-              checkedBag: "32kg",
-              refundable: true,
-              changeable: true,
-              miles: 1800
-            }
-          ]
-        }
-      }
-    }
-  ];
 
   const handleModifySearch = () => {
     setShowModifySearch(false);
@@ -387,7 +305,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
         class: outboundFlight.fare.name,
         farePrice: outboundFlight.fare.price,
         cabinClass: outboundFlight.cabinClass,
-        date: format(outboundFlight.date || departDate, "dd/MM/yyyy")
+        date: outboundFlight.date || format(departDate, "dd/MM/yyyy")
       },
       return: {
         ...selectedFare.flight,
@@ -410,10 +328,15 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
 
   const totalPassengers = adults + children + infants;
 
-  const dayPrices = getDayPrices();
-
   return (
-    <div className="min-h-screen bg-gray-50">      {/* Search Summary Bar */}
+    <div className="min-h-screen bg-gray-50">{isLoading && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 flex items-center gap-3">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <span>Đang tìm kiếm chuyến bay...</span>
+          </div>
+        </div>
+      )}      {/* Search Summary Bar */}
       <div className="bg-white border-b sticky top-0 z-40 shadow-sm mt-[60px]">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -601,10 +524,18 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
 
       {/* Flight List */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-        <p className="text-sm text-gray-600 mb-4">Có {mockFlights.length} chuyến bay</p>
+        <p className="text-sm text-gray-600 mb-4">Có {flights.length} chuyến bay</p>
+
+        {flights.length === 0 && !isLoading && (
+          <Card className="p-12 text-center">
+            <Plane className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy chuyến bay</h3>
+            <p className="text-gray-600">Vui lòng thử tìm kiếm với điều kiện khác hoặc chọn ngày khác.</p>
+          </Card>
+        )}
 
         <div className="space-y-4">
-          {mockFlights.map((flight) => (
+          {flights.map((flight) => (
             <Card key={flight.id} className="overflow-hidden">
               {/* Flight Row */}
               <div className="p-6">
@@ -623,19 +554,19 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                         
                         <div className="grid grid-cols-3 gap-2 items-center mb-2">
                           <div>
-                            <div className="text-2xl">{flight.departTime}</div>
-                            <div className="text-sm text-gray-600">{flight.from}</div>
+                            <div className="text-2xl">{format(new Date(flight.departureTime), 'HH:mm')}</div>
+                            <div className="text-sm text-gray-600">{flight.departureAirport}</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-sm text-gray-600">{flight.duration}</div>
+                            <div className="text-sm text-gray-600">{flight.durationDisplay}</div>
                             <div className="border-t border-gray-300 my-1"></div>
                             <div className="text-xs text-gray-500">
-                              {flight.isDirect ? "Bay thẳng" : "1 dừng"}
+                              {flight.isDirect ? "Bay thẳng" : "Có dừng"}
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-2xl">{flight.arriveTime}</div>
-                            <div className="text-sm text-gray-600">{flight.to}</div>
+                            <div className="text-2xl">{format(new Date(flight.arrivalTime), 'HH:mm')}</div>
+                            <div className="text-sm text-gray-600">{flight.arrivalAirport}</div>
                           </div>
                         </div>
 
@@ -649,15 +580,15 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                             <div className="space-y-2">
                               <div className="flex justify-between">
                                 <span className="text-sm text-gray-600">Máy bay</span>
-                                <span className="text-sm font-medium">{flight.aircraft}</span>
+                                <span className="text-sm font-medium">{flight.aircraftType || 'N/A'}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-sm text-gray-600">Thời gian bay</span>
-                                <span className="text-sm font-medium">{flight.duration}</span>
+                                <span className="text-sm font-medium">{flight.durationDisplay}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Nhà ga</span>
-                                <span className="text-sm font-medium">{flight.terminal}</span>
+                                <span className="text-sm text-gray-600">Khoảng cách</span>
+                                <span className="text-sm font-medium">{flight.distanceKm} km</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-sm text-gray-600">Khai thác bởi</span>
@@ -692,7 +623,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                       >
                         <div className="text-sm text-gray-600 mb-1">PHỔ THÔNG</div>
                         <div className="text-lg">
-                          từ {flight.cabinClasses.economy.from.toLocaleString('vi-VN')}₫
+                          từ {flight.cabinClasses.economy.fromPrice?.toLocaleString('vi-VN') || 'N/A'}₫
                         </div>
                       </button>
                     )}
@@ -717,7 +648,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                       >
                         <div className="text-sm text-gray-600 mb-1">PHỔ THÔNG ĐẶC BIỆT</div>
                         <div className="text-lg">
-                          từ {flight.cabinClasses.premiumEconomy.from.toLocaleString('vi-VN')}₫
+                          từ {flight.cabinClasses.premiumEconomy.fromPrice?.toLocaleString('vi-VN') || 'N/A'}₫
                         </div>
                       </button>
                     )}
@@ -742,7 +673,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                       >
                         <div className="text-sm text-gray-600 mb-1">THƯƠNG GIA</div>
                         <div className="text-lg">
-                          từ {flight.cabinClasses.business.from.toLocaleString('vi-VN')}₫
+                          từ {flight.cabinClasses.business.fromPrice?.toLocaleString('vi-VN') || 'N/A'}₫
                         </div>
                       </button>
                     )}

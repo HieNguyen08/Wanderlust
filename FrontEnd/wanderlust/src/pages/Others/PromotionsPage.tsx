@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import type { PageType } from "../../MainApp";
 import { toast } from "sonner@2.0.3";
-import { promotionApi } from "../../utils/api";
+import { promotionApi, userVoucherApi, tokenService } from "../../utils/api";
 
 interface PromotionsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -27,20 +27,33 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
   const [allVouchers, setAllVouchers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Load collected vouchers from localStorage
-  const [collectedVouchers, setCollectedVouchers] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('collectedVouchers');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Load saved vouchers from backend
+  const [savedVouchers, setSavedVouchers] = useState<string[]>([]);
+  const [savingVoucher, setSavingVoucher] = useState(false);
   
   // Filters
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedDestinations, setSelectedDestinations] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+
+  // Load saved vouchers from backend
+  useEffect(() => {
+    const loadSavedVouchers = async () => {
+      try {
+        if (tokenService.isAuthenticated()) {
+          const available = await userVoucherApi.getAvailable();
+          setSavedVouchers(available.map((v: any) => v.voucherCode));
+        }
+      } catch (error: any) {
+        // Silently fail if not authenticated
+        if (error.message !== 'UNAUTHORIZED') {
+          console.error('Error loading saved vouchers:', error);
+        }
+      }
+    };
+
+    loadSavedVouchers();
+  }, []);
 
   // Fetch promotions from backend
   useEffect(() => {
@@ -170,27 +183,46 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
     }
   };
 
-  const handleCollectVoucher = (voucherId: string, voucherCode: string) => {
-    if (collectedVouchers.includes(voucherId)) {
-      toast.info("Bạn đã có voucher này trong ví!");
+  const handleCollectVoucher = async (voucherId: string, voucherCode: string) => {
+    // Check if user is authenticated
+    if (!tokenService.isAuthenticated()) {
+      toast.error("Vui lòng đăng nhập để lưu voucher!");
+      return;
+    }
+
+    // Check if already saved
+    if (savedVouchers.includes(voucherCode)) {
+      toast.info("Bạn đã lưu voucher này rồi!");
       return;
     }
     
-    const updatedVouchers = [...collectedVouchers, voucherId];
-    setCollectedVouchers(updatedVouchers);
-    
-    // Save to localStorage
     try {
-      localStorage.setItem('collectedVouchers', JSON.stringify(updatedVouchers));
-    } catch (error) {
-      console.error('Failed to save to localStorage:', error);
+      setSavingVoucher(true);
+      await userVoucherApi.saveToWallet(voucherCode);
+      
+      // Update saved vouchers list
+      setSavedVouchers([...savedVouchers, voucherCode]);
+      
+      toast.success(`Đã lưu mã ${voucherCode} vào Ví Voucher của bạn!`);
+    } catch (error: any) {
+      if (error.message?.includes("đã lưu")) {
+        toast.info("Bạn đã lưu voucher này rồi!");
+        // Update local state if backend says already saved
+        if (!savedVouchers.includes(voucherCode)) {
+          setSavedVouchers([...savedVouchers, voucherCode]);
+        }
+      } else {
+        toast.error(error.message || "Không thể lưu voucher!");
+      }
+    } finally {
+      setSavingVoucher(false);
     }
-    
-    toast.success(`Đã lưu mã ${voucherCode} vào Ví Voucher của bạn!`);
   };
 
   const isCollected = (voucherId: string) => {
-    return collectedVouchers.includes(voucherId);
+    // Find voucher by ID and check if its code is in savedVouchers
+    const voucher = allVouchers.find(v => v.id === voucherId);
+    return voucher ? savedVouchers.includes(voucher.code) : false;
   };
 
   const toggleFilter = (filterArray: string[], setFilter: Function, value: string) => {
