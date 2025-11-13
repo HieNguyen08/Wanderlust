@@ -54,17 +54,15 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedTravelGuides() {
         try {
-            // Xóa hết data cũ
-            logger.info("Clearing existing travel guides...");
-            travelGuideRepository.deleteAll();
-            
-            // Kiểm tra xem đã có data chưa
+            // Kiểm tra xem đã có data chưa - KHÔNG XÓA data cũ
             long count = travelGuideRepository.count();
             
             if (count > 0) {
                 logger.info("Database already has {} travel guides. Skipping seed.", count);
                 return;
             }
+
+            logger.info("No existing travel guides found. Starting seed...");
 
             // Đọc file JSON từ resources
             ClassPathResource resource = new ClassPathResource("data/travelguide.json");
@@ -88,17 +86,15 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedPromotions() {
         try {
-            // Xóa hết data cũ
-            logger.info("Clearing existing promotions...");
-            promotionRepository.deleteAll();
-            
-            // Kiểm tra xem đã có data chưa
+            // Kiểm tra xem đã có data chưa - KHÔNG XÓA data cũ
             long count = promotionRepository.count();
             
             if (count > 0) {
                 logger.info("Database already has {} promotions. Skipping seed.", count);
                 return;
             }
+
+            logger.info("No existing promotions found. Starting seed...");
 
             // Đọc file JSON từ resources
             ClassPathResource resource = new ClassPathResource("data/promotions.json");
@@ -122,17 +118,15 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedVisaArticles() {
         try {
-            // Xóa hết data cũ
-            logger.info("Clearing existing visa articles...");
-            visaArticleRepository.deleteAll();
-            
-            // Kiểm tra xem đã có data chưa
+            // Kiểm tra xem đã có data chưa - KHÔNG XÓA data cũ
             long count = visaArticleRepository.count();
             
             if (count > 0) {
                 logger.info("Database already has {} visa articles. Skipping seed.", count);
                 return;
             }
+
+            logger.info("No existing visa articles found. Starting seed...");
 
             // Đọc file JSON từ resources
             ClassPathResource resource = new ClassPathResource("data/visa-articles.json");
