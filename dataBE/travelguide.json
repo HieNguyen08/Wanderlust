@@ -1,0 +1,464 @@
+[
+  {
+    "title": "Khám phá Tokyo - Thủ đô hiện đại của Nhật Bản",
+    "destination": "Tokyo",
+    "country": "Nhật Bản",
+    "continent": "Asia",
+    "category": "culture",
+    "description": "Tokyo là sự kết hợp hoàn hảo giữa truyền thống và hiện đại, nơi bạn có thể tìm thấy cả đền thờ cổ kính và tòa nhà chọc trời.",
+    "content": "<h2>Tokyo - Thành phố không bao giờ ngủ</h2><p>Tokyo là một trong những thành phố sôi động nhất thế giới. Với hơn 13 triệu dân, thành phố này mang đến trải nghiệm độc đáo từ văn hóa truyền thống đến công nghệ tiên tiến.</p><h3>Những điểm đến không thể bỏ qua</h3><ul><li>Chùa Sensoji - Ngôi chùa cổ nhất Tokyo</li><li>Tokyo Skytree - Tháp truyền hình cao nhất thế giới</li><li>Shibuya Crossing - Ngã tư đông đúc nhất</li><li>Chợ cá Tsukiji - Thiên đường hải sản</li></ul>",
+    "readTime": "10 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&h=800&fit=crop",
+    "images": [
+      "https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1528164344705-47542687000d?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&h=600&fit=crop"
+    ],
+    "authorId": "admin001",
+    "authorName": "Nguyễn Văn A",
+    "tags": ["japan", "tokyo", "culture", "asia", "city"],
+    "duration": 10,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Chùa Sensoji",
+        "image": "https://images.unsplash.com/photo-1528164344705-47542687000d?w=800&h=600&fit=crop",
+        "description": "Ngôi chùa Phật giáo cổ nhất và nổi tiếng nhất ở Tokyo"
+      },
+      {
+        "name": "Tokyo Skytree",
+        "image": "https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?w=800&h=600&fit=crop",
+        "description": "Tháp truyền hình cao 634m với tầm nhìn tuyệt đẹp"
+      },
+      {
+        "name": "Shibuya Crossing",
+        "image": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=800&h=600&fit=crop",
+        "description": "Ngã tư đông đúc nhất thế giới, biểu tượng của Tokyo"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Di chuyển bằng tàu điện",
+        "content": "Mua JR Pass nếu bạn dự định đi nhiều nơi ở Nhật Bản",
+        "icon": "train"
+      },
+      {
+        "title": "Thời điểm tốt nhất",
+        "content": "Mùa xuân (tháng 3-5) để ngắm hoa anh đào hoặc mùa thu (tháng 9-11) để ngắm lá vàng",
+        "icon": "calendar"
+      },
+      {
+        "title": "Ngôn ngữ",
+        "content": "Học một vài cụm từ tiếng Nhật cơ bản sẽ rất hữu ích",
+        "icon": "message"
+      }
+    ],
+    "published": true,
+    "featured": true
+  },
+  {
+    "title": "Paris - Kinh đô ánh sáng của Châu Âu",
+    "destination": "Paris",
+    "country": "Pháp",
+    "continent": "Europe",
+    "category": "culture",
+    "description": "Paris, thành phố của tình yêu và nghệ thuật, với những bảo tàng, nhà thờ và kiến trúc tuyệt đẹp.",
+    "content": "<h2>Paris - Thành phố của tình yêu</h2><p>Paris không chỉ là thủ đô của Pháp mà còn là trung tâm văn hóa, nghệ thuật và thời trang của thế giới.</p><h3>Điểm tham quan nổi bật</h3><ul><li>Tháp Eiffel - Biểu tượng của Paris</li><li>Bảo tàng Louvre - Bảo tàng nghệ thuật lớn nhất thế giới</li><li>Nhà thờ Đức Bà Paris - Kiệt tác kiến trúc Gothic</li><li>Khải Hoàn Môn - Công trình lịch sử vĩ đại</li></ul>",
+    "readTime": "12 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&h=800&fit=crop",
+    "images": [
+      "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1431274172761-fca41d930114?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1509439581779-6298f75bf6e5?w=800&h=600&fit=crop"
+    ],
+    "authorId": "admin001",
+    "authorName": "Nguyễn Văn A",
+    "tags": ["paris", "france", "europe", "culture", "art"],
+    "duration": 12,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Tháp Eiffel",
+        "image": "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=800&h=600&fit=crop",
+        "description": "Biểu tượng nổi tiếng nhất của Paris, cao 324m"
+      },
+      {
+        "name": "Bảo tàng Louvre",
+        "image": "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=800&h=600&fit=crop",
+        "description": "Nơi lưu giữ bức tranh Mona Lisa nổi tiếng"
+      },
+      {
+        "name": "Khải Hoàn Môn",
+        "image": "https://images.unsplash.com/photo-1431274172761-fca41d930114?w=800&h=600&fit=crop",
+        "description": "Công trình tưởng niệm những người hy sinh vì nước Pháp"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Museum Pass",
+        "content": "Mua Paris Museum Pass để tiết kiệm thời gian xếp hàng",
+        "icon": "ticket"
+      },
+      {
+        "title": "Tàu điện ngầm",
+        "content": "Metro Paris rất tiện lợi, mua vé ngày hoặc tuần để tiết kiệm",
+        "icon": "train"
+      },
+      {
+        "title": "Ăn uống",
+        "content": "Thử bánh mì croissant và cafe vỉa hè đích thực của Paris",
+        "icon": "coffee"
+      }
+    ],
+    "published": true,
+    "featured": true
+  },
+  {
+    "title": "Sài Gòn - Thành phố Hồ Chí Minh năng động",
+    "destination": "Sài Gòn",
+    "country": "Việt Nam",
+    "continent": "Asia",
+    "category": "culture",
+    "description": "TP.HCM là trung tâm kinh tế lớn nhất Việt Nam, nơi giao thoa giữa văn hóa truyền thống và hiện đại.",
+    "content": "<h2>Sài Gòn - Thành phố không ngủ</h2><p>Thành phố Hồ Chí Minh, còn được biết đến với tên gọi thân thuộc Sài Gòn, là trái tim kinh tế của Việt Nam.</p><h3>Điểm đến nổi bật</h3><ul><li>Nhà thờ Đức Bà - Biểu tượng kiến trúc Pháp</li><li>Bưu điện Trung tâm - Công trình kiến trúc độc đáo</li><li>Chợ Bến Thành - Thiên đường mua sắm</li><li>Dinh Độc Lập - Di tích lịch sử quan trọng</li></ul>",
+    "readTime": "8 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1200&h=800&fit=crop",
+    "images": [
+      "https://images.unsplash.com/photo-1555403969-3b0c0bc99c59?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=800&h=600&fit=crop"
+    ],
+    "authorId": "admin001",
+    "authorName": "Nguyễn Văn A",
+    "tags": ["saigon", "vietnam", "asia", "city", "culture"],
+    "duration": 8,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Nhà thờ Đức Bà",
+        "image": "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800&h=600&fit=crop",
+        "description": "Nhà thờ cổ với kiến trúc Gothic độc đáo"
+      },
+      {
+        "name": "Chợ Bến Thành",
+        "image": "https://images.unsplash.com/photo-1555403969-3b0c0bc99c59?w=800&h=600&fit=crop",
+        "description": "Chợ truyền thống lâu đời nhất Sài Gòn"
+      },
+      {
+        "name": "Dinh Độc Lập",
+        "image": "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=800&h=600&fit=crop",
+        "description": "Nơi diễn ra sự kiện lịch sử 30/4/1975"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Ẩm thực đường phố",
+        "content": "Thử phở, bánh mì, cà phê vỉa hè đích thực",
+        "icon": "utensils"
+      },
+      {
+        "title": "Di chuyển",
+        "content": "Sử dụng Grab hoặc xe máy để di chuyển linh hoạt",
+        "icon": "motorcycle"
+      },
+      {
+        "title": "Mua sắm",
+        "content": "Chợ Bến Thành buổi tối có nhiều món ăn ngon",
+        "icon": "shopping-bag"
+      }
+    ],
+    "published": true,
+    "featured": true
+  },
+  {
+    "title": "Seoul - Trái tim của Hallyu Wave",
+    "destination": "Seoul",
+    "country": "Hàn Quốc",
+    "continent": "Asia",
+    "category": "culture",
+    "description": "Seoul là thủ đô hiện đại của Hàn Quốc, nơi bạn có thể trải nghiệm văn hóa K-pop, ẩm thực và công nghệ tiên tiến.",
+    "content": "<h2>Seoul - Xứ sở kim chi</h2><p>Seoul là một trong những thành phố năng động nhất châu Á, nơi giao thoa giữa truyền thống và hiện đại.</p>",
+    "readTime": "9 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=1200&h=800&fit=crop",
+    "images": [
+      "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=800&h=600&fit=crop"
+    ],
+    "authorId": "admin001",
+    "authorName": "Nguyễn Văn A",
+    "tags": ["seoul", "korea", "kpop", "asia", "culture"],
+    "duration": 9,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Cung điện Gyeongbokgung",
+        "image": "https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&h=600&fit=crop",
+        "description": "Cung điện hoàng gia lớn nhất và đẹp nhất Seoul"
+      },
+      {
+        "name": "Làng Hanok Bukchon",
+        "image": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=800&h=600&fit=crop",
+        "description": "Khu phố cổ với những ngôi nhà truyền thống Hanok"
+      },
+      {
+        "name": "Tháp N Seoul",
+        "image": "https://images.unsplash.com/photo-1531219432768-9f540ce91ef3?w=800&h=600&fit=crop",
+        "description": "Tháp truyền hình trên núi Namsan với view tuyệt đẹp"
+      }
+    ],
+    "tips": [
+      {
+        "title": "T-money Card",
+        "content": "Mua thẻ T-money để di chuyển dễ dàng bằng tàu điện ngầm",
+        "icon": "credit-card"
+      },
+      {
+        "title": "Ẩm thực",
+        "content": "Thử kimchi, bulgogi, bibimbap tại các nhà hàng địa phương",
+        "icon": "utensils"
+      }
+    ],
+    "published": true,
+    "featured": true
+  },
+  {
+    "title": "Đà Nẵng - Thành phố đáng sống nhất Việt Nam",
+    "destination": "Đà Nẵng",
+    "country": "Việt Nam",
+    "continent": "Asia",
+    "category": "adventure",
+    "description": "Đà Nẵng với bãi biển đẹp, cầu Rồng nổi tiếng và nhiều điểm tham quan hấp dẫn.",
+    "content": "<h2>Đà Nẵng - Thành phố đáng sống</h2><p>Đà Nẵng là thành phố trẻ, năng động với những bãi biển tuyệt đẹp và ẩm thực phong phú.</p>",
+    "readTime": "7 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=1200&h=800&fit=crop",
+    "images": [
+      "https://images.unsplash.com/photo-1583652961463-5abe8fd73c0e?w=800&h=600&fit=crop"
+    ],
+    "authorId": "admin001",
+    "authorName": "Nguyễn Văn A",
+    "tags": ["danang", "vietnam", "beach", "asia"],
+    "duration": 7,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Cầu Rồng",
+        "image": "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=800&h=600&fit=crop",
+        "description": "Cầu biểu tượng của Đà Nẵng, phun lửa mỗi cuối tuần"
+      },
+      {
+        "name": "Bãi biển Mỹ Khê",
+        "image": "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop",
+        "description": "Một trong những bãi biển đẹp nhất thế giới"
+      },
+      {
+        "name": "Bà Nà Hills",
+        "image": "https://images.unsplash.com/photo-1583652961463-5abe8fd73c0e?w=800&h=600&fit=crop",
+        "description": "Khu du lịch trên núi với Cầu Vàng nổi tiếng"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Thời tiết",
+        "content": "Tránh mùa mưa bão từ tháng 9-12",
+        "icon": "cloud-rain"
+      },
+      {
+        "title": "Ẩm thực",
+        "content": "Thử mì Quảng, bánh tráng cuốn thịt heo đặc sản",
+        "icon": "utensils"
+      }
+    ],
+    "published": true,
+    "featured": false
+  },
+  {
+    "title": "Hà Nội - Nghìn năm văn hiến",
+    "destination": "Hà Nội",
+    "country": "Việt Nam",
+    "continent": "Asia",
+    "category": "culture",
+    "description": "Thủ đô Hà Nội với lịch sử lâu đời, văn hóa đậm đà và ẩm thực phong phú.",
+    "content": "<h2>Hà Nội - Thủ đô ngàn năm</h2><p>Hà Nội là trung tâm chính trị, văn hóa của Việt Nam với nhiều di tích lịch sử.</p>",
+    "readTime": "9 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1604391681301-2c1e5c6e0e9f?w=1200&h=800&fit=crop",
+    "images": [],
+    "authorId": "admin001",
+    "authorName": "Nguyễn Văn A",
+    "tags": ["hanoi", "vietnam", "culture", "history"],
+    "duration": 9,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Hồ Hoàn Kiếm",
+        "image": "https://images.unsplash.com/photo-1604391681301-2c1e5c6e0e9f?w=800&h=600&fit=crop",
+        "description": "Trái tim của Hà Nội với truyền thuyết Hồ Gươm"
+      },
+      {
+        "name": "Văn Miếu Quốc Tử Giám",
+        "image": "https://images.unsplash.com/photo-1509966756634-9c23dd6e6815?w=800&h=600&fit=crop",
+        "description": "Trường đại học đầu tiên của Việt Nam"
+      },
+      {
+        "name": "Phố cổ Hà Nội",
+        "image": "https://images.unsplash.com/photo-1528127269322-539801943592?w=800&h=600&fit=crop",
+        "description": "Khu phố cổ 36 phố phường sầm uất"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Thời điểm",
+        "content": "Mùa thu (9-11) thời tiết đẹp nhất trong năm",
+        "icon": "calendar"
+      },
+      {
+        "title": "Ẩm thực",
+        "content": "Phở, bún chả, chả cá Lã Vọng là món đặc sản",
+        "icon": "utensils"
+      }
+    ],
+    "published": true,
+    "featured": false
+  },
+  {
+    "title": "Istanbul - Cầu nối Á - Âu",
+    "destination": "Istanbul",
+    "country": "Thổ Nhĩ Kỳ",
+    "continent": "Europe",
+    "category": "culture",
+    "description": "Istanbul là thành phố duy nhất nằm trên hai châu lục với lịch sử hàng nghìn năm.",
+    "content": "<h2>Istanbul - Ngã ba châu lục</h2><p>Istanbul là thành phố kỳ diệu nằm giữa Châu Á và Châu Âu.</p>",
+    "readTime": "11 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=1200&h=800&fit=crop",
+    "images": [],
+    "authorId": "admin001",
+    "authorName": "Nguyễn Văn A",
+    "tags": ["istanbul", "turkey", "culture", "history"],
+    "duration": 11,
+    "type": "destination",
+    "difficulty": "moderate",
+    "attractions": [
+      {
+        "name": "Nhà thờ Hagia Sophia",
+        "image": "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=800&h=600&fit=crop",
+        "description": "Kiệt tác kiến trúc Byzantine"
+      },
+      {
+        "name": "Cung điện Topkapi",
+        "image": "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&h=600&fit=crop",
+        "description": "Cung điện của các Sultan Ottoman"
+      },
+      {
+        "name": "Grand Bazaar",
+        "image": "https://images.unsplash.com/photo-1570939274717-7eda259b50ed?w=800&h=600&fit=crop",
+        "description": "Chợ có mái lớn nhất thế giới"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Museum Pass",
+        "content": "Mua Istanbul Museum Pass để tiết kiệm",
+        "icon": "ticket"
+      },
+      {
+        "title": "Ẩm thực",
+        "content": "Thử kebab, baklava, trà Thổ Nhĩ Kỳ",
+        "icon": "utensils"
+      }
+    ],
+    "published": true,
+    "featured": false
+  },
+  {
+    "title": "10 món ăn đường phố Tokyo không thể bỏ qua",
+    "destination": "Tokyo",
+    "country": "Nhật Bản",
+    "continent": "Asia",
+    "category": "food",
+    "description": "Khám phá những món ăn đường phố ngon nhất Tokyo từ takoyaki đến ramen.",
+    "content": "<h2>Ẩm thực đường phố Tokyo</h2><p>Tokyo không chỉ nổi tiếng với nhà hàng cao cấp mà còn có những món ăn đường phố tuyệt vời.</p>",
+    "readTime": "6 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=1200&h=800&fit=crop",
+    "images": [],
+    "authorId": "admin001",
+    "authorName": "Nguyễn Văn A",
+    "tags": ["tokyo", "food", "japan", "street-food"],
+    "duration": 6,
+    "type": "blog",
+    "difficulty": "easy",
+    "attractions": [],
+    "tips": [
+      {
+        "title": "Ăn uống",
+        "content": "Các quầy ăn thường mở cửa từ 11h-22h",
+        "icon": "clock"
+      }
+    ],
+    "published": true,
+    "featured": false
+  },
+  {
+    "title": "Hành trình khám phá Osaka - Kyoto - Nara",
+    "destination": "Osaka",
+    "country": "Nhật Bản",
+    "continent": "Asia",
+    "category": "culture",
+    "description": "3 ngày khám phá vùng Kansai với Osaka sôi động, Kyoto cổ kính và Nara với những chú nai.",
+    "content": "<h2>Vùng Kansai - Trái tim văn hóa Nhật Bản</h2><p>Osaka, Kyoto và Nara tạo thành bộ ba điểm đến hoàn hảo.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1589452271712-64b8a66c7b71?w=1200&h=800&fit=crop",
+    "images": [],
+    "authorId": "admin001",
+    "authorName": "Nguyễn Văn A",
+    "tags": ["osaka", "kyoto", "nara", "japan", "culture"],
+    "duration": 15,
+    "type": "blog",
+    "difficulty": "moderate",
+    "attractions": [],
+    "tips": [
+      {
+        "title": "JR Pass",
+        "content": "Mua Kansai Area Pass để tiết kiệm chi phí di chuyển",
+        "icon": "train"
+      }
+    ],
+    "published": true,
+    "featured": true
+  },
+  {
+    "title": "Kinh nghiệm du lịch bụi châu Âu tiết kiệm",
+    "destination": "Europe",
+    "country": "Nhiều quốc gia",
+    "continent": "Europe",
+    "category": "adventure",
+    "description": "Hướng dẫn chi tiết về cách du lịch châu Âu với ngân sách hạn chế nhưng vẫn trọn vẹn trải nghiệm.",
+    "content": "<h2>Du lịch châu Âu tiết kiệm</h2><p>Châu Âu không nhất thiết phải đắt đỏ nếu bạn biết cách.</p>",
+    "readTime": "20 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=1200&h=800&fit=crop",
+    "images": [],
+    "authorId": "admin001",
+    "authorName": "Nguyễn Văn A",
+    "tags": ["europe", "budget-travel", "backpacking"],
+    "duration": 20,
+    "type": "blog",
+    "difficulty": "challenging",
+    "attractions": [],
+    "tips": [
+      {
+        "title": "Eurail Pass",
+        "content": "Mua Eurail Pass nếu đi nhiều nước châu Âu",
+        "icon": "train"
+      },
+      {
+        "title": "Hostels",
+        "content": "Ở hostels để tiết kiệm và gặp gỡ bạn bè mới",
+        "icon": "home"
+      }
+    ],
+    "published": true,
+    "featured": true
+  }
+]

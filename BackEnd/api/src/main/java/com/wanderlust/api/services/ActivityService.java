@@ -24,7 +24,7 @@ public class ActivityService implements BaseServices<Activity> {
         }
         Object principal = authentication.getPrincipal();
         if (principal instanceof CustomUserDetails) {
-            return ((CustomUserDetails) principal).getUserId();
+            return ((CustomUserDetails) principal).getUserID();
         } else {
             throw new RuntimeException("Unexpected principal type: " + principal.getClass().getName());
         }

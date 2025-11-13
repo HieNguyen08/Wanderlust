@@ -1,0 +1,397 @@
+[
+  {
+    "title": "Hướng dẫn làm Visa Nhật Bản 2025",
+    "country": "Nhật Bản",
+    "flag": "🇯🇵",
+    "continent": "Châu Á",
+    "excerpt": "Tìm hiểu chi tiết về quy trình, hồ sơ cần thiết và thời gian xử lý visa du lịch Nhật Bản.",
+    "image": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600&h=400&fit=crop",
+    "readTime": "5 phút",
+    "category": "Hướng dẫn",
+    "processingTime": "7-10 ngày",
+    "popular": true,
+    "fee": 2500000,
+    "validity": "90 ngày",
+    "requirements": [
+      "Hộ chiếu còn hạn trên 6 tháng",
+      "2 ảnh 4x6 nền trắng",
+      "Giấy xác nhận công việc",
+      "Sao kê ngân hàng 6 tháng gần nhất",
+      "Vé máy bay khứ hồi",
+      "Đặt phòng khách sạn"
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "title": "Chuẩn bị hồ sơ",
+        "description": "Thu thập đầy đủ các giấy tờ cần thiết theo yêu cầu",
+        "documents": [
+          "Hộ chiếu gốc",
+          "Đơn xin visa",
+          "Ảnh 4x6",
+          "Giấy xác nhận công việc"
+        ]
+      },
+      {
+        "stepNumber": 2,
+        "title": "Nộp hồ sơ",
+        "description": "Nộp hồ sơ tại Đại sứ quán hoặc qua trung tâm visa",
+        "documents": [
+          "Hồ sơ đầy đủ",
+          "Phí visa",
+          "Đơn đăng ký"
+        ]
+      },
+      {
+        "stepNumber": 3,
+        "title": "Chờ kết quả",
+        "description": "Thời gian xử lý từ 7-10 ngày làm việc",
+        "documents": []
+      },
+      {
+        "stepNumber": 4,
+        "title": "Nhận visa",
+        "description": "Nhận hộ chiếu đã có visa và kiểm tra thông tin",
+        "documents": [
+          "Giấy hẹn",
+          "CMND/CCCD"
+        ]
+      }
+    ],
+    "tips": [
+      "Chuẩn bị hồ sơ kỹ càng, đầy đủ để tránh bị từ chối",
+      "Sao kê ngân hàng nên có số dư tối thiểu 50 triệu VNĐ",
+      "Nên đặt lịch hẹn trước để tiết kiệm thời gian",
+      "Kiểm tra kỹ thông tin trên visa sau khi nhận"
+    ],
+    "faqs": [
+      {
+        "question": "Thời gian xử lý visa Nhật Bản mất bao lâu?",
+        "answer": "Thông thường mất từ 7-10 ngày làm việc kể từ ngày nộp hồ sơ đầy đủ."
+      },
+      {
+        "question": "Chi phí làm visa Nhật Bản là bao nhiêu?",
+        "answer": "Phí lãnh sự khoảng 2.5 triệu VNĐ, chưa bao gồm phí dịch vụ nếu làm qua trung tâm."
+      },
+      {
+        "question": "Visa Nhật Bản có hiệu lực bao lâu?",
+        "answer": "Visa du lịch Nhật Bản thường có hiệu lực 90 ngày, cho phép lưu trú tối đa 15-30 ngày."
+      }
+    ],
+    "createdAt": "2025-01-01T00:00:00",
+    "updatedAt": "2025-01-01T00:00:00"
+  },
+  {
+    "title": "Visa Hàn Quốc: Thủ tục và yêu cầu",
+    "country": "Hàn Quốc",
+    "flag": "🇰🇷",
+    "continent": "Châu Á",
+    "excerpt": "Những điều bạn cần biết về visa du lịch Hàn Quốc, từ giấy tờ đến phí dịch vụ.",
+    "image": "https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=600&h=400&fit=crop",
+    "readTime": "4 phút",
+    "category": "Hướng dẫn",
+    "processingTime": "5-7 ngày",
+    "popular": true,
+    "fee": 2000000,
+    "validity": "90 ngày",
+    "requirements": [
+      "Hộ chiếu còn hạn trên 6 tháng",
+      "Ảnh 3.5x4.5 nền trắng",
+      "Giấy xác nhận công việc",
+      "Sao kê ngân hàng 3 tháng",
+      "Vé máy bay và khách sạn"
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "title": "Điền đơn online",
+        "description": "Điền đơn xin visa trên website chính thức",
+        "documents": ["Thông tin cá nhân", "Ảnh scan"]
+      },
+      {
+        "stepNumber": 2,
+        "title": "Nộp hồ sơ",
+        "description": "Nộp hồ sơ tại trung tâm visa Hàn Quốc",
+        "documents": ["Hồ sơ gốc", "Phí visa"]
+      },
+      {
+        "stepNumber": 3,
+        "title": "Chờ xét duyệt",
+        "description": "Thời gian xử lý 5-7 ngày",
+        "documents": []
+      },
+      {
+        "stepNumber": 4,
+        "title": "Nhận visa",
+        "description": "Nhận hộ chiếu có visa",
+        "documents": ["Biên lai"]
+      }
+    ],
+    "tips": [
+      "Visa Hàn Quốc tương đối dễ xin nếu hồ sơ đầy đủ",
+      "Nên có sổ tiết kiệm hoặc sao kê ngân hàng khỏe",
+      "Có thể làm visa điện tử K-ETA nhanh hơn"
+    ],
+    "faqs": [
+      {
+        "question": "Có cần phỏng vấn khi xin visa Hàn Quốc không?",
+        "answer": "Thông thường không cần phỏng vấn, trừ một số trường hợp đặc biệt."
+      },
+      {
+        "question": "K-ETA là gì?",
+        "answer": "K-ETA là visa điện tử Hàn Quốc, cho phép nhập cảnh nhanh chóng mà không cần visa thông thường."
+      }
+    ],
+    "createdAt": "2025-01-02T00:00:00",
+    "updatedAt": "2025-01-02T00:00:00"
+  },
+  {
+    "title": "Làm Visa Mỹ: Bí quyết thành công",
+    "country": "Mỹ",
+    "flag": "🇺🇸",
+    "continent": "Châu Mỹ",
+    "excerpt": "Kinh nghiệm và hướng dẫn chi tiết để tăng tỷ lệ đậu visa Mỹ.",
+    "image": "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=600&h=400&fit=crop",
+    "readTime": "8 phút",
+    "category": "Kinh nghiệm",
+    "processingTime": "15-30 ngày",
+    "popular": true,
+    "fee": 4600000,
+    "validity": "10 năm",
+    "requirements": [
+      "Hộ chiếu còn hạn trên 6 tháng",
+      "Điền form DS-160",
+      "Ảnh visa Mỹ chuẩn",
+      "Chứng minh tài chính mạnh",
+      "Bằng chứng ràng buộc với Việt Nam",
+      "Phí visa 160 USD"
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "title": "Điền form DS-160",
+        "description": "Điền đầy đủ thông tin trên form DS-160 online",
+        "documents": ["Thông tin cá nhân", "Ảnh visa", "Thông tin chuyến đi"]
+      },
+      {
+        "stepNumber": 2,
+        "title": "Đặt lịch phỏng vấn",
+        "description": "Đặt lịch phỏng vấn tại Đại sứ quán Mỹ",
+        "documents": ["Mã DS-160", "Phí visa"]
+      },
+      {
+        "stepNumber": 3,
+        "title": "Phỏng vấn visa",
+        "description": "Tham gia phỏng vấn tại Đại sứ quán",
+        "documents": ["Hộ chiếu", "Giấy hẹn", "Hồ sơ tài chính"]
+      },
+      {
+        "stepNumber": 4,
+        "title": "Nhận kết quả",
+        "description": "Nhận hộ chiếu có visa sau 5-7 ngày",
+        "documents": []
+      }
+    ],
+    "tips": [
+      "Chuẩn bị kỹ càng cho buổi phỏng vấn",
+      "Thể hiện rõ ràng mục đích và kế hoạch chuyến đi",
+      "Chứng minh tài chính và ràng buộc với Việt Nam",
+      "Trung thực trong tất cả câu trả lời"
+    ],
+    "faqs": [
+      {
+        "question": "Tỷ lệ đậu visa Mỹ là bao nhiêu?",
+        "answer": "Tỷ lệ đậu visa Mỹ của người Việt hiện khoảng 70-80% nếu hồ sơ tốt."
+      },
+      {
+        "question": "Visa Mỹ có hiệu lực bao lâu?",
+        "answer": "Visa du lịch Mỹ (B1/B2) có hiệu lực 10 năm, mỗi lần ở tối đa 6 tháng."
+      },
+      {
+        "question": "Nếu bị từ chối visa có xin lại được không?",
+        "answer": "Có thể xin lại, nhưng cần khắc phục lý do bị từ chối lần trước."
+      }
+    ],
+    "createdAt": "2025-01-03T00:00:00",
+    "updatedAt": "2025-01-03T00:00:00"
+  },
+  {
+    "title": "Visa Singapore - Điều kiện xin visa",
+    "country": "Singapore",
+    "flag": "🇸🇬",
+    "continent": "Châu Á",
+    "excerpt": "Hướng dẫn chi tiết về visa Singapore cho người Việt Nam, thủ tục đơn giản và nhanh chóng.",
+    "image": "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600&h=400&fit=crop",
+    "readTime": "3 phút",
+    "category": "Hướng dẫn",
+    "processingTime": "3-5 ngày",
+    "popular": false,
+    "fee": 1000000,
+    "validity": "35 ngày",
+    "requirements": [
+      "Hộ chiếu còn hạn 6 tháng",
+      "Ảnh passport",
+      "Giấy xác nhận công việc",
+      "Vé máy bay và khách sạn"
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "title": "Nộp hồ sơ online",
+        "description": "Nộp hồ sơ qua website IRAS",
+        "documents": ["Scan hồ sơ"]
+      },
+      {
+        "stepNumber": 2,
+        "title": "Thanh toán phí",
+        "description": "Thanh toán phí visa online",
+        "documents": []
+      },
+      {
+        "stepNumber": 3,
+        "title": "Nhận e-visa",
+        "description": "Nhận visa điện tử qua email",
+        "documents": []
+      }
+    ],
+    "tips": [
+      "Visa Singapore rất dễ xin",
+      "Có thể làm online 100%",
+      "Kết quả nhanh trong 3-5 ngày"
+    ],
+    "faqs": [
+      {
+        "question": "Visa Singapore có cần phỏng vấn không?",
+        "answer": "Không cần phỏng vấn, làm hoàn toàn online."
+      }
+    ],
+    "createdAt": "2025-01-04T00:00:00",
+    "updatedAt": "2025-01-04T00:00:00"
+  },
+  {
+    "title": "Visa Schengen: Du lịch châu Âu",
+    "country": "Schengen",
+    "flag": "🇪🇺",
+    "continent": "Châu Âu",
+    "excerpt": "Hướng dẫn xin visa Schengen để du lịch 26 quốc gia châu Âu.",
+    "image": "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=600&h=400&fit=crop",
+    "readTime": "7 phút",
+    "category": "Hướng dẫn",
+    "processingTime": "10-15 ngày",
+    "popular": true,
+    "fee": 2200000,
+    "validity": "90 ngày",
+    "requirements": [
+      "Hộ chiếu còn hạn 3 tháng sau chuyến đi",
+      "Bảo hiểm du lịch 30,000 EUR",
+      "Vé máy bay khứ hồi",
+      "Đặt phòng khách sạn",
+      "Sao kê ngân hàng",
+      "Giấy xác nhận công việc"
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "title": "Chọn quốc gia nộp đơn",
+        "description": "Nộp đơn tại quốc gia bạn ở lâu nhất",
+        "documents": ["Lịch trình chi tiết"]
+      },
+      {
+        "stepNumber": 2,
+        "title": "Chuẩn bị hồ sơ",
+        "description": "Thu thập đầy đủ hồ sơ theo yêu cầu",
+        "documents": ["Hộ chiếu", "Bảo hiểm", "Vé máy bay", "Booking"]
+      },
+      {
+        "stepNumber": 3,
+        "title": "Nộp hồ sơ và phỏng vấn",
+        "description": "Nộp hồ sơ tại VFS Global",
+        "documents": ["Hồ sơ gốc", "Phí visa"]
+      },
+      {
+        "stepNumber": 4,
+        "title": "Nhận visa",
+        "description": "Nhận hộ chiếu sau 10-15 ngày",
+        "documents": []
+      }
+    ],
+    "tips": [
+      "Bảo hiểm du lịch là bắt buộc",
+      "Lịch trình phải hợp lý và chi tiết",
+      "Chứng minh tài chính tốt",
+      "Có thể đi 26 nước với 1 visa"
+    ],
+    "faqs": [
+      {
+        "question": "Visa Schengen cho phép đi những nước nào?",
+        "answer": "26 quốc gia châu Âu bao gồm Pháp, Đức, Ý, Tây Ban Nha, Hà Lan..."
+      },
+      {
+        "question": "Thời gian lưu trú tối đa là bao lâu?",
+        "answer": "Tối đa 90 ngày trong vòng 180 ngày."
+      }
+    ],
+    "createdAt": "2025-01-05T00:00:00",
+    "updatedAt": "2025-01-05T00:00:00"
+  },
+  {
+    "title": "Visa Anh Quốc: Thủ tục và hồ sơ",
+    "country": "Anh",
+    "flag": "🇬🇧",
+    "continent": "Châu Âu",
+    "excerpt": "Hướng dẫn chi tiết làm visa Anh cho người Việt Nam, visa du lịch và công tác.",
+    "image": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&h=400&fit=crop",
+    "readTime": "6 phút",
+    "category": "Hướng dẫn",
+    "processingTime": "15-20 ngày",
+    "popular": false,
+    "fee": 3500000,
+    "validity": "6 tháng",
+    "requirements": [
+      "Hộ chiếu còn hạn",
+      "Điền form online",
+      "Chứng minh tài chính",
+      "Bảo hiểm du lịch",
+      "Vé máy bay và khách sạn"
+    ],
+    "steps": [
+      {
+        "stepNumber": 1,
+        "title": "Điền form online",
+        "description": "Hoàn thành form visa Anh",
+        "documents": ["Thông tin cá nhân"]
+      },
+      {
+        "stepNumber": 2,
+        "title": "Đặt lịch hẹn",
+        "description": "Đặt lịch nộp hồ sơ và sinh trắc",
+        "documents": []
+      },
+      {
+        "stepNumber": 3,
+        "title": "Nộp hồ sơ",
+        "description": "Nộp hồ sơ và lấy sinh trắc học",
+        "documents": ["Hồ sơ gốc", "Phí visa"]
+      },
+      {
+        "stepNumber": 4,
+        "title": "Chờ kết quả",
+        "description": "15-20 ngày xử lý",
+        "documents": []
+      }
+    ],
+    "tips": [
+      "Visa Anh khá khó, cần hồ sơ mạnh",
+      "Chứng minh tài chính tốt là rất quan trọng",
+      "Lịch trình rõ ràng, chi tiết"
+    ],
+    "faqs": [
+      {
+        "question": "Chi phí xin visa Anh là bao nhiêu?",
+        "answer": "Khoảng 3.5 triệu VNĐ chưa bao gồm dịch vụ."
+      }
+    ],
+    "createdAt": "2025-01-06T00:00:00",
+    "updatedAt": "2025-01-06T00:00:00"
+  }
+]

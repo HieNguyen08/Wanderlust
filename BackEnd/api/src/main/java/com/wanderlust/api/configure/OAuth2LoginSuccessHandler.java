@@ -32,7 +32,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
     private final JwtService jwtService;
 
 
-    @Value("${frontend.url:http://localhost:5173}")
+    @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
     @Override
@@ -54,7 +54,9 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
                 Map<String, Object> pictureObj = (Map<String, Object>) attributes.get("picture");
                 if (pictureObj.containsKey("data")) {
                     Map<String, Object> dataObj = (Map<String, Object>) pictureObj.get("data");
-                    avatarUrl = dataObj.getOrDefault("url", "").toString();
+                    if (dataObj.containsKey("url")) {
+                        avatarUrl = (String) dataObj.get("url");
+                    }
                 }
             }
         }
