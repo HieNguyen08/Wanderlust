@@ -6,3 +6,4 @@ export { default as UserWalletPage } from './UserWalletPage';
 export { default as TopUpWalletPage } from './TopUpWalletPage';
 export { default as SettingsPage } from './SettingsPage';
 export { default as PaymentMethodsPage } from './PaymentMethodsPage';
+export { default as SavedPaymentMethodsPage } from './SavedPaymentMethodsPage';

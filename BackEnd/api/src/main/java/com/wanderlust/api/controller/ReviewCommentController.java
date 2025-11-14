@@ -1,176 +1,151 @@
 package com.wanderlust.api.controller;
 
 import com.wanderlust.api.dto.reviewComment.*;
-import com.wanderlust.api.entity.types.ReviewStatus;
 import com.wanderlust.api.entity.types.ReviewTargetType;
 import com.wanderlust.api.services.ReviewCommentService;
-
-import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import com.wanderlust.api.services.CustomUserDetails;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/review-comments")
-@AllArgsConstructor
+@RequiredArgsConstructor
+@RequestMapping("/api/reviews")
 public class ReviewCommentController {
 
     private final ReviewCommentService reviewCommentService;
 
+    /**
+     * Helper
+     * Lấy ID của user đang được xác thực
+     */
+    private String getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("No authenticated user found");
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            return ((CustomUserDetails) principal).getUserID();
+        } else {
+            return authentication.getName();
+        }
+    }
+
     // ==========================================
-    // 1. PUBLIC ENDPOINTS (Không cần đăng nhập)
+    // PUBLIC ENDPOINTS
     // ==========================================
 
     /**
-     * [PUBLIC] Lấy tất cả review ĐÃ DUYỆT cho 1 đối tượng (hotel, activity...)
+     * GET /api/reviews/{id}
+     * Lấy chi tiết 1 review
      */
-    @GetMapping("/target/{targetType}/{targetId}")
-    public ResponseEntity<List<ReviewCommentDTO>> getApprovedReviewsForTarget(
-            @PathVariable ReviewTargetType targetType,
-            @PathVariable String targetId) {
+    @GetMapping("/{id}")
+    public ResponseEntity<ReviewCommentDTO> getReviewById(@PathVariable String id) {
+        ReviewCommentDTO review = reviewCommentService.findById(id);
+        return ResponseEntity.ok(review);
+    }
+
+    /**
+     * GET /api/reviews
+     * Lấy reviews đã duyệt theo target (hotel, activity...)
+     * VD: /api/reviews?targetType=HOTEL&targetId=123
+     */
+    @GetMapping
+    public ResponseEntity<List<ReviewCommentDTO>> getApprovedReviewsByTarget(
+            @RequestParam ReviewTargetType targetType,
+            @RequestParam String targetId) {
         List<ReviewCommentDTO> reviews = reviewCommentService.findAllApprovedByTarget(targetType, targetId);
         return ResponseEntity.ok(reviews);
     }
 
     // ==========================================
-    // 2. AUTHENTICATED ENDPOINTS (Cần đăng nhập)
+    // USER (Logged-in) ENDPOINTS
     // ==========================================
 
     /**
-     * [AUTH] Lấy chi tiết 1 review bằng ID
-     */
-    @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ReviewCommentDTO> getReviewById(@PathVariable String id) {
-        try {
-            ReviewCommentDTO review = reviewCommentService.findById(id);
-            return ResponseEntity.ok(review);
-        } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
-    }
-
-    // ==========================================
-    // 3. USER ENDPOINTS (ROLE_USER)
-    // ==========================================
-
-    /**
-     * [USER] Tạo 1 review mới
-     */
-    @PostMapping
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ReviewCommentDTO> createReview(
-            @Valid @RequestBody ReviewCommentCreateDTO createDTO,
-            Authentication authentication) {
-        
-        // TODO: Lấy User ID từ Authentication.
-        // Ví dụ: UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        // String userId = userPrincipal.getId();
-        String userId = "placeholder-user-id-from-auth"; // <--- THAY THẾ CHỖ NÀY
-
-        try {
-            ReviewCommentDTO newReview = reviewCommentService.create(createDTO, userId);
-            return new ResponseEntity<>(newReview, HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi khi tạo review.");
-        }
-    }
-
-    /**
-     * [USER] Lấy tất cả review của tôi
+     * GET /api/reviews/my-reviews
+     * Lấy tất cả review của user đang đăng nhập
      */
     @GetMapping("/my-reviews")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<List<ReviewCommentDTO>> getMyReviews(Authentication authentication) {
-        String userId = "placeholder-user-id-from-auth"; // <--- THAY THẾ CHỖ NÀY
+    public ResponseEntity<List<ReviewCommentDTO>> getMyReviews() {
+        String userId = getCurrentUserId();
         List<ReviewCommentDTO> reviews = reviewCommentService.findAllByUserId(userId);
         return ResponseEntity.ok(reviews);
     }
 
     /**
-     * [USER] Cập nhật review của tôi
+     * POST /api/reviews
+     * User tạo review mới
      */
-    @PutMapping("/my-reviews/{id}")
-    @PreAuthorize("hasRole('USER') and @webSecurity.isReviewCommentOwner(authentication, #id)")
+    @PostMapping
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ReviewCommentDTO> createReview(@RequestBody ReviewCommentCreateDTO createDTO) {
+        String userId = getCurrentUserId();
+        ReviewCommentDTO newReview = reviewCommentService.create(createDTO, userId);
+        return new ResponseEntity<>(newReview, HttpStatus.CREATED);
+    }
+
+    /**
+     * PUT /api/reviews/{id}
+     * User cập nhật review của chính mình
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ReviewCommentDTO> updateMyReview(
             @PathVariable String id,
-            @Valid @RequestBody ReviewCommentUpdateDTO updateDTO,
-            Authentication authentication) {
-        
-        String userId = "placeholder-user-id-from-auth"; // <--- THAY THẾ CHỖ NÀY
-        try {
-            ReviewCommentDTO updatedReview = reviewCommentService.updateUserReview(id, updateDTO, userId);
-            return ResponseEntity.ok(updatedReview);
-        } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (SecurityException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
-        }
+            @RequestBody ReviewCommentUpdateDTO updateDTO) {
+        String userId = getCurrentUserId();
+        ReviewCommentDTO updatedReview = reviewCommentService.updateUserReview(id, updateDTO, userId);
+        return ResponseEntity.ok(updatedReview);
     }
 
     /**
-     * [USER] Xóa review của tôi
+     * DELETE /api/reviews/{id}
+     * User xóa review của chính mình
      */
-    @DeleteMapping("/my-reviews/{id}")
-    @PreAuthorize("hasRole('USER') and @webSecurity.isReviewCommentOwner(authentication, #id)")
-    public ResponseEntity<String> deleteMyReview(
-            @PathVariable String id,
-            Authentication authentication) {
-        
-        String userId = "placeholder-user-id-from-auth"; // <--- THAY THẾ CHỖ NÀY
-        try {
-            reviewCommentService.deleteUserReview(id, userId);
-            return ResponseEntity.ok("Đã xóa review thành công.");
-        } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (SecurityException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
-        }
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Void> deleteMyReview(@PathVariable String id) {
+        String userId = getCurrentUserId();
+        reviewCommentService.deleteUserReview(id, userId);
+        return ResponseEntity.noContent().build(); // Status 204
     }
 
     // ==========================================
-    // 4. PARTNER ENDPOINTS (ROLE_PARTNER)
+    // PARTNER (VENDOR) ENDPOINTS
     // ==========================================
 
     /**
-     * [PARTNER] Phản hồi 1 review
-     * (Cần kiểm tra xem partner này có sở hữu 'targetId' của review không)
+     * POST /api/reviews/{id}/respond
+     * Partner (Vendor) phản hồi review
      */
-    @PutMapping("/partner/response/{id}")
-    @PreAuthorize("hasRole('PARTNER') and @webSecurity.isReviewTargetOwner(authentication, #id)")
+    @PostMapping("/{id}/respond")
+    @PreAuthorize("hasRole('PARTNER')")
     public ResponseEntity<ReviewCommentDTO> addVendorResponse(
             @PathVariable String id,
-            @Valid @RequestBody ReviewCommentVendorResponseDTO responseDTO,
-            Authentication authentication) {
-
-        String partnerId = "placeholder-partner-id-from-auth"; // <--- THAY THẾ CHỖ NÀY
-        try {
-            ReviewCommentDTO updatedReview = reviewCommentService.addVendorResponse(id, responseDTO, partnerId);
-            return ResponseEntity.ok(updatedReview);
-        } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (SecurityException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
+            @RequestBody ReviewCommentVendorResponseDTO responseDTO) {
+        String partnerId = getCurrentUserId(); // ID của partner/vendor
+        ReviewCommentDTO updatedReview = reviewCommentService.addVendorResponse(id, responseDTO, partnerId);
+        return ResponseEntity.ok(updatedReview);
     }
 
     // ==========================================
-    // 5. ADMIN ENDPOINTS (ROLE_ADMIN)
+    // ADMIN ENDPOINTS
+    // (Thường nên tách ra AdminController riêng, nhưng theo API .txt có thể gộp)
     // ==========================================
 
     /**
-     * [ADMIN] Lấy TẤT CẢ review (mọi trạng thái)
+     * GET /api/reviews/admin/all
+     * [ADMIN] Lấy tất cả review (mọi trạng thái)
      */
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
@@ -178,57 +153,51 @@ public class ReviewCommentController {
         List<ReviewCommentDTO> reviews = reviewCommentService.findAllForAdmin();
         return ResponseEntity.ok(reviews);
     }
-    
+
     /**
-     * [ADMIN] Lấy tất cả review CHỜ DUYỆT
+     * GET /api/reviews/admin/pending
+     * [ADMIN] Lấy review chờ duyệt
      */
     @GetMapping("/admin/pending")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<ReviewCommentDTO>> getPendingReviewsForAdmin() {
+    public ResponseEntity<List<ReviewCommentDTO>> getPendingReviews() {
         List<ReviewCommentDTO> reviews = reviewCommentService.findAllPending();
         return ResponseEntity.ok(reviews);
     }
 
     /**
-     * [ADMIN] Duyệt/Cập nhật trạng thái 1 review
+     * PUT /api/reviews/admin/{id}/moderate
+     * [ADMIN] Duyệt (approve/reject/hide) review
      */
-    @PutMapping("/admin/moderate/{id}")
+    @PutMapping("/admin/{id}/moderate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ReviewCommentDTO> moderateReview(
             @PathVariable String id,
-            @Valid @RequestBody ReviewCommentAdminUpdateDTO adminUpdateDTO,
-            Authentication authentication) {
-        
-        String adminId = "placeholder-admin-id-from-auth"; // <--- THAY THẾ CHỖ NÀY
-        try {
-            ReviewCommentDTO updatedReview = reviewCommentService.moderateReview(id, adminUpdateDTO, adminId);
-            return ResponseEntity.ok(updatedReview);
-        } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+            @RequestBody ReviewCommentAdminUpdateDTO adminUpdateDTO) {
+        String adminId = getCurrentUserId();
+        ReviewCommentDTO moderatedReview = reviewCommentService.moderateReview(id, adminUpdateDTO, adminId);
+        return ResponseEntity.ok(moderatedReview);
     }
 
     /**
-     * [ADMIN] Xóa bất kỳ 1 review
+     * DELETE /api/reviews/admin/{id}
+     * [ADMIN] Xóa bất kỳ review nào
      */
     @DeleteMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteReviewByAdmin(@PathVariable String id) {
-        try {
-            reviewCommentService.deleteAdminReview(id);
-            return ResponseEntity.ok("Admin đã xóa review thành công.");
-        } catch (NoSuchElementException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+    public ResponseEntity<Void> deleteReviewByAdmin(@PathVariable String id) {
+        reviewCommentService.deleteAdminReview(id);
+        return ResponseEntity.noContent().build();
     }
-
+    
     /**
-     * [ADMIN] Xóa TẤT CẢ review (Cẩn thận khi dùng!)
+     * DELETE /api/reviews/admin/all
+     * [ADMIN] Xóa tất cả review
      */
     @DeleteMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAllReviewsByAdmin() {
         reviewCommentService.deleteAll();
-        return ResponseEntity.ok("Admin đã xóa TẤT CẢ review thành công.");
+        return ResponseEntity.ok("All reviews have been deleted.");
     }
 }

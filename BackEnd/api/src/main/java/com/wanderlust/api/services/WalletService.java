@@ -7,7 +7,7 @@ import com.wanderlust.api.dto.walletDTO.TopUpResponseDTO;
 import com.wanderlust.api.dto.walletDTO.PaymentCallbackDTO;
 import com.wanderlust.api.dto.walletDTO.PaymentResponseDTO;
 import com.wanderlust.api.dto.walletDTO.WalletPaymentRequestDTO;
-import com.wanderlust.api.dto.walletDTO.RefundRequestDTO;
+import com.wanderlust.api.dto.walletDTO.WalletRefundRequestDTO;
 // Import DTOs mới cho tính năng rút tiền
 import com.wanderlust.api.dto.walletDTO.WithdrawRequestDTO;
 import com.wanderlust.api.dto.walletDTO.WithdrawResponseDTO;
@@ -48,7 +48,7 @@ public interface WalletService {
     /**
      * Hoàn tiền vào ví (refund)
      */
-    void processRefund(String userId, RefundRequestDTO refundRequest);
+    void processRefund(String userId, WalletRefundRequestDTO refundRequest);
 
     /**
      * Validate đủ tiền trước khi thanh toán

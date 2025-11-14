@@ -12,6 +12,7 @@ import com.wanderlust.api.services.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,7 @@ public class TransactionController {
      * 1. LẤY LỊCH SỬ GIAO DỊCH (cho UserWalletPage)
      */
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<TransactionResponseDTO>> getTransactions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -42,6 +44,7 @@ public class TransactionController {
      * [cite_start]2. LẤY CHI TIẾT MỘT GIAO DỊCH [cite: 24]
      */
     @GetMapping("/{transactionId}")
+    @PreAuthorize("hasRole('ADMIN') or @webSecurity.isTransactionOwner(authentication, #transactionId)")
     public ResponseEntity<TransactionDetailDTO> getTransactionDetail(
             @PathVariable String transactionId
     ) {
@@ -53,6 +56,7 @@ public class TransactionController {
      * 3. LẤY TỔNG QUAN GIAO DỊCH (Summary cho wallet card)
      */
     @GetMapping("/summary")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TransactionSummaryDTO> getTransactionSummary() {
         String userId = getCurrentUserId();
         TransactionSummaryDTO summary = transactionService.getTransactionSummary(userId);

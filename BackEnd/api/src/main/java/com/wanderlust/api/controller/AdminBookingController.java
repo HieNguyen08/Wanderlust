@@ -1,6 +1,7 @@
 package com.wanderlust.api.controller;
 
 import com.wanderlust.api.dto.BookingDTO;
+import com.wanderlust.api.dto.BookingStatisticsDTO; // <--- THÊM MỚI
 import com.wanderlust.api.services.BookingService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,23 +15,24 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/admin/bookings")
-@PreAuthorize("hasRole('ADMIN')") // Chỉ Admin mới được truy cập
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminBookingController {
 
     private final BookingService bookingService;
 
-    // GET /api/admin/bookings - Quản lý (xem tất cả) bookings [CITE: 38]
+    // GET /api/admin/bookings - Quản lý (xem tất cả) bookings
     @GetMapping
     public ResponseEntity<List<BookingDTO>> getAllBookings() {
         List<BookingDTO> allBookings = bookingService.findAll();
         return new ResponseEntity<>(allBookings, HttpStatus.OK);
     }
 
-    // GET /api/admin/bookings/statistics - Thống kê bookings [CITE: 38]
+    // GET /api/admin/bookings/statistics - Thống kê bookings
     @GetMapping("/statistics")
-    public ResponseEntity<String> getBookingStatistics() {
-        // TODO: Implement logic thống kê
-        return new ResponseEntity<>("Statistics endpoint", HttpStatus.OK);
+    public ResponseEntity<BookingStatisticsDTO> getBookingStatistics() { // <--- THAY ĐỔI (1)
+        // Gọi service method mới
+        BookingStatisticsDTO stats = bookingService.getStatistics(); // <--- THAY ĐỔI (2)
+        return new ResponseEntity<>(stats, HttpStatus.OK); // <--- THAY ĐỔI (3)
     }
 
     // PUT /api/admin/bookings/{id} - Admin cập nhật booking

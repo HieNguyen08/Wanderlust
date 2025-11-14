@@ -1,9 +1,12 @@
 package com.wanderlust.api.controller;
 
 import com.wanderlust.api.dto.ActivityRequestDTO;
+import com.wanderlust.api.dto.reviewComment.ReviewCommentDTO;
 import com.wanderlust.api.entity.Activity;
 import com.wanderlust.api.entity.types.ActivityCategory;
+import com.wanderlust.api.entity.types.ReviewTargetType;
 import com.wanderlust.api.services.ActivityService;
+import com.wanderlust.api.services.ReviewCommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -22,22 +25,15 @@ import java.util.Map;
 @RequestMapping("/api/activities")
 public class ActivityController {
     private final ActivityService activityService;
+    private final ReviewCommentService reviewCommentService;
 
-    // ==========================================
-    // PUBLIC GET ENDPOINTS (Search & Details)
-    // ==========================================
 
-    /**
-     * GET /api/activities
-     * Search activities with filters
-     */
     @GetMapping
     public ResponseEntity<List<Activity>> searchActivities(
             @RequestParam(required = false) String locationId,
             @RequestParam(required = false) ActivityCategory category,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice
-            // Date search is complex without specific schema, usually filtered on availability
     ) {
         List<Activity> activities = activityService.searchActivities(locationId, category, minPrice, maxPrice);
         return new ResponseEntity<>(activities, HttpStatus.OK);
@@ -81,12 +77,13 @@ public class ActivityController {
     /**
      * GET /api/activities/{id}/reviews
      * Get reviews for an activity
+     * * --- PHẦN NÀY ĐÃ ĐƯỢC CẬP NHẬT ---
      */
     @GetMapping("/{id}/reviews")
-    public ResponseEntity<List<Object>> getActivityReviews(@PathVariable String id) {
-        // TODO: Gọi ReviewService.findByTarget(id, "ACTIVITY")
-        // Hiện tại trả về mảng rỗng để frontend không lỗi
-        return ResponseEntity.ok(List.of());
+    public ResponseEntity<List<ReviewCommentDTO>> getActivityReviews(@PathVariable String id) {
+        // Gọi ReviewService để lấy review ĐÃ DUYỆT cho Activity này
+        List<ReviewCommentDTO> reviews = reviewCommentService.findAllApprovedByTarget(ReviewTargetType.ACTIVITY, id);
+        return ResponseEntity.ok(reviews);
     }
 
     /**
@@ -94,6 +91,7 @@ public class ActivityController {
      * Check availability for specific date & guests
      */
     @PostMapping("/{id}/check-availability")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> checkSpecificAvailability(
             @PathVariable String id,
             @RequestBody Map<String, Object> requestBody) {

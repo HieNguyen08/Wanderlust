@@ -22,7 +22,7 @@ import com.wanderlust.api.entity.types.HotelStatusType;
 @NoArgsConstructor
 public class Hotel {
     @Id
-    private String hotel_ID; // id
+    private String hotelID; // id
     private String vendorId;
     private String locationId;
     private String name;

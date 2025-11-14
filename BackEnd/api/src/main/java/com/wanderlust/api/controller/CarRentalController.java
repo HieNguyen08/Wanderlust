@@ -6,6 +6,9 @@ import com.wanderlust.api.dto.carRental.CarRentalDTO;
 import com.wanderlust.api.entity.CarRental;
 import com.wanderlust.api.mapper.CarRentalMapper;
 import com.wanderlust.api.services.CarRentalService;
+import com.wanderlust.api.services.CustomOAuth2User;
+import com.wanderlust.api.services.CustomUserDetails;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +29,21 @@ public class CarRentalController {
     private final CarRentalMapper carRentalMapper;
 
     // --- PUBLIC GET ENDPOINTS ---
+    private String getUserIdFromAuthentication(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        String userId;
+        if (principal instanceof CustomUserDetails) {
+            userId = ((CustomUserDetails) principal).getUserID();
+        } else if (principal instanceof CustomOAuth2User) {
+            userId = ((CustomOAuth2User) principal).getUser().getUserId();
+        } else {
+            throw new IllegalStateException("Invalid principal type.");
+        }
+        if (userId == null) {
+            throw new SecurityException("User ID is null in principal.");
+        }
+        return userId;
+    }
 
     @GetMapping
     public ResponseEntity<List<CarRentalDTO>> searchCarRentals(
@@ -68,6 +86,7 @@ public class CarRentalController {
     }
 
     @PostMapping("/{id}/calculate-price")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CarPriceResponseDTO> calculatePrice(
             @PathVariable String id,
             @RequestBody CarPriceCalculationDTO request
@@ -87,7 +106,7 @@ public class CarRentalController {
         CarRental entity = carRentalMapper.toEntity(carRentalDTO);
 
         // Tự động gán vendorId bằng ID của user (partner) đang đăng nhập
-        String currentUserId = authentication.getName();
+        String currentUserId = getUserIdFromAuthentication(authentication);
         entity.setVendorId(currentUserId);
 
         CarRental created = carRentalService.create(entity);

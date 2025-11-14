@@ -1,56 +1,71 @@
 package com.wanderlust.api.services;
 
+// Import Entities
 import com.wanderlust.api.entity.Activity;
-import com.wanderlust.api.repository.ActivityRepository;
 import com.wanderlust.api.entity.Advertisement;
-import com.wanderlust.api.repository.AdvertisementRepository;
 import com.wanderlust.api.entity.Booking;
-import com.wanderlust.api.repository.BookingRepository;
 import com.wanderlust.api.entity.CarRental;
-import com.wanderlust.api.repository.CarRentalRepository;
-import com.wanderlust.api.entity.Flight;
-import com.wanderlust.api.repository.FlightRepository;
 import com.wanderlust.api.entity.Hotel;
-import com.wanderlust.api.repository.HotelRepository;
-import com.wanderlust.api.entity.Location;
-import com.wanderlust.api.repository.LocationRepository;
 import com.wanderlust.api.entity.Payment;
-import com.wanderlust.api.repository.PaymentRepository;
-import com.wanderlust.api.entity.Promotion;
-import com.wanderlust.api.repository.PromotionRepository;
 import com.wanderlust.api.entity.ReviewComment;
+import com.wanderlust.api.entity.TravelGuide;
+import com.wanderlust.api.entity.Room; // <-- BỔ SUNG
+import com.wanderlust.api.entity.WalletTransaction;
 
+// Import Repositories
+import com.wanderlust.api.repository.ActivityRepository;
+import com.wanderlust.api.repository.AdvertisementRepository;
+import com.wanderlust.api.repository.BookingRepository;
+import com.wanderlust.api.repository.CarRentalRepository;
+import com.wanderlust.api.repository.HotelRepository;
+import com.wanderlust.api.repository.PaymentRepository;
 import com.wanderlust.api.repository.ReviewCommentRepository;
+import com.wanderlust.api.repository.TravelGuideRepository;
+import com.wanderlust.api.repository.RoomRepository; // <-- BỔ SUNG
+import com.wanderlust.api.repository.WalletTransactionRepository;
+// Import Security & Services (Từ file bạn cung cấp)
+import com.wanderlust.api.services.CustomUserDetails;
+import com.wanderlust.api.services.CustomOAuth2User;
 
+// Import Lombok
 import lombok.RequiredArgsConstructor;
+
+// Import Java Util
+import java.util.Optional; // <-- BỔ SUNG
+
+// Import Spring Security
 import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.stereotype.Service;
 
-
-@Service("webSecurity") 
+/**
+ * Dịch vụ bảo mật dùng trong @PreAuthorize để kiểm tra quyền sở hữu tài nguyên.
+ * Tên bean là "webSecurity".
+ */
+@Service("webSecurity")
 @RequiredArgsConstructor
 public class WebSecurityService {
 
+    // Inject tất cả các repository cần thiết
     private final ActivityRepository activityRepository;
     private final AdvertisementRepository advertisementRepository;
     private final BookingRepository bookingRepository;
     private final CarRentalRepository carRentalRepository;
     private final HotelRepository hotelRepository;
-    private final FlightRepository flightRepository;
-    private final LocationRepository locationRepository;
     private final PaymentRepository paymentRepository;
-    private final PromotionRepository promotionRepository;
     private final ReviewCommentRepository reviewCommentRepository;
-    
+    private final TravelGuideRepository travelGuideRepository;
+    private final RoomRepository roomRepository;
+    private final WalletTransactionRepository transactionRepository;
 
-
-
+    /**
+     * Lấy User ID (String) từ đối tượng Authentication (CustomUserDetails hoặc CustomOAuth2User).
+     */
     private String getUserIdFromAuthentication(Authentication authentication) {
         if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
             return null;
         }
-        
+
         Object principal = authentication.getPrincipal();
 
         if (principal instanceof CustomUserDetails) {
@@ -58,131 +73,167 @@ public class WebSecurityService {
         } else if (principal instanceof CustomOAuth2User) {
             return ((CustomOAuth2User) principal).getUser().getUserId();
         } else {
-            throw new IllegalStateException("Unknown principal type: " + principal.getClass().getName());
+            return authentication.getName();
         }
     }
 
-    
-
+    /**
+     * (PARTNER) Kiểm tra PARTNER có sở hữu Activity không (dựa trên vendorId).
+     */
     public boolean isActivityOwner(Authentication authentication, String activityId) {
         String currentUserId = getUserIdFromAuthentication(authentication);
-        if (currentUserId == null) {
-            return false;
-        }
-        Activity activity = activityRepository.findById(activityId).orElse(null);
-        if (activity == null) {
-            return false;
-        }
-        return activity.getUserId() != null && activity.getUserId().equals(currentUserId);
+        if (currentUserId == null) return false;
+        
+        return activityRepository.findById(activityId)
+                .map(Activity::getVendorId)
+                .map(ownerId -> ownerId.equals(currentUserId))
+                .orElse(false);
     }
-    
+
+    /**
+     * (PARTNER) Kiểm tra PARTNER có sở hữu Advertisement không (dựa trên vendorId).
+     */
     public boolean isAdvertisementOwner(Authentication authentication, String advertisementId) {
         String currentUserId = getUserIdFromAuthentication(authentication);
-        if (currentUserId == null) {
-            return false;
-        }
-        Advertisement advertisement = advertisementRepository.findById(advertisementId).orElse(null);
-        if (advertisement == null) {
-            return false;
-        }
-        return advertisement.getUserId() != null && advertisement.getUserId().equals(currentUserId);
+        if (currentUserId == null) return false;
+        
+        return advertisementRepository.findById(advertisementId)
+                .map(Advertisement::getVendorId)
+                .map(ownerId -> ownerId.equals(currentUserId))
+                .orElse(false);
     }
 
+    /**
+     * (USER) Kiểm tra USER (khách hàng) có sở hữu Booking không (dựa trên userId).
+     */
     public boolean isBookingOwner(Authentication authentication, String bookingId) {
         String currentUserId = getUserIdFromAuthentication(authentication);
-        if (currentUserId == null) {
-            return false;
-        }
-        Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null) {
-            return false;
-        }
-        return booking.getUserId() != null && booking.getUserId().equals(currentUserId);
+        if (currentUserId == null) return false;
+        
+        return bookingRepository.findById(bookingId)
+                .map(Booking::getUserId)
+                .map(ownerId -> ownerId.equals(currentUserId))
+                .orElse(false);
     }
 
+    /**
+     * (PARTNER) Kiểm tra PARTNER có phải là nhà cung cấp của Booking không (dựa trên vendorId).
+     */
+    public boolean isBookingVendor(Authentication authentication, String bookingId) {
+        String currentUserId = getUserIdFromAuthentication(authentication);
+        if (currentUserId == null) return false;
+        
+        return bookingRepository.findById(bookingId)
+                .map(Booking::getVendorId)
+                .map(vendorId -> vendorId.equals(currentUserId))
+                .orElse(false);
+    }
+
+    /**
+     * (PARTNER) Kiểm tra PARTNER có sở hữu CarRental không (dựa trên vendorId).
+     */
     public boolean isCarRentalOwner(Authentication authentication, String carRentalId) {
         String currentUserId = getUserIdFromAuthentication(authentication);
-        if (currentUserId == null) {
-            return false;
-        }
-        CarRental carRental = carRentalRepository.findById(carRentalId).orElse(null);
-        if (carRental == null) {
-            return false;
-        }
-        return carRental.getUserId() != null && carRental.getUserId().equals(currentUserId);
+        if (currentUserId == null) return false;
+        
+        return carRentalRepository.findById(carRentalId)
+                .map(CarRental::getVendorId)
+                .map(ownerId -> ownerId.equals(currentUserId))
+                .orElse(false);
     }
 
+    /**
+     * (PARTNER) Kiểm tra PARTNER có sở hữu Hotel không (dựa trên vendorId).
+     */
     public boolean isHotelOwner(Authentication authentication, String hotelId) {
         String currentUserId = getUserIdFromAuthentication(authentication);
-        if (currentUserId == null) {
-            return false;
-        }
-        Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
-        if (hotel == null) {
-            return false;
-        }
-        return hotel.getUserId() != null && hotel.getUserId().equals(currentUserId);
+        if (currentUserId == null) return false;
+        
+        return hotelRepository.findById(hotelId)
+                .map(Hotel::getVendorId)
+                .map(ownerId -> ownerId.equals(currentUserId))
+                .orElse(false);
     }
 
-    public boolean isFlightOwner(Authentication authentication, String flightId) {
-        String currentUserId = getUserIdFromAuthentication(authentication);
-        if (currentUserId == null) {
-            return false;
-        }
-        Flight flight = flightRepository.findById(flightId).orElse(null);
-        if (flight == null) {
-            return false;
-        }
-        return flight.getUserId() != null && flight.getUserId().equals(currentUserId);
-    }
-
-    public boolean isLocationOwner(Authentication authentication, String locationId) {
-        String currentUserId = getUserIdFromAuthentication(authentication);
-        if (currentUserId == null) {
-            return false;
-        }
-        Location location = locationRepository.findById(locationId).orElse(null);
-        if (location == null) {
-            return false;
-        }
-        return location.getUserId() != null && location.getUserId().equals(currentUserId);
-    }
-
+    /**
+     * (USER) Kiểm tra USER có sở hữu Payment không (dựa trên userId).
+     */
     public boolean isPaymentOwner(Authentication authentication, String paymentId) {
         String currentUserId = getUserIdFromAuthentication(authentication);
-        if (currentUserId == null) {
-            return false;
-        }
-        Payment payment = paymentRepository.findById(paymentId).orElse(null);
-        if (payment == null) {
-            return false;
-        }
-        return payment.getUserId() != null && payment.getUserId().equals(currentUserId);
+        if (currentUserId == null) return false;
+        
+        return paymentRepository.findById(paymentId)
+                .map(Payment::getUserId)
+                .map(ownerId -> ownerId.equals(currentUserId))
+                .orElse(false);
     }
 
+    // =================================================================
+    // BỔ SUNG PHƯƠNG THỨC MỚI
+    // =================================================================
+    /**
+     * (PARTNER) Kiểm tra PARTNER có sở hữu Room không
+     * Bằng cách kiểm tra xem họ có sở hữu Hotel chứa Room đó không.
+     */
+    public boolean isRoomOwner(Authentication authentication, String roomId) {
+        
+        // 1. Tìm Room bằng roomId
+        Optional<Room> roomOptional = roomRepository.findById(roomId);
+        
+        if (roomOptional.isEmpty()) {
+            return false; // Không tìm thấy phòng
+        }
 
-    public boolean isPromotionOwner(Authentication authentication, String promotionId) {
-        // Promotions are public, no ownership check needed
-        // Only admins should be able to modify promotions (handled by @PreAuthorize)
-        return false;
+        // 2. Lấy hotelId từ Room
+        String hotelId = roomOptional.get().getHotelId();
+
+        // 3. Tái sử dụng logic isHotelOwner.
+        //    Phương thức này sẽ tự động kiểm tra (authentication) với hotelId.
+        return this.isHotelOwner(authentication, hotelId);
     }
+    // =================================================================
 
+    /**
+     * (USER) Kiểm tra USER có sở hữu ReviewComment không (dựa trên userId).
+     */
     public boolean isReviewCommentOwner(Authentication authentication, String reviewCommentId) {
         String currentUserId = getUserIdFromAuthentication(authentication);
-        if (currentUserId == null) {
-            return false;
-        }
-        ReviewComment reviewComment = reviewCommentRepository.findById(reviewCommentId).orElse(null);
-        if (reviewComment == null) {
-            return false;
-        }
-        return reviewComment.getUserId() != null && reviewComment.getUserId().equals(currentUserId);
+        if (currentUserId == null) return false;
+        
+        return reviewCommentRepository.findById(reviewCommentId)
+                .map(ReviewComment::getUserId)
+                .map(ownerId -> ownerId.equals(currentUserId))
+                .orElse(false);
     }
 
+    /**
+     * (PARTNER/ADMIN) Kiểm tra PARTNER/ADMIN có sở hữu TravelGuide không (dựa trên authorId).
+     */
+    public boolean isTravelGuideOwner(Authentication authentication, String travelGuideId) {
+        String currentUserId = getUserIdFromAuthentication(authentication);
+        if (currentUserId == null) return false;
+        
+        return travelGuideRepository.findById(travelGuideId)
+                .map(TravelGuide::getAuthorId)
+                .map(authorId -> authorId.equals(currentUserId))
+                .orElse(false);
+    }
+
+    public boolean isTransactionOwner(Authentication authentication, String transactionId) {
+        String currentUserId = getUserIdFromAuthentication(authentication);
+        if (currentUserId == null) return false;
+        
+        return transactionRepository.findById(transactionId)
+                .map(WalletTransaction::getUserId) // Lấy userId từ transaction
+                .map(ownerId -> ownerId.equals(currentUserId))
+                .orElse(false); // Trả về false nếu không tìm thấy transaction
+    }
+
+    /**
+     * (Chung) Kiểm tra xem ID người dùng target có phải là người dùng hiện tại không.
+     */
     public boolean isCurrentUser(Authentication authentication, String targetUserId) {
         String currentUserId = getUserIdFromAuthentication(authentication);
         return currentUserId != null && currentUserId.equals(targetUserId);
     }
-
-
 }

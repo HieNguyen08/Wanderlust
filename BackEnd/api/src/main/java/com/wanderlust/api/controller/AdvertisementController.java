@@ -16,7 +16,7 @@ import java.util.List;
 @CrossOrigin
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/advertisements") // Giữ nguyên /api/advertisements như file gốc
+@RequestMapping("/api/advertisements")
 public class AdvertisementController {
 
     private final AdvertisementService advertisementService;
@@ -99,7 +99,6 @@ public class AdvertisementController {
      * API: POST /api/ads/:id/track-impression 
      */
     @PostMapping("/{id}/track-impression")
-    @PreAuthorize("permitAll()") // Cho phép public access để tracking
     public ResponseEntity<Void> trackImpression(@PathVariable String id) {
         advertisementService.trackImpression(id);
         return ResponseEntity.ok().build();
@@ -110,7 +109,6 @@ public class AdvertisementController {
      * API: POST /api/ads/:id/track-click 
      */
     @PostMapping("/{id}/track-click")
-    @PreAuthorize("permitAll()") // Cho phép public access để tracking
     public ResponseEntity<Void> trackClick(@PathVariable String id) {
         advertisementService.trackClick(id);
         return ResponseEntity.ok().build();

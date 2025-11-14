@@ -8,8 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.core.Authentication; // <-- BỔ SUNG
+import com.wanderlust.api.services.CustomUserDetails; // <-- BỔ SUNG
+import com.wanderlust.api.services.CustomOAuth2User;
 import java.util.List;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api")
@@ -22,6 +25,21 @@ public class RoomController {
         this.roomService = roomService;
     }
 
+    private String getUserIdFromAuthentication(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        String userId;
+        if (principal instanceof CustomUserDetails) {
+            userId = ((CustomUserDetails) principal).getUserID();
+        } else if (principal instanceof CustomOAuth2User) {
+            userId = ((CustomOAuth2User) principal).getUser().getUserId();
+        } else {
+            throw new IllegalStateException("Invalid principal type.");
+        }
+        if (userId == null) {
+            throw new SecurityException("User ID is null in principal.");
+        }
+        return userId;
+    }
     // --- PUBLIC ENDPOINTS ---
 
     // GET /api/rooms/:id
@@ -38,30 +56,32 @@ public class RoomController {
 
     // --- VENDOR MANAGEMENT ---
 
-    // GET /api/vendor/rooms (Lấy tất cả room của vendor - placeholder logic)
     @GetMapping("/vendor/rooms")
     @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
-    public ResponseEntity<List<RoomDTO>> getAllRooms() {
-        return ResponseEntity.ok(roomService.findAll());
+    public ResponseEntity<List<RoomDTO>> getAllRooms(Authentication authentication) {
+        String userId = getUserIdFromAuthentication(authentication);
+        
+        List<RoomDTO> rooms = roomService.findAllForUser(userId, new ArrayList<>(authentication.getAuthorities()));
+        return ResponseEntity.ok(rooms);
     }
 
     // POST /api/vendor/rooms
     @PostMapping("/vendor/rooms")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
-    public ResponseEntity<Room> createRoom(@RequestBody Room room) {
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isHotelOwner(authentication, #room.hotelId))") // <-- SỬA
+    public ResponseEntity<RoomDTO> createRoom(@RequestBody RoomDTO room) {
         return new ResponseEntity<>(roomService.create(room), HttpStatus.CREATED);
     }
     
     // PUT /api/vendor/rooms/:id (Bổ sung update cho vendor)
     @PutMapping("/vendor/rooms/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
-    public ResponseEntity<Room> updateRoom(@PathVariable String id, @RequestBody Room room) {
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isRoomOwner(authentication, #id))") // <-- SỬA
+    public ResponseEntity<RoomDTO> updateRoom(@PathVariable String id, @RequestBody RoomDTO room) {
         return ResponseEntity.ok(roomService.update(id, room));
     }
 
     // DELETE /api/vendor/rooms/:id
     @DeleteMapping("/vendor/rooms/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isRoomOwner(authentication, #id))") // <-- SỬA
     public ResponseEntity<String> deleteRoom(@PathVariable String id) {
         roomService.delete(id);
         return ResponseEntity.ok("Room deleted");

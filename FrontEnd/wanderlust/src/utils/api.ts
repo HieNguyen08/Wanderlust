@@ -99,26 +99,36 @@ export const tokenService = {
 export const authenticatedFetch = async (url: string, options: RequestInit = {}) => {
   const token = tokenService.getToken();
   
+  // If no token, immediately throw UNAUTHORIZED without making request
+  if (!token) {
+    throw new Error('UNAUTHORIZED');
+  }
+  
   const headers = {
     'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
+    Authorization: `Bearer ${token}`,
     ...options.headers,
   };
 
-  const response = await fetch(`${API_BASE_URL}${url}`, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      ...options,
+      headers,
+    });
 
-  if (response.status === 401) {
-    // Token expired or invalid
-    tokenService.removeToken();
-    tokenService.removeUserData();
-    window.location.href = '/login';
-    throw new Error('Session expired. Please login again.');
+    if (response.status === 401) {
+      // Token expired or invalid
+      throw new Error('UNAUTHORIZED');
+    }
+
+    return response;
+  } catch (error: any) {
+    // Network error or fetch failed
+    if (error.message === 'UNAUTHORIZED') {
+      throw error;
+    }
+    throw new Error('NETWORK_ERROR');
   }
-
-  return response;
 };
 
 // Profile API endpoints
@@ -532,6 +542,179 @@ export const visaArticleApi = {
     const response = await fetch(`${API_BASE_URL}/api/visa-articles/popular`);
     if (!response.ok) {
       throw new Error('Failed to fetch popular visa articles');
+    }
+    return response.json();
+  },
+};
+
+// User Voucher Wallet API
+export const userVoucherApi = {
+  // Lưu voucher vào ví
+  saveToWallet: async (voucherCode: string) => {
+    const response = await authenticatedFetch('/api/v1/user-vouchers/save', {
+      method: 'POST',
+      body: JSON.stringify({ voucherCode }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to save voucher');
+    }
+    return response.json();
+  },
+
+  // Lấy tất cả voucher của user
+  getAll: async () => {
+    const response = await authenticatedFetch('/api/v1/user-vouchers');
+    if (!response.ok) {
+      throw new Error('Failed to fetch user vouchers');
+    }
+    return response.json();
+  },
+
+  // Lấy voucher khả dụng
+  getAvailable: async () => {
+    const response = await authenticatedFetch('/api/v1/user-vouchers/available');
+    if (!response.ok) {
+      throw new Error('Failed to fetch available vouchers');
+    }
+    return response.json();
+  },
+
+  // Lấy voucher đã sử dụng
+  getUsed: async () => {
+    const response = await authenticatedFetch('/api/v1/user-vouchers/used');
+    if (!response.ok) {
+      throw new Error('Failed to fetch used vouchers');
+    }
+    return response.json();
+  },
+
+  // Lấy thống kê
+  getStatistics: async () => {
+    const response = await authenticatedFetch('/api/v1/user-vouchers/statistics');
+    if (!response.ok) {
+      throw new Error('Failed to fetch voucher statistics');
+    }
+    return response.json();
+  },
+
+  // Validate voucher trước khi sử dụng
+  validate: async (voucherCode: string, category: string, orderAmount: number) => {
+    const response = await authenticatedFetch('/api/v1/user-vouchers/validate', {
+      method: 'POST',
+      body: JSON.stringify({ voucherCode, category, orderAmount }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to validate voucher');
+    }
+    return response.json();
+  },
+
+  // Sử dụng voucher
+  use: async (voucherCode: string, orderId: string, discountAmount: number) => {
+    const response = await authenticatedFetch('/api/v1/user-vouchers/use', {
+      method: 'POST',
+      body: JSON.stringify({ voucherCode, orderId, discountAmount }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to use voucher');
+    }
+    return response.json();
+  },
+
+  // Xóa voucher
+  delete: async (voucherCode: string) => {
+    const response = await authenticatedFetch(`/api/v1/user-vouchers/${voucherCode}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to delete voucher');
+    }
+    return response.json();
+  },
+};
+
+// Flight API endpoints
+export const flightApi = {
+  // Lấy tất cả flights
+  getAll: async () => {
+    const response = await fetch(`${API_BASE_URL}/api/flights`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch flights');
+    }
+    return response.json();
+  },
+
+  // Lấy flight theo ID
+  getById: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/flights/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch flight');
+    }
+    return response.json();
+  },
+
+  // Tìm kiếm flights với filters
+  search: async (params: {
+    from: string;
+    to: string;
+    date: string; // format: YYYY-MM-DD
+    directOnly?: boolean;
+    airlines?: string[]; // array of airline codes: ['VN', 'VJ']
+  }) => {
+    const searchParams = new URLSearchParams();
+    searchParams.append('from', params.from);
+    searchParams.append('to', params.to);
+    searchParams.append('date', params.date);
+    
+    if (params.directOnly) {
+      searchParams.append('directOnly', 'true');
+    }
+    
+    if (params.airlines && params.airlines.length > 0) {
+      params.airlines.forEach(airline => {
+        searchParams.append('airlines', airline);
+      });
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/flights/search?${searchParams.toString()}`);
+    if (!response.ok) {
+      throw new Error('Failed to search flights');
+    }
+    return response.json();
+  },
+
+  // Tìm kiếm flights theo date range (cho 7-day price calendar)
+  searchByDateRange: async (params: {
+    from: string;
+    to: string;
+    startDate: string; // format: YYYY-MM-DD
+    endDate: string; // format: YYYY-MM-DD
+    directOnly?: boolean;
+    airlines?: string[];
+  }) => {
+    const searchParams = new URLSearchParams();
+    searchParams.append('from', params.from);
+    searchParams.append('to', params.to);
+    searchParams.append('startDate', params.startDate);
+    searchParams.append('endDate', params.endDate);
+    
+    if (params.directOnly) {
+      searchParams.append('directOnly', 'true');
+    }
+    
+    if (params.airlines && params.airlines.length > 0) {
+      params.airlines.forEach(airline => {
+        searchParams.append('airlines', airline);
+      });
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/flights/range?${searchParams.toString()}`);
+    if (!response.ok) {
+      throw new Error('Failed to search flights by date range');
     }
     return response.json();
   },

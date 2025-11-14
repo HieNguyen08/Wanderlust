@@ -11,6 +11,7 @@ import com.wanderlust.api.services.CustomUserDetails;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +20,14 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/users")
-@RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
+
+    public UserProfileController(UserProfileService userProfileService) {
+        this.userProfileService = userProfileService;
+    }
 
     // <<< XÓA BỎ HÀM getUsername(UserDetails userDetails) TẠI ĐÂY
 
@@ -155,6 +160,7 @@ public class UserProfileController {
     
     // 9. YÊU CẦU NÂNG CẤP VAI TRÒ
     @PostMapping("/me/request-partner-role")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> requestPartnerRole(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {

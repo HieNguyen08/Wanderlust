@@ -1,7 +1,11 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.dto.booking.BookingDTO;
+import com.wanderlust.api.dto.BookingDTO;
 import com.wanderlust.api.services.BookingService;
+// Import 2 class principal
+import com.wanderlust.api.services.CustomUserDetails;
+import com.wanderlust.api.services.CustomOAuth2User;
+
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,21 +20,37 @@ import java.util.Map;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/vendor/bookings")
-@PreAuthorize("hasRole('PARTNER')") // Chỉ đối tác (PARTNER) mới được truy cập
+@PreAuthorize("hasRole('PARTNER')") 
 public class VendorBookingController {
 
     private final BookingService bookingService;
 
-    // GET /api/vendor/bookings - Lấy bookings của vendor [CITE: 43]
+    // Helper để lấy UserID từ Authentication
+    private String getVendorIdFromAuthentication(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        String userId;
+
+        if (principal instanceof CustomUserDetails) {
+            userId = ((CustomUserDetails) principal).getUserID();
+        } else if (principal instanceof CustomOAuth2User) {
+            userId = ((CustomOAuth2User) principal).getUser().getUserId();
+        } else {
+            throw new IllegalStateException("Invalid principal type. Expected CustomUserDetails or CustomOAuth2User.");
+        }
+        
+        if (userId == null) {
+            throw new SecurityException("User ID is null in principal.");
+        }
+        return userId;
+    }
+
     @GetMapping
     public ResponseEntity<List<BookingDTO>> getVendorBookings(Authentication authentication) {
-        // Giả sử ID của vendor chính là ID của user (đã được gán role PARTNER)
-        String vendorId = authentication.getName();
-        // TODO: Đảm bảo 'authentication.getName()' trả về đúng User ID (cũng là Vendor ID)
+        String vendorId = getVendorIdFromAuthentication(authentication);
         return new ResponseEntity<>(bookingService.findByVendorId(vendorId), HttpStatus.OK);
     }
 
-    // POST /api/vendor/bookings/{id}/confirm - Confirm booking [CITE: 30, 43]
+
     @PostMapping("/{id}/confirm")
     @PreAuthorize("@webSecurity.isBookingVendor(authentication, #id)")
     public ResponseEntity<BookingDTO> confirmBooking(@PathVariable String id) {
@@ -38,7 +58,7 @@ public class VendorBookingController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    // POST /api/vendor/bookings/{id}/reject - Reject booking [CITE: 43]
+
     @PostMapping("/{id}/reject")
     @PreAuthorize("@webSecurity.isBookingVendor(authentication, #id)")
     public ResponseEntity<BookingDTO> rejectBooking(

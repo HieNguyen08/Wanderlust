@@ -1,59 +1,189 @@
 package com.wanderlust.api.services;
 
 import com.wanderlust.api.entity.Flight;
+import com.wanderlust.api.entity.types.FlightStatus;
 import com.wanderlust.api.repository.FlightRepository;
-import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-@AllArgsConstructor
 @Service
-public class FlightService implements BaseServices<Flight> {
+public class FlightService {
 
-    private final FlightRepository flightRepository;
+    @Autowired
+    private FlightRepository flightRepository;
 
-    // Get all flights
-    public List<Flight> findAll() {
+    /**
+     * Lấy tất cả chuyến bay
+     */
+    public List<Flight> getAllFlights() {
         return flightRepository.findAll();
     }
 
-    // Add a flight
-    public Flight create(Flight flight) {
-        return flightRepository.insert(flight);
+    /**
+     * Lấy chuyến bay theo ID
+     */
+    public Optional<Flight> getFlightById(String id) {
+        return flightRepository.findById(id);
     }
 
-    // Update an existing flight
-    public Flight update(Flight flight) {
-        Flight updatedFlight = flightRepository.findById(flight.getId())
-                .orElseThrow(() -> new RuntimeException("Flight not found with id " + flight.getId()));
-
-        if (flight.getFlight_Number() != null) updatedFlight.setFlight_Number(flight.getFlight_Number());
-        if (flight.getDeparture_Time() != null) updatedFlight.setDeparture_Time(flight.getDeparture_Time());
-        if (flight.getArrival_Time() != null) updatedFlight.setArrival_Time(flight.getArrival_Time());
-        if (flight.getDuration() != null) updatedFlight.setDuration(flight.getDuration());
-        if (flight.getAirline_ID() != null) updatedFlight.setAirline_ID(flight.getAirline_ID());
-
-        return flightRepository.save(updatedFlight);
+    /**
+     * Lấy chuyến bay theo số hiệu
+     */
+    public Optional<Flight> getFlightByNumber(String flightNumber) {
+        return flightRepository.findByFlightNumber(flightNumber);
     }
 
-    // Delete a flight by ID
-    public void delete(String id) {
-        if (flightRepository.findById(id).isPresent()) {
-            flightRepository.deleteById(id);
-        } else {
-            throw new RuntimeException("Flight not found with id " + id);
+    /**
+     * Tìm kiếm chuyến bay (Core function cho frontend)
+     * @param from - Mã sân bay đi (VD: "SGN")
+     * @param to - Mã sân bay đến (VD: "HAN")
+     * @param date - Ngày bay (LocalDate)
+     * @param directOnly - Chỉ tìm chuyến bay thẳng?
+     * @param airlineCodes - Lọc theo hãng bay (optional)
+     * @return Danh sách chuyến bay phù hợp
+     */
+    public List<Flight> searchFlights(
+            String from,
+            String to,
+            LocalDate date,
+            Boolean directOnly,
+            List<String> airlineCodes
+    ) {
+        // Tạo khoảng thời gian cho cả ngày
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        // Tìm chuyến bay theo tuyến và ngày
+        List<Flight> flights = flightRepository.searchFlights(
+                from,
+                to,
+                startOfDay,
+                endOfDay
+        );
+
+        // Lọc theo direct flight nếu cần
+        if (directOnly != null && directOnly) {
+            flights = flights.stream()
+                    .filter(Flight::getIsDirect)
+                    .collect(Collectors.toList());
         }
+
+        // Lọc theo hãng bay nếu có
+        if (airlineCodes != null && !airlineCodes.isEmpty()) {
+            flights = flights.stream()
+                    .filter(f -> airlineCodes.contains(f.getAirlineCode()))
+                    .collect(Collectors.toList());
+        }
+
+        return flights;
     }
 
-    // Delete all flights
-    public void deleteAll() {
-        flightRepository.deleteAll();
+    /**
+     * Lấy chuyến bay theo nhiều ngày (cho lịch giá 7 ngày)
+     */
+    public List<Flight> getFlightsByDateRange(
+            String from,
+            String to,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.atTime(LocalTime.MAX);
+
+        return flightRepository.findByDepartureTimeBetween(start, end)
+                .stream()
+                .filter(f -> f.getDepartureAirportCode().equals(from) &&
+                             f.getArrivalAirportCode().equals(to) &&
+                             f.getStatus() == FlightStatus.SCHEDULED)
+                .collect(Collectors.toList());
     }
 
-    // Get a specific flight by id
-    public Flight findByID(String id) {
-        return flightRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Flight not found with id " + id));
+    /**
+     * Lấy chuyến bay theo hãng
+     */
+    public List<Flight> getFlightsByAirline(String airlineCode) {
+        return flightRepository.findByAirlineCode(airlineCode);
+    }
+
+    /**
+     * Lấy chuyến bay quốc tế/nội địa
+     */
+    public List<Flight> getFlightsByType(Boolean isInternational) {
+        return flightRepository.findByIsInternational(isInternational);
+    }
+
+    /**
+     * Tạo chuyến bay mới
+     */
+    public Flight createFlight(Flight flight) {
+        // Set default values
+        if (flight.getStatus() == null) {
+            flight.setStatus(FlightStatus.SCHEDULED);
+        }
+        if (flight.getIsDirect() == null) {
+            flight.setIsDirect(flight.getStops() == null || flight.getStops() == 0);
+        }
+        
+        return flightRepository.save(flight);
+    }
+
+    /**
+     * Cập nhật chuyến bay
+     */
+    public Flight updateFlight(String id, Flight flightDetails) {
+        Flight flight = flightRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Flight not found with id: " + id));
+
+        // Update fields
+        flight.setFlightNumber(flightDetails.getFlightNumber());
+        flight.setAirlineCode(flightDetails.getAirlineCode());
+        flight.setAirlineName(flightDetails.getAirlineName());
+        flight.setDepartureAirportCode(flightDetails.getDepartureAirportCode());
+        flight.setArrivalAirportCode(flightDetails.getArrivalAirportCode());
+        flight.setDepartureTime(flightDetails.getDepartureTime());
+        flight.setArrivalTime(flightDetails.getArrivalTime());
+        flight.setCabinClasses(flightDetails.getCabinClasses());
+        flight.setStatus(flightDetails.getStatus());
+        flight.setAvailableSeats(flightDetails.getAvailableSeats());
+
+        return flightRepository.save(flight);
+    }
+
+    /**
+     * Xóa chuyến bay
+     */
+    public void deleteFlight(String id) {
+        flightRepository.deleteById(id);
+    }
+
+    /**
+     * Cập nhật số ghế còn trống
+     */
+    public Flight updateAvailableSeats(String flightId, Integer seatsBooked) {
+        Flight flight = flightRepository.findById(flightId)
+                .orElseThrow(() -> new RuntimeException("Flight not found"));
+
+        int currentAvailable = flight.getAvailableSeats();
+        flight.setAvailableSeats(currentAvailable - seatsBooked);
+
+        return flightRepository.save(flight);
+    }
+
+    /**
+     * Cập nhật trạng thái chuyến bay
+     */
+    public Flight updateStatus(String flightId, FlightStatus status) {
+        Flight flight = flightRepository.findById(flightId)
+                .orElseThrow(() -> new RuntimeException("Flight not found"));
+
+        flight.setStatus(status);
+        return flightRepository.save(flight);
     }
 }

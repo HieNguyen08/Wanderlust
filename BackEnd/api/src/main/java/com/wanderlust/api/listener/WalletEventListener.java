@@ -57,7 +57,7 @@ public class WalletEventListener {
         walletService.updateBalance(event.getWalletId(), event.getAmount(), TransactionType.REFUND);
         
         log.info("Processed auto-refund for order: {}. Wallet {} credited with {}", 
-                 event.getOrderId(), event.getWalletId(), event.getAmount());
+                event.getOrderId(), event.getWalletId(), event.getAmount());
     }
 
     /**
@@ -98,6 +98,7 @@ public class WalletEventListener {
 
     /**
      * Event được bắn ra khi order bị hủy.
+     * Chúng ta có thể dùng chung 1 event và kiểm tra xem ai là người hủy
      */
     @Data
     public static class OrderCancelledEvent {
@@ -105,6 +106,6 @@ public class WalletEventListener {
         private final String userId;
         private final String walletId; // Cần thiết để biết hoàn tiền vào ví nào
         private final BigDecimal amount;
-        // private final UserType cancelledBy; // (VD: VENDOR, USER)
+        // private final UserType cancelledBy; // (VD: VENDOR, USER) -> Dùng để phân biệt 2 hàm listener
     }
 }

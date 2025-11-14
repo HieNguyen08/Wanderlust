@@ -11,6 +11,8 @@ import java.util.List;
 @Data
 public class HotelDTO {
     private String id;
+    private String vendorId;
+    private String locationId;
     private String name;
     private String slug;
     private HotelType hotelType;

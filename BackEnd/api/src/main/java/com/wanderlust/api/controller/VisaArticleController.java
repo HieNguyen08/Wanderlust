@@ -5,6 +5,7 @@ import com.wanderlust.api.services.VisaArticleService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -58,12 +59,14 @@ public class VisaArticleController {
     
     // Create new visa article
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public VisaArticle createVisaArticle(@RequestBody VisaArticle visaArticle) {
         return visaArticleService.createVisaArticle(visaArticle);
     }
     
     // Update visa article
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<VisaArticle> updateVisaArticle(
             @PathVariable String id,
             @RequestBody VisaArticle visaArticleDetails) {
@@ -77,6 +80,7 @@ public class VisaArticleController {
     
     // Delete visa article
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteVisaArticle(@PathVariable String id) {
         visaArticleService.deleteVisaArticle(id);
         return ResponseEntity.noContent().build();

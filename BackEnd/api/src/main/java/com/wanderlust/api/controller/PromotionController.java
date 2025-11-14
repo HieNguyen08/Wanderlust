@@ -6,6 +6,7 @@ import com.wanderlust.api.services.PromotionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -96,6 +97,7 @@ public class PromotionController {
 
     // Create new promotion
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Promotion> createPromotion(@RequestBody Promotion promotion) {
         Promotion createdPromotion = promotionService.createPromotion(promotion);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPromotion);
@@ -103,6 +105,7 @@ public class PromotionController {
 
     // Update promotion
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Promotion> updatePromotion(
             @PathVariable String id,
             @RequestBody Promotion promotionDetails) {
@@ -117,6 +120,7 @@ public class PromotionController {
 
     // Delete promotion
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> deletePromotion(@PathVariable String id) {
         boolean deleted = promotionService.deletePromotion(id);
         
@@ -132,6 +136,7 @@ public class PromotionController {
 
     // Validate promotion code
     @PostMapping("/validate")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> validatePromotionCode(
             @RequestParam String code,
             @RequestParam String category,
@@ -154,6 +159,7 @@ public class PromotionController {
 
     // Apply promotion (increment used count)
     @PostMapping("/apply/{code}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> applyPromotion(@PathVariable String code) {
         Promotion promotion = promotionService.incrementUsedCount(code);
         
@@ -170,8 +176,9 @@ public class PromotionController {
         return ResponseEntity.badRequest().body(response);
     }
 
-    // Calculate discount for a promotion code
+    // Calculate discount for    a promotion code
     @GetMapping("/calculate-discount")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Double>> calculateDiscount(
             @RequestParam String code,
             @RequestParam Double orderAmount) {

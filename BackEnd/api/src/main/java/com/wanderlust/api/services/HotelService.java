@@ -58,6 +58,11 @@ public class HotelService {
         return hotelMapper.toDTOs(hotelRepository.findAll());
     }
 
+    public List<HotelDTO> findByVendorId(String vendorId) {
+        return hotelMapper.toDTOs(hotelRepository.findByVendorId(vendorId));
+    }
+
+
     public HotelDTO create(HotelDTO hotelDTO) {
         // Convert DTO -> Entity
         Hotel hotel = hotelMapper.toEntity(hotelDTO);

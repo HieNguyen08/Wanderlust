@@ -5,11 +5,14 @@ import com.wanderlust.api.dto.TravelGuideRequestDTO;
 import com.wanderlust.api.dto.TravelGuideResponseDTO;
 import com.wanderlust.api.dto.TipDTO;
 import com.wanderlust.api.entity.TravelGuide;
+import com.wanderlust.api.services.CustomOAuth2User;
+import com.wanderlust.api.services.CustomUserDetails;
 import com.wanderlust.api.services.TravelGuideService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +27,17 @@ public class TravelGuideController {
     private final TravelGuideService travelGuideService;
 
     // Lấy tất cả travel guides
+    private String getUserIdFromAuthentication(Authentication authentication) {
+        if (authentication == null) return null;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            return ((CustomUserDetails) principal).getUserID();
+        } else if (principal instanceof CustomOAuth2User) {
+            return ((CustomOAuth2User) principal).getUser().getUserId();
+        }
+        return authentication.getName();
+    }
+
     @GetMapping
     public ResponseEntity<List<TravelGuideResponseDTO>> getAllTravelGuides() {
         List<TravelGuide> guides = travelGuideService.getAllTravelGuides();
@@ -47,15 +61,22 @@ public class TravelGuideController {
     // Tạo mới travel guide (chỉ admin và partner)
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
-    public ResponseEntity<TravelGuideResponseDTO> createTravelGuide(@RequestBody TravelGuideRequestDTO requestDTO) {
+    public ResponseEntity<TravelGuideResponseDTO> createTravelGuide(
+            @RequestBody TravelGuideRequestDTO requestDTO,
+            Authentication authentication // <-- BỔ SUNG
+    ) {
+        String authorId = getUserIdFromAuthentication(authentication); // <-- Lấy ID an toàn
         TravelGuide guide = convertToEntity(requestDTO);
+        guide.setAuthorId(authorId);
+        guide.setAuthorName(authentication.getName()); 
+        
         TravelGuide createdGuide = travelGuideService.createTravelGuide(guide);
         return new ResponseEntity<>(convertToResponseDTO(createdGuide), HttpStatus.CREATED);
     }
 
     // Cập nhật travel guide
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isTravelGuideOwner(authentication, #id))") // <-- SỬA
     public ResponseEntity<TravelGuideResponseDTO> updateTravelGuide(
             @PathVariable String id,
             @RequestBody TravelGuideRequestDTO requestDTO) {
@@ -69,7 +90,7 @@ public class TravelGuideController {
 
     // Xóa travel guide
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isTravelGuideOwner(authentication, #id))") // <-- SỬA (Cho phép Partner tự xóa)
     public ResponseEntity<String> deleteTravelGuide(@PathVariable String id) {
         boolean deleted = travelGuideService.deleteTravelGuide(id);
         if (deleted) {

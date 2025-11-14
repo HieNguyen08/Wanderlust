@@ -28,4 +28,6 @@ public interface WalletTransactionRepository extends MongoRepository<WalletTrans
 
     @Query("{ 'userId': ?0, 'type': ?1, 'status': 'COMPLETED' }")
     List<WalletTransaction> findCompletedByUserIdAndType(String userId, TransactionType type);
+    
+    Page<WalletTransaction> findByUserIdAndTypeAndStatus(String userId, TransactionType type, TransactionStatus status, Pageable pageable);
 }

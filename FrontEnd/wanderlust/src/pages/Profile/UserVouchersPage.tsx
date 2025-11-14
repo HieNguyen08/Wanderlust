@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProfileLayout } from "../../components/ProfileLayout";
 import { Card } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { Ticket, Calendar, Tag, Copy, Check, Gift, AlertCircle } from "lucide-react";
+import { Ticket, Calendar, Tag, Copy, Check, Gift, AlertCircle, Loader2 } from "lucide-react";
 import type { PageType } from "../../MainApp";
 import { toast } from "sonner@2.0.3";
 import { Alert, AlertDescription } from "../../components/ui/alert";
+import { userVoucherApi, tokenService } from "../../utils/api";
 
 interface UserVouchersPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -17,85 +18,59 @@ interface UserVouchersPageProps {
 export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [addCodeInput, setAddCodeInput] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
+  // Real data from backend
+  const [myVouchers, setMyVouchers] = useState<any[]>([]);
+  const [usedVouchers, setUsedVouchers] = useState<any[]>([]);
+  const [expiredVouchers, setExpiredVouchers] = useState<any[]>([]);
+  const [statistics, setStatistics] = useState<any>(null);
 
-  // Mock vouchers data
-  const [myVouchers, setMyVouchers] = useState([
-    {
-      id: 1,
-      code: "WELCOME100K",
-      type: "FIXED_AMOUNT",
-      value: 100000,
-      title: "Chào mừng thành viên mới",
-      description: "Giảm 100.000đ cho đơn hàng đầu tiên",
-      minSpend: 500000,
-      maxDiscount: null,
-      startDate: "2025-01-01",
-      endDate: "2025-12-31",
-      usedCount: 0,
-      userUseLimit: 1,
-      conditions: ["Áp dụng cho tất cả dịch vụ"],
-      status: "AVAILABLE",
-      giftedBy: "ADMIN"
-    },
-    {
-      id: 2,
-      code: "BIRTHDAY_SPECIAL",
-      type: "PERCENTAGE",
-      value: 20,
-      title: "Sinh nhật vui vẻ!",
-      description: "Giảm 20% tối đa 200.000đ",
-      minSpend: 1000000,
-      maxDiscount: 200000,
-      startDate: "2025-11-01",
-      endDate: "2025-11-30",
-      usedCount: 0,
-      userUseLimit: 1,
-      conditions: ["Tặng sinh nhật", "Áp dụng cho khách sạn và hoạt động"],
-      status: "AVAILABLE",
-      giftedBy: "ADMIN"
-    },
-  ]);
+  // Load vouchers from backend on mount
+  useEffect(() => {
+    loadVouchers();
+  }, []);
 
-  const [usedVouchers] = useState([
-    {
-      id: 3,
-      code: "FLASH_SALE",
-      type: "PERCENTAGE",
-      value: 15,
-      title: "Flash Sale cuối tuần",
-      description: "Giảm 15% tối đa 150.000đ",
-      minSpend: 800000,
-      maxDiscount: 150000,
-      startDate: "2025-10-01",
-      endDate: "2025-10-31",
-      usedCount: 1,
-      userUseLimit: 1,
-      usedDate: "2025-10-15",
-      orderAmount: 1200000,
-      discountAmount: 150000,
-      conditions: ["Áp dụng cho vé máy bay"],
-      status: "USED"
-    },
-  ]);
+  const loadVouchers = async () => {
+    try {
+      setLoading(true);
+      
+      if (!tokenService.isAuthenticated()) {
+        onNavigate('login');
+        return;
+      }
 
-  const [expiredVouchers] = useState([
-    {
-      id: 4,
-      code: "SUMMER2024",
-      type: "PERCENTAGE",
-      value: 25,
-      title: "Hè sôi động 2024",
-      description: "Giảm 25% tối đa 300.000đ",
-      minSpend: 1500000,
-      maxDiscount: 300000,
-      startDate: "2024-06-01",
-      endDate: "2024-08-31",
-      usedCount: 0,
-      userUseLimit: 1,
-      conditions: ["Áp dụng cho tour du lịch"],
-      status: "EXPIRED"
-    },
-  ]);
+      // Load available vouchers
+      const available = await userVoucherApi.getAvailable();
+      setMyVouchers(available);
+
+      // Load used vouchers
+      const used = await userVoucherApi.getUsed();
+      setUsedVouchers(used);
+      
+      // Filter expired vouchers from available (status === 'EXPIRED' or endDate passed)
+      const expired = available.filter((v: any) => 
+        v.status === 'EXPIRED' || (v.endDate && new Date(v.endDate) < new Date())
+      );
+      setExpiredVouchers(expired);
+
+      // Load statistics
+      const stats = await userVoucherApi.getStatistics();
+      setStatistics(stats);
+
+    } catch (error: any) {
+      if (error.message === 'UNAUTHORIZED') {
+        toast.error('Vui lòng đăng nhập để xem voucher');
+        onNavigate('login');
+      } else {
+        console.error('Error loading vouchers:', error);
+        toast.error('Không thể tải danh sách voucher');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCopyCode = async (code: string) => {
     try {
@@ -123,42 +98,31 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
     }
   };
 
-  const handleAddVoucher = () => {
+  const handleAddVoucher = async () => {
     const code = addCodeInput.trim().toUpperCase();
     if (!code) {
       toast.error("Vui lòng nhập mã voucher!");
       return;
     }
 
-    // Mock validation
-    const existingVoucher = myVouchers.find(v => v.code === code);
-    if (existingVoucher) {
-      toast.error("Bạn đã có voucher này rồi!");
-      return;
+    try {
+      setSaving(true);
+      
+      // Call backend API to save voucher
+      await userVoucherApi.saveToWallet(code);
+      
+      toast.success("Đã thêm voucher vào ví!");
+      setAddCodeInput("");
+      
+      // Reload vouchers list
+      await loadVouchers();
+      
+    } catch (error: any) {
+      // Show specific error message from backend
+      toast.error(error.message || "Không thể thêm voucher");
+    } finally {
+      setSaving(false);
     }
-
-    // Mock adding voucher
-    const newVoucher = {
-      id: Math.max(...myVouchers.map(v => v.id)) + 1,
-      code: code,
-      type: "PERCENTAGE" as const,
-      value: 10,
-      title: "Voucher mới",
-      description: "Giảm 10% cho đơn hàng",
-      minSpend: 500000,
-      maxDiscount: 100000,
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      usedCount: 0,
-      userUseLimit: 1,
-      conditions: ["Áp dụng cho tất cả dịch vụ"],
-      status: "AVAILABLE" as const,
-      giftedBy: undefined
-    };
-
-    setMyVouchers([...myVouchers, newVoucher]);
-    setAddCodeInput("");
-    toast.success("Đã thêm voucher vào ví!");
   };
 
   const formatValue = (type: string, value: number, maxDiscount: number | null) => {
@@ -176,7 +140,7 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
           <Ticket className="w-12 h-12 mb-2" />
           <div className="text-center">
             <div className="text-sm opacity-90">Mã giảm giá</div>
-            <code className="text-lg font-mono mt-1 block">{voucher.code}</code>
+            <code className="text-lg font-mono mt-1 block">{voucher.voucherCode || voucher.code}</code>
           </div>
           
           {/* Decorative circles */}
@@ -207,10 +171,10 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleCopyCode(voucher.code)}
+                onClick={() => handleCopyCode(voucher.voucherCode || voucher.code)}
                 className="gap-2 ml-4"
               >
-                {copiedCode === voucher.code ? (
+                {copiedCode === (voucher.voucherCode || voucher.code) ? (
                   <>
                     <Check className="w-4 h-4" />
                     Đã sao chép
@@ -270,7 +234,7 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
   );
 
   return (
-    <ProfileLayout currentPage="vouchers" onNavigate={onNavigate}>
+    <ProfileLayout currentPage="vouchers" onNavigate={onNavigate} activePage="vouchers">
       <div className="space-y-6">
         {/* Header */}
         <div>

@@ -42,7 +42,7 @@ public class FlightSeatController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateFlightSeat(@PathVariable String id, @RequestBody FlightSeat updatedFlightSeat) {
-        updatedFlightSeat.setSeat_ID(id); // Ensure the ID in the entity matches the path variable
+        updatedFlightSeat.setId(id); // Ensure the ID in the entity matches the path variable
         try {
             FlightSeat resultFlightSeat = flightSeatService.update(updatedFlightSeat);
             return new ResponseEntity<>(resultFlightSeat, HttpStatus.OK);

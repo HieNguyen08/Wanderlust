@@ -13,7 +13,7 @@ public interface HotelMapper {
      * Convert Entity -> DTO
      * Map các trường có tên khác nhau từ Entity sang DTO
      */
-    @Mapping(source = "hotel_ID", target = "id")
+    @Mapping(source = "hotelID", target = "id")
     @Mapping(source = "hotel_Type", target = "hotelType")
     HotelDTO toDTO(Hotel hotel);
 
@@ -27,7 +27,7 @@ public interface HotelMapper {
      * Bỏ qua ID và các trường Audit khi tạo mới
      * Map ngược lại các trường tên khác nhau
      */
-    @Mapping(target = "hotel_ID", ignore = true) 
+    @Mapping(target = "hotelID", ignore = true) 
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(source = "hotelType", target = "hotel_Type")
@@ -37,7 +37,7 @@ public interface HotelMapper {
      * Update Entity từ DTO (Dùng cho Update)
      * Chỉ update các trường có dữ liệu (nhờ nullValuePropertyMappingStrategy = IGNORE)
      */
-    @Mapping(target = "hotel_ID", ignore = true) // Không cho phép update ID
+    @Mapping(target = "hotelID", ignore = true) // Không cho phép update ID
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(source = "hotelType", target = "hotel_Type")

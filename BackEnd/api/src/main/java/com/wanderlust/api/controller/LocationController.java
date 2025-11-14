@@ -73,7 +73,7 @@ public class LocationController {
 
     // 6. PUT /api/locations/:id - Update (Admin/Partner)
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('PARTNER')") // Logic check owner nên đưa vào service hoặc giữ logic security cũ của bạn
+    @PreAuthorize("hasRole('ADMIN')") // <-- SỬA (Chỉ Admin được sửa Location)
     public ResponseEntity<?> updateLocation(@PathVariable String id, @RequestBody LocationRequestDTO locationDTO) {
         try {
             LocationResponseDTO result = locationService.update(id, locationDTO);

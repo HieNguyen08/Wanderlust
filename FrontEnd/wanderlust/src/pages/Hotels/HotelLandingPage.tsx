@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Button } from "../../components/ui/button";
 import { Calendar as CalendarIcon, Users, Hotel, Search, MapPin, Repeat, ChevronDown, Check, Plus, Minus } from "lucide-react";
@@ -9,13 +9,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Footer } from "../../components/Footer";
 import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
 import type { PageType } from "../../MainApp";
-import { Star, TrendingUp, Gift, Sparkles, Award, Building2, Tag, Clock, AlertCircle } from "lucide-react";
+import { Star, TrendingUp, Gift, Sparkles, Award, Building2, Tag, Clock, AlertCircle, Copy } from "lucide-react";
 import { Badge } from "../../components/ui/badge";
 import { Card } from "../../components/ui/card";
 import { Separator } from "../../components/ui/separator";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { toast } from "sonner@2.0.3";
+import { promotionApi, userVoucherApi, tokenService } from "../../utils/api";
 
 interface HotelLandingPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -342,6 +343,74 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
 export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) {
   const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // Promotions state
+  const [promotions, setPromotions] = useState<any[]>([]);
+  const [loadingPromotions, setLoadingPromotions] = useState(true);
+  const [savedVouchers, setSavedVouchers] = useState<string[]>([]);
+  const [savingVoucher, setSavingVoucher] = useState(false);
+
+  // Load saved vouchers from backend
+  useEffect(() => {
+    const loadSavedVouchers = async () => {
+      try {
+        if (tokenService.isAuthenticated()) {
+          const available = await userVoucherApi.getAvailable();
+          setSavedVouchers(available.map((v: any) => v.voucherCode));
+        }
+      } catch (error: any) {
+        // Silently fail if not authenticated - user just won't see saved vouchers
+        if (error.message !== 'UNAUTHORIZED') {
+          console.error('Error loading saved vouchers:', error);
+        }
+      }
+    };
+
+    loadSavedVouchers();
+  }, []);
+
+  // Fetch hotel promotions on mount
+  useEffect(() => {
+    const fetchHotelPromotions = async () => {
+      try {
+        setLoadingPromotions(true);
+        const data = await promotionApi.getActiveByCategory('hotel');
+        setPromotions(data);
+      } catch (error) {
+        console.error('Error fetching hotel promotions:', error);
+        toast.error('Không thể tải ưu đãi');
+      } finally {
+        setLoadingPromotions(false);
+      }
+    };
+
+    fetchHotelPromotions();
+  }, []);
+
+  const handleSaveVoucher = async (voucher: any) => {
+    try {
+      // Check authentication
+      if (!tokenService.isAuthenticated()) {
+        toast.error('Vui lòng đăng nhập để lưu voucher');
+        onNavigate('login');
+        return;
+      }
+
+      setSavingVoucher(true);
+      await userVoucherApi.saveToWallet(voucher.code);
+      toast.success(`Đã lưu mã ${voucher.code} vào Ví Voucher!`);
+      
+      // Refresh available vouchers
+      const available = await userVoucherApi.getAvailable();
+      setSavedVouchers(available.map((v: any) => v.voucherCode));
+      
+      setSelectedVoucher(null);
+    } catch (error: any) {
+      toast.error(error.message || 'Không thể lưu voucher');
+    } finally {
+      setSavingVoucher(false);
+    }
+  };
 
   const handleSearch = (searchData: any) => {
     setIsSearching(true);
@@ -352,45 +421,6 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
       onNavigate("hotel-list", searchData);
     }, 2000);
   };
-
-  const promoOffers = [
-    {
-      id: "HOTEL5STAR35",
-      title: "Ưu đãi khách sạn 5 sao",
-      discount: "Giảm 35%",
-      description: "Áp dụng cho các khách sạn cao cấp",
-      image: "https://images.unsplash.com/photo-1731080647322-f9cf691d40ab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBob3RlbCUyMHBvb2wlMjByZXNvcnR8ZW58MXx8fHwxNzYxOTkwMjk4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      badge: "HOT",
-      code: "HOTEL5STAR35",
-      validUntil: "31/12/2025",
-      minSpend: 5000000,
-      maxDiscount: 2000000,
-      terms: [
-        "Áp dụng cho khách sạn từ 4 sao trở lên",
-        "Đặt trước ít nhất 7 ngày",
-        "Không áp dụng vào các dịp lễ, Tết",
-        "Giảm tối đa 2.000.000đ",
-      ]
-    },
-    {
-      id: "EARLYBOOK25",
-      title: "Đặt sớm tiết kiệm hơn",
-      discount: "Giảm 25%",
-      description: "Book trước 30 ngày nhận ưu đãi",
-      image: "https://images.unsplash.com/photo-1722477936580-84aa10762b0b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxob3RlbCUyMGJyZWFrZmFzdCUyMGJ1ZmZldHxlbnwxfHx8fDE3NjE5MTA3ODJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      badge: "NEW",
-      code: "EARLYBOOK25",
-      validUntil: "30/11/2025",
-      minSpend: 3000000,
-      maxDiscount: 1500000,
-      terms: [
-        "Đặt trước ít nhất 30 ngày",
-        "Áp dụng cho tất cả các khách sạn",
-        "Không hoàn hủy sau khi đặt",
-        "Giảm tối đa 1.500.000đ",
-      ]
-    }
-  ];
 
   const domesticDestinations = [
     {
@@ -487,32 +517,49 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
             <Gift className="w-8 h-8 text-red-500" />
             <h2 className="text-4xl">Ưu đãi dành cho bạn</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {promoOffers.map((offer) => (
-              <Card 
-                key={offer.id} 
-                className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all"
-                onClick={() => setSelectedVoucher(offer)}
-              >
-                <div className="relative h-64">
-                  <ImageWithFallback
-                    alt={offer.title}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                    src={offer.image}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                  <Badge className="absolute top-4 right-4 bg-red-500 text-white border-0">
-                    {offer.badge}
-                  </Badge>
-                  <div className="absolute bottom-6 left-6 right-6 text-white">
-                    <div className="text-3xl mb-2">{offer.discount}</div>
-                    <h3 className="text-2xl mb-2">{offer.title}</h3>
-                    <p className="text-sm text-gray-200">{offer.description}</p>
+          {loadingPromotions ? (
+            <div className="text-center py-12">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+              <p className="mt-4 text-gray-600">Đang tải ưu đãi...</p>
+            </div>
+          ) : promotions.length === 0 ? (
+            <div className="text-center py-12">
+              <Gift className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">Hiện chưa có ưu đãi nào</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {promotions.map((offer) => (
+                <Card 
+                  key={offer.id} 
+                  className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all"
+                  onClick={() => setSelectedVoucher(offer)}
+                >
+                  <div className="relative h-64">
+                    <ImageWithFallback
+                      alt={offer.title}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                      src={offer.image || "https://images.unsplash.com/photo-1731080647322-f9cf691d40ab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBob3RlbCUyMHBvb2wlMjByZXNvcnR8ZW58MXx8fHwxNzYxOTkwMjk4fDA&ixlib=rb-4.1.0&q=80&w=1080"}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                    <Badge className="absolute top-4 right-4 bg-red-500 text-white border-0">
+                      {offer.status === 'active' ? 'HOT' : 'NEW'}
+                    </Badge>
+                    <div className="absolute bottom-6 left-6 right-6 text-white">
+                      <div className="text-3xl mb-2">
+                        {offer.type === 'PERCENTAGE' 
+                          ? `Giảm ${offer.value}%` 
+                          : `Giảm ${(offer.value / 1000).toFixed(0)}K`
+                        }
+                      </div>
+                      <h3 className="text-2xl mb-2">{offer.title}</h3>
+                      <p className="text-sm text-gray-200">{offer.description}</p>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Domestic Destinations */}
@@ -654,16 +701,21 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
               {/* Voucher Image */}
               <div className="relative h-48 rounded-lg overflow-hidden">
                 <ImageWithFallback
-                  src={selectedVoucher.image}
+                  src={selectedVoucher.image || "https://images.unsplash.com/photo-1731080647322-f9cf691d40ab"}
                   alt={selectedVoucher.title}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                 <Badge className="absolute top-4 right-4 bg-red-500 text-white border-0">
-                  {selectedVoucher.badge}
+                  {selectedVoucher.status === 'active' ? 'HOT' : 'NEW'}
                 </Badge>
                 <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <div className="text-3xl mb-1">{selectedVoucher.discount}</div>
+                  <div className="text-3xl mb-1">
+                    {selectedVoucher.type === 'PERCENTAGE' 
+                      ? `Giảm ${selectedVoucher.value}%` 
+                      : `Giảm ${(selectedVoucher.value / 1000).toFixed(0)}K`
+                    }
+                  </div>
                   <h3 className="text-xl">{selectedVoucher.title}</h3>
                 </div>
               </div>
@@ -687,7 +739,9 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
                   <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
                   <div>
                     <div className="text-sm text-gray-600">Có hiệu lực đến</div>
-                    <div className="font-medium">{selectedVoucher.validUntil}</div>
+                    <div className="font-medium">
+                      {new Date(selectedVoucher.endDate).toLocaleDateString('vi-VN')}
+                    </div>
                   </div>
                 </div>
 
@@ -696,12 +750,26 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-gray-600">Giá trị đơn tối thiểu:</span>
-                    <span className="font-medium">{(selectedVoucher.minSpend / 1000).toLocaleString('vi-VN')}k</span>
+                    <span className="font-medium">
+                      {selectedVoucher.minSpend ? `${(selectedVoucher.minSpend / 1000).toLocaleString('vi-VN')}k` : 'Không yêu cầu'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-gray-600">Giảm tối đa:</span>
                     <span className="font-medium text-red-600">
-                      {(selectedVoucher.maxDiscount / 1000).toLocaleString('vi-VN')}k
+                      {selectedVoucher.maxDiscount 
+                        ? `${(selectedVoucher.maxDiscount / 1000).toLocaleString('vi-VN')}k`
+                        : 'Không giới hạn'
+                      }
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-gray-600">Số lượng còn lại:</span>
+                    <span className="font-medium text-blue-600">
+                      {selectedVoucher.totalUsesLimit 
+                        ? `${selectedVoucher.totalUsesLimit - (selectedVoucher.usedCount || 0)} voucher`
+                        : 'Không giới hạn'
+                      }
                     </span>
                   </div>
                 </div>
@@ -709,15 +777,8 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
                 <Separator />
 
                 <div>
-                  <div className="text-sm text-gray-600 mb-2">Điều kiện áp dụng</div>
-                  <ul className="space-y-2">
-                    {selectedVoucher.terms.map((term: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm">
-                        <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">{term}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="text-sm text-gray-600 mb-2">Mô tả</div>
+                  <p className="text-sm text-gray-700">{selectedVoucher.description}</p>
                 </div>
               </div>
 
@@ -725,8 +786,16 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
               <Button
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 size="lg"
+                onClick={() => handleSaveVoucher(selectedVoucher)}
+                disabled={savedVouchers.includes(selectedVoucher.code) || savingVoucher}
               >
-                Lưu vào Ví Voucher
+                <Tag className="w-4 h-4 mr-2" />
+                {savingVoucher 
+                  ? 'Đang lưu...' 
+                  : savedVouchers.includes(selectedVoucher.code) 
+                    ? 'Đã lưu vào Ví Voucher' 
+                    : 'Lưu vào Ví Voucher'
+                }
               </Button>
             </div>
           </DialogContent>

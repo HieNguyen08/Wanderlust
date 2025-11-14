@@ -5,6 +5,7 @@ import com.wanderlust.api.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ public class ProfileController {
 
     // Get current logged-in user's profile
     @GetMapping("/profile")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getCurrentUserProfile() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -46,6 +48,7 @@ public class ProfileController {
 
     // Update current logged-in user's profile
     @PutMapping("/profile")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> updateCurrentUserProfile(@RequestBody User updatedUser) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

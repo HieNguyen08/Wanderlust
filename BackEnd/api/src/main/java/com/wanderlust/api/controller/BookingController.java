@@ -2,6 +2,10 @@ package com.wanderlust.api.controller;
 
 import com.wanderlust.api.dto.BookingDTO;
 import com.wanderlust.api.services.BookingService;
+// Import 2 class principal
+import com.wanderlust.api.services.CustomUserDetails;
+import com.wanderlust.api.services.CustomOAuth2User;
+
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,65 +20,75 @@ import java.util.Map;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/bookings")
-@PreAuthorize("isAuthenticated()") // Yêu cầu đăng nhập cho tất cả endpoints
+@PreAuthorize("isAuthenticated()")
 public class BookingController {
 
     private final BookingService bookingService;
 
-    // GET /api/bookings - Lấy danh sách bookings của user hiện tại [CITE: 29]
+    // Helper để lấy UserID từ Authentication
+    private String getUserIdFromAuthentication(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        String userId;
+
+        if (principal instanceof CustomUserDetails) {
+            userId = ((CustomUserDetails) principal).getUserID();
+        } else if (principal instanceof CustomOAuth2User) {
+            userId = ((CustomOAuth2User) principal).getUser().getUserId();
+        } else {
+            throw new IllegalStateException("Invalid principal type. Expected CustomUserDetails or CustomOAuth2User.");
+        }
+        
+        if (userId == null) {
+            throw new SecurityException("User ID is null in principal.");
+        }
+        return userId;
+    }
+
     @GetMapping
     public ResponseEntity<List<BookingDTO>> getMyBookings(Authentication authentication) {
-        String userId = authentication.getName(); // Lấy ID (hoặc email) của user đang đăng nhập
-        // TODO: Đảm bảo 'authentication.getName()' trả về đúng User ID
+        String userId = getUserIdFromAuthentication(authentication); // ĐÃ SỬA
         return new ResponseEntity<>(bookingService.findByUserId(userId), HttpStatus.OK);
     }
 
-    // GET /api/bookings/{id} - Chi tiết booking [CITE: 29]
     @GetMapping("/{id}")
     @PreAuthorize("@webSecurity.isBookingOwner(authentication, #id) or hasRole('ADMIN')")
     public ResponseEntity<BookingDTO> getBookingById(@PathVariable String id) {
         return new ResponseEntity<>(bookingService.findById(id), HttpStatus.OK);
     }
 
-    // POST /api/bookings - Tạo booking mới [CITE: 29]
     @PostMapping
     public ResponseEntity<BookingDTO> createBooking(@RequestBody BookingDTO bookingDTO, Authentication authentication) {
-        // Tự động gán userId cho booking mới
-        String userId = authentication.getName();
+        String userId = getUserIdFromAuthentication(authentication);
         bookingDTO.setUserId(userId); 
         
         BookingDTO newBooking = (BookingDTO) bookingService.create(bookingDTO);
         return new ResponseEntity<>(newBooking, HttpStatus.CREATED);
     }
 
-    // PUT /api/bookings/{id}/cancel - Hủy booking [CITE: 29]
     @PutMapping("/{id}/cancel")
-    @PreAuthorize("@webSecurity.isBookingOwner(authentication, #id) or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @webSecurity.isBookingOwner(authentication, #id)")
     public ResponseEntity<BookingDTO> cancelBooking(
             @PathVariable String id, 
             @RequestBody(required = false) Map<String, String> payload,
             Authentication authentication) {
         
         String reason = payload != null ? payload.get("reason") : "User requested cancellation";
-        String currentUserId = authentication.getName();
+        String currentUserId = getUserIdFromAuthentication(authentication);
 
         BookingDTO cancelledBooking = (BookingDTO) bookingService.cancelBooking(id, reason, currentUserId);
         return new ResponseEntity<>(cancelledBooking, HttpStatus.OK);
     }
 
-    // POST /api/bookings/{id}/request-refund - Yêu cầu hoàn tiền [CITE: 29]
     @PostMapping("/{id}/request-refund")
     @PreAuthorize("@webSecurity.isBookingOwner(authentication, #id)")
     public ResponseEntity<BookingDTO> requestRefund(@PathVariable String id) {
-        BookingDTO result = (BookingDTO) bookingService.requestRefund(id);
+        BookingDTO result = bookingService.requestRefund(id);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    // POST /api/bookings/preview - Preview booking [CITE: 30]
     @PostMapping("/preview")
     public ResponseEntity<BookingDTO> previewBooking(@RequestBody BookingDTO bookingDTO) {
-        // TODO: Gọi service để tính toán giá (chưa lưu DB)
-        // Hiện tại chỉ trả về DTO đã tính toán (giả lập)
-        return new ResponseEntity<>(bookingDTO, HttpStatus.OK);
+        BookingDTO preview = bookingService.preview(bookingDTO);
+        return new ResponseEntity<>(preview, HttpStatus.OK);
     }
 }

@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+
+
 
 import java.util.List;
 import java.util.Map;
@@ -25,7 +28,6 @@ public class PaymentController {
     }
 
     // --- Admin Endpoints ---
-
     /**
      * [ADMIN] Lấy tất cả payments
      */
@@ -81,7 +83,7 @@ public class PaymentController {
      */
     @PostMapping("/initiate")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<PaymentDTO> initiatePayment(@RequestBody PaymentDTO paymentDTO) {
+    public ResponseEntity<PaymentDTO> initiatePayment(@RequestBody PaymentDTO paymentDTO, Authentication authentication) {
         PaymentDTO newPayment = paymentService.initiatePayment(paymentDTO);
         return new ResponseEntity<>(newPayment, HttpStatus.CREATED);
     }
@@ -90,7 +92,7 @@ public class PaymentController {
      * [USER/ADMIN] Xử lý Refund (API 31, 39)
      */
     @PostMapping("/{id}/refund")
-    @PreAuthorize("isAuthenticated()") // Hoặc "hasRole('ADMIN')" tùy logic
+    @PreAuthorize("hasRole('ADMIN') or @webSecurity.isPaymentOwner(authentication, #id)") // <-- SỬA
     public ResponseEntity<?> refundPayment(@PathVariable String id, @RequestBody RefundRequestDTO refundRequest) {
         try {
             PaymentDTO refundedPayment = paymentService.refundPayment(id, refundRequest);
@@ -104,7 +106,7 @@ public class PaymentController {
      * [USER/ADMIN] Xác thực lại thanh toán
      */
     @PostMapping("/{id}/verify")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN') or @webSecurity.isPaymentOwner(authentication, #id)") // <-- SỬA
     public ResponseEntity<?> verifyPayment(@PathVariable String id) {
         try {
             PaymentDTO verifiedPayment = paymentService.verifyPayment(id);
@@ -135,11 +137,10 @@ public class PaymentController {
      * [USER/ADMIN] Lấy chi tiết 1 payment
      */
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN') or @webSecurity.isPaymentOwner(authentication, #id)") // <-- SỬA
     public ResponseEntity<?> getPaymentById(@PathVariable String id) {
         try {
             PaymentDTO payment = paymentService.findById(id);
-            // TODO: Thêm kiểm tra bảo mật (user chỉ thấy payment của mình)
             return new ResponseEntity<>(payment, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -150,11 +151,10 @@ public class PaymentController {
      * [USER/ADMIN] Lấy payment theo Booking ID
      */
     @GetMapping("/booking/{bookingId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN') or @webSecurity.isBookingOwner(authentication, #bookingId)") // <-- SỬA
     public ResponseEntity<?> getPaymentByBookingId(@PathVariable String bookingId) {
         try {
             PaymentDTO payment = paymentService.findByBookingId(bookingId);
-            // TODO: Thêm kiểm tra bảo mật (user chỉ thấy payment của mình)
             return new ResponseEntity<>(payment, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -165,10 +165,9 @@ public class PaymentController {
      * [USER/ADMIN] Lấy tất cả payment của 1 User
      */
     @GetMapping("/user/{userId}")
-    @PreAuthorize("isAuthenticated()") // Nên kiểm tra là admin hoặc chính user đó
+    @PreAuthorize("hasRole('ADMIN') or @webSecurity.isCurrentUser(authentication, #userId)") // <-- SỬA
     public ResponseEntity<?> getPaymentsByUserId(@PathVariable String userId) {
         try {
-            // TODO: Thêm kiểm tra bảo mật (user chỉ thấy payment của mình, admin thấy hết)
             List<PaymentDTO> payments = paymentService.findByUserId(userId);
             return new ResponseEntity<>(payments, HttpStatus.OK);
         } catch (RuntimeException e) {

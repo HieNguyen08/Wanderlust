@@ -4,17 +4,31 @@ import com.wanderlust.api.dto.hotelDTO.RoomDTO;
 import com.wanderlust.api.entity.Room;
 import com.wanderlust.api.mapper.RoomMapper;
 import com.wanderlust.api.repository.RoomRepository;
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import com.wanderlust.api.repository.HotelRepository; // <-- Bổ sung
+import com.wanderlust.api.entity.Hotel; // <-- Bổ sung
+import org.springframework.security.core.GrantedAuthority; // <-- Bổ sung
+import org.springframework.security.core.authority.SimpleGrantedAuthority; // <-- Bổ sung
+import java.util.Collection; // <-- Bổ sung
+import java.util.stream.Collectors; // <-- Bổ sung
+import org.springframework.beans.factory.annotation.Autowired; // <-- Bổ sung
 
 import java.util.List;
 
-@AllArgsConstructor
 @Service
 public class RoomService {
 
     private final RoomRepository roomRepository;
     private final RoomMapper roomMapper;
+    private final HotelRepository hotelRepository; // <-- Bổ sung dependency
+
+    @Autowired
+    public RoomService(RoomRepository roomRepository, RoomMapper roomMapper, HotelRepository hotelRepository) {
+        this.roomRepository = roomRepository;
+        this.roomMapper = roomMapper;
+        this.hotelRepository = hotelRepository; // <-- Bổ sung
+    }
 
     public RoomDTO findById(String id) {
         Room room = roomRepository.findById(id)
@@ -30,9 +44,26 @@ public class RoomService {
     }
 
     // --- CRUD ---
-    
-    public List<RoomDTO> findAll() {
-        return roomMapper.toDTOs(roomRepository.findAll());
+    public List<RoomDTO> findAllForUser(String userId, Collection<GrantedAuthority> authorities) {
+        boolean isAdmin = authorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        if (isAdmin) {
+            return roomMapper.toDTOs(roomRepository.findAll());
+        }
+        List<Hotel> vendorHotels = hotelRepository.findByVendorId(userId);
+        
+        if (vendorHotels.isEmpty()) {
+            return List.of(); // Partner này không sở hữu hotel nào
+        }
+        
+        List<String> hotelIds = vendorHotels.stream()
+                                            .map(Hotel::getHotelID)
+                                            .collect(Collectors.toList());
+
+        List<Room> vendorRooms = roomRepository.findAll().stream()
+                .filter(r -> r.getHotelId() != null && hotelIds.contains(r.getHotelId()))
+                .collect(Collectors.toList());
+        
+        return roomMapper.toDTOs(vendorRooms);
     }
 
     public RoomDTO create(RoomDTO roomDTO) {
