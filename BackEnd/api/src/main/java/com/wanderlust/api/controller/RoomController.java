@@ -1,18 +1,18 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.entity.Room; // Use the Room entity directly
+import com.wanderlust.api.dto.hotelDTO.RoomDTO;
+import com.wanderlust.api.entity.Room;
 import com.wanderlust.api.services.RoomService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/rooms")
+@RequestMapping("/api")
 public class RoomController {
 
     private final RoomService roomService;
@@ -22,64 +22,48 @@ public class RoomController {
         this.roomService = roomService;
     }
 
-    // Get all rooms
-    @GetMapping
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<Room>> getAllRooms() {
-        List<Room> allRooms = roomService.findAll();
-        return new ResponseEntity<>(allRooms, HttpStatus.OK);
+    // --- PUBLIC ENDPOINTS ---
+
+    // GET /api/rooms/:id
+    @GetMapping("/rooms/{id}")
+    public ResponseEntity<RoomDTO> getRoomById(@PathVariable String id) {
+        return ResponseEntity.ok(roomService.findById(id));
     }
 
-    // Add a room
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Room> addRoom(@RequestBody Room room) {
-        Room newRoom = roomService.create(room);
-        return new ResponseEntity<>(newRoom, HttpStatus.CREATED);
+    // GET /api/rooms/:id/availability
+    @GetMapping("/rooms/{id}/availability")
+    public ResponseEntity<Boolean> checkAvailability(@PathVariable String id) {
+        return ResponseEntity.ok(roomService.checkAvailability(id));
     }
 
-    // Update an existing room
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateRoom(@PathVariable String id, @RequestBody Room updatedRoom) {
-        updatedRoom.setRoom_ID(id); // Ensure the ID in the entity matches the path variable
-        try {
-            Room resultRoom = roomService.update(updatedRoom);
-            return new ResponseEntity<>(resultRoom, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
+    // --- VENDOR MANAGEMENT ---
+
+    // GET /api/vendor/rooms (Lấy tất cả room của vendor - placeholder logic)
+    @GetMapping("/vendor/rooms")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
+    public ResponseEntity<List<RoomDTO>> getAllRooms() {
+        return ResponseEntity.ok(roomService.findAll());
     }
 
-    // Delete a room by ID
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    // POST /api/vendor/rooms
+    @PostMapping("/vendor/rooms")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
+    public ResponseEntity<Room> createRoom(@RequestBody Room room) {
+        return new ResponseEntity<>(roomService.create(room), HttpStatus.CREATED);
+    }
+    
+    // PUT /api/vendor/rooms/:id (Bổ sung update cho vendor)
+    @PutMapping("/vendor/rooms/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
+    public ResponseEntity<Room> updateRoom(@PathVariable String id, @RequestBody Room room) {
+        return ResponseEntity.ok(roomService.update(id, room));
+    }
+
+    // DELETE /api/vendor/rooms/:id
+    @DeleteMapping("/vendor/rooms/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
     public ResponseEntity<String> deleteRoom(@PathVariable String id) {
-        try {
-            roomService.delete(id);
-            return new ResponseEntity<>("Room has been deleted successfully!", HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
-    }
-
-    // Delete all rooms
-    @DeleteMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteAllRooms() {
-        roomService.deleteAll();
-        return new ResponseEntity<>("All rooms have been deleted successfully!", HttpStatus.OK);
-    }
-
-    // Get a specific room by id
-    @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getRoomById(@PathVariable String id) {
-        try {
-            Room room = roomService.findByID(id);
-            return new ResponseEntity<>(room, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
+        roomService.delete(id);
+        return ResponseEntity.ok("Room deleted");
     }
 }

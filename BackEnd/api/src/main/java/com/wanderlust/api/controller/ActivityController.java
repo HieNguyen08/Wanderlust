@@ -1,52 +1,148 @@
 package com.wanderlust.api.controller;
 
+import com.wanderlust.api.dto.ActivityRequestDTO;
 import com.wanderlust.api.entity.Activity;
+import com.wanderlust.api.entity.types.ActivityCategory;
 import com.wanderlust.api.services.ActivityService;
-
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
-@CrossOrigin
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RequestMapping("/api/activities")
 public class ActivityController {
     private final ActivityService activityService;
 
+    // ==========================================
+    // PUBLIC GET ENDPOINTS (Search & Details)
+    // ==========================================
+
+    /**
+     * GET /api/activities
+     * Search activities with filters
+     */
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<Activity>> getAllActivities() {
-        List<Activity> allActivities = activityService.findAll();
-        return new ResponseEntity<>(allActivities, HttpStatus.OK);
+    public ResponseEntity<List<Activity>> searchActivities(
+            @RequestParam(required = false) String locationId,
+            @RequestParam(required = false) ActivityCategory category,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice
+            // Date search is complex without specific schema, usually filtered on availability
+    ) {
+        List<Activity> activities = activityService.searchActivities(locationId, category, minPrice, maxPrice);
+        return new ResponseEntity<>(activities, HttpStatus.OK);
     }
 
+    /**
+     * GET /api/activities/featured
+     * Get featured activities
+     */
+    @GetMapping("/featured")
+    public ResponseEntity<List<Activity>> getFeaturedActivities() {
+        List<Activity> featured = activityService.getFeatured();
+        return new ResponseEntity<>(featured, HttpStatus.OK);
+    }
+
+    /**
+     * GET /api/activities/{id}
+     * Get activity details
+     */
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Activity> getActivityById(@PathVariable String id) {
-        Activity activity = activityService.findByID(id);
+        Activity activity = activityService.findById(id);
         return new ResponseEntity<>(activity, HttpStatus.OK);
     }
 
+    /**
+     * GET /api/activities/{id}/availability
+     * Check slots/availability (Simple check)
+     */
+    @GetMapping("/{id}/availability")
+    public ResponseEntity<Map<String, Object>> checkAvailabilitySimple(@PathVariable String id) {
+        Activity activity = activityService.findById(id);
+        // Trả về thông tin cơ bản về số lượng
+        return ResponseEntity.ok(Map.of(
+            "activityId", id,
+            "maxParticipants", activity.getMaxParticipants() != null ? activity.getMaxParticipants() : 0,
+            "status", "AVAILABLE" // Placeholder logic
+        ));
+    }
+    
+    /**
+     * GET /api/activities/{id}/reviews
+     * Get reviews for an activity
+     */
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<List<Object>> getActivityReviews(@PathVariable String id) {
+        // TODO: Gọi ReviewService.findByTarget(id, "ACTIVITY")
+        // Hiện tại trả về mảng rỗng để frontend không lỗi
+        return ResponseEntity.ok(List.of());
+    }
+
+    /**
+     * POST /api/activities/{id}/check-availability
+     * Check availability for specific date & guests
+     */
+    @PostMapping("/{id}/check-availability")
+    public ResponseEntity<Map<String, Object>> checkSpecificAvailability(
+            @PathVariable String id,
+            @RequestBody Map<String, Object> requestBody) {
+        
+        String dateStr = (String) requestBody.get("date");
+        Integer guests = (Integer) requestBody.get("guests");
+        
+        LocalDate date = LocalDate.parse(dateStr); // Format YYYY-MM-DD
+        boolean isAvailable = activityService.checkAvailability(id, date, guests);
+        
+        return ResponseEntity.ok(Map.of(
+            "available", isAvailable,
+            "date", date,
+            "guests", guests
+        ));
+    }
+
+    // ==========================================
+    // PROTECTED ENDPOINTS (Admin/Partner)
+    // ==========================================
+
+    /**
+     * POST /api/activities
+     * Create new activity
+     */
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
-    public ResponseEntity<Activity> addActivity(@RequestBody Activity activity) {
-        Activity newActivity = activityService.create(activity);
+    public ResponseEntity<Activity> addActivity(@RequestBody ActivityRequestDTO activityDTO) {
+        Activity newActivity = activityService.create(activityDTO);
         return new ResponseEntity<>(newActivity, HttpStatus.CREATED);
     }
 
+    /**
+     * PUT /api/activities/{id}
+     * Update activity
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isActivityOwner(authentication, #id))")
-    public ResponseEntity<Activity> updateActivity(@PathVariable String id, @RequestBody Activity updatedActivity) {
-        updatedActivity.setId(id);
-        Activity updatedEntity = activityService.update(updatedActivity);
+    public ResponseEntity<Activity> updateActivity(
+            @PathVariable String id, 
+            @RequestBody ActivityRequestDTO activityDTO) {
+        Activity updatedEntity = activityService.update(id, activityDTO);
         return new ResponseEntity<>(updatedEntity, HttpStatus.OK);
     }
 
+    /**
+     * DELETE /api/activities/{id}
+     * Delete activity
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isActivityOwner(authentication, #id))")
     public ResponseEntity<String> deleteActivity(@PathVariable String id) {
@@ -54,8 +150,12 @@ public class ActivityController {
         return new ResponseEntity<>("Activity has been deleted successfully!", HttpStatus.OK);
     }
 
+    /**
+     * DELETE /api/activities
+     * Delete all (Admin only)
+     */
     @DeleteMapping
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAllActivities() {
         activityService.deleteAll();
         return new ResponseEntity<>("All activities have been deleted successfully!", HttpStatus.OK);

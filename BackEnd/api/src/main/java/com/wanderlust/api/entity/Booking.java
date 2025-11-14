@@ -1,16 +1,25 @@
 package com.wanderlust.api.entity;
 
-import java.time.Duration;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+// Import các Enum
+import com.wanderlust.api.entity.types.BookingType;
+import com.wanderlust.api.entity.types.BookingStatus;
+import com.wanderlust.api.entity.types.PaymentStatus;
+import com.wanderlust.api.entity.types.PaymentMethod;
 
 @Document(collection = "booking")
 @Data
@@ -18,17 +27,93 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 public class Booking {
     @Id
-    private String booking_Id;
+    private String id; // Sửa booking_Id -> id
 
-    private String booking_Type;
-    private LocalDateTime booking_Date;
-    private String status;
-    private Float total_Price;
+    @Indexed(unique = true) // Đảm bảo mã booking là duy nhất
+    private String bookingCode; // "WL123456"
 
-    private String userId;
-    private String hotel_ID;
-    private String flight_ID;
-    private String car_Rental_ID;
-    private String booking_RequestStatus;
+    private String userId; // Người đặt
 
+    private BookingType bookingType; // Enum: FLIGHT, HOTEL...
+
+    // --- Polymorphic Relationships (Nullable IDs) ---
+    // Tùy vào bookingType mà 1 trong các trường này sẽ có dữ liệu
+    private String flightId;
+    private String hotelId;
+    private String roomId;      // Thêm roomId
+    private String carRentalId; // Sửa car_Rental_ID -> carRentalId
+    private String activityId;  // Thêm activityId
+
+    // --- Dates ---
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private LocalDateTime bookingDate;
+
+    // --- Guest Info (JSON Structures) ---
+    private GuestInfo guestInfo;       // Thông tin người liên hệ chính
+    private GuestCount numberOfGuests; // Số lượng khách
+    private String specialRequests;
+
+    // --- Pricing (BigDecimal) ---
+    private BigDecimal basePrice;
+    private BigDecimal taxes;
+    private BigDecimal fees;
+    private BigDecimal discount;
+    private BigDecimal totalPrice; // Sửa total_Price -> totalPrice
+    private String currency;       // "VND"
+
+    // --- Voucher ---
+    private String voucherCode;
+    private BigDecimal voucherDiscount;
+
+    // --- Payment ---
+    private PaymentStatus paymentStatus; // Enum
+    private PaymentMethod paymentMethod; // Enum
+
+    // --- Booking Status ---
+    private BookingStatus status; // Enum
+
+    private String cancellationReason;
+    private LocalDateTime cancelledAt;
+    private String cancelledBy; // User ID hoặc Admin ID
+
+    // --- Vendor Info ---
+    private String vendorId;        // ID của đối tác cung cấp dịch vụ
+    private Boolean vendorConfirmed;
+
+    // --- Additional Data ---
+    // Dùng Map để lưu dữ liệu đặc thù của từng loại booking
+    // VD Flight: { "seatNumber": "12A", "baggage": "20kg" }
+    private Map<String, Object> metadata;
+
+    // --- Audit ---
+    @CreatedDate
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+
+    // ==========================================
+    // INNER CLASSES (Mapping cho JSON Structures)
+    // ==========================================
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class GuestInfo {
+        private String fullName;
+        private String email;
+        private String phone;
+        private String passportNumber; // Optional
+        private LocalDate dob;         // Optional
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class GuestCount {
+        private Integer adults;
+        private Integer children;
+        private Integer infants;
+    }
 }

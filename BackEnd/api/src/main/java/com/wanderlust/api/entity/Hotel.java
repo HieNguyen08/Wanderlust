@@ -1,16 +1,20 @@
 package com.wanderlust.api.entity;
 
-import java.time.Duration;
-import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
-
+import com.wanderlust.api.entity.types.HotelType;
+import com.wanderlust.api.entity.types.HotelStatusType;
 
 @Document(collection = "hotel")
 @Data
@@ -18,11 +22,61 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 public class Hotel {
     @Id
-    private String hotel_ID;
+    private String hotel_ID; // id
+    private String vendorId;
+    private String locationId;
     private String name;
-    private String contact_Number;
-    private Float rating;
-    private String amenities;
+    private String slug;
+    private HotelType hotel_Type; // type
+    private Integer starRating; // starRating
+    private String address;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
+    private String description;
+    private String shortDescription;
+    private String phone;
+    private String email;
+    private String website;
+    private LocalTime checkInTime;
+    private LocalTime checkOutTime;
 
-    private String userId;
+    // JSON Structures (Mapping phức tạp)
+    // Lưu ý: MongoDB sẽ tự động map các List/Object này thành JSON array/object
+    private List<HotelImage> images; 
+    private List<String> amenities; // Sửa lại từ String thành List<String> để đúng spec JSON
+    private HotelPolicies policies; // Sửa lại từ String thành Object để đúng spec JSON
+    
+    private HotelStatusType status;
+
+    private Boolean featured;
+    private Boolean verified;
+    private BigDecimal averageRating;
+    private Integer totalReviews;
+    private Integer totalRooms;
+    private BigDecimal lowestPrice;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class HotelImage {
+        private String url;
+        private String caption;
+        private Integer order;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class HotelPolicies {
+        private String cancellation; // Chính sách hủy
+        private Boolean pets;        // Thú cưng (true/false) hoặc String mô tả
+        private Boolean smoking;     // Hút thuốc
+    }
 }

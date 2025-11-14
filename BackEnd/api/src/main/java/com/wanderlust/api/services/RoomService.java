@@ -1,6 +1,8 @@
 package com.wanderlust.api.services;
 
+import com.wanderlust.api.dto.hotelDTO.RoomDTO;
 import com.wanderlust.api.entity.Room;
+import com.wanderlust.api.mapper.RoomMapper;
 import com.wanderlust.api.repository.RoomRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -9,49 +11,57 @@ import java.util.List;
 
 @AllArgsConstructor
 @Service
-public class RoomService implements BaseServices<Room> {
+public class RoomService {
 
     private final RoomRepository roomRepository;
+    private final RoomMapper roomMapper;
 
-    // Get all rooms
-    public List<Room> findAll() {
-        return roomRepository.findAll();
+    public RoomDTO findById(String id) {
+        Room room = roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Room not found: " + id));
+        return roomMapper.toDTO(room);
+    }
+    
+    // Check availability
+    public boolean checkAvailability(String roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+        return room.getAvailableRooms() != null && room.getAvailableRooms() > 0;
     }
 
-    // Add a room
-    public Room create(Room room) {
-        return roomRepository.insert(room);
+    // --- CRUD ---
+    
+    public List<RoomDTO> findAll() {
+        return roomMapper.toDTOs(roomRepository.findAll());
     }
 
-    // Update an existing room
-    public Room update(Room room) {
-        Room updatedRoom = roomRepository.findById(room.getRoom_ID())
-                .orElseThrow(() -> new RuntimeException("Room not found with id " + room.getRoom_ID()));
-
-        if (room.getRoom_Type() != null) updatedRoom.setRoom_Type(room.getRoom_Type());
-        if (room.getPrice() != null) updatedRoom.setPrice(room.getPrice());
-        if (room.getStatus() != null) updatedRoom.setStatus(room.getStatus());
-
-        return roomRepository.save(updatedRoom);
+    public RoomDTO create(RoomDTO roomDTO) {
+        // MapStruct: DTO -> Entity
+        Room room = roomMapper.toEntity(roomDTO);
+        Room savedRoom = roomRepository.save(room);
+        // MapStruct: Entity -> DTO
+        return roomMapper.toDTO(savedRoom);
     }
 
-    // Delete a room by ID
+    public RoomDTO update(String id, RoomDTO roomDTO) {
+        Room existing = roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+        
+        // Sử dụng MapStruct để update đè các field thay vì set thủ công
+        roomMapper.updateEntityFromDTO(roomDTO, existing);
+        
+        Room savedRoom = roomRepository.save(existing);
+        return roomMapper.toDTO(savedRoom);
+    }
+    
     public void delete(String id) {
-        if (roomRepository.findById(id).isPresent()) {
-            roomRepository.deleteById(id);
-        } else {
-            throw new RuntimeException("Room not found with id " + id);
+        if (!roomRepository.existsById(id)) {
+            throw new RuntimeException("Room not found");
         }
+        roomRepository.deleteById(id);
     }
-
-    // Delete all rooms
+    
     public void deleteAll() {
         roomRepository.deleteAll();
-    }
-
-    // Get a specific room by id
-    public Room findByID(String id) {
-        return roomRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Room not found with id " + id));
     }
 }

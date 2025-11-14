@@ -1,6 +1,8 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.entity.Advertisement;
+import com.wanderlust.api.dto.advertisement.AdvertisementRequestDTO;
+import com.wanderlust.api.dto.advertisement.AdvertisementResponseDTO;
+import com.wanderlust.api.entity.types.AdPosition;
 import com.wanderlust.api.services.AdvertisementService;
 
 import lombok.AllArgsConstructor;
@@ -14,37 +16,62 @@ import java.util.List;
 @CrossOrigin
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/advertisements")
+@RequestMapping("/api/advertisements") // Giữ nguyên /api/advertisements như file gốc
 public class AdvertisementController {
 
     private final AdvertisementService advertisementService;
 
-    // Get all advertisements
+    /**
+     * Lấy danh sách Ads (có thể filter theo position)
+     * API: GET /api/ads?position=... 
+     */
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<Advertisement>> getAllAdvertisements() {
-        List<Advertisement> allAdvertisements = advertisementService.findAll();
+    public ResponseEntity<List<AdvertisementResponseDTO>> getAllAdvertisements(
+            @RequestParam(required = false) AdPosition position) {
+        List<AdvertisementResponseDTO> allAdvertisements = advertisementService.findAll(position);
         return new ResponseEntity<>(allAdvertisements, HttpStatus.OK);
     }
 
-    // Add an advertisement
+    /**
+     * Lấy chi tiết ad
+     * API: GET /api/ads/:id 
+     */
+    @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AdvertisementResponseDTO> getAdvertisementById(@PathVariable String id) {
+        AdvertisementResponseDTO advertisement = advertisementService.findByID(id);
+        return new ResponseEntity<>(advertisement, HttpStatus.OK);
+    }
+
+    /**
+     * Tạo advertisement mới
+     * (Chỉ Admin hoặc Partner)
+     */
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
-    public ResponseEntity<Advertisement> addAdvertisement(@RequestBody Advertisement advertisement) {
-        Advertisement newAdvertisement = advertisementService.create(advertisement);
+    public ResponseEntity<AdvertisementResponseDTO> createAdvertisement(@RequestBody AdvertisementRequestDTO dto) {
+        // Trong service thực tế, bạn nên lấy vendorId từ 'Authentication' 
+        // nếu role là PARTNER để đảm bảo họ chỉ tạo cho chính mình.
+        AdvertisementResponseDTO newAdvertisement = advertisementService.create(dto);
         return new ResponseEntity<>(newAdvertisement, HttpStatus.CREATED);
     }
 
-    // Update an existing advertisement
+    /**
+     * Cập nhật advertisement
+     * (Chỉ Admin hoặc Partner sở hữu)
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isAdvertisementOwner(authentication, #id))")
-    public ResponseEntity<Advertisement> updateAdvertisement(@PathVariable String id, @RequestBody Advertisement updatedAdvertisement) {
-        updatedAdvertisement.setAd_ID(id); // Ensure the ID in the entity matches the path variable
-        Advertisement resultAdvertisement = advertisementService.update(updatedAdvertisement);
-        return new ResponseEntity<>(resultAdvertisement, HttpStatus.OK);
+    public ResponseEntity<AdvertisementResponseDTO> updateAdvertisement(@PathVariable String id, @RequestBody AdvertisementRequestDTO dto) {
+        AdvertisementResponseDTO updatedAdvertisement = advertisementService.update(id, dto);
+        return new ResponseEntity<>(updatedAdvertisement, HttpStatus.OK);
     }
 
-    // Delete an advertisement by ID
+    /**
+     * Xóa advertisement
+     * (Chỉ Admin hoặc Partner sở hữu)
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isAdvertisementOwner(authentication, #id))")
     public ResponseEntity<String> deleteAdvertisement(@PathVariable String id) {
@@ -56,19 +83,36 @@ public class AdvertisementController {
         }
     }
 
-    // Delete all advertisements
+    /**
+     * Xóa toàn bộ advertisements
+     * (Chỉ Admin)
+     */
     @DeleteMapping
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAllAdvertisements() {
         advertisementService.deleteAll();
         return new ResponseEntity<>("All advertisements have been deleted successfully!", HttpStatus.OK);
     }
 
-    // Get a specific advertisement by id
-    @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Advertisement> getAdvertisementById(@PathVariable String id) {
-        Advertisement advertisement = advertisementService.findByID(id);
-        return new ResponseEntity<>(advertisement, HttpStatus.OK);
+    /**
+     * Track impression
+     * API: POST /api/ads/:id/track-impression 
+     */
+    @PostMapping("/{id}/track-impression")
+    @PreAuthorize("permitAll()") // Cho phép public access để tracking
+    public ResponseEntity<Void> trackImpression(@PathVariable String id) {
+        advertisementService.trackImpression(id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Track click
+     * API: POST /api/ads/:id/track-click 
+     */
+    @PostMapping("/{id}/track-click")
+    @PreAuthorize("permitAll()") // Cho phép public access để tracking
+    public ResponseEntity<Void> trackClick(@PathVariable String id) {
+        advertisementService.trackClick(id);
+        return ResponseEntity.ok().build();
     }
 }

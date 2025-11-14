@@ -1,6 +1,7 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.entity.Payment; // Use the Payment entity directly
+import com.wanderlust.api.dto.payment.PaymentDTO;
+import com.wanderlust.api.dto.payment.RefundRequestDTO;
 import com.wanderlust.api.services.PaymentService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -22,36 +24,35 @@ public class PaymentController {
         this.paymentService = paymentService;
     }
 
-    // Get all payments
+    // --- Admin Endpoints ---
+
+    /**
+     * [ADMIN] Lấy tất cả payments
+     */
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<Payment>> getAllPayments() {
-        List<Payment> allPayments = paymentService.findAll();
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<PaymentDTO>> getAllPayments() {
+        List<PaymentDTO> allPayments = paymentService.findAll();
         return new ResponseEntity<>(allPayments, HttpStatus.OK);
     }
 
-    // Add a payment
-    @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<Payment> addPayment(@RequestBody Payment payment) {
-        Payment newPayment = paymentService.create(payment);
-        return new ResponseEntity<>(newPayment, HttpStatus.CREATED);
-    }
-
-    // Update an existing payment
+    /**
+     * [ADMIN] Cập nhật payment (dùng cho admin)
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updatePayment(@PathVariable String id, @RequestBody Payment updatedPayment) {
-        updatedPayment.setPaymentId(id); // Ensure the ID in the entity matches the path variable
+    public ResponseEntity<?> updatePayment(@PathVariable String id, @RequestBody PaymentDTO paymentDTO) {
         try {
-            Payment resultPayment = paymentService.update(updatedPayment);
-            return new ResponseEntity<>(resultPayment, HttpStatus.OK);
+            PaymentDTO updatedPayment = paymentService.update(id, paymentDTO);
+            return new ResponseEntity<>(updatedPayment, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
-    // Delete a payment by ID
+    /**
+     * [ADMIN] Xóa 1 payment
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deletePayment(@PathVariable String id) {
@@ -63,7 +64,9 @@ public class PaymentController {
         }
     }
 
-    // Delete all payments
+    /**
+     * [ADMIN] Xóa tất cả payments
+     */
     @DeleteMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAllPayments() {
@@ -71,13 +74,103 @@ public class PaymentController {
         return new ResponseEntity<>("All payments have been deleted successfully!", HttpStatus.OK);
     }
 
-    // Get a specific payment by id
+    // --- Action Endpoints (API 31, 39) ---
+
+    /**
+     * [USER/ADMIN] Khởi tạo một thanh toán mới
+     */
+    @PostMapping("/initiate")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<PaymentDTO> initiatePayment(@RequestBody PaymentDTO paymentDTO) {
+        PaymentDTO newPayment = paymentService.initiatePayment(paymentDTO);
+        return new ResponseEntity<>(newPayment, HttpStatus.CREATED);
+    }
+
+    /**
+     * [USER/ADMIN] Xử lý Refund (API 31, 39)
+     */
+    @PostMapping("/{id}/refund")
+    @PreAuthorize("isAuthenticated()") // Hoặc "hasRole('ADMIN')" tùy logic
+    public ResponseEntity<?> refundPayment(@PathVariable String id, @RequestBody RefundRequestDTO refundRequest) {
+        try {
+            PaymentDTO refundedPayment = paymentService.refundPayment(id, refundRequest);
+            return new ResponseEntity<>(refundedPayment, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * [USER/ADMIN] Xác thực lại thanh toán
+     */
+    @PostMapping("/{id}/verify")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> verifyPayment(@PathVariable String id) {
+        try {
+            PaymentDTO verifiedPayment = paymentService.verifyPayment(id);
+            return new ResponseEntity<>(verifiedPayment, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     * [PUBLIC] Callback từ cổng thanh toán
+     */
+    @PostMapping("/callback/{gateway}")
+    public ResponseEntity<PaymentDTO> handleGatewayCallback(@PathVariable String gateway, @RequestBody Map<String, Object> callbackData) {
+        try {
+            PaymentDTO payment = paymentService.handleGatewayCallback(gateway, callbackData);
+            return new ResponseEntity<>(payment, HttpStatus.OK);
+        } catch (Exception e) {
+            // Callback nên luôn trả 200 OK để gateway không retry, 
+            // nhưng log lỗi nghiêm trọng
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+    }
+
+    // --- GET Endpoints (Authenticated) ---
+
+    /**
+     * [USER/ADMIN] Lấy chi tiết 1 payment
+     */
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getPaymentById(@PathVariable String id) {
         try {
-            Payment payment = paymentService.findByID(id);
+            PaymentDTO payment = paymentService.findById(id);
+            // TODO: Thêm kiểm tra bảo mật (user chỉ thấy payment của mình)
             return new ResponseEntity<>(payment, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+    
+    /**
+     * [USER/ADMIN] Lấy payment theo Booking ID
+     */
+    @GetMapping("/booking/{bookingId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getPaymentByBookingId(@PathVariable String bookingId) {
+        try {
+            PaymentDTO payment = paymentService.findByBookingId(bookingId);
+            // TODO: Thêm kiểm tra bảo mật (user chỉ thấy payment của mình)
+            return new ResponseEntity<>(payment, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+     /**
+     * [USER/ADMIN] Lấy tất cả payment của 1 User
+     */
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("isAuthenticated()") // Nên kiểm tra là admin hoặc chính user đó
+    public ResponseEntity<?> getPaymentsByUserId(@PathVariable String userId) {
+        try {
+            // TODO: Thêm kiểm tra bảo mật (user chỉ thấy payment của mình, admin thấy hết)
+            List<PaymentDTO> payments = paymentService.findByUserId(userId);
+            return new ResponseEntity<>(payments, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }

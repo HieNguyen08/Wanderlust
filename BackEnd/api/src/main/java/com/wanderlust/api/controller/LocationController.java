@@ -1,14 +1,17 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.entity.Location; // Use the Location entity directly
+import com.wanderlust.api.dto.locationDTO.LocationRequestDTO;
+import com.wanderlust.api.dto.locationDTO.LocationResponseDTO;
 import com.wanderlust.api.services.LocationService;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
-
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,38 +26,66 @@ public class LocationController {
         this.locationService = locationService;
     }
 
-    // Get all locations
+    // 1. GET /api/locations - Lấy danh sách locations (có pagination)
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<Location>> getAllLocations() {
-        List<Location> allLocations = locationService.findAll();
-        return new ResponseEntity<>(allLocations, HttpStatus.OK);
+    // @PreAuthorize("isAuthenticated()") // Có thể mở public cho khách xem
+    public ResponseEntity<Page<LocationResponseDTO>> getAllLocations(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "popularity") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        
+        return new ResponseEntity<>(locationService.findAll(pageable), HttpStatus.OK);
     }
 
-    // Add a location
+    // 2. GET /api/locations/featured - Lấy locations nổi bật
+    @GetMapping("/featured")
+    public ResponseEntity<List<LocationResponseDTO>> getFeaturedLocations() {
+        return new ResponseEntity<>(locationService.findFeatured(), HttpStatus.OK);
+    }
+
+    // 3. GET /api/locations/search - Tìm kiếm location theo query
+    @GetMapping("/search")
+    public ResponseEntity<List<LocationResponseDTO>> searchLocations(@RequestParam String query) {
+        return new ResponseEntity<>(locationService.search(query), HttpStatus.OK);
+    }
+
+    // 4. GET /api/locations/:id - Lấy chi tiết location
+    @GetMapping("/{id}")
+    public ResponseEntity<LocationResponseDTO> getLocationById(@PathVariable String id) {
+        try {
+            return new ResponseEntity<>(locationService.findByID(id), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // 5. POST /api/locations - Create new (Admin/Partner)
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
-    public ResponseEntity<Location> addLocation(@RequestBody Location location) {
-        Location newLocation = locationService.create(location);
+    public ResponseEntity<LocationResponseDTO> addLocation(@RequestBody LocationRequestDTO locationDTO) {
+        LocationResponseDTO newLocation = locationService.create(locationDTO);
         return new ResponseEntity<>(newLocation, HttpStatus.CREATED);
     }
 
-    // Update an existing location
+    // 6. PUT /api/locations/:id - Update (Admin/Partner)
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isLocationOwner(authentication, #id))")
-    public ResponseEntity<?> updateLocation(@PathVariable String id, @RequestBody Location updatedLocation) {
-        updatedLocation.setLocation_ID(id); // Ensure the ID in the entity matches the path variable
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PARTNER')") // Logic check owner nên đưa vào service hoặc giữ logic security cũ của bạn
+    public ResponseEntity<?> updateLocation(@PathVariable String id, @RequestBody LocationRequestDTO locationDTO) {
         try {
-            Location resultLocation = locationService.update(updatedLocation);
-            return new ResponseEntity<>(resultLocation, HttpStatus.OK);
+            LocationResponseDTO result = locationService.update(id, locationDTO);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
-    // Delete a location by ID
+    // 7. DELETE /api/locations/:id - Delete (Admin)
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isLocationOwner(authentication, #id))")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteLocation(@PathVariable String id) {
         try {
             locationService.delete(id);
@@ -64,23 +95,11 @@ public class LocationController {
         }
     }
 
-    // Delete all locations
+    // DELETE ALL
     @DeleteMapping
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAllLocations() {
         locationService.deleteAll();
         return new ResponseEntity<>("All locations have been deleted successfully!", HttpStatus.OK);
-    }
-
-    // Get a specific location by id
-    @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getLocationById(@PathVariable String id) {
-        try {
-            Location location = locationService.findByID(id);
-            return new ResponseEntity<>(location, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
     }
 }

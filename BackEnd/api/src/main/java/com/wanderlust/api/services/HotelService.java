@@ -1,58 +1,87 @@
 package com.wanderlust.api.services;
 
+import com.wanderlust.api.dto.hotelDTO.HotelDTO;
+import com.wanderlust.api.dto.hotelDTO.HotelSearchCriteria;
+import com.wanderlust.api.dto.hotelDTO.RoomDTO;
 import com.wanderlust.api.entity.Hotel;
+import com.wanderlust.api.mapper.HotelMapper;
+import com.wanderlust.api.mapper.RoomMapper;
 import com.wanderlust.api.repository.HotelRepository;
+import com.wanderlust.api.repository.RoomRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
-public class HotelService implements BaseServices<Hotel> {
+public class HotelService {
 
     private final HotelRepository hotelRepository;
+    private final RoomRepository roomRepository;
+    private final HotelMapper hotelMapper;
+    private final RoomMapper roomMapper;
 
-    // Get all hotels
-    public List<Hotel> findAll() {
-        return hotelRepository.findAll();
-    }
-
-    // Add a hotel
-    public Hotel create(Hotel hotel) {
-        return hotelRepository.insert(hotel);
-    }
-
-    // Update an existing hotel
-    public Hotel update(Hotel hotel) {
-        Hotel updatedHotel = hotelRepository.findById(hotel.getHotel_ID())
-                .orElseThrow(() -> new RuntimeException("Hotel not found with id " + hotel.getHotel_ID()));
-
-        if (hotel.getName() != null) updatedHotel.setName(hotel.getName());
-        if (hotel.getContact_Number() != null) updatedHotel.setContact_Number(hotel.getContact_Number());
-        if (hotel.getRating() != null) updatedHotel.setRating(hotel.getRating());
-        if (hotel.getAmenities() != null) updatedHotel.setAmenities(hotel.getAmenities());
-
-        return hotelRepository.save(updatedHotel);
-    }
-
-    // Delete a hotel by ID
-    public void delete(String id) {
-        if (hotelRepository.findById(id).isPresent()) {
-            hotelRepository.deleteById(id);
-        } else {
-            throw new RuntimeException("Hotel not found with id " + id);
+    // 1. Search Hotels (Location, filters)
+    public List<HotelDTO> searchHotels(HotelSearchCriteria criteria) {
+        if (criteria.getLocation() != null) {
+            // Giả sử repository trả về List<Hotel>, mapper sẽ convert sang List<DTO>
+            return hotelMapper.toDTOs(hotelRepository.searchBasic(criteria.getLocation()));
         }
+        return findAll();
     }
 
-    // Delete all hotels
-    public void deleteAll() {
-        hotelRepository.deleteAll();
+    // 2. Get Featured Hotels
+    public List<HotelDTO> findFeatured() {
+        return hotelMapper.toDTOs(hotelRepository.findByFeaturedTrue());
     }
 
-    // Get a specific hotel by id
-    public Hotel findByID(String id) {
-        return hotelRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Hotel not found with id " + id));
+    // 3. Find by ID
+    public HotelDTO findById(String id) {
+        Hotel hotel = hotelRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Hotel not found: " + id));
+        return hotelMapper.toDTO(hotel);
+    }
+
+    // 4. Get Rooms of a Hotel
+    public List<RoomDTO> findRoomsByHotelId(String hotelId) {
+        if (!hotelRepository.existsById(hotelId)) {
+            throw new RuntimeException("Hotel not found");
+        }
+        return roomMapper.toDTOs(roomRepository.findByHotelId(hotelId));
+    }
+
+    // --- CRUD cho Admin/Vendor ---
+    
+    public List<HotelDTO> findAll() {
+        return hotelMapper.toDTOs(hotelRepository.findAll());
+    }
+
+    public HotelDTO create(HotelDTO hotelDTO) {
+        // Convert DTO -> Entity
+        Hotel hotel = hotelMapper.toEntity(hotelDTO);
+        // Save
+        Hotel savedHotel = hotelRepository.save(hotel);
+        // Return DTO
+        return hotelMapper.toDTO(savedHotel);
+    }
+
+    public HotelDTO update(String id, HotelDTO hotelDTO) {
+        Hotel existing = hotelRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Hotel not found"));
+        
+        // MapStruct tự động update các trường non-null từ DTO vào Entity cũ
+        hotelMapper.updateEntityFromDTO(hotelDTO, existing);
+        
+        Hotel savedHotel = hotelRepository.save(existing);
+        return hotelMapper.toDTO(savedHotel);
+    }
+
+    public void delete(String id) {
+        if (!hotelRepository.existsById(id)) {
+            throw new RuntimeException("Hotel not found");
+        }
+        hotelRepository.deleteById(id);
     }
 }

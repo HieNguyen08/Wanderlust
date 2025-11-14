@@ -1,56 +1,226 @@
 package com.wanderlust.api.services;
 
+import com.wanderlust.api.dto.reviewComment.*;
 import com.wanderlust.api.entity.ReviewComment;
+import com.wanderlust.api.entity.types.ReviewStatus;
+import com.wanderlust.api.entity.types.ReviewTargetType;
+import com.wanderlust.api.mapper.ReviewCommentMapper;
 import com.wanderlust.api.repository.ReviewCommentRepository;
+// TODO: Cần inject BookingRepository và UserRepository khi hoàn thiện
+// import com.wanderlust.api.repository.BookingRepository;
+// import com.wanderlust.api.entity.Booking;
+
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @AllArgsConstructor
 @Service
-public class ReviewCommentService implements BaseServices<ReviewComment> {
+public class ReviewCommentService {
 
     private final ReviewCommentRepository reviewCommentRepository;
+    private final ReviewCommentMapper reviewCommentMapper;
+    
+    // TODO: private final BookingRepository bookingRepository;
+    // TODO: private final... (Các repo của Hotel, Activity... để check quyền partner)
 
-    // Get all review comments
-    public List<ReviewComment> findAll() {
-        return reviewCommentRepository.findAll();
+    // ==========================================
+    // COMMON/PUBLIC METHODS
+    // ==========================================
+
+    /**
+     * [PUBLIC] Lấy 1 review bằng ID
+     */
+    public ReviewCommentDTO findById(String id) {
+        ReviewComment review = findByIdOrThrow(id);
+        return reviewCommentMapper.toDTO(review);
     }
 
-    // Add a review comment
-    public ReviewComment create(ReviewComment reviewComment) {
-        return reviewCommentRepository.insert(reviewComment);
+    /**
+     * [PUBLIC] Lấy tất cả review ĐÃ DUYỆT cho một đối tượng (Hotel, Activity...)
+     */
+    public List<ReviewCommentDTO> findAllApprovedByTarget(ReviewTargetType targetType, String targetId) {
+        List<ReviewComment> reviews = reviewCommentRepository.findAllByTargetTypeAndTargetIdAndStatus(
+                targetType, targetId, ReviewStatus.APPROVED);
+        return reviewCommentMapper.toDTOs(reviews);
     }
 
-    // Update an existing review comment
-    public ReviewComment update(ReviewComment reviewComment) {
-        ReviewComment updatedReviewComment = reviewCommentRepository.findById(reviewComment.getNum_of_rating_ID())
-                .orElseThrow(() -> new RuntimeException("ReviewComment not found with id " + reviewComment.getNum_of_rating_ID()));
+    // ==========================================
+    // USER METHODS
+    // ==========================================
 
-        if (reviewComment.getComment() != null) updatedReviewComment.setComment(reviewComment.getComment());
-        if (reviewComment.getRatings() != null) updatedReviewComment.setRatings(reviewComment.getRatings());
-
-        return reviewCommentRepository.save(updatedReviewComment);
+    /**
+     * [USER] Lấy tất cả review của user đang đăng nhập
+     */
+    public List<ReviewCommentDTO> findAllByUserId(String userId) {
+        List<ReviewComment> reviews = reviewCommentRepository.findAllByUserId(userId);
+        return reviewCommentMapper.toDTOs(reviews);
     }
 
-    // Delete a review comment by ID
-    public void delete(String id) {
-        if (reviewCommentRepository.findById(id).isPresent()) {
-            reviewCommentRepository.deleteById(id);
-        } else {
-            throw new RuntimeException("ReviewComment not found with id " + id);
+    /**
+     * [USER] Tạo một review mới
+     */
+    public ReviewCommentDTO create(ReviewCommentCreateDTO createDTO, String userId) {
+        
+        // === Logic kiểm tra nghiệp vụ (Quan trọng) ===
+        // 1. Kiểm tra xem user đã review cho booking này chưa
+        if (reviewCommentRepository.findByBookingId(createDTO.getBookingId()).isPresent()) {
+            throw new IllegalArgumentException("Bạn đã đánh giá cho booking này rồi.");
         }
+
+        // 2. TODO: Kiểm tra xem booking có tồn tại, có thuộc về user này, và đã hoàn thành chưa
+        // Booking booking = bookingRepository.findById(createDTO.getBookingId())
+        //         .orElseThrow(() -> new NoSuchElementException("Không tìm thấy Booking."));
+        // if (!booking.getUserId().equals(userId)) {
+        //     throw new SecurityException("Không có quyền đánh giá cho booking này.");
+        // }
+        // if (booking.getStatus() != BookingStatus.COMPLETED) { // Giả sử có status COMPLETED
+        //     throw new IllegalArgumentException("Chuyến đi chưa hoàn thành, không thể đánh giá.");
+        // }
+        // =============================================
+
+        ReviewComment review = reviewCommentMapper.toEntity(createDTO);
+        review.setUserId(userId);
+        review.setStatus(ReviewStatus.PENDING); // Mặc định chờ duyệt
+        review.setVerified(true); // Đã qua bước check booking
+        review.setHelpfulCount(0);
+        review.setNotHelpfulCount(0);
+        
+        ReviewComment savedReview = reviewCommentRepository.save(review);
+        return reviewCommentMapper.toDTO(savedReview);
     }
 
-    // Delete all review comments
+    /**
+     * [USER] Cập nhật review của chính mình
+     */
+    public ReviewCommentDTO updateUserReview(String id, ReviewCommentUpdateDTO updateDTO, String userId) {
+        ReviewComment review = findByIdOrThrow(id);
+
+        // Kiểm tra quyền sở hữu
+        if (!review.getUserId().equals(userId)) {
+            throw new SecurityException("Không có quyền chỉnh sửa review này.");
+        }
+
+        reviewCommentMapper.updateEntityFromUserDTO(updateDTO, review);
+        review.setStatus(ReviewStatus.PENDING); // Sau khi sửa -> phải duyệt lại
+        review.setUpdatedAt(LocalDateTime.now());
+        
+        ReviewComment updatedReview = reviewCommentRepository.save(review);
+        return reviewCommentMapper.toDTO(updatedReview);
+    }
+
+    /**
+     * [USER] Xóa review của chính mình
+     */
+    public void deleteUserReview(String id, String userId) {
+        ReviewComment review = findByIdOrThrow(id);
+        
+        // Kiểm tra quyền sở hữu
+        if (!review.getUserId().equals(userId)) {
+            throw new SecurityException("Không có quyền xóa review này.");
+        }
+        
+        reviewCommentRepository.delete(review);
+    }
+
+    // ==========================================
+    // ADMIN METHODS
+    // ==========================================
+
+    /**
+     * [ADMIN] Lấy tất cả review (không phân biệt trạng thái)
+     */
+    public List<ReviewCommentDTO> findAllForAdmin() {
+        List<ReviewComment> reviews = reviewCommentRepository.findAll();
+        return reviewCommentMapper.toDTOs(reviews);
+    }
+
+    /**
+     * [ADMIN] Lấy tất cả review đang chờ duyệt
+     */
+    public List<ReviewCommentDTO> findAllPending() {
+        List<ReviewComment> reviews = reviewCommentRepository.findAllByStatus(ReviewStatus.PENDING);
+        return reviewCommentMapper.toDTOs(reviews);
+    }
+
+    /**
+     * [ADMIN] Duyệt (approve/reject/hide) một review
+     */
+    public ReviewCommentDTO moderateReview(String id, ReviewCommentAdminUpdateDTO adminUpdateDTO, String adminId) {
+        ReviewComment review = findByIdOrThrow(id);
+        
+        reviewCommentMapper.updateEntityFromAdminDTO(adminUpdateDTO, review);
+        review.setModeratedBy(adminId);
+        review.setModeratedAt(LocalDateTime.now());
+        review.setUpdatedAt(LocalDateTime.now());
+
+        ReviewComment updatedReview = reviewCommentRepository.save(review);
+        return reviewCommentMapper.toDTO(updatedReview);
+    }
+
+    /**
+     * [ADMIN] Xóa bất kỳ review nào
+     */
+    public void deleteAdminReview(String id) {
+        if (!reviewCommentRepository.existsById(id)) {
+            throw new NoSuchElementException("Review not found with id " + id);
+        }
+        reviewCommentRepository.deleteById(id);
+    }
+    
+    /**
+     * [ADMIN] Xóa tất cả review
+     */
     public void deleteAll() {
         reviewCommentRepository.deleteAll();
     }
 
-    // Get a specific review comment by id
-    public ReviewComment findByID(String id) {
+
+    // ==========================================
+    // PARTNER METHODS (VENDOR)
+    // ==========================================
+
+    /**
+     * [PARTNER] Thêm phản hồi cho review
+     */
+    public ReviewCommentDTO addVendorResponse(String id, ReviewCommentVendorResponseDTO responseDTO, String partnerId) {
+        ReviewComment review = findByIdOrThrow(id);
+
+        // === Logic kiểm tra nghiệp vụ (Quan trọng) ===
+        // TODO: Kiểm tra xem partnerId (vendor) này có phải là chủ sở hữu
+        // của targetId (hotel, activity...) trong review hay không.
+        // VD:
+        // if (review.getTargetType() == ReviewTargetType.HOTEL) {
+        //    Hotel hotel = hotelRepository.findById(review.getTargetId()).orElseThrow();
+        //    if (!hotel.getVendorId().equals(partnerId)) {
+        //        throw new SecurityException("Không có quyền phản hồi review này.");
+        //    }
+        // }
+        // =============================================
+
+        // Chỉ cho phép phản hồi review đã được duyệt
+        if (review.getStatus() != ReviewStatus.APPROVED) {
+            throw new IllegalArgumentException("Chỉ có thể phản hồi các review đã được duyệt (APPROVED).");
+        }
+
+        reviewCommentMapper.updateEntityFromVendorDTO(responseDTO, review);
+        review.setVendorRespondedAt(LocalDateTime.now());
+        review.setUpdatedAt(LocalDateTime.now());
+
+        ReviewComment updatedReview = reviewCommentRepository.save(review);
+        return reviewCommentMapper.toDTO(updatedReview);
+    }
+
+
+    // ==========================================
+    // PRIVATE HELPER
+    // ==========================================
+
+    private ReviewComment findByIdOrThrow(String id) {
         return reviewCommentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("ReviewComment not found with id " + id));
+                .orElseThrow(() -> new NoSuchElementException("ReviewComment not found with id " + id));
     }
 }

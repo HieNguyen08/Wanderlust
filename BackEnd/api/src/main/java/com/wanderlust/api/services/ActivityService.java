@@ -1,21 +1,29 @@
 package com.wanderlust.api.services;
 
+import com.wanderlust.api.dto.ActivityRequestDTO;
 import com.wanderlust.api.entity.Activity;
+import com.wanderlust.api.entity.types.ActivityCategory;
+import com.wanderlust.api.mapper.ActivityMapper;
 import com.wanderlust.api.repository.ActivityRepository;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.wanderlust.api.services.CustomUserDetails; // Đảm bảo import đúng CustomUserDetails
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.core.Authentication;
-import com.wanderlust.api.services.CustomUserDetails;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
-@AllArgsConstructor
 @Service
-public class ActivityService implements BaseServices<Activity> {
+@RequiredArgsConstructor
+public class ActivityService {
     private final ActivityRepository activityRepository;
+    private final MongoTemplate mongoTemplate;
+    private final ActivityMapper activityMapper;
 
     private String getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -26,64 +34,88 @@ public class ActivityService implements BaseServices<Activity> {
         if (principal instanceof CustomUserDetails) {
             return ((CustomUserDetails) principal).getUserID();
         } else {
-            throw new RuntimeException("Unexpected principal type: " + principal.getClass().getName());
+            return authentication.getName(); 
         }
     }
 
-    // Get all activities
-    public List<Activity> findAll() {
-        return activityRepository.findAll();
+    // --- Public Get Methods ---
+
+    public List<Activity> searchActivities(String locationId, ActivityCategory category, BigDecimal minPrice, BigDecimal maxPrice) {
+        Query query = new Query();
+
+        if (locationId != null && !locationId.isEmpty()) {
+            query.addCriteria(Criteria.where("locationId").is(locationId));
+        }
+        if (category != null) {
+            query.addCriteria(Criteria.where("category").is(category));
+        }
+        if (minPrice != null && maxPrice != null) {
+            query.addCriteria(Criteria.where("price").gte(minPrice).lte(maxPrice));
+        } else if (minPrice != null) {
+            query.addCriteria(Criteria.where("price").gte(minPrice));
+        } else if (maxPrice != null) {
+            query.addCriteria(Criteria.where("price").lte(maxPrice));
+        }
+        
+        query.addCriteria(Criteria.where("status").is("ACTIVE"));
+
+        return mongoTemplate.find(query, Activity.class);
     }
 
-    // Add a new activity
-    public Activity create(Activity activity) {
-        String ownerId = getCurrentUserId();
-        activity.setUserId(ownerId);
-
-        return activityRepository.insert(activity);
+    public List<Activity> getFeatured() {
+        return activityRepository.findByFeaturedTrue();
     }
 
-    // Update an existing activity
-    public Activity update(Activity activity) {
-        Activity updatedActivity = activityRepository.findById(activity.getId())
-                .orElseThrow(() -> new RuntimeException("Activity not found with id " + activity.getId()));
+    public Activity findById(String id) {
+        return activityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Activity not found with id " + id));
+    }
 
+    // --- Check Availability Logic ---
+    public boolean checkAvailability(String activityId, LocalDate date, Integer guests) {
+        Activity activity = findById(activityId);
+        // Logic tạm thời: Chỉ check maxParticipants
+        return activity.getMaxParticipants() != null && activity.getMaxParticipants() > 0;
+    }
+
+    // --- CRUD for Vendor/Admin ---
+
+    public Activity create(ActivityRequestDTO dto) {
+        String vendorId = getCurrentUserId();
+        
+        // MapStruct tự động set Default values (Status, CreatedAt...)
+        Activity activity = activityMapper.toEntity(dto);
+        
+        activity.setVendorId(vendorId);
+        // Tạo slug từ name (hoặc xử lý logic trùng lặp nếu cần)
         if (activity.getName() != null) {
-            updatedActivity.setName(activity.getName());
+            activity.setSlug(activity.getName().toLowerCase().replace(" ", "-"));
         }
-        if (activity.getDescription() != null) {
-            updatedActivity.setDescription(activity.getDescription());
-        }
-        if (activity.getPrice() != 0.0) {
-            updatedActivity.setPrice(activity.getPrice());
-        }
-        if (activity.getStartDate() != null) {
-            updatedActivity.setStartDate(activity.getStartDate());
-        }
-        if (activity.getMax_Participants() != null) {
-            updatedActivity.setMax_Participants(activity.getMax_Participants());
-        }
-
-        return activityRepository.save(updatedActivity);
+        
+        return activityRepository.save(activity);
     }
 
-    // Delete an activity by ID
+    public Activity update(String id, ActivityRequestDTO dto) {
+        Activity existingActivity = findById(id);
+        
+        // MapStruct tự động update các trường khác null và update 'updatedAt'
+        activityMapper.updateEntityFromDTO(dto, existingActivity);
+        
+        // Nếu muốn update Slug khi đổi tên, mở comment dòng dưới:
+        if (dto.getName() != null) existingActivity.setSlug(dto.getName().toLowerCase().replace(" ", "-"));
+
+        return activityRepository.save(existingActivity);
+    }
+
     public void delete(String id) {
-        if (activityRepository.findById(id).isPresent()) {
+        if (activityRepository.existsById(id)) {
             activityRepository.deleteById(id);
         } else {
             throw new RuntimeException("Activity not found with id " + id);
         }
     }
-
-    // Delete all activities
+    
     public void deleteAll() {
         activityRepository.deleteAll();
-    }
-
-    // Get a specific activity by ID
-    public Activity findByID(String id) {
-        return activityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Activity not found with id " + id));
     }
 }
