@@ -1,19 +1,29 @@
-import { useState, useEffect } from "react";
-import { Footer } from "../../components/Footer";
-import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
-import { Card } from "../../components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../components/ui/dialog";
-import { Checkbox } from "../../components/ui/checkbox";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { 
-  Ticket, Calendar, Tag, Copy, Check, ChevronLeft, ChevronRight,
-  Filter, X, Clock, TrendingUp, Sparkles, Hotel, Plane, Car, Activity
+import {
+    Activity,
+    Calendar,
+    Car,
+    Check, ChevronLeft, ChevronRight,
+    Clock,
+    Copy,
+    Filter,
+    Hotel, Plane,
+    Sparkles,
+    Tag,
+    Ticket,
+    TrendingUp
 } from "lucide-react";
-import type { PageType } from "../../MainApp";
+import { useEffect, useState } from "react";
 import { toast } from "sonner@2.0.3";
-import { promotionApi, userVoucherApi, tokenService } from "../../utils/api";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Footer } from "../../components/Footer";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import type { PageType } from "../../MainApp";
+import { promotionApi, tokenService, userVoucherApi } from "../../utils/api";
 
 interface PromotionsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -254,7 +264,7 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
             alt={voucher.title}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
           
           {/* Badge */}
           <Badge className={`absolute top-3 right-3 ${voucher.badgeColor} text-white border-0`}>
@@ -376,7 +386,7 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
               alt={banner.title}
               className="w-full h-full object-cover"
             />
-            <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`} />
+            <div className={`absolute inset-0 bg-linear-to-r ${banner.gradient}`} />
             <div className="absolute inset-0 flex items-center">
               <div className="max-w-7xl mx-auto px-4 md:px-8 w-full">
                 <div className="max-w-2xl text-white">
@@ -476,7 +486,7 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
         <div className="flex gap-6">
           {/* Filters Sidebar */}
           {showFilters && (
-            <aside className="w-64 flex-shrink-0">
+            <aside className="w-64 shrink-0">
               <Card className="p-6 sticky top-24">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg flex items-center gap-2">
@@ -687,7 +697,7 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
               </div>
 
               {/* Voucher Code */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl">
+              <div className="bg-linear-to-r from-blue-50 to-purple-50 p-6 rounded-xl">
                 <p className="text-sm text-gray-600 mb-2">Mã voucher</p>
                 <div className="flex items-center gap-3">
                   <code className="text-2xl text-gray-900 font-mono flex-1">

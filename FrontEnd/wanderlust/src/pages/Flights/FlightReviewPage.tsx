@@ -1,13 +1,13 @@
+import { AlertCircle, Clock, Plane } from "lucide-react";
 import { useState } from "react";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
 import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Separator } from "../../components/ui/separator";
-import { Plane, Clock, AlertCircle } from "lucide-react";
 import type { PageType } from "../../MainApp";
 
 interface FlightReviewPageProps {
@@ -143,7 +143,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
             {/* Alert */}
             <Card className="p-4 bg-blue-50 border-blue-200">
               <div className="flex gap-3">
-                <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900">
                   <p className="mb-1">
                     <strong>Lưu ý quan trọng:</strong> Thông tin hành khách phải khớp chính xác 100% với giấy tờ tùy thân (CCCD/Hộ chiếu).

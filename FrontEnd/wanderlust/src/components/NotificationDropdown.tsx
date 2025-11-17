@@ -136,7 +136,7 @@ export function NotificationDropdown({ onNavigate, userRole = "user" }: Notifica
                       }`}
                     >
                       {/* Icon */}
-                      <div className="flex-shrink-0 mt-1">
+                      <div className="shrink-0 mt-1">
                         {getIcon(notification.type)}
                       </div>
 
@@ -147,7 +147,7 @@ export function NotificationDropdown({ onNavigate, userRole = "user" }: Notifica
                             {notification.title}
                           </h4>
                           {!notification.read && (
-                            <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-1" />
+                            <div className="w-2 h-2 bg-blue-600 rounded-full shrink-0 mt-1" />
                           )}
                         </div>
                         <p className="text-sm text-gray-600 mb-1 line-clamp-2">

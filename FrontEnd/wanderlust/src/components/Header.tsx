@@ -1,9 +1,14 @@
-import { ChevronDown, Menu, X, User, History, Heart, Settings, LogOut, Wallet, Globe, Check } from "lucide-react";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import { useState, useEffect } from "react";
+import { Check, ChevronDown, Globe, Heart, History, LogOut, Menu, Settings, User, Wallet, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
+import avatarMan from '../assets/images/avatarman.jpeg';
+import avatarOther from '../assets/images/avatarother.jpeg';
+import avatarWoman from '../assets/images/avatarwoman.jpeg';
+import '../i18n';
 import type { PageType } from "../MainApp";
 import { tokenService } from "../utils/api";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 
 interface HeaderProps {
   currentPage: PageType;
@@ -13,16 +18,37 @@ interface HeaderProps {
 }
 
 export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderProps) {
+  const { t, i18n } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState("vi");
   
   // Get user data from localStorage
   const userData = tokenService.getUserData();
   const displayName = userData ? `${userData.firstName}` : "User";
+  
+  // Get avatar based on gender
+  const getAvatarSrc = (userData: any): string => {
+    // 1. Ưu tiên avatar của người dùng nếu có
+    if (userData?.avatar) {
+      return userData.avatar;
+    }
+
+    // 2. Nếu không có, dùng avatar mặc định theo giới tính
+    const gender = userData?.gender?.toUpperCase();
+    switch (gender) {
+      case 'MALE':
+        return avatarMan;
+      case 'FEMALE':
+        return avatarWoman;
+      case 'OTHER':
+        return avatarOther;
+      default:
+        return avatarOther;
+    }
+  };
   
   // Derive login state from userRole prop
   const isLoggedIn = userRole !== null;
@@ -47,6 +73,19 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
     { code: "ja", name: "日本語", flag: "🇯🇵" },
     { code: "ko", name: "한국어", flag: "🇰🇷" },
   ];
+  
+  // Handle language change
+  const handleLanguageChange = (e: React.MouseEvent, langCode: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('🌐 Changing language to:', langCode);
+    setLanguageDropdownOpen(false);
+    i18n.changeLanguage(langCode).then(() => {
+      localStorage.setItem('i18nextLng', langCode);
+      console.log('✅ Language changed successfully to:', langCode);
+      console.log('📦 Stored in localStorage:', localStorage.getItem('i18nextLng'));
+    });
+  };
 
   // Scroll detection - 2 states: transparent at top, white when scrolled
   useEffect(() => {
@@ -57,6 +96,15 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Ensure language is synced on mount
+  useEffect(() => {
+    const storedLang = localStorage.getItem('i18nextLng');
+    if (storedLang && storedLang !== i18n.language) {
+      console.log('🔄 Syncing language from localStorage:', storedLang);
+      i18n.changeLanguage(storedLang);
+    }
+  }, [i18n]);
 
   // Determine active page category
   const getActiveSection = (): string => {
@@ -90,12 +138,12 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
   const activeSection = getActiveSection();
 
   const navItems = [
-    { id: "flights", label: "Vé máy bay", page: "flights" as PageType },
-    { id: "hotel", label: "Khách sạn", page: "hotel" as PageType },
-    { id: "visa", label: "Visa", page: "visa" as PageType },
-    { id: "car-rental", label: "Thuê xe", page: "car-rental" as PageType },
-    { id: "activities", label: "Vui chơi", page: "activities" as PageType },
-    { id: "travel-guide", label: "Cẩm nang", page: "travel-guide" as PageType },
+    { id: "flights", label: t('nav.flights'), page: "flights" as PageType },
+    { id: "hotel", label: t('nav.hotel'), page: "hotel" as PageType },
+    { id: "visa", label: t('nav.visa'), page: "visa" as PageType },
+    { id: "car-rental", label: t('nav.carRental'), page: "car-rental" as PageType },
+    { id: "activities", label: t('nav.activities'), page: "activities" as PageType },
+    { id: "travel-guide", label: t('nav.travelGuide'), page: "travel-guide" as PageType },
   ];
 
   // Determine if header should be white (scrolled)
@@ -107,7 +155,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
         fixed top-0 left-0 right-0 z-50 transition-all duration-300
         ${isWhiteHeader
           ? 'bg-white shadow-md border-b-2 border-gray-900'
-          : 'bg-gradient-to-b from-black/40 to-transparent backdrop-blur-sm'
+          : 'bg-linear-to-b from-black/40 to-transparent backdrop-blur-sm'
         }
       `}
     >
@@ -119,7 +167,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
             {/* Logo */}
             <h1 
               className={`
-                font-['Kadwa',_serif] cursor-pointer transition-all duration-300
+                font-['Kadwa',serif] cursor-pointer transition-all duration-300
                 ${isWhiteHeader 
                   ? 'text-gray-900' 
                   : 'text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]'
@@ -171,7 +219,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                     }
                   `}
                 >
-                  Thêm
+                  {t('nav.more')}
                   <ChevronDown className={`w-4 h-4 transition-transform ${moreDropdownOpen ? 'rotate-180' : ''}`} />
                   {(activeSection === "about" || activeSection === "promotions") && (
                     <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-0.5 rounded-full ${isWhiteHeader ? 'bg-blue-600' : 'bg-yellow-300'}`} />
@@ -195,7 +243,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                           ${activeSection === "promotions" ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}
                         `}
                       >
-                        Khuyến mãi
+                        {t('nav.promotions')}
                       </button>
                       <button
                         onClick={() => {
@@ -207,7 +255,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                           ${activeSection === "about" ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}
                         `}
                       >
-                        Về chúng tôi
+                        {t('nav.about')}
                       </button>
                     </div>
                   </>
@@ -220,7 +268,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
           <div className="flex items-center gap-2">
             {/* Language Switcher - Redesigned */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
                 className={`
                   flex items-center gap-2 px-3 py-2 rounded-md transition-all
@@ -230,14 +278,12 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                   }
                 `}
               >
-                <Globe className={`w-4 h-4 flex-shrink-0 ${isWhiteHeader ? 'text-gray-700' : 'text-white'}`} />
+                <Globe className={`w-4 h-4 shrink-0 ${isWhiteHeader ? 'text-gray-700' : 'text-white'}`} />
                 <span className={`${isWhiteHeader ? 'text-gray-900' : 'text-white'}`}>
-                  {languages.find(l => l.code === selectedLanguage)?.flag}
+                  {languages.find(l => l.code === i18n.language)?.flag}
                 </span>
-                <ChevronDown className={`w-4 h-4 flex-shrink-0 transition-transform ${languageDropdownOpen ? 'rotate-180' : ''} ${isWhiteHeader ? 'text-gray-700' : 'text-white'}`} />
-              </button>
-
-              {/* Language Dropdown */}
+                <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${languageDropdownOpen ? 'rotate-180' : ''} ${isWhiteHeader ? 'text-gray-700' : 'text-white'}`} />
+              </button>              {/* Language Dropdown */}
               {languageDropdownOpen && (
                 <>
                   <div 
@@ -248,22 +294,19 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                     {languages.map((lang) => (
                       <button
                         key={lang.code}
-                        onClick={() => {
-                          setSelectedLanguage(lang.code);
-                          setLanguageDropdownOpen(false);
-                        }}
+                        onClick={(e) => handleLanguageChange(e, lang.code)}
                         className={`
                           w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors flex items-center justify-between gap-3
-                          ${selectedLanguage === lang.code ? 'bg-blue-50' : ''}
+                          ${i18n.language === lang.code ? 'bg-blue-50' : ''}
                         `}
                       >
                         <div className="flex items-center gap-3">
                           <span className="text-xl">{lang.flag}</span>
-                          <span className={`${selectedLanguage === lang.code ? 'text-blue-600' : 'text-gray-700'}`}>
+                          <span className={`${i18n.language === lang.code ? 'text-blue-600' : 'text-gray-700'}`}>
                             {lang.name}
                           </span>
                         </div>
-                        {selectedLanguage === lang.code && (
+                        {i18n.language === lang.code && (
                           <Check className="w-4 h-4 text-blue-600" />
                         )}
                       </button>
@@ -290,7 +333,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                   >
                     <Wallet className={`w-4 h-4 ${isWhiteHeader ? 'text-blue-600' : 'text-white'}`} />
                     <div className="text-left">
-                      <p className={`text-[10px] leading-none ${isWhiteHeader ? 'text-gray-600' : 'text-white/80'}`}>Ví</p>
+                      <p className={`text-[10px] leading-none ${isWhiteHeader ? 'text-gray-600' : 'text-white/80'}`}>{t('auth.wallet')}</p>
                       <p className={`leading-tight ${isWhiteHeader ? 'text-gray-900' : 'text-white'}`}>{(walletBalance / 1000).toLocaleString('vi-VN')}k</p>
                     </div>
                   </button>
@@ -307,10 +350,15 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                         }
                       `}
                     >
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center ${scrolled ? 'bg-blue-100' : 'bg-white'}`}>
-                        <User className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <span className={`max-w-[80px] truncate ${scrolled ? 'text-gray-900' : 'text-white'}`}>{displayName}</span>
+                      <img 
+                        src={getAvatarSrc(userData)} 
+                        alt="User Avatar" 
+                        className="w-7 h-7 rounded-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = avatarOther;
+                        }}
+                      />
+                      <span className={`max-w-20 truncate ${scrolled ? 'text-gray-900' : 'text-white'}`}>{displayName}</span>
                       <ChevronDown className={`w-4 h-4 transition-transform ${profileDropdownOpen ? 'rotate-180' : ''} ${scrolled ? 'text-gray-900' : 'text-white'}`} />
                     </button>
 
@@ -329,7 +377,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                             className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors flex items-center gap-3 text-gray-700 text-sm"
                           >
                             <User className="w-4 h-4" />
-                            Thông tin cá nhân
+                            {t('auth.profile')}
                           </button>
                           <button
                             onClick={() => {
@@ -339,7 +387,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                             className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors flex items-center gap-3 text-gray-700 text-sm"
                           >
                             <History className="w-4 h-4" />
-                            Lịch sử đặt chỗ
+                            {t('auth.bookingHistory')}
                           </button>
                           <button
                             onClick={() => {
@@ -349,7 +397,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                             className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors flex items-center gap-3 text-gray-700 text-sm"
                           >
                             <Heart className="w-4 h-4" />
-                            Mục đã lưu
+                            {t('auth.savedItems')}
                           </button>
                           <button
                             onClick={() => {
@@ -360,7 +408,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                           >
                             <Wallet className="w-4 h-4" />
                             <div className="flex items-center justify-between flex-1">
-                              <span>Ví của tôi</span>
+                              <span>{t('auth.myWallet')}</span>
                               <Badge variant="secondary" className="ml-2 text-xs">
                                 {(walletBalance / 1000000).toFixed(1)}M
                               </Badge>
@@ -374,7 +422,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                             className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors flex items-center gap-3 text-gray-700 text-sm"
                           >
                             <Settings className="w-4 h-4" />
-                            Cài đặt
+                            {t('auth.settings')}
                           </button>
                           {(isAdmin || isVendor) && (
                             <>
@@ -390,7 +438,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                   </svg>
-                                  Admin Panel
+                                  {t('auth.adminPanel')}
                                 </button>
                               )}
                               {isVendor && (
@@ -404,7 +452,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                   </svg>
-                                  Vendor Panel
+                                  {t('auth.vendorPanel')}
                                 </button>
                               )}
                             </>
@@ -419,7 +467,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                             className="w-full text-left px-4 py-2 hover:bg-red-50 transition-colors flex items-center gap-3 text-red-600 text-sm"
                           >
                             <LogOut className="w-4 h-4" />
-                            Đăng xuất
+                            {t('auth.logout')}
                           </button>
                         </div>
                       </>
@@ -431,7 +479,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                 <>
                   <Button 
                     variant="outline" 
-                    className={`px-5 h-[36px] border-none ${
+                    className={`px-5 h-9 border-none ${
                       scrolled 
                         ? 'bg-gray-100 hover:bg-gray-200 text-blue-600' 
                         : 'bg-white hover:bg-gray-50 text-blue-600'
@@ -441,16 +489,16 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                       onNavigate("login");
                     }}
                   >
-                    Đăng nhập
+                    {t('auth.login')}
                   </Button>
                   <Button 
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 h-[36px]"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 h-9"
                     onClick={() => {
                       console.log("🔘 ĐĂNG KÝ button clicked!");
                       onNavigate("login");
                     }}
                   >
-                    Đăng ký
+                    {t('auth.register')}
                   </Button>
                 </>
               )}
@@ -524,7 +572,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                   }
                 `}
               >
-                Chương trình khuyến mãi
+                {t('nav.promotions')}
               </button>
               <button
                 onClick={() => {
@@ -543,7 +591,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                   }
                 `}
               >
-                Về chúng tôi
+                {t('nav.about')}
               </button>
             </div>
 
@@ -568,7 +616,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                     <div className="flex items-center gap-3">
                       <Wallet className={`w-5 h-5 ${scrolled ? 'text-blue-600' : 'text-white'}`} />
                       <div>
-                        <p className={`text-xs ${scrolled ? 'text-gray-600' : 'text-white/80'}`}>Ví của tôi</p>
+                        <p className={`text-xs ${scrolled ? 'text-gray-600' : 'text-white/80'}`}>{t('auth.myWallet')}</p>
                         <p className={`${scrolled ? 'text-gray-900' : 'text-white'}`}>{walletBalance.toLocaleString('vi-VN')}đ</p>
                       </div>
                     </div>
@@ -588,7 +636,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                     `}
                   >
                     <User className="w-5 h-5" />
-                    Thông tin cá nhân
+                    {t('auth.profile')}
                   </button>
                   <button
                     onClick={() => {
@@ -605,7 +653,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                     `}
                   >
                     <LogOut className="w-5 h-5" />
-                    Đăng xuất
+                    {t('auth.logout')}
                   </button>
                 </>
               ) : (
@@ -622,7 +670,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                       setMobileMenuOpen(false);
                     }}
                   >
-                    Đăng nhập
+                    {t('auth.login')}
                   </Button>
                   <Button 
                     className="bg-blue-600 hover:bg-blue-700 text-white w-full"
@@ -631,7 +679,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                       setMobileMenuOpen(false);
                     }}
                   >
-                    Đăng ký
+                    {t('auth.register')}
                   </Button>
                 </>
               )}

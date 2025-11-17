@@ -1,27 +1,27 @@
-import { useState, useEffect } from "react";
+import {
+    ArrowRight,
+    Calendar,
+    CheckCircle2,
+    Clock,
+    Flame,
+    Globe,
+    Mail,
+    MessageCircle,
+    Phone,
+    Shield,
+    Star,
+    TrendingUp,
+    Users
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import type { PageType } from "../../MainApp";
 import { Footer } from "../../components/Footer";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { 
-  Clock, 
-  CheckCircle2, 
-  Globe, 
-  Shield,
-  ArrowRight,
-  Star,
-  Users,
-  TrendingUp,
-  MessageCircle,
-  Phone,
-  Mail,
-  Calendar,
-  Flame
-} from "lucide-react";
-import type { PageType } from "../../MainApp";
 import { visaArticleApi } from "../../utils/api";
-import { toast } from "sonner";
 
 interface VisaLandingPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -61,7 +61,7 @@ const ArticleCard = ({ article, onNavigate }: { article: any; onNavigate: (page:
         alt={article.country}
         className="w-full h-full object-cover transition-transform group-hover:scale-110"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
       <div className="absolute top-4 left-4 flex gap-2">
         <Badge className="bg-gray-900/70 text-white border-0 backdrop-blur-sm">
           {article.category}
@@ -155,7 +155,7 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
           alt="Visa Services"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/50 to-black/70" />
         
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-white max-w-4xl px-4">
@@ -308,7 +308,7 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
       </div>
 
       {/* Why Choose Us */}
-      <div className="bg-gradient-to-br from-blue-50 to-blue-100 py-16">
+      <div className="bg-linear-to-br from-blue-50 to-blue-100 py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl mb-4">Tại sao chọn chúng tôi?</h2>
@@ -330,7 +330,7 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-600 py-16">
+      <div className="bg-linear-to-r from-orange-500 to-orange-600 py-16">
         <div className="max-w-4xl mx-auto px-4 text-center text-white">
           <h2 className="text-4xl mb-4">Bạn cần hỗ trợ làm visa?</h2>
           <p className="text-xl mb-8 text-orange-100">

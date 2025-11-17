@@ -286,7 +286,7 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
             {/* Special Requests */}
             <Card className="p-6">
               <div className="flex items-start gap-3 mb-4">
-                <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                 <div>
                   <h2 className="text-2xl text-gray-900 mb-1">Yêu cầu Đặc biệt</h2>
                   <p className="text-sm text-gray-600">
@@ -432,7 +432,7 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
                   </div>
                   <h3 className="text-lg text-gray-900 mb-2">{hotel.name}</h3>
                   <div className="flex items-start gap-2 text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
                     <span>{hotel.address}</span>
                   </div>
                 </div>
@@ -442,7 +442,7 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
                 {/* Booking Info */}
                 <div className="space-y-3 mb-6">
                   <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                    <Calendar className="w-5 h-5 text-gray-600 shrink-0" />
                     <div>
                       <p className="text-sm text-gray-600">Check-in</p>
                       <p className="text-gray-900">{booking.checkIn}</p>
@@ -450,7 +450,7 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                    <Calendar className="w-5 h-5 text-gray-600 shrink-0" />
                     <div>
                       <p className="text-sm text-gray-600">Check-out</p>
                       <p className="text-gray-900">{booking.checkOut}</p>
@@ -459,7 +459,7 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <Users className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                    <Users className="w-5 h-5 text-gray-600 shrink-0" />
                     <div>
                       <p className="text-sm text-gray-600">Loại phòng</p>
                       <p className="text-gray-900">

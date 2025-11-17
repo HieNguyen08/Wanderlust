@@ -1,19 +1,20 @@
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { Fuel, Users, Settings, Heart, Star, Shield, Clock, Zap, MapPin, Calendar as CalendarIcon, ChevronDown, Check } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
-import type { PageType } from "../../MainApp";
-import { Footer } from "../../components/Footer";
-import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
-import { Calendar } from "../../components/ui/calendar";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
-import { Checkbox } from "../../components/ui/checkbox";
-import { useState } from "react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { toast } from "sonner@2.0.3";
+import { Calendar as CalendarIcon, Check, ChevronDown, Clock, Fuel, Heart, Settings, Shield, Star, Users, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Footer } from "../../components/Footer";
+import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Calendar } from "../../components/ui/calendar";
+import { Card } from "../../components/ui/card";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
+import type { PageType } from "../../MainApp";
+import { carRentalApi, locationApi } from "../../utils/api";
 
 interface CarRentalLandingPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -53,6 +54,47 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
   const [dropoffTime, setDropoffTime] = useState<string>("09:00");
   const [sameLocation, setSameLocation] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
+
+  // Backend data state
+  const [popularCars, setPopularCars] = useState<any[]>([]);
+  const [loadingCars, setLoadingCars] = useState(true);
+  const [locations, setLocations] = useState<any[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(true);
+
+  // Load popular cars from backend
+  useEffect(() => {
+    const loadPopularCars = async () => {
+      try {
+        setLoadingCars(true);
+        const cars = await carRentalApi.getPopular();
+        setPopularCars(cars);
+      } catch (error) {
+        console.error('Failed to load popular cars:', error);
+        toast.error('Không thể tải danh sách xe phổ biến');
+      } finally {
+        setLoadingCars(false);
+      }
+    };
+
+    loadPopularCars();
+  }, []);
+
+  // Load locations from backend
+  useEffect(() => {
+    const loadLocations = async () => {
+      try {
+        setLoadingLocations(true);
+        const locs = await locationApi.getAll({ page: 0, size: 50 });
+        setLocations(locs.content || locs);
+      } catch (error) {
+        console.error('Failed to load locations:', error);
+      } finally {
+        setLoadingLocations(false);
+      }
+    };
+
+    loadLocations();
+  }, []);
 
   // Popover states
   const [pickupLocationOpen, setPickupLocationOpen] = useState(false);
@@ -116,59 +158,6 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
       onNavigate("car-list", { searchData: searchParams });
     }, 2000);
   };
-
-  const popularCars = [
-    {
-      id: 1,
-      name: "Koenigsegg",
-      type: "Sport",
-      image: "https://images.unsplash.com/photo-1742056024244-02a093dae0b5?w=800&h=600&fit=crop",
-      gasoline: "90L",
-      transmission: "Automatic",
-      capacity: "2 People",
-      price: 2500000,
-      liked: true,
-      rating: 4.9,
-    },
-    {
-      id: 2,
-      name: "Nissan GT - R",
-      type: "Sport",
-      image: "https://images.unsplash.com/photo-1731142582229-e0ee70302c02?w=800&h=600&fit=crop",
-      gasoline: "80L",
-      transmission: "Automatic",
-      capacity: "2 People",
-      price: 2000000,
-      originalPrice: 2500000,
-      liked: false,
-      rating: 4.8,
-    },
-    {
-      id: 3,
-      name: "Rolls-Royce",
-      type: "Sedan",
-      image: "https://images.unsplash.com/photo-1653047256226-5abbfa82f1d7?w=800&h=600&fit=crop",
-      gasoline: "70L",
-      transmission: "Automatic",
-      capacity: "4 People",
-      price: 2400000,
-      liked: false,
-      rating: 4.9,
-    },
-    {
-      id: 4,
-      name: "Nissan GT - R",
-      type: "Sport",
-      image: "https://images.unsplash.com/photo-1731142582229-e0ee70302c02?w=800&h=600&fit=crop",
-      gasoline: "80L",
-      transmission: "Automatic",
-      capacity: "2 People",
-      price: 2000000,
-      originalPrice: 2500000,
-      liked: false,
-      rating: 4.8,
-    },
-  ];
 
   const recommendedCars = [
     {
@@ -272,7 +261,7 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
       {/* Loading Overlay */}
       <SearchLoadingOverlay 
         isLoading={isSearching}
@@ -285,8 +274,8 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
         {/* Hero Banners */}
         <div className="grid md:grid-cols-2 gap-6 mb-12">
           {/* Banner 1 */}
-          <Card className="relative bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl overflow-hidden border-0 shadow-xl">
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-white/10" />
+          <Card className="relative bg-linear-to-br from-blue-500 to-blue-700 rounded-2xl overflow-hidden border-0 shadow-xl">
+            <div className="absolute inset-0 bg-linear-to-tr from-transparent to-white/10" />
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
             
@@ -324,8 +313,8 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
           </Card>
 
           {/* Banner 2 */}
-          <Card className="relative bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl overflow-hidden border-0 shadow-xl">
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-white/10" />
+          <Card className="relative bg-linear-to-br from-indigo-600 to-purple-700 rounded-2xl overflow-hidden border-0 shadow-xl">
+            <div className="absolute inset-0 bg-linear-to-tr from-transparent to-white/10" />
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
             
@@ -368,7 +357,7 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
           
           <div className="grid md:grid-cols-2 gap-6 relative">
             {/* Pick-up */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200">
+            <div className="bg-linear-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-white" />
@@ -532,7 +521,7 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:block">
               <button 
                 onClick={handleSwap}
-                className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110 active:scale-95"
+                className="w-14 h-14 bg-linear-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110 active:scale-95"
               >
                 <svg className="w-6 h-6 text-white rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
@@ -541,7 +530,7 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
             </div>
 
             {/* Drop-off */}
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200">
+            <div className="bg-linear-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-white" />
@@ -683,7 +672,7 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
           <div className="mt-6 flex justify-center">
             <Button 
               size="lg"
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               onClick={handleSearch}
             >
               Tìm kiếm xe
@@ -727,7 +716,7 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
           <Button 
             onClick={() => onNavigate("car-list")} 
             size="lg"
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
           >
             Xem tất cả xe →
           </Button>
@@ -772,7 +761,7 @@ function CarCard({ car, onNavigate }: { car: any; onNavigate: (page: PageType, d
           </button>
         </div>
 
-        <div className="mb-6 h-32 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 group-hover:scale-105 transition-transform">
+        <div className="mb-6 h-32 flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-4 group-hover:scale-105 transition-transform">
           <ImageWithFallback
             src={car.image}
             alt={car.name}
@@ -823,7 +812,7 @@ function CarCard({ car, onNavigate }: { car: any; onNavigate: (page: PageType, d
               });
             }} 
             size="sm"
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
           >
             Thuê ngay
           </Button>

@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
-import { HotelFilterSidebar } from "../../components/HotelFilterSidebar";
-import { HotelTopBar } from "../../components/HotelTopBar";
+import { useEffect, useState } from "react";
+import { toast } from "sonner@2.0.3";
+import { Footer } from "../../components/Footer";
 import { HotelCardGrid } from "../../components/HotelCardGrid";
 import { HotelCardList } from "../../components/HotelCardList";
-import { ArrowLeft } from "lucide-react";
+import { HotelFilterSidebar } from "../../components/HotelFilterSidebar";
+import { HotelTopBar } from "../../components/HotelTopBar";
 import { Button } from "../../components/ui/button";
-import { Footer } from "../../components/Footer";
-import type { PageType } from "../../MainApp";
+import { hotelApi } from "../../utils/api";
 
 interface Hotel {
   id: string;
@@ -144,8 +144,46 @@ export default function HotelListPage({
 }: HotelListPageProps) {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("popular");
-  const [hotels, setHotels] = useState<Hotel[]>(mockHotels);
-  const [filteredHotels, setFilteredHotels] = useState<Hotel[]>(mockHotels);
+  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [filteredHotels, setFilteredHotels] = useState<Hotel[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load hotels from backend
+  useEffect(() => {
+    const loadHotels = async () => {
+      try {
+        setLoading(true);
+        
+        // Build search criteria from searchParams
+        const criteria: any = {};
+        if (searchParams?.destination) {
+          // You might need to get locationId from destination name
+          criteria.locationName = searchParams.destination;
+        }
+        if (searchParams?.checkIn) {
+          criteria.checkIn = searchParams.checkIn;
+        }
+        if (searchParams?.checkOut) {
+          criteria.checkOut = searchParams.checkOut;
+        }
+        if (searchParams?.guests) {
+          criteria.guests = searchParams.guests.adults + searchParams.guests.children;
+          criteria.rooms = searchParams.guests.rooms;
+        }
+
+        const hotelsData = await hotelApi.search(criteria);
+        setHotels(hotelsData);
+        setFilteredHotels(hotelsData);
+      } catch (error: any) {
+        console.error('Failed to load hotels:', error);
+        toast.error('Không thể tải danh sách khách sạn');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadHotels();
+  }, [searchParams]);
 
   // Apply filters
   const handleFilterChange = (filters: any) => {
@@ -219,7 +257,7 @@ export default function HotelListPage({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}      {/* Hero Section with Search Bar */}
-      <div className="relative w-full bg-gradient-to-r from-blue-600 to-blue-700">
+      <div className="relative w-full bg-linear-to-r from-blue-600 to-blue-700">
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-30"
           style={{

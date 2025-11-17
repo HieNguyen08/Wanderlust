@@ -1,27 +1,32 @@
-import { useState, useEffect } from "react";
-import { Footer } from "../../components/Footer";
-import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
-import { Card } from "../../components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "../../components/ui/sheet";
-import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
-import { Label } from "../../components/ui/label";
-import { Checkbox } from "../../components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui/accordion";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
-import { Calendar } from "../../components/ui/calendar";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
-import { 
-  PlaneTakeoff, PlaneLanding, Calendar as CalendarIcon, Users, Search,
-  ArrowRightLeft, ChevronsUpDown, Check, Filter, ChevronDown, ChevronUp,
-  Clock, Plane, Luggage, RefreshCcw, Ban, Plus, Minus, X, Loader2
-} from "lucide-react";
-import type { PageType } from "../../MainApp";
-import { format, addDays, subDays } from "date-fns";
+import { addDays, format, subDays } from "date-fns";
 import { vi } from "date-fns/locale";
+import {
+    ArrowRightLeft,
+    Ban,
+    Calendar as CalendarIcon,
+    Check, Filter,
+    Loader2,
+    Luggage,
+    Plane,
+    PlaneLanding,
+    PlaneTakeoff,
+    RefreshCcw
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner@2.0.3";
+import { Footer } from "../../components/Footer";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui/accordion";
+import { Button } from "../../components/ui/button";
+import { Calendar } from "../../components/ui/calendar";
+import { Card } from "../../components/ui/card";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Label } from "../../components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "../../components/ui/sheet";
+import type { PageType } from "../../MainApp";
 import { flightApi } from "../../utils/api";
 
 interface SearchPageProps {
@@ -543,7 +548,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                   {/* Flight Info (Left) */}
                   <div className="col-span-5">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 bg-blue-100 rounded flex items-center justify-center shrink-0">
                         <Plane className="w-6 h-6 text-blue-600" />
                       </div>
                       <div className="flex-1">
@@ -698,7 +703,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                         >
                           <div className="p-4">
                             <div className="flex items-start gap-3 mb-4">
-                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 ${
+                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 ${
                                 selectedFare?.fare?.id === fare.id 
                                   ? 'border-blue-600 bg-blue-600' 
                                   : 'border-gray-300'

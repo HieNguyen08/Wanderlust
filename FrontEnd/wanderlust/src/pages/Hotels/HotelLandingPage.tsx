@@ -1,46 +1,39 @@
-import { useState, useEffect } from "react";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { Button } from "../../components/ui/button";
-import { Calendar as CalendarIcon, Users, Hotel, Search, MapPin, Repeat, ChevronDown, Check, Plus, Minus } from "lucide-react";
-import { Calendar } from "../../components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../components/ui/dialog";
-import { Footer } from "../../components/Footer";
-import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
-import type { PageType } from "../../MainApp";
-import { Star, TrendingUp, Gift, Sparkles, Award, Building2, Tag, Clock, AlertCircle, Copy } from "lucide-react";
-import { Badge } from "../../components/ui/badge";
-import { Card } from "../../components/ui/card";
-import { Separator } from "../../components/ui/separator";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { Award, Building2, Calendar as CalendarIcon, Check, ChevronDown, Clock, Gift, Hotel, MapPin, Minus, Plus, Repeat, Search, Sparkles, Star, Tag, TrendingUp, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner@2.0.3";
-import { promotionApi, userVoucherApi, tokenService } from "../../utils/api";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Footer } from "../../components/Footer";
+import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Calendar } from "../../components/ui/calendar";
+import { Card } from "../../components/ui/card";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
+import { Separator } from "../../components/ui/separator";
+import type { PageType } from "../../MainApp";
+import { locationApi, promotionApi, tokenService, userVoucherApi } from "../../utils/api";
 
 interface HotelLandingPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
-// Danh sách địa điểm
-const destinations = [
-  { code: "SGN", name: "TP. Hồ Chí Minh", country: "Việt Nam", hotels: "500+" },
-  { code: "HAN", name: "Hà Nội", country: "Việt Nam", hotels: "450+" },
-  { code: "DAD", name: "Đà Nẵng", country: "Việt Nam", hotels: "340+" },
-  { code: "PQC", name: "Phú Quốc", country: "Việt Nam", hotels: "250+" },
-  { code: "NHA", name: "Nha Trang", country: "Việt Nam", hotels: "280+" },
-  { code: "DLI", name: "Đà Lạt", country: "Việt Nam", hotels: "180+" },
-  { code: "HUE", name: "Huế", country: "Việt Nam", hotels: "120+" },
-  { code: "VTE", name: "Vũng Tàu", country: "Việt Nam", hotels: "160+" },
-  { code: "BKK", name: "Bangkok", country: "Thái Lan", hotels: "800+" },
-  { code: "HKT", name: "Phuket", country: "Thái Lan", hotels: "450+" },
-  { code: "SIN", name: "Singapore", country: "Singapore", hotels: "380+" },
-  { code: "MLE", name: "Maldives", country: "Maldives", hotels: "180+" },
-];
+interface Location {
+  id: string;
+  code?: string;
+  name: string;
+  country?: string;
+  hotels?: string;
+}
 
 // Search Form Component
 function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => void; isSearching: boolean }) {
-  const [destination, setDestination] = useState<typeof destinations[0] | null>(null);
+  const [destinations, setDestinations] = useState<Location[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(true);
+  const [destination, setDestination] = useState<Location | null>(null);
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [adults, setAdults] = useState(2);
@@ -52,6 +45,23 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [checkOutOpen, setCheckOutOpen] = useState(false);
   const [guestsOpen, setGuestsOpen] = useState(false);
+
+  // Load locations from backend
+  useEffect(() => {
+    const loadLocations = async () => {
+      try {
+        const response = await locationApi.getAll({ page: 0, size: 50, sortBy: 'popularity', sortDir: 'desc' });
+        const locationsData = response.content || response;
+        setDestinations(locationsData);
+      } catch (error) {
+        console.error('Failed to load locations:', error);
+        toast.error('Không thể tải danh sách địa điểm');
+      } finally {
+        setLoadingLocations(false);
+      }
+    };
+    loadLocations();
+  }, []);
 
   const handleSearch = () => {
     // Validation
@@ -82,7 +92,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
 
   return (
     <div className="w-full max-w-[1168px] mx-auto px-4 -mt-[140px] relative z-20">
-      <div className="bg-white rounded-[4px] border border-[#c8c8c8] p-6 shadow-lg">
+      <div className="bg-white rounded-lg border border-[#c8c8c8] p-6 shadow-lg">
         <h2 className="text-[24px] font-['Sansita'] font-bold text-black mb-4">
           Tìm kiếm khách sạn
         </h2>
@@ -91,7 +101,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
         <div className="mb-4">
           <Popover open={destinationOpen} onOpenChange={setDestinationOpen} modal={true}>
             <PopoverTrigger asChild>
-              <div className="bg-white border border-[#a1b0cc] rounded-[4px] p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition-colors">
+              <div className="bg-white border border-[#a1b0cc] rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition-colors">
                 <Hotel className="w-5 h-5 text-blue-600" />
                 <div className="flex-1">
                   <label className="text-xs text-gray-500 block">Thành phố, khách sạn, điểm đến</label>
@@ -146,7 +156,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
           {/* Check-in */}
           <Popover open={checkInOpen} onOpenChange={setCheckInOpen} modal={true}>
             <PopoverTrigger asChild>
-              <div className="bg-white border border-[#a1b0cc] rounded-[4px] p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition-colors">
+              <div className="bg-white border border-[#a1b0cc] rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition-colors">
                 <CalendarIcon className="w-5 h-5 text-blue-600" />
                 <div className="flex-1">
                   <label className="text-xs text-gray-500 block">Thời gian nhận phòng</label>
@@ -174,7 +184,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
 
           {/* Swap Icon */}
           <div className="flex items-center justify-center">
-            <div className="bg-white border border-[#a1b0cc] rounded-[4px] p-2 size-[40px] flex items-center justify-center">
+            <div className="bg-white border border-[#a1b0cc] rounded-lg p-2 size-10 flex items-center justify-center">
               <Repeat className="w-4 h-4 text-gray-600" />
             </div>
           </div>
@@ -182,8 +192,8 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
           {/* Check-out */}
           <Popover open={checkOutOpen} onOpenChange={setCheckOutOpen} modal={true}>
             <PopoverTrigger asChild>
-              <div className="bg-white border border-[#a1b0cc] rounded-[4px] p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition-colors">
-                <CalendarIcon className="w-5 h-5 text-blue-600" />
+              <div className="bg-white border border-[#a1b0cc] rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition-colors">
+                <Calendar className="w-5 h-5 text-gray-400" />
                 <div className="flex-1">
                   <label className="text-xs text-gray-500 block">Thời gian trả phòng</label>
                   <span className="text-sm text-[#7c8db0] font-['Sansita'] font-bold">
@@ -213,8 +223,8 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
         <div className="mb-4">
           <Popover open={guestsOpen} onOpenChange={setGuestsOpen}>
             <PopoverTrigger asChild>
-              <div className="bg-white border border-[#a1b0cc] rounded-[4px] p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition-colors">
-                <Users className="w-5 h-5 text-blue-600" />
+              <div className="bg-white border border-[#a1b0cc] rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition-colors">
+                <Users className="w-5 h-5 text-gray-400" />
                 <div className="flex-1">
                   <label className="text-xs text-gray-500 block">Số khách & số phòng</label>
                   <span className="text-sm text-[#7c8db0] font-['Sansita'] font-bold">
@@ -329,7 +339,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
           <Button
             onClick={handleSearch}
             disabled={isSearching}
-            className="bg-[#0194f3] hover:bg-blue-700 text-white px-6 py-3 rounded-[4px] flex items-center gap-2 disabled:opacity-50"
+            className="bg-[#0194f3] hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50"
           >
             <Search className="w-4 h-4" />
             {isSearching ? "Đang tìm..." : "Tìm kiếm"}
@@ -488,7 +498,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
             className="w-full h-full object-cover"
             src="https://images.unsplash.com/photo-1558117338-aa433feb1c62?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cm9waWNhbCUyMGJlYWNoJTIwcmVzb3J0fGVufDF8fHx8MTc2MDEwNTg3M3ww&ixlib=rb-4.1.0&q=80&w=1080"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
+          <div className="absolute inset-0 bg-linear-to-b from-black/50 via-black/30 to-black/60" />
         </div>
 
         {/* Hero Text */}
@@ -541,7 +551,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
                       className="w-full h-full object-cover transition-transform group-hover:scale-110"
                       src={offer.image || "https://images.unsplash.com/photo-1731080647322-f9cf691d40ab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBob3RlbCUyMHBvb2wlMjByZXNvcnR8ZW58MXx8fHwxNzYxOTkwMjk4fDA&ixlib=rb-4.1.0&q=80&w=1080"}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
                     <Badge className="absolute top-4 right-4 bg-red-500 text-white border-0">
                       {offer.status === 'active' ? 'HOT' : 'NEW'}
                     </Badge>
@@ -581,7 +591,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
                     className="w-full h-full object-cover transition-transform group-hover:scale-110"
                     src={dest.image}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4 text-white">
                     <h3 className="text-2xl mb-1">{dest.name}</h3>
                     <div className="flex items-center gap-1 mb-2">
@@ -618,7 +628,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
                     className="w-full h-full object-cover transition-transform group-hover:scale-110"
                     src={dest.image}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4 text-white">
                     <h3 className="text-2xl mb-1">{dest.name}</h3>
                     <div className="flex items-center gap-1 mb-2">
@@ -637,7 +647,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
         </section>
 
         {/* Download App */}
-        <section className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 border border-orange-200">
+        <section className="bg-linear-to-br from-orange-50 to-amber-50 rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 border border-orange-200">
           <div className="space-y-4 flex-1">
             <div className="flex items-center gap-2">
               <Award className="w-6 h-6 text-orange-600" />
@@ -674,7 +684,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
             ].map((question, i) => (
               <div
                 key={i}
-                className="bg-white border border-[#a1b0cc] rounded-[4px] p-4 hover:border-blue-400 transition-colors cursor-pointer"
+                className="bg-white border border-[#a1b0cc] rounded-lg p-4 hover:border-blue-400 transition-colors cursor-pointer"
               >
                 <p className="text-[16px] font-['Arvo'] text-black">{question}</p>
               </div>
@@ -705,7 +715,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
                   alt={selectedVoucher.title}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent" />
                 <Badge className="absolute top-4 right-4 bg-red-500 text-white border-0">
                   {selectedVoucher.status === 'active' ? 'HOT' : 'NEW'}
                 </Badge>
@@ -721,7 +731,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
               </div>
 
               {/* Voucher Code */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
+              <div className="bg-linear-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-sm text-gray-600 mb-1">Mã voucher</div>
@@ -784,7 +794,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
 
               {/* Action Button */}
               <Button
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="w-full bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 size="lg"
                 onClick={() => handleSaveVoucher(selectedVoucher)}
                 disabled={savedVouchers.includes(selectedVoucher.code) || savingVoucher}

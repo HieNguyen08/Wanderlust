@@ -1,27 +1,38 @@
-import { useState, useRef, useEffect } from "react";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
-import { Calendar } from "../../components/ui/calendar";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../components/ui/dialog";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../../components/ui/carousel";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui/accordion";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import {
+    ArrowRightLeft,
+    Calendar as CalendarIcon,
+    Check, ChevronsUpDown,
+    Copy,
+    Globe,
+    Headphones,
+    Minus,
+    PlaneLanding,
+    PlaneTakeoff,
+    Plus,
+    Search,
+    Shield,
+    Sparkles,
+    Tag,
+    Users
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner@2.0.3";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
-import { 
-  PlaneTakeoff, PlaneLanding, Calendar as CalendarIcon, Users, Search,
-  ArrowRightLeft, Check, ChevronsUpDown, Plus, Minus, Tag, Copy,
-  Shield, Clock, Headphones, Globe, Star, Sparkles
-} from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui/accordion";
+import { Button } from "../../components/ui/button";
+import { Calendar } from "../../components/ui/calendar";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../../components/ui/carousel";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Label } from "../../components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import type { PageType } from "../../MainApp";
-import { toast } from "sonner@2.0.3";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
-import { promotionApi, userVoucherApi, tokenService } from "../../utils/api";
+import { promotionApi, tokenService, userVoucherApi } from "../../utils/api";
 
 interface FlightsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -237,7 +248,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
           className="absolute inset-0 w-full h-full object-cover"
           src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&h=700&fit=crop"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/50 to-black/70" />
 
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 md:px-8">
           <h1 className="text-white text-4xl md:text-5xl text-center mb-8 drop-shadow-2xl max-w-4xl">
@@ -276,7 +287,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                       aria-expanded={openFrom}
                       className="w-full justify-start h-14 border-2 hover:border-blue-500 transition-colors"
                     >
-                      <PlaneTakeoff className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0" />
+                      <PlaneTakeoff className="w-5 h-5 text-blue-600 mr-2 shrink-0" />
                       <div className="flex flex-col items-start flex-1 min-w-0">
                         {fromAirport ? (
                           <>
@@ -345,7 +356,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                       aria-expanded={openTo}
                       className="w-full justify-start h-14 border-2 hover:border-blue-500 transition-colors"
                     >
-                      <PlaneLanding className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0" />
+                      <PlaneLanding className="w-5 h-5 text-blue-600 mr-2 shrink-0" />
                       <div className="flex flex-col items-start flex-1 min-w-0">
                         {toAirport ? (
                           <>
@@ -400,7 +411,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                       variant="outline"
                       className="w-full justify-start h-14 border-2 hover:border-blue-500 transition-colors"
                     >
-                      <CalendarIcon className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0" />
+                      <CalendarIcon className="w-5 h-5 text-blue-600 mr-2 shrink-0" />
                       <div className="flex flex-col items-start flex-1 min-w-0">
                         <span className="text-xs text-gray-500">Ngày đi</span>
                         <span className="truncate w-full text-left">
@@ -429,7 +440,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                         variant="outline"
                         className="w-full justify-start h-14 border-2 hover:border-blue-500 transition-colors"
                       >
-                        <CalendarIcon className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0" />
+                        <CalendarIcon className="w-5 h-5 text-blue-600 mr-2 shrink-0" />
                         <div className="flex flex-col items-start flex-1 min-w-0">
                           <span className="text-xs text-gray-500">Ngày về</span>
                           <span className="truncate w-full text-left">
@@ -461,7 +472,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                       variant="outline"
                       className="w-full justify-start h-14 border-2 hover:border-blue-500 transition-colors"
                     >
-                      <Users className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0" />
+                      <Users className="w-5 h-5 text-blue-600 mr-2 shrink-0" />
                       <div className="flex flex-col items-start flex-1 min-w-0">
                         <span className="text-xs text-gray-500">Hành khách & Hạng</span>
                         <span className="truncate w-full text-left">
@@ -705,7 +716,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   src={flight.image}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-3 left-3 right-3 text-white">
                   <div className="flex items-center justify-center gap-2 mb-1">
                     <span className="text-lg">{flight.from}</span>
@@ -867,7 +878,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                 <p className="text-gray-600">{selectedVoucher.description}</p>
               </div>
 
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg">
+              <div className="bg-linear-to-r from-blue-50 to-purple-50 p-6 rounded-lg">
                 <p className="text-sm text-gray-600 mb-2">Mã voucher</p>
                 <div className="flex items-center gap-3">
                   <code className="text-2xl font-mono flex-1">{selectedVoucher.code}</code>

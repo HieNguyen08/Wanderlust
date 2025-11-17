@@ -1,24 +1,23 @@
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  Users, 
-  Star, 
-  Check, 
-  ChevronDown,
-  Share2,
-  Heart,
-  Shield,
-  RefreshCw,
-  Ticket
+import {
+    Calendar,
+    Check,
+    Clock,
+    Heart,
+    MapPin,
+    RefreshCw,
+    Share2,
+    Shield,
+    Star,
+    Ticket,
+    Users
 } from "lucide-react";
+import { useState } from "react";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Footer } from "../../components/Footer";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
 import type { PageType } from "../../MainApp";
-import { useState } from "react";
-import { Footer } from "../../components/Footer";
 
 interface ActivityDetailPageProps {
   activity: {
@@ -195,7 +194,7 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
               <div className="grid md:grid-cols-2 gap-3">
                 {highlights.map((highlight, index) => (
                   <div key={index} className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
                     <span className="text-gray-700">{highlight}</span>
                   </div>
                 ))}

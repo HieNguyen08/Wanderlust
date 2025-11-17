@@ -1,5 +1,5 @@
+import { Car, FileCheck, Hotel, PartyPopper, Plane } from "lucide-react";
 import { motion } from "motion/react";
-import { Plane, Hotel, Car, PartyPopper, FileCheck } from "lucide-react";
 
 interface SearchLoadingOverlayProps {
   isLoading: boolean;
@@ -72,7 +72,7 @@ export function SearchLoadingOverlay({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md"
+      className="fixed inset-0 z-9999 flex items-center justify-center bg-black/60 backdrop-blur-md"
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
@@ -93,7 +93,7 @@ export function SearchLoadingOverlay({
           
           {/* Center icon with bounce */}
           <motion.div
-            className={`w-[100px] h-[100px] bg-gradient-to-br ${colors.bg} ${colors.bgTo} rounded-full flex items-center justify-center shadow-lg`}
+            className={`w-[100px] h-[100px] bg-linear-to-br ${colors.bg} ${colors.bgTo} rounded-full flex items-center justify-center shadow-lg`}
             animate={{ 
               y: [0, -8, 0],
               scale: [1, 1.05, 1]
@@ -151,7 +151,7 @@ export function SearchLoadingOverlay({
         {/* Progress bar */}
         <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
           <motion.div
-            className={`h-full bg-gradient-to-r ${colors.progress} rounded-full`}
+            className={`h-full bg-linear-to-r ${colors.progress} rounded-full`}
             initial={{ width: "0%" }}
             animate={{ width: "100%" }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}

@@ -1,24 +1,32 @@
+import {
+    CheckCircle,
+    Clock,
+    Dumbbell,
+    Eye,
+    Heart, MapPin,
+    ParkingCircle,
+    Share2,
+    Star,
+    Utensils,
+    Wifi,
+    X
+} from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { ProfileLayout } from "../../components/ProfileLayout";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "../../components/ui/dialog";
-import { Badge } from "../../components/ui/badge";
-import { 
-  Heart, MapPin, Star, Trash2, Share2, 
-  Eye, Calendar, Clock, Users, Wifi,
-  Coffee, Utensils, Dumbbell, ParkingCircle,
-  CheckCircle, X
-} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import type { PageType } from "../../MainApp";
 
 interface SavedItemsPageProps {
@@ -47,6 +55,7 @@ interface SavedItem {
 }
 
 export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("all");
   const [selectedItem, setSelectedItem] = useState<SavedItem | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
@@ -215,9 +224,9 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
 
   const getTypeLabel = (type: string) => {
     switch(type) {
-      case "hotel": return "Khách sạn";
-      case "activity": return "Hoạt động";
-      case "destination": return "Điểm đến";
+      case "hotel": return t('savedItems.hotel', 'Khách sạn');
+      case "activity": return t('savedItems.activity', 'Hoạt động');
+      case "destination": return t('savedItems.destination', 'Điểm đến');
       default: return "";
     }
   };
@@ -227,9 +236,9 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">Mục đã lưu</h1>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('savedItems.title')}</h1>
           <p className="text-gray-600">
-            Quản lý các địa điểm và dịch vụ bạn đã yêu thích ({savedItems.length} mục)
+            {t('savedItems.subtitle')} ({savedItems.length} {t('savedItems.items', 'mục')})
           </p>
         </div>
 
@@ -237,22 +246,22 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
         <Card className="p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid grid-cols-4 w-full max-w-xl">
-              <TabsTrigger value="all">Tất cả ({savedItems.length})</TabsTrigger>
-              <TabsTrigger value="hotel">Khách sạn ({savedItems.filter(i => i.type === 'hotel').length})</TabsTrigger>
-              <TabsTrigger value="activity">Hoạt động ({savedItems.filter(i => i.type === 'activity').length})</TabsTrigger>
-              <TabsTrigger value="destination">Điểm đến ({savedItems.filter(i => i.type === 'destination').length})</TabsTrigger>
+              <TabsTrigger value="all">{t('savedItems.all')} ({savedItems.length})</TabsTrigger>
+              <TabsTrigger value="hotel">{t('savedItems.hotel', 'Khách sạn')} ({savedItems.filter(i => i.type === 'hotel').length})</TabsTrigger>
+              <TabsTrigger value="activity">{t('savedItems.activity', 'Hoạt động')} ({savedItems.filter(i => i.type === 'activity').length})</TabsTrigger>
+              <TabsTrigger value="destination">{t('savedItems.destination', 'Điểm đến')} ({savedItems.filter(i => i.type === 'destination').length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">
               {filteredItems.length === 0 ? (
                 <div className="text-center py-12">
                   <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg mb-2">Chưa có mục nào được lưu</p>
+                  <p className="text-gray-500 text-lg mb-2">{t('savedItems.noItemsTitle')}</p>
                   <p className="text-gray-400 mb-6">
-                    Lưu các địa điểm và dịch vụ yêu thích để dễ dàng tìm lại sau này
+                    {t('savedItems.noItemsDesc', 'Lưu các địa điểm và dịch vụ yêu thích để dễ dàng tìm lại sau này')}
                   </p>
                   <Button onClick={() => onNavigate("home")}>
-                    Khám phá ngay
+                    {t('savedItems.exploreNow')}
                   </Button>
                 </div>
               ) : (
@@ -296,7 +305,7 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
                               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                               <span className="text-sm">{item.rating}</span>
                             </div>
-                            <span className="text-sm text-gray-600">({item.reviews} đánh giá)</span>
+                            <span className="text-sm text-gray-600">({item.reviews} {t('savedItems.reviews', 'đánh giá')})</span>
                           </div>
                         )}
 
@@ -307,12 +316,12 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
                                 {item.price.toLocaleString('vi-VN')}đ
                               </p>
                               {item.type === "hotel" && (
-                                <p className="text-sm text-gray-600">/đêm</p>
+                                <p className="text-sm text-gray-600">{t('savedItems.perNight')}</p>
                               )}
                             </div>
                           ) : (
                             <div className="text-sm text-gray-600">
-                              Đã lưu {new Date(item.savedDate).toLocaleDateString('vi-VN')}
+                              {t('savedItems.savedOn', 'Đã lưu')} {new Date(item.savedDate).toLocaleDateString('vi-VN')}
                             </div>
                           )}
 
@@ -329,7 +338,7 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
                               onClick={() => handleViewDetails(item)}
                             >
                               <Eye className="w-4 h-4 mr-1" />
-                              Xem chi tiết
+                              {t('savedItems.viewDetails', 'Xem chi tiết')}
                             </Button>
                           </div>
                         </div>
@@ -393,17 +402,17 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
                       <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                       <span className="text-xl">{selectedItem.rating}</span>
                     </div>
-                    <span className="text-gray-600">({selectedItem.reviews} đánh giá)</span>
+                    <span className="text-gray-600">({selectedItem.reviews} {t('savedItems.reviews', 'đánh giá')})</span>
                   </div>
                 )}
                 {selectedItem.price && (
                   <div className="text-right">
-                    <p className="text-sm text-gray-600">Giá từ</p>
+                    <p className="text-sm text-gray-600">{t('savedItems.priceFrom', 'Giá từ')}</p>
                     <p className="text-3xl text-blue-600">
                       {selectedItem.price.toLocaleString('vi-VN')}đ
                     </p>
                     {selectedItem.type === "hotel" && (
-                      <p className="text-sm text-gray-600">/đêm</p>
+                      <p className="text-sm text-gray-600">{t('savedItems.perNight')}</p>
                     )}
                   </div>
                 )}
@@ -411,14 +420,14 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
 
               {/* Description */}
               <div>
-                <h4 className="mb-2 text-gray-900">Mô tả</h4>
+                <h4 className="mb-2 text-gray-900">{t('savedItems.description', 'Mô tả')}</h4>
                 <p className="text-gray-700 leading-relaxed">{selectedItem.description}</p>
               </div>
 
               {/* Hotel Amenities */}
               {selectedItem.amenities && selectedItem.amenities.length > 0 && (
                 <div>
-                  <h4 className="mb-3 text-gray-900">Tiện nghi</h4>
+                  <h4 className="mb-3 text-gray-900">{t('savedItems.amenities')}</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {selectedItem.amenities.map((amenity, idx) => {
                       const icons: Record<string, any> = {
@@ -451,7 +460,7 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
                 <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-lg">
                   <Clock className="w-5 h-5 text-gray-600" />
                   <div>
-                    <p className="text-sm text-gray-600">Thời gian</p>
+                    <p className="text-sm text-gray-600">{t('savedItems.duration')}</p>
                     <p className="text-gray-900">{selectedItem.duration}</p>
                   </div>
                 </div>
@@ -464,12 +473,12 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
                     <Card className="p-4 bg-green-50 border-green-200">
                       <h4 className="mb-3 flex items-center gap-2 text-green-900">
                         <CheckCircle className="w-5 h-5" />
-                        Bao gồm
+                        {t('savedItems.included')}
                       </h4>
                       <ul className="space-y-2">
                         {selectedItem.included.map((item, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-sm text-green-900">
-                            <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" />
                             <span>{item}</span>
                           </li>
                         ))}
@@ -481,12 +490,12 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
                     <Card className="p-4 bg-red-50 border-red-200">
                       <h4 className="mb-3 flex items-center gap-2 text-red-900">
                         <X className="w-5 h-5" />
-                        Không bao gồm
+                        {t('savedItems.notIncluded')}
                       </h4>
                       <ul className="space-y-2">
                         {selectedItem.excluded.map((item, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-sm text-red-900">
-                            <X className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <X className="w-4 h-4 mt-0.5 shrink-0" />
                             <span>{item}</span>
                           </li>
                         ))}
@@ -499,11 +508,11 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
               {/* Destination Highlights */}
               {selectedItem.highlights && selectedItem.highlights.length > 0 && (
                 <div>
-                  <h4 className="mb-3 text-gray-900">Điểm nổi bật</h4>
+                  <h4 className="mb-3 text-gray-900">{t('savedItems.highlights')}</h4>
                   <ul className="space-y-3">
                     {selectedItem.highlights.map((highlight, idx) => (
                       <li key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                        <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
                         <span className="text-gray-700">{highlight}</span>
                       </li>
                     ))}
@@ -518,12 +527,12 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
                     {selectedItem.availability ? (
                       <>
                         <CheckCircle className="w-5 h-5 text-green-600" />
-                        <span className="text-green-900">Còn chỗ - Đặt ngay</span>
+                        <span className="text-green-900">{t('savedItems.available')}</span>
                       </>
                     ) : (
                       <>
                         <X className="w-5 h-5 text-red-600" />
-                        <span className="text-red-900">Hết chỗ</span>
+                        <span className="text-red-900">{t('savedItems.soldOut')}</span>
                       </>
                     )}
                   </div>
@@ -539,7 +548,7 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
               className="gap-2"
             >
               <Heart className="w-4 h-4 fill-red-500 text-red-500" />
-              Bỏ lưu
+              {t('savedItems.unsave')}
             </Button>
             <Button 
               variant="outline"
@@ -547,7 +556,7 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
               className="gap-2"
             >
               <Share2 className="w-4 h-4" />
-              Chia sẻ
+              {t('savedItems.share')}
             </Button>
             <Button onClick={() => {
               // Navigate to appropriate page based on type
@@ -558,7 +567,7 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
               }
               setIsDetailDialogOpen(false);
             }}>
-              Đặt ngay
+              {t('savedItems.bookNow')}
             </Button>
           </DialogFooter>
         </DialogContent>

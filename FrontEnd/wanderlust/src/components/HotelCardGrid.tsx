@@ -63,7 +63,7 @@ export function HotelCardGrid({ hotel, onSelect }: HotelCardGridProps) {
         <div className="space-y-1">
           <p className="text-sm font-semibold">Địa chỉ:</p>
           <div className="flex items-start gap-1">
-            <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+            <MapPin className="w-3 h-3 text-gray-400 mt-0.5 shrink-0" />
             <p className="text-xs text-gray-600 line-clamp-2">
               {hotel.address}
             </p>

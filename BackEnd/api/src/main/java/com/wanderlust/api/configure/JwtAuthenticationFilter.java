@@ -52,6 +52,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             userEmail = jwtService.extractUsername(jwt); 
         } catch (Exception e) {
             // Token lỗi/hết hạn
+            System.err.println("JWT processing error: " + e.getMessage());
+            e.printStackTrace();
             filterChain.doFilter(request, response);
             return;
         }

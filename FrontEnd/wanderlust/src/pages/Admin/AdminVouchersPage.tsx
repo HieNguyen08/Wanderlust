@@ -1,29 +1,30 @@
-import { useState } from "react";
-import { AdminLayout } from "../../components/AdminLayout";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
-import { Plus, Search, Edit, Trash2, Copy, Pause, Play, Eye } from "lucide-react";
+import { Copy, Eye, Pause, Play, Plus, Search, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner@2.0.3";
 import { CreateVoucherDialog } from "../../components/admin/CreateVoucherDialog";
 import { VoucherDetailDialog } from "../../components/admin/VoucherDetailDialog";
+import { AdminLayout } from "../../components/AdminLayout";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../../components/ui/select";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../../components/ui/table";
 import type { PageType } from "../../MainApp";
-import { toast } from "sonner@2.0.3";
+import { promotionApi } from "../../utils/api";
 
 interface AdminVouchersPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -36,118 +37,44 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
+  const [vouchers, setVouchers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock vouchers data
-  const [vouchers, setVouchers] = useState([
-    {
-      id: 1,
-      code: "BLACKFRIDAY",
-      type: "PERCENTAGE",
-      value: 20,
-      maxDiscount: 500000,
-      minSpend: 1000000,
-      startDate: "2025-11-01",
-      endDate: "2025-11-30",
-      totalUsesLimit: 1000,
-      userUseLimit: 1,
-      totalUsed: 342,
-      createdBy: "ADMIN",
-      createdById: "admin_001",
-      status: "ACTIVE",
-      conditions: [
-        { type: "CATEGORY", value: "activities" }
-      ]
-    },
-    {
-      id: 2,
-      code: "WELCOME100K",
-      type: "FIXED_AMOUNT",
-      value: 100000,
-      maxDiscount: null,
-      minSpend: 500000,
-      startDate: "2025-01-01",
-      endDate: "2025-12-31",
-      totalUsesLimit: null,
-      userUseLimit: 1,
-      totalUsed: 1253,
-      createdBy: "ADMIN",
-      createdById: "admin_001",
-      status: "ACTIVE",
-      conditions: []
-    },
-    {
-      id: 3,
-      code: "HOTEL50",
-      type: "PERCENTAGE",
-      value: 10,
-      maxDiscount: 300000,
-      minSpend: 2000000,
-      startDate: "2025-10-01",
-      endDate: "2025-10-31",
-      totalUsesLimit: 500,
-      userUseLimit: 1,
-      totalUsed: 489,
-      createdBy: "ADMIN",
-      createdById: "admin_001",
-      status: "ACTIVE",
-      conditions: [
-        { type: "CATEGORY", value: "hotels" }
-      ]
-    },
-    {
-      id: 4,
-      code: "VENDOR_ABC_SALE",
-      type: "PERCENTAGE",
-      value: 15,
-      maxDiscount: 200000,
-      minSpend: 800000,
-      startDate: "2025-11-10",
-      endDate: "2025-11-20",
-      totalUsesLimit: 200,
-      userUseLimit: 1,
-      totalUsed: 45,
-      createdBy: "VENDOR",
-      createdById: "vendor_abc",
-      status: "ACTIVE",
-      conditions: [
-        { type: "VENDOR", value: "vendor_abc" }
-      ]
-    },
-    {
-      id: 5,
-      code: "SUMMER2025",
-      type: "PERCENTAGE",
-      value: 25,
-      maxDiscount: 1000000,
-      minSpend: 3000000,
-      startDate: "2025-06-01",
-      endDate: "2025-08-31",
-      totalUsesLimit: 2000,
-      userUseLimit: 1,
-      totalUsed: 0,
-      createdBy: "ADMIN",
-      createdById: "admin_001",
-      status: "PAUSED",
-      conditions: []
-    },
-    {
-      id: 6,
-      code: "EXPIRED_CODE",
-      type: "FIXED_AMOUNT",
-      value: 50000,
-      maxDiscount: null,
-      minSpend: 0,
-      startDate: "2024-01-01",
-      endDate: "2024-12-31",
-      totalUsesLimit: 100,
-      userUseLimit: 1,
-      totalUsed: 98,
-      createdBy: "ADMIN",
-      createdById: "admin_001",
-      status: "EXPIRED",
-      conditions: []
-    },
-  ]);
+  useEffect(() => {
+    loadVouchers();
+  }, []);
+
+  const loadVouchers = async () => {
+    try {
+      setLoading(true);
+      const data = await promotionApi.getAllPromotions();
+      // Map backend Promotion to frontend voucher format
+      const mappedVouchers = data.map((promo: any) => ({
+        id: promo.id || promo.promotionId,
+        code: promo.code,
+        type: promo.discountType || 'PERCENTAGE',
+        value: promo.discountValue || promo.value || 0,
+        maxDiscount: promo.maxDiscountAmount || promo.maxDiscount,
+        minSpend: promo.minOrderValue || promo.minSpend || 0,
+        startDate: promo.startDate,
+        endDate: promo.endDate,
+        totalUsesLimit: promo.usageLimit || promo.totalUsesLimit,
+        userUseLimit: promo.usagePerUser || promo.userUseLimit || 1,
+        totalUsed: promo.usedCount || promo.totalUsed || 0,
+        createdBy: 'ADMIN',
+        createdById: 'admin_001',
+        status: promo.isActive ? 'ACTIVE' : 'INACTIVE',
+        conditions: [],
+      }));
+      setVouchers(mappedVouchers);
+    } catch (error) {
+      console.error('Error loading vouchers:', error);
+      toast.error('Không thể tải danh sách voucher');
+      // Keep using mock data if API fails
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredVouchers = vouchers.filter((voucher) => {
     const matchesSearch = voucher.code.toLowerCase().includes(searchQuery.toLowerCase());
@@ -156,15 +83,23 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  const handleToggleStatus = (voucherId: number) => {
-    setVouchers(vouchers.map(v => {
-      if (v.id === voucherId) {
-        const newStatus = v.status === "ACTIVE" ? "PAUSED" : "ACTIVE";
-        toast.success(`Voucher ${v.code} đã ${newStatus === "ACTIVE" ? "kích hoạt" : "tạm dừng"}`);
-        return { ...v, status: newStatus };
-      }
-      return v;
-    }));
+  const handleToggleStatus = async (voucherId: number) => {
+    const voucher = vouchers.find(v => v.id === voucherId);
+    if (!voucher) return;
+    
+    try {
+      const newStatus = voucher.status === "ACTIVE" ? "PAUSED" : "ACTIVE";
+      await promotionApi.updatePromotion(voucher.id, {
+        ...voucher,
+        isActive: newStatus === "ACTIVE",
+        status: newStatus
+      });
+      toast.success(`Voucher ${voucher.code} đã ${newStatus === "ACTIVE" ? "kích hoạt" : "tạm dừng"}`);
+      loadVouchers(); // Reload data
+    } catch (error) {
+      console.error('Error toggling voucher status:', error);
+      toast.error('Không thể cập nhật trạng thái voucher');
+    }
   };
 
   const handleDuplicateVoucher = (voucher: any) => {
@@ -179,11 +114,19 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
     toast.success(`Đã nhân bản voucher ${voucher.code}`);
   };
 
-  const handleDeleteVoucher = (voucherId: number) => {
+  const handleDeleteVoucher = async (voucherId: number) => {
     const voucher = vouchers.find(v => v.id === voucherId);
-    if (voucher && confirm(`Bạn có chắc muốn xóa voucher ${voucher.code}?`)) {
-      setVouchers(vouchers.filter(v => v.id !== voucherId));
-      toast.success("Đã xóa voucher");
+    if (!voucher) return;
+    
+    if (confirm(`Bạn có chắc muốn xóa voucher ${voucher.code}?`)) {
+      try {
+        await promotionApi.deletePromotion(voucher.id);
+        toast.success("Đã xóa voucher");
+        loadVouchers(); // Reload data
+      } catch (error) {
+        console.error('Error deleting voucher:', error);
+        toast.error('Không thể xóa voucher');
+      }
     }
   };
 

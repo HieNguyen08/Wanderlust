@@ -1,1 +1,26 @@
-{}
+{
+  "tailwindCSS.experimental.configFile": "FrontEnd/wanderlust/tailwind.config.ts",
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript",
+    "typescriptreact": "javascript"
+  },
+  "tailwindCSS.validate": true,
+  "css.validate": false,
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "typescript.tsdk": "FrontEnd/wanderlust/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true
+  }
+}

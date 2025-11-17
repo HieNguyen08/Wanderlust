@@ -1,19 +1,23 @@
-import { VendorLayout } from "../../components/VendorLayout";
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
-import {
-  Download, TrendingUp, TrendingDown, DollarSign,
-  BookOpen, Star, Calendar
+    BookOpen,
+    DollarSign,
+    Download,
+    Star,
+    TrendingDown,
+    TrendingUp
 } from "lucide-react";
 import type { PageType } from "../../MainApp";
+import { VendorLayout } from "../../components/VendorLayout";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../../components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 
 interface VendorReportsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -148,7 +152,7 @@ export default function VendorReportsPage({
                     <div className="w-24 text-sm text-gray-600">{data.month}</div>
                     <div className="flex-1 relative h-12 bg-gray-100 rounded-lg overflow-hidden">
                       <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-end px-4"
+                        className="absolute inset-y-0 left-0 bg-linear-to-r from-green-500 to-green-600 flex items-center justify-end px-4"
                         style={{ width: `${(data.revenue / 195000000) * 100}%` }}
                       >
                         <span className="text-white font-semibold text-sm">
@@ -188,7 +192,7 @@ export default function VendorReportsPage({
               <div className="space-y-4">
                 {topRooms.map((room, index) => (
                   <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0">
+                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
                       {index + 1}
                     </div>
                     <div className="flex-1">
@@ -223,7 +227,7 @@ export default function VendorReportsPage({
                     <div className="w-24 text-sm text-gray-600">{data.month}</div>
                     <div className="flex-1 relative h-10 bg-gray-100 rounded-lg overflow-hidden">
                       <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 to-purple-600 flex items-center justify-end px-4"
+                        className="absolute inset-y-0 left-0 bg-linear-to-r from-purple-500 to-purple-600 flex items-center justify-end px-4"
                         style={{ width: `${data.occupancy}%` }}
                       >
                         <span className="text-white font-semibold text-sm">

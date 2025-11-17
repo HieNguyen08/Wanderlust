@@ -1,14 +1,13 @@
-import { useState } from "react";
-import { VendorLayout } from "../../components/VendorLayout";
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { Star, Search, MessageSquare } from "lucide-react";
-import type { PageType } from "../../MainApp";
-import { ReplyReviewDialog } from "../../components/vendor/ReplyReviewDialog";
+import { MessageSquare, Search, Star } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import type { PageType } from "../../MainApp";
+import { VendorLayout } from "../../components/VendorLayout";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { ReplyReviewDialog } from "../../components/vendor/ReplyReviewDialog";
 
 interface VendorReviewsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -35,58 +34,15 @@ export default function VendorReviewsPage({
   const [activeTab, setActiveTab] = useState("all");
   const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const reviews: Review[] = [
-    {
-      id: "R001",
-      customer: "Nguyễn Văn A",
-      service: "Deluxe Ocean View",
-      rating: 5,
-      comment: "Phòng tuyệt vời! View biển đẹp, dịch vụ chuyên nghiệp. Nhân viên rất thân thiện và nhiệt tình. Chắc chắn sẽ quay lại.",
-      date: "2 giờ trước",
-      hasResponse: false,
-    },
-    {
-      id: "R002",
-      customer: "Trần Thị B",
-      service: "Premium Suite",
-      rating: 4,
-      comment: "Rất hài lòng với chất lượng phòng. Giường ngủ thoải mái, phòng tắm sạch sẽ. Chỉ có điều giá hơi cao một chút.",
-      date: "5 giờ trước",
-      hasResponse: false,
-    },
-    {
-      id: "R003",
-      customer: "Lê Văn C",
-      service: "Standard Room",
-      rating: 5,
-      comment: "Giá cả hợp lý, phòng sạch sẽ. Vị trí thuận tiện. Sẽ giới thiệu cho bạn bè.",
-      date: "1 ngày trước",
-      hasResponse: false,
-    },
-    {
-      id: "R004",
-      customer: "Phạm Thị D",
-      service: "Family Suite",
-      rating: 3,
-      comment: "Phòng khá tốt nhưng hơi ồn vào buổi tối. AC hơi yếu. Cần cải thiện thêm.",
-      date: "2 ngày trước",
-      response: "Cảm ơn quý khách đã góp ý. Chúng tôi sẽ kiểm tra và khắc phục vấn đề AC. Rất mong được đón tiếp quý khách lần sau.",
-      responseDate: "1 ngày trước",
-      hasResponse: true,
-    },
-    {
-      id: "R005",
-      customer: "Hoàng Văn E",
-      service: "Presidential Suite",
-      rating: 5,
-      comment: "Xuất sắc! Phòng sang trọng, dịch vụ 5 sao. Đáng đồng tiền bát gạo. Highly recommended!",
-      date: "3 ngày trước",
-      response: "Cảm ơn quý khách rất nhiều! Chúng tôi rất vinh dự được phục vụ quý khách. Hy vọng sẽ được đón tiếp quý khách trong thời gian tới!",
-      responseDate: "2 ngày trước",
-      hasResponse: true,
-    },
-  ];
+  useEffect(() => {
+    // Note: Reviews require targetType and targetId
+    // For now, load empty array until vendor has services loaded
+    setLoading(false);
+    setReviews([]);
+  }, []);
 
   const stats = [
     { label: "Tổng reviews", value: "234", color: "blue" },
@@ -118,10 +74,14 @@ export default function VendorReviewsPage({
     setIsReplyDialogOpen(true);
   };
 
-  const handleSendReply = (reviewId: string, reply: string) => {
-    // TODO: Call API to send reply
-    toast.success(`Đã gửi phản hồi cho review ${reviewId}`);
-    console.log("Reply sent:", { reviewId, reply });
+  const handleSendReply = async (reviewId: string, reply: string) => {
+    try {
+      await vendorApi.respondToReview(reviewId, reply);
+      toast.success(`Đã gửi phản hồi cho review ${reviewId}`);
+      // Note: Could reload reviews here if needed
+    } catch (error) {
+      toast.error('Không thể gửi phản hồi');
+    }
   };
 
   return (

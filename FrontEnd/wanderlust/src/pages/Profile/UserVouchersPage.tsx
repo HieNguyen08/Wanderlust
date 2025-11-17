@@ -1,21 +1,23 @@
-import { useState, useEffect } from "react";
+import { AlertCircle, Calendar, Check, Copy, Gift, Tag, Ticket } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner@2.0.3";
 import { ProfileLayout } from "../../components/ProfileLayout";
-import { Card } from "../../components/ui/card";
+import { Alert, AlertDescription } from "../../components/ui/alert";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { Ticket, Calendar, Tag, Copy, Check, Gift, AlertCircle, Loader2 } from "lucide-react";
 import type { PageType } from "../../MainApp";
-import { toast } from "sonner@2.0.3";
-import { Alert, AlertDescription } from "../../components/ui/alert";
-import { userVoucherApi, tokenService } from "../../utils/api";
+import { tokenService, userVoucherApi } from "../../utils/api";
 
 interface UserVouchersPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
 export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) {
+  const { t } = useTranslation();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [addCodeInput, setAddCodeInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -61,11 +63,11 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
 
     } catch (error: any) {
       if (error.message === 'UNAUTHORIZED') {
-        toast.error('Vui lòng đăng nhập để xem voucher');
+        toast.error(t('vouchers.loginRequired', 'Vui lòng đăng nhập để xem voucher'));
         onNavigate('login');
       } else {
         console.error('Error loading vouchers:', error);
-        toast.error('Không thể tải danh sách voucher');
+        toast.error(t('vouchers.loadError', 'Không thể tải danh sách voucher'));
       }
     } finally {
       setLoading(false);
@@ -76,7 +78,7 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
     try {
       await navigator.clipboard.writeText(code);
       setCopiedCode(code);
-      toast.success("Đã sao chép mã voucher!");
+      toast.success(t('vouchers.copySuccess'));
       setTimeout(() => setCopiedCode(null), 2000);
     } catch (err) {
       // Fallback
@@ -90,10 +92,10 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
         document.execCommand('copy');
         document.body.removeChild(textArea);
         setCopiedCode(code);
-        toast.success("Đã sao chép mã voucher!");
+        toast.success(t('vouchers.copySuccess'));
         setTimeout(() => setCopiedCode(null), 2000);
       } catch (fallbackErr) {
-        toast.error("Không thể sao chép mã");
+        toast.error(t('vouchers.copyError', 'Không thể sao chép mã'));
       }
     }
   };
@@ -101,7 +103,7 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
   const handleAddVoucher = async () => {
     const code = addCodeInput.trim().toUpperCase();
     if (!code) {
-      toast.error("Vui lòng nhập mã voucher!");
+      toast.error(t('vouchers.enterCodeError', 'Vui lòng nhập mã voucher!'));
       return;
     }
 
@@ -111,7 +113,7 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
       // Call backend API to save voucher
       await userVoucherApi.saveToWallet(code);
       
-      toast.success("Đã thêm voucher vào ví!");
+      toast.success(t('vouchers.addSuccess'));
       setAddCodeInput("");
       
       // Reload vouchers list
@@ -119,7 +121,7 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
       
     } catch (error: any) {
       // Show specific error message from backend
-      toast.error(error.message || "Không thể thêm voucher");
+      toast.error(error.message || t('vouchers.addError', 'Không thể thêm voucher'));
     } finally {
       setSaving(false);
     }
@@ -127,19 +129,19 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
 
   const formatValue = (type: string, value: number, maxDiscount: number | null) => {
     if (type === "PERCENTAGE") {
-      return `Giảm ${value}%${maxDiscount ? ` (tối đa ${maxDiscount.toLocaleString('vi-VN')}đ)` : ''}`;
+      return t('vouchers.discountPercent', { value, max: maxDiscount ? ` (${t('vouchers.maxDiscount', 'tối đa')} ${maxDiscount.toLocaleString('vi-VN')}đ)` : '' });
     }
-    return `Giảm ${value.toLocaleString('vi-VN')}đ`;
+    return t('vouchers.discountAmount', { value: value.toLocaleString('vi-VN') });
   };
 
   const VoucherCard = ({ voucher, showUsedInfo = false }: { voucher: any; showUsedInfo?: boolean }) => (
     <Card className={`overflow-hidden ${voucher.status === 'EXPIRED' || voucher.status === 'USED' ? 'opacity-60' : ''}`}>
       <div className="flex flex-col md:flex-row">
         {/* Left side - Visual */}
-        <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-6 md:w-48 flex flex-col items-center justify-center text-white relative">
+        <div className="bg-linear-to-br from-blue-500 to-purple-600 p-6 md:w-48 flex flex-col items-center justify-center text-white relative">
           <Ticket className="w-12 h-12 mb-2" />
           <div className="text-center">
-            <div className="text-sm opacity-90">Mã giảm giá</div>
+            <div className="text-sm opacity-90">{t('vouchers.discountCode')}</div>
             <code className="text-lg font-mono mt-1 block">{voucher.voucherCode || voucher.code}</code>
           </div>
           
@@ -149,7 +151,7 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
           {voucher.giftedBy && (
             <Badge className="mt-3 bg-yellow-400 text-yellow-900 hover:bg-yellow-400">
               <Gift className="w-3 h-3 mr-1" />
-              Được tặng
+              {t('vouchers.gifted', 'Được tặng')}
             </Badge>
           )}
         </div>
@@ -177,12 +179,12 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
                 {copiedCode === (voucher.voucherCode || voucher.code) ? (
                   <>
                     <Check className="w-4 h-4" />
-                    Đã sao chép
+                    {t('vouchers.copied')}
                   </>
                 ) : (
                   <>
                     <Copy className="w-4 h-4" />
-                    Sao chép
+                    {t('vouchers.copy')}
                   </>
                 )}
               </Button>
@@ -194,12 +196,12 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
             {voucher.minSpend > 0 && (
               <div className="flex items-center gap-2 text-gray-600">
                 <Tag className="w-4 h-4" />
-                <span>Đơn hàng tối thiểu: {voucher.minSpend.toLocaleString('vi-VN')}đ</span>
+                <span>{t('vouchers.minOrder')}: {voucher.minSpend.toLocaleString('vi-VN')}đ</span>
               </div>
             )}
             <div className="flex items-center gap-2 text-gray-600">
               <Calendar className="w-4 h-4" />
-              <span>HSD: {voucher.startDate} - {voucher.endDate}</span>
+              <span>{t('vouchers.expiry', 'HSD')}: {voucher.startDate} - {voucher.endDate}</span>
             </div>
             {voucher.conditions && voucher.conditions.length > 0 && (
               <div className="text-gray-500 text-xs">
@@ -214,19 +216,19 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
           {showUsedInfo && voucher.status === 'USED' && (
             <div className="pt-4 border-t">
               <div className="text-sm text-gray-600">
-                <div>Đã sử dụng: {voucher.usedDate}</div>
-                <div>Đơn hàng: {voucher.orderAmount?.toLocaleString('vi-VN')}đ</div>
-                <div className="text-green-600">Tiết kiệm: {voucher.discountAmount?.toLocaleString('vi-VN')}đ</div>
+                <div>{t('vouchers.usedDate', 'Đã sử dụng')}: {voucher.usedDate}</div>
+                <div>{t('vouchers.orderAmount', 'Đơn hàng')}: {voucher.orderAmount?.toLocaleString('vi-VN')}đ</div>
+                <div className="text-green-600">{t('vouchers.savings', 'Tiết kiệm')}: {voucher.discountAmount?.toLocaleString('vi-VN')}đ</div>
               </div>
             </div>
           )}
 
           {/* Status Badge */}
           {voucher.status === 'EXPIRED' && (
-            <Badge variant="secondary" className="mt-2">Đã hết hạn</Badge>
+            <Badge variant="secondary" className="mt-2">{t('vouchers.expired')}</Badge>
           )}
           {voucher.status === 'USED' && (
-            <Badge className="mt-2 bg-gray-500">Đã sử dụng</Badge>
+            <Badge className="mt-2 bg-gray-500">{t('vouchers.used')}</Badge>
           )}
         </div>
       </div>
@@ -238,25 +240,25 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl text-gray-900">Ví Voucher</h1>
+          <h1 className="text-3xl text-gray-900">{t('vouchers.title')}</h1>
           <p className="text-gray-600 mt-1">
-            Quản lý mã giảm giá và ưu đãi của bạn
+            {t('vouchers.subtitle')}
           </p>
         </div>
 
         {/* Add Voucher */}
         <Card className="p-6">
-          <h3 className="text-lg text-gray-900 mb-4">Thêm mã voucher</h3>
+          <h3 className="text-lg text-gray-900 mb-4">{t('vouchers.addVoucher')}</h3>
           <div className="flex gap-3">
             <Input
-              placeholder="Nhập mã voucher..."
+              placeholder={t('vouchers.enterCode')}
               value={addCodeInput}
               onChange={(e) => setAddCodeInput(e.target.value.toUpperCase())}
               onKeyPress={(e) => e.key === 'Enter' && handleAddVoucher()}
               className="flex-1"
             />
             <Button onClick={handleAddVoucher}>
-              Thêm vào ví
+              {t('vouchers.addToWallet')}
             </Button>
           </div>
         </Card>
@@ -266,7 +268,7 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Voucher khả dụng</p>
+                <p className="text-sm text-gray-600 mb-1">{t('vouchers.available')}</p>
                 <p className="text-3xl text-blue-600">{myVouchers.length}</p>
               </div>
               <Ticket className="w-10 h-10 text-blue-600 opacity-20" />
@@ -275,7 +277,7 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Đã sử dụng</p>
+                <p className="text-sm text-gray-600 mb-1">{t('vouchers.used')}</p>
                 <p className="text-3xl text-gray-600">{usedVouchers.length}</p>
               </div>
               <Check className="w-10 h-10 text-gray-600 opacity-20" />
@@ -284,7 +286,7 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Tổng tiết kiệm</p>
+                <p className="text-sm text-gray-600 mb-1">{t('vouchers.totalSaved')}</p>
                 <p className="text-3xl text-green-600">
                   {usedVouchers.reduce((sum, v) => sum + (v.discountAmount || 0), 0).toLocaleString('vi-VN')}đ
                 </p>
@@ -298,13 +300,13 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
         <Tabs defaultValue="available" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="available">
-              Khả dụng ({myVouchers.length})
+              {t('vouchers.available')} ({myVouchers.length})
             </TabsTrigger>
             <TabsTrigger value="used">
-              Đã dùng ({usedVouchers.length})
+              {t('vouchers.used')} ({usedVouchers.length})
             </TabsTrigger>
             <TabsTrigger value="expired">
-              Hết hạn ({expiredVouchers.length})
+              {t('vouchers.expired')} ({expiredVouchers.length})
             </TabsTrigger>
           </TabsList>
 
@@ -312,9 +314,9 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
             {myVouchers.length === 0 ? (
               <Card className="p-12 text-center">
                 <Ticket className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg text-gray-900 mb-2">Chưa có voucher nào</h3>
+                <h3 className="text-lg text-gray-900 mb-2">{t('vouchers.noVouchers')}</h3>
                 <p className="text-gray-600 mb-4">
-                  Thêm mã voucher để nhận ưu đãi khi đặt dịch vụ
+                  {t('vouchers.noVouchersDesc', 'Thêm mã voucher để nhận ưu đãi khi đặt dịch vụ')}
                 </p>
               </Card>
             ) : (
@@ -322,7 +324,7 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
                 <Alert className="bg-blue-50 border-blue-200">
                   <AlertCircle className="h-4 w-4 text-blue-600" />
                   <AlertDescription className="text-blue-900">
-                    Sao chép mã voucher và áp dụng khi thanh toán để nhận ưu đãi!
+                    {t('vouchers.applyHint', 'Sao chép mã voucher và áp dụng khi thanh toán để nhận ưu đãi!')}
                   </AlertDescription>
                 </Alert>
                 {myVouchers.map((voucher) => (
@@ -336,9 +338,9 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
             {usedVouchers.length === 0 ? (
               <Card className="p-12 text-center">
                 <Check className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg text-gray-900 mb-2">Chưa sử dụng voucher nào</h3>
+                <h3 className="text-lg text-gray-900 mb-2">{t('vouchers.noUsedVouchers', 'Chưa sử dụng voucher nào')}</h3>
                 <p className="text-gray-600">
-                  Lịch sử sử dụng voucher sẽ hiển thị tại đây
+                  {t('vouchers.noUsedVouchersDesc', 'Lịch sử sử dụng voucher sẽ hiển thị tại đây')}
                 </p>
               </Card>
             ) : (
@@ -352,9 +354,9 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
             {expiredVouchers.length === 0 ? (
               <Card className="p-12 text-center">
                 <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg text-gray-900 mb-2">Không có voucher hết hạn</h3>
+                <h3 className="text-lg text-gray-900 mb-2">{t('vouchers.noExpiredVouchers', 'Không có voucher hết hạn')}</h3>
                 <p className="text-gray-600">
-                  Các voucher đã hết hạn sẽ hiển thị tại đây
+                  {t('vouchers.noExpiredVouchersDesc', 'Các voucher đã hết hạn sẽ hiển thị tại đây')}
                 </p>
               </Card>
             ) : (

@@ -1,20 +1,20 @@
+import {
+    ArrowLeft,
+    CheckCircle,
+    CreditCard,
+    Shield,
+    Smartphone,
+    TrendingUp,
+    Zap
+} from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ProfileLayout } from "../../components/ProfileLayout";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
 import { Separator } from "../../components/ui/separator";
-import { 
-  Wallet, 
-  CreditCard,
-  Smartphone,
-  ArrowLeft,
-  CheckCircle,
-  Shield,
-  Zap,
-  TrendingUp
-} from "lucide-react";
 import type { PageType } from "../../MainApp";
 
 interface TopUpWalletPageProps {
@@ -22,6 +22,7 @@ interface TopUpWalletPageProps {
 }
 
 export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
+  const { t } = useTranslation();
   const [amount, setAmount] = useState("");
   const [selectedMethod, setSelectedMethod] = useState<"card" | "momo" | "vnpay" | null>(null);
   const [currentBalance] = useState(2450000);
@@ -38,22 +39,22 @@ export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
   const paymentMethods = [
     {
       id: "card",
-      name: "Thẻ tín dụng/Ghi nợ",
+      name: t('topUp.creditCard'),
       description: "Visa, Mastercard, JCB",
       icon: CreditCard,
-      badge: "Phổ biến",
+      badge: t('topUp.popular'),
     },
     {
       id: "momo",
-      name: "Ví MoMo",
-      description: "Thanh toán qua ứng dụng MoMo",
+      name: t('topUp.momo'),
+      description: t('topUp.momoDesc', 'Thanh toán qua ứng dụng MoMo'),
       icon: Smartphone,
-      badge: "Nhanh nhất",
+      badge: t('topUp.fastest'),
     },
     {
       id: "vnpay",
-      name: "VNPay QR",
-      description: "Quét mã QR để thanh toán",
+      name: t('topUp.vnpay'),
+      description: t('topUp.vnpayDesc', 'Quét mã QR để thanh toán'),
       icon: Smartphone,
       badge: null,
     },
@@ -65,22 +66,22 @@ export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
 
   const handleTopUp = () => {
     if (!amount || !selectedMethod) {
-      alert("Vui lòng nhập số tiền và chọn phương thức thanh toán");
+      alert(t('topUp.selectAmountAndMethod', 'Vui lòng nhập số tiền và chọn phương thức thanh toán'));
       return;
     }
 
     const numAmount = parseInt(amount);
     if (numAmount < 10000) {
-      alert("Số tiền nạp tối thiểu là 10.000đ");
+      alert(t('topUp.minAmountError', 'Số tiền nạp tối thiểu là 10.000đ'));
       return;
     }
     if (numAmount > 50000000) {
-      alert("Số tiền nạp tối đa là 50.000.000đ");
+      alert(t('topUp.maxAmountError', 'Số tiền nạp tối đa là 50.000.000đ'));
       return;
     }
 
     // Simulate payment processing
-    alert(`✅ Đang xử lý nạp ${numAmount.toLocaleString('vi-VN')}đ vào ví qua ${selectedMethod}...`);
+    alert(`✅ ${t('topUp.processingPayment', 'Đang xử lý nạp')} ${numAmount.toLocaleString('vi-VN')}đ ${t('topUp.toWalletVia', 'vào ví qua')} ${selectedMethod}...`);
     
     // In real app, redirect to payment gateway
     // Then return to wallet page with success message
@@ -102,12 +103,12 @@ export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
             className="gap-2 mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            Quay lại Ví
+            {t('topUp.backToWallet')}
           </Button>
           
-          <h1 className="text-3xl text-gray-900 mb-2">Nạp tiền vào Ví</h1>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('topUp.title')}</h1>
           <p className="text-gray-600">
-            Nạp tiền để sử dụng cho các giao dịch trên Wanderlust
+            {t('topUp.subtitle')}
           </p>
         </div>
 
@@ -116,18 +117,18 @@ export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
           <div className="lg:col-span-2 space-y-6">
             {/* Amount Input */}
             <Card className="p-6 border-0 shadow-lg">
-              <h2 className="text-xl text-gray-900 mb-4">Số tiền nạp</h2>
+              <h2 className="text-xl text-gray-900 mb-4">{t('topUp.amount')}</h2>
               
               <div className="mb-4">
                 <Input
                   type="number"
-                  placeholder="Nhập số tiền"
+                  placeholder={t('topUp.enterAmount')}
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="text-2xl h-14"
                 />
                 <p className="text-sm text-gray-500 mt-2">
-                  Tối thiểu: 10.000đ • Tối đa: 50.000.000đ
+                  {t('topUp.minMax')}
                 </p>
               </div>
 
@@ -147,7 +148,7 @@ export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
 
             {/* Payment Method */}
             <Card className="p-6 border-0 shadow-lg">
-              <h2 className="text-xl text-gray-900 mb-4">Phương thức thanh toán</h2>
+              <h2 className="text-xl text-gray-900 mb-4">{t('topUp.paymentMethod')}</h2>
               
               <div className="space-y-3">
                 {paymentMethods.map((method) => {
@@ -196,14 +197,14 @@ export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
             {/* Security Info */}
             <Card className="p-6 bg-blue-50 border-blue-200">
               <div className="flex gap-4">
-                <Shield className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                <Shield className="w-6 h-6 text-blue-600 shrink-0" />
                 <div>
-                  <h3 className="text-gray-900 mb-2">Bảo mật tuyệt đối</h3>
+                  <h3 className="text-gray-900 mb-2">{t('topUp.securityTitle')}</h3>
                   <ul className="space-y-1 text-sm text-gray-700">
-                    <li>• Mã hóa SSL 256-bit</li>
-                    <li>• Không lưu trữ thông tin thẻ</li>
-                    <li>• Tuân thủ chuẩn PCI DSS</li>
-                    <li>• Giao dịch được xác thực 3D Secure</li>
+                    <li>• {t('topUp.security1', 'Mã hóa SSL 256-bit')}</li>
+                    <li>• {t('topUp.security2', 'Không lưu trữ thông tin thẻ')}</li>
+                    <li>• {t('topUp.security3', 'Tuân thủ chuẩn PCI DSS')}</li>
+                    <li>• {t('topUp.security4', 'Giao dịch được xác thực 3D Secure')}</li>
                   </ul>
                 </div>
               </div>
@@ -213,11 +214,11 @@ export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
           {/* Right Column - Summary */}
           <div className="lg:col-span-1">
             <Card className="p-6 border-0 shadow-xl sticky top-24">
-              <h2 className="text-xl text-gray-900 mb-6">Tóm tắt</h2>
+              <h2 className="text-xl text-gray-900 mb-6">{t('topUp.summary')}</h2>
 
               {/* Current Balance */}
               <div className="p-4 bg-gray-50 rounded-lg mb-4">
-                <p className="text-sm text-gray-600 mb-1">Số dư hiện tại</p>
+                <p className="text-sm text-gray-600 mb-1">{t('topUp.currentBalance')}</p>
                 <p className="text-2xl text-gray-900">
                   {currentBalance.toLocaleString('vi-VN')}đ
                 </p>
@@ -228,15 +229,15 @@ export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
               {/* Top-up Amount */}
               <div className="space-y-3 mb-4">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Số tiền nạp</span>
+                  <span className="text-gray-600">{t('topUp.topUpAmount')}</span>
                   <span className="text-gray-900">
                     {amount ? `+${parseInt(amount).toLocaleString('vi-VN')}đ` : "0đ"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Phí giao dịch</span>
+                  <span className="text-gray-600">{t('topUp.transactionFee')}</span>
                   <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-                    Miễn phí
+                    {t('topUp.free')}
                   </Badge>
                 </div>
               </div>
@@ -244,8 +245,8 @@ export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
               <Separator className="my-4" />
 
               {/* New Balance */}
-              <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg mb-6">
-                <p className="text-sm text-gray-600 mb-1">Số dư sau nạp</p>
+              <div className="p-4 bg-linear-to-br from-blue-50 to-indigo-50 rounded-lg mb-6">
+                <p className="text-sm text-gray-600 mb-1">{t('topUp.newBalance')}</p>
                 <p className="text-3xl text-blue-600">
                   {newBalance.toLocaleString('vi-VN')}đ
                 </p>
@@ -255,15 +256,15 @@ export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
               <div className="space-y-3 mb-6">
                 <div className="flex items-center gap-2 text-sm text-gray-700">
                   <Zap className="w-4 h-4 text-blue-600" />
-                  <span>Nạp tiền ngay lập tức</span>
+                  <span>{t('topUp.benefit1', 'Nạp tiền ngay lập tức')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-700">
                   <TrendingUp className="w-4 h-4 text-blue-600" />
-                  <span>Thanh toán nhanh chóng</span>
+                  <span>{t('topUp.benefit2', 'Thanh toán nhanh chóng')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-700">
                   <CheckCircle className="w-4 h-4 text-blue-600" />
-                  <span>Không mất phí giao dịch</span>
+                  <span>{t('topUp.benefit3', 'Không mất phí giao dịch')}</span>
                 </div>
               </div>
 
@@ -271,15 +272,15 @@ export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
               <Button 
                 onClick={handleTopUp}
                 disabled={!amount || !selectedMethod}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 size="lg"
               >
-                Nạp tiền ngay
+                {t('topUp.topUpNow')}
               </Button>
 
               <p className="text-xs text-center text-gray-500 mt-4">
-                Bằng cách nhấn "Nạp tiền", bạn đồng ý với{" "}
-                <button className="text-blue-600 hover:underline">Điều khoản dịch vụ</button>
+                {t('topUp.termsAgreement', 'Bằng cách nhấn "Nạp tiền", bạn đồng ý với')}{" "}
+                <button className="text-blue-600 hover:underline">{t('topUp.termsOfService', 'Điều khoản dịch vụ')}</button>
               </p>
             </Card>
           </div>
@@ -287,34 +288,34 @@ export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
 
         {/* FAQ */}
         <Card className="p-6 border-0 shadow-lg">
-          <h2 className="text-xl text-gray-900 mb-4">Câu hỏi thường gặp</h2>
+          <h2 className="text-xl text-gray-900 mb-4">{t('topUp.faqTitle')}</h2>
           
           <div className="space-y-4">
             <div>
-              <h3 className="text-gray-900 mb-2">💳 Mất bao lâu để tiền vào ví?</h3>
+              <h3 className="text-gray-900 mb-2">{t('topUp.faq1Question', '💳 Mất bao lâu để tiền vào ví?')}</h3>
               <p className="text-gray-700">
-                Tiền sẽ được cộng vào ví <strong>NGAY LẬP TỨC</strong> sau khi giao dịch thành công.
+                {t('topUp.faq1Answer', 'Tiền sẽ được cộng vào ví')} <strong>{t('topUp.instantly', 'NGAY LẬP TỨC')}</strong> {t('topUp.afterSuccess', 'sau khi giao dịch thành công')}.
               </p>
             </div>
             
             <div>
-              <h3 className="text-gray-900 mb-2">💰 Có mất phí khi nạp tiền không?</h3>
+              <h3 className="text-gray-900 mb-2">{t('topUp.faq2Question', '💰 Có mất phí khi nạp tiền không?')}</h3>
               <p className="text-gray-700">
-                <strong>KHÔNG</strong>. Wanderlust hoàn toàn miễn phí mọi giao dịch nạp tiền vào ví.
+                <strong>{t('topUp.no', 'KHÔNG')}</strong>. {t('topUp.faq2Answer', 'Wanderlust hoàn toàn miễn phí mọi giao dịch nạp tiền vào ví')}.
               </p>
             </div>
             
             <div>
-              <h3 className="text-gray-900 mb-2">🔄 Có thể rút tiền từ ví không?</h3>
+              <h3 className="text-gray-900 mb-2">{t('topUp.faq3Question', '🔄 Có thể rút tiền từ ví không?')}</h3>
               <p className="text-gray-700">
-                Có. Bạn có thể yêu cầu rút tiền về tài khoản ngân hàng trong mục "Ví của tôi" → "Rút tiền". Thời gian xử lý 1-3 ngày làm việc.
+                {t('topUp.faq3Answer', 'Có. Bạn có thể yêu cầu rút tiền về tài khoản ngân hàng trong mục "Ví của tôi" → "Rút tiền". Thời gian xử lý 1-3 ngày làm việc')}.
               </p>
             </div>
             
             <div>
-              <h3 className="text-gray-900 mb-2">🛡️ Tiền trong ví có an toàn không?</h3>
+              <h3 className="text-gray-900 mb-2">{t('topUp.faq4Question', '🛡️ Tiền trong ví có an toàn không?')}</h3>
               <p className="text-gray-700">
-                Tuyệt đối an toàn. Ví được bảo vệ bằng công nghệ mã hóa cao cấp và tuân thủ các tiêu chuẩn bảo mật quốc tế.
+                {t('topUp.faq4Answer', 'Tuyệt đối an toàn. Ví được bảo vệ bằng công nghệ mã hóa cao cấp và tuân thủ các tiêu chuẩn bảo mật quốc tế')}.
               </p>
             </div>
           </div>

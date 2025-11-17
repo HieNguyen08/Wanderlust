@@ -457,7 +457,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                         <span className="text-sm font-medium text-blue-600">CHIỀU ĐI</span>
                       </div>
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
+                        <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center shrink-0">
                           <Plane className="w-5 h-5 text-blue-600" />
                         </div>
                         <div className="flex-1">
@@ -510,7 +510,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                           <span className="text-sm font-medium text-green-600">CHIỀU VỀ</span>
                         </div>
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-green-100 rounded flex items-center justify-center flex-shrink-0">
+                          <div className="w-10 h-10 bg-green-100 rounded flex items-center justify-center shrink-0">
                             <Plane className="w-5 h-5 text-green-600 rotate-180" />
                           </div>
                           <div className="flex-1">
@@ -561,7 +561,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                   /* Single Flight */
                   <div className="space-y-4 mb-6">
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center shrink-0">
                         <Plane className="w-5 h-5 text-blue-600" />
                       </div>
                       <div className="flex-1">

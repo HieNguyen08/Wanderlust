@@ -1,47 +1,56 @@
-import { useState } from "react";
-import { AdminLayout } from "../../components/AdminLayout";
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+    Ban,
+    Calendar,
+    Edit,
+    Eye,
+    Mail,
+    MoreVertical,
+    Phone,
+    Plus,
+    Search,
+    Trash2
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import type { PageType } from "../../MainApp";
+import { AdminLayout } from "../../components/AdminLayout";
+import { UserDetailDialog } from "../../components/admin/UserDetailDialog";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "../../components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "../../components/ui/select";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "../../components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
-import {
-  Search, Plus, MoreVertical, Edit, Trash2, Ban,
-  UserCheck, Mail, Phone, Calendar, Shield, Eye
-} from "lucide-react";
-import type { PageType } from "../../MainApp";
-import { UserDetailDialog } from "../../components/admin/UserDetailDialog";
-import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { adminApi } from "../../utils/api";
 
 interface AdminUsersPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -66,6 +75,25 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        setLoading(true);
+        const data = await adminApi.getAllUsers();
+        setUsers(data);
+      } catch (error) {
+        console.error('Failed to load users:', error);
+        toast.error('Không thể tải danh sách users');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUsers();
+  }, []);
 
   const handleViewDetail = (user: User) => {
     setSelectedUser(user);
@@ -82,85 +110,30 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
     // TODO: Implement ban logic
   };
 
-  const handleDelete = (user: User) => {
-    toast.error(`Đã xóa user: ${user.name}`);
-    // TODO: Implement delete logic
+  const handleDelete = async (user: User) => {
+    try {
+      await adminApi.deleteUser(user.id);
+      toast.success(`Đã xóa user: ${user.name}`);
+      // Reload users
+      const data = await adminApi.getAllUsers();
+      setUsers(data);
+    } catch (error) {
+      toast.error('Không thể xóa user');
+    }
   };
 
-  const users: User[] = [
-    {
-      id: "U001",
-      name: "Nguyễn Văn A",
-      email: "nguyenvana@email.com",
-      phone: "+84 912 345 678",
-      role: "user",
-      status: "active",
-      joinDate: "2024-01-15",
-      lastLogin: "2025-01-15 10:30",
-      bookings: 12,
-      totalSpent: 45000000,
-    },
-    {
-      id: "U002",
-      name: "Trần Thị B",
-      email: "tranthib@email.com",
-      phone: "+84 923 456 789",
-      role: "user",
-      status: "active",
-      joinDate: "2024-02-20",
-      lastLogin: "2025-01-14 15:20",
-      bookings: 8,
-      totalSpent: 28000000,
-    },
-    {
-      id: "U003",
-      name: "Lê Văn C",
-      email: "levanc@email.com",
-      phone: "+84 934 567 890",
-      role: "moderator",
-      status: "active",
-      joinDate: "2023-11-10",
-      lastLogin: "2025-01-15 09:15",
-      bookings: 25,
-      totalSpent: 89000000,
-    },
-    {
-      id: "U004",
-      name: "Phạm Thị D",
-      email: "phamthid@email.com",
-      phone: "+84 945 678 901",
-      role: "admin",
-      status: "active",
-      joinDate: "2023-06-01",
-      lastLogin: "2025-01-15 11:45",
-      bookings: 0,
-      totalSpent: 0,
-    },
-    {
-      id: "U005",
-      name: "Hoàng Văn E",
-      email: "hoangvane@email.com",
-      phone: "+84 956 789 012",
-      role: "user",
-      status: "banned",
-      joinDate: "2024-08-15",
-      lastLogin: "2024-12-20 14:30",
-      bookings: 3,
-      totalSpent: 8500000,
-    },
-    {
-      id: "U006",
-      name: "Võ Thị F",
-      email: "vothif@email.com",
-      phone: "+84 967 890 123",
-      role: "user",
-      status: "suspended",
-      joinDate: "2024-05-22",
-      lastLogin: "2025-01-10 16:00",
-      bookings: 5,
-      totalSpent: 15000000,
-    },
-  ];
+  const filteredUsers = users.filter(user => {
+    // Filter by search query
+    const matchesSearch = searchQuery === "" || 
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.phone?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Filter by active tab
+    const matchesTab = activeTab === "all" || user.role === activeTab;
+
+    return matchesSearch && matchesTab;
+  });
 
   const stats = [
     { label: "Tổng users", value: "2,450", color: "blue" },
@@ -194,13 +167,6 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
         return null;
     }
   };
-
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTab = activeTab === "all" || user.status === activeTab;
-    return matchesSearch && matchesTab;
-  });
 
   return (
     <AdminLayout currentPage="admin-users" onNavigate={onNavigate} activePage="admin-users">

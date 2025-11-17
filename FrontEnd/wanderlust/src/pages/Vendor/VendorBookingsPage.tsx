@@ -1,32 +1,41 @@
-import { useState } from "react";
-import { VendorLayout } from "../../components/VendorLayout";
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
-import {
-  Search, MoreVertical, Eye, CheckCircle, X,
-  Calendar, Users, Phone, Mail, Download
+    Calendar,
+    CheckCircle,
+    Download,
+    Eye,
+    Mail,
+    MoreVertical,
+    Phone,
+    Search,
+    Users,
+    X
 } from "lucide-react";
-import type { PageType } from "../../MainApp";
-import { BookingDetailDialog } from "../../components/vendor/BookingDetailDialog";
-import { VendorCancelOrderDialog } from "../../components/VendorCancelOrderDialog";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import type { PageType } from "../../MainApp";
+import { VendorCancelOrderDialog } from "../../components/VendorCancelOrderDialog";
+import { VendorLayout } from "../../components/VendorLayout";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import { Input } from "../../components/ui/input";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../../components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { BookingDetailDialog } from "../../components/vendor/BookingDetailDialog";
+import { vendorApi } from "../../utils/api";
 
 interface VendorBookingsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -58,96 +67,24 @@ export default function VendorBookingsPage({
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const bookings: Booking[] = [
-    {
-      id: "BK001",
-      customer: "Nguyễn Văn A",
-      email: "nguyenvana@email.com",
-      phone: "+84 912 345 678",
-      service: "Deluxe Ocean View Room",
-      checkIn: "2025-01-20",
-      checkOut: "2025-01-23",
-      guests: 2,
-      status: "confirmed",
-      payment: "paid",
-      amount: 10500000,
-      bookingDate: "2025-01-15",
-      specialRequests: "Phòng tầng cao, view biển đẹp",
-      roomType: "King bed",
-      extras: ["Breakfast", "Airport transfer"],
-    },
-    {
-      id: "BK002",
-      customer: "Trần Thị B",
-      email: "tranthib@email.com",
-      phone: "+84 923 456 789",
-      service: "Premium Suite",
-      checkIn: "2025-01-22",
-      checkOut: "2025-01-25",
-      guests: 3,
-      status: "pending",
-      payment: "pending",
-      amount: 15600000,
-      bookingDate: "2025-01-15",
-    },
-    {
-      id: "BK003",
-      customer: "Lê Văn C",
-      email: "levanc@email.com",
-      phone: "+84 934 567 890",
-      service: "Standard Room",
-      checkIn: "2025-01-18",
-      checkOut: "2025-01-20",
-      guests: 2,
-      status: "completed",
-      payment: "paid",
-      amount: 3600000,
-      bookingDate: "2025-01-12",
-    },
-    {
-      id: "BK004",
-      customer: "Phạm Thị D",
-      email: "phamthid@email.com",
-      phone: "+84 945 678 901",
-      service: "Family Suite",
-      checkIn: "2025-01-25",
-      checkOut: "2025-01-28",
-      guests: 4,
-      status: "confirmed",
-      payment: "paid",
-      amount: 12600000,
-      bookingDate: "2025-01-14",
-    },
-    {
-      id: "BK005",
-      customer: "Hoàng Văn E",
-      email: "hoangvane@email.com",
-      phone: "+84 956 789 012",
-      service: "Presidential Suite",
-      checkIn: "2025-02-01",
-      checkOut: "2025-02-03",
-      guests: 2,
-      status: "pending",
-      payment: "paid",
-      amount: 17000000,
-      bookingDate: "2025-01-15",
-    },
-    {
-      id: "BK006",
-      customer: "Võ Thị F",
-      email: "vothif@email.com",
-      phone: "+84 967 890 123",
-      service: "Deluxe Ocean View Room",
-      checkIn: "2025-01-16",
-      checkOut: "2025-01-17",
-      guests: 1,
-      status: "cancelled",
-      payment: "paid",
-      amount: 3500000,
-      bookingDate: "2025-01-10",
-    },
-  ];
+  useEffect(() => {
+    loadBookings();
+  }, []);
+
+  const loadBookings = async () => {
+    try {
+      setLoading(true);
+      const data = await vendorApi.getVendorBookings();
+      setBookings(data);
+    } catch (error) {
+      toast.error('Không thể tải danh sách booking');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const stats = [
     { label: "Tổng bookings", value: "186", color: "blue" },
@@ -195,9 +132,14 @@ export default function VendorBookingsPage({
     setIsDetailOpen(true);
   };
 
-  const handleConfirmBooking = (bookingId: string) => {
-    toast.success(`Đã xác nhận booking ${bookingId}`);
-    // TODO: Call API to confirm booking
+  const handleConfirmBooking = async (bookingId: string) => {
+    try {
+      await vendorApi.confirmBooking(bookingId);
+      toast.success(`Đã xác nhận booking ${bookingId}`);
+      loadBookings(); // Reload data
+    } catch (error) {
+      toast.error('Không thể xác nhận booking');
+    }
   };
 
   const handleOpenCancelDialog = (booking: Booking) => {
@@ -205,12 +147,17 @@ export default function VendorBookingsPage({
     setIsCancelDialogOpen(true);
   };
 
-  const handleCancelBooking = (reason: string) => {
+  const handleCancelBooking = async (reason: string) => {
     if (bookingToCancel) {
-      toast.error(`Đã hủy booking ${bookingToCancel.id}. Lý do: ${reason}`);
-      // TODO: Call API to cancel booking with reason
-      setIsCancelDialogOpen(false);
-      setBookingToCancel(null);
+      try {
+        await vendorApi.rejectBooking(bookingToCancel.id, reason);
+        toast.error(`Đã hủy booking ${bookingToCancel.id}`);
+        setIsCancelDialogOpen(false);
+        setBookingToCancel(null);
+        loadBookings(); // Reload data
+      } catch (error) {
+        toast.error('Không thể hủy booking');
+      }
     }
   };
 

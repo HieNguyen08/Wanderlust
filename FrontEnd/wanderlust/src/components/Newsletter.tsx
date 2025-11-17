@@ -4,7 +4,7 @@ import { Input } from "./ui/input";
 
 export function Newsletter() {
   return (
-    <section className="py-20 px-6 bg-gradient-to-r from-blue-600 to-blue-800">
+    <section className="py-20 px-6 bg-linear-to-r from-blue-600 to-blue-800">
       <div className="max-w-4xl mx-auto text-center text-white">
         <Mail className="w-16 h-16 mx-auto mb-4" />
         <h2 className="mb-4 text-white">Đăng ký nhận tin khuyến mãi</h2>

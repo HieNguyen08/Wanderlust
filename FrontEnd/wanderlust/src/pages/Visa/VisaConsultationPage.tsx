@@ -1,22 +1,20 @@
+import { ArrowLeft, CheckCircle2, Clock, Mail, Phone, Send, Users } from "lucide-react";
 import { useState } from "react";
+import type { PageType } from "../../MainApp";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
-import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
-import { ArrowLeft, Send, CheckCircle2, Phone, Mail, Clock, Users } from "lucide-react";
-import type { PageType } from "../../MainApp";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../../components/ui/select";
+import { Textarea } from "../../components/ui/textarea";
 
 interface VisaConsultationPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -288,7 +286,7 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
               
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
                     <Phone className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
@@ -299,7 +297,7 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
                     <Mail className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
@@ -312,12 +310,12 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
             </Card>
 
             {/* Process */}
-            <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100">
+            <Card className="p-6 bg-linear-to-br from-blue-50 to-blue-100">
               <h3 className="text-xl mb-4">Quy trình tư vấn</h3>
               
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center shrink-0">
                     1
                   </div>
                   <div>
@@ -327,7 +325,7 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center shrink-0">
                     2
                   </div>
                   <div>
@@ -337,7 +335,7 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center shrink-0">
                     3
                   </div>
                   <div>
@@ -347,7 +345,7 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center shrink-0">
                     4
                   </div>
                   <div>

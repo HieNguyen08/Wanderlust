@@ -1,18 +1,27 @@
-import { useState } from "react";
-import { AdminLayout } from "../../components/AdminLayout";
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import {
-  Search, CheckCircle, XCircle, Trash2, Star,
-  Hotel, Activity, Car, AlertCircle, Eye
+    Activity,
+    AlertCircle,
+    Car,
+    CheckCircle,
+    Eye,
+    Hotel,
+    Search,
+    Star,
+    Trash2,
+    XCircle
 } from "lucide-react";
-import type { PageType } from "../../MainApp";
-import { ReviewDetailDialog } from "../../components/admin/ReviewDetailDialog";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import type { PageType } from "../../MainApp";
+import { AdminLayout } from "../../components/AdminLayout";
+import { ReviewDetailDialog } from "../../components/admin/ReviewDetailDialog";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { reviewApi } from "../../utils/api";
 
 interface AdminReviewsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -36,28 +45,93 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
   const [activeTab, setActiveTab] = useState("pending");
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadReviews();
+  }, [activeTab]);
+
+  const loadReviews = async () => {
+    try {
+      setLoading(true);
+      let data;
+      if (activeTab === 'pending') {
+        data = await reviewApi.getPendingReviews();
+      } else {
+        data = await reviewApi.getAllReviewsForAdmin();
+      }
+      
+      // Map backend data to frontend format
+      const mappedReviews = data.map((review: any) => ({
+        id: review.id || review.reviewId,
+        user: review.userName || review.user || 'Anonymous',
+        userImage: review.userImage,
+        service: review.targetName || review.service || '',
+        serviceType: (review.targetType?.toLowerCase() || 'hotel') as "hotel" | "activity" | "car",
+        rating: review.rating || 5,
+        comment: review.comment || review.content || '',
+        images: review.images || [],
+        date: review.createdAt || review.date || new Date().toISOString(),
+        status: (review.status?.toLowerCase() || 'pending') as "pending" | "approved" | "rejected",
+      }));
+      setReviews(mappedReviews);
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+      toast.error('Không thể tải danh sách review');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleViewDetail = (review: Review) => {
     setSelectedReview(review);
     setIsDetailOpen(true);
   };
 
-  const handleApprove = (review: Review) => {
-    toast.success(`Đã duyệt đánh giá ${review.id}`);
-    // TODO: Implement approve logic
+  const handleApprove = async (review: Review) => {
+    try {
+      await reviewApi.moderateReview(review.id, {
+        status: 'APPROVED',
+        moderatorNotes: 'Approved by admin'
+      });
+      toast.success(`Đã duyệt đánh giá ${review.id}`);
+      loadReviews(); // Reload data
+    } catch (error) {
+      console.error('Error approving review:', error);
+      toast.error('Không thể duyệt đánh giá');
+    }
   };
 
-  const handleReject = (review: Review) => {
-    toast.error(`Đã từ chối đánh giá ${review.id}`);
-    // TODO: Implement reject logic
+  const handleReject = async (review: Review) => {
+    try {
+      await reviewApi.moderateReview(review.id, {
+        status: 'REJECTED',
+        moderatorNotes: 'Rejected by admin'
+      });
+      toast.error(`Đã từ chối đánh giá ${review.id}`);
+      loadReviews(); // Reload data
+    } catch (error) {
+      console.error('Error rejecting review:', error);
+      toast.error('Không thể từ chối đánh giá');
+    }
   };
 
-  const handleDelete = (review: Review) => {
-    toast.error(`Đã xóa đánh giá ${review.id}`);
-    // TODO: Implement delete logic
+  const handleDelete = async (review: Review) => {
+    if (!confirm(`Bạn có chắc muốn xóa đánh giá này?`)) return;
+    
+    try {
+      await reviewApi.deleteReviewByAdmin(review.id);
+      toast.success(`Đã xóa đánh giá ${review.id}`);
+      loadReviews(); // Reload data
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      toast.error('Không thể xóa đánh giá');
+    }
   };
 
-  const reviews: Review[] = [
+  // Mock data for fallback
+  const mockReviews: Review[] = [
     {
       id: "R001",
       user: "Nguyễn Văn A",
@@ -222,7 +296,7 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
                   <Card key={review.id} className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold flex-shrink-0">
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold shrink-0">
                           {review.user.charAt(0)}
                         </div>
                         <div className="flex-1">

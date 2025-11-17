@@ -1,11 +1,11 @@
+import { ArrowLeft, Bookmark, Calendar, Clock, Facebook, Link as LinkIcon, Twitter, User } from "lucide-react";
+import { toast } from "sonner@2.0.3";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { ArrowLeft, Clock, Calendar, User, Share2, Bookmark, Facebook, Twitter, Link as LinkIcon } from "lucide-react";
+import { Footer } from "../../components/Footer";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
 import type { PageType } from "../../MainApp";
-import { Footer } from "../../components/Footer";
-import { toast } from "sonner@2.0.3";
 
 interface TravelArticlePageProps {
   article: {
@@ -216,7 +216,7 @@ export default function TravelArticlePage({ article, onNavigate }: TravelArticle
           </div>
 
           {/* CTA Section */}
-          <div className="my-12 p-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-100">
+          <div className="my-12 p-8 bg-linear-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-100">
             <h3 className="text-2xl text-gray-900 mb-4">
               Sẵn sàng cho chuyến đi?
             </h3>

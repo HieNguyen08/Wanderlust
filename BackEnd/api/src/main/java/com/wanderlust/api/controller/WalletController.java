@@ -27,6 +27,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/v1/wallet")
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class WalletController {
 
     private final WalletService walletService;
@@ -35,7 +36,6 @@ public class WalletController {
      * 1. LẤY THÔNG TIN VÍ
      */
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<WalletResponseDTO> getWallet() {
         String userId = getCurrentUserId();
         WalletResponseDTO wallet = walletService.getWalletByUserId(userId);
@@ -46,7 +46,6 @@ public class WalletController {
      * 2. NẠP TIỀN VÀO VÍ
      */
     @PostMapping("/deposit")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TopUpResponseDTO> topUpWallet(
             @Valid @RequestBody TopUpRequestDTO topUpRequest
     ) {
@@ -84,7 +83,6 @@ public class WalletController {
      * 5. YÊU CẦU RÚT TIỀN
      */
     @PostMapping("/withdraw")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<WithdrawResponseDTO> requestWithdraw(
             @Valid @RequestBody WithdrawRequestDTO withdrawRequest
     ) {

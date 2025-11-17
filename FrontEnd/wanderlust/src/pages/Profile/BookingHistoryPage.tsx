@@ -1,29 +1,45 @@
-import { useState } from "react";
+import {
+    Activity,
+    AlertCircle,
+    Ban,
+    Calendar,
+    Car,
+    CheckCircle,
+    CreditCard,
+    Download, Eye,
+    FileText,
+    Hotel,
+    Mail,
+    MapPin,
+    Phone,
+    Plane,
+    Printer,
+    QrCode,
+    Star,
+    Users,
+    XCircle
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner@2.0.3";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { ProfileLayout } from "../../components/ProfileLayout";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "../../components/ui/dialog";
-import { Textarea } from "../../components/ui/textarea";
 import { Label } from "../../components/ui/label";
-import { 
-  Plane, Hotel, Car, Activity, 
-  Calendar, MapPin, Clock, 
-  Download, Eye, Star, CheckCircle, 
-  XCircle, AlertCircle, QrCode, Users,
-  Mail, Phone, CreditCard, FileText,
-  Printer, Ban, StarIcon
-} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { Textarea } from "../../components/ui/textarea";
 import type { PageType } from "../../MainApp";
+import { bookingApi } from "../../utils/api";
 
 interface BookingHistoryPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -65,29 +81,116 @@ interface Booking {
 }
 
 export default function BookingHistoryPage({ onNavigate }: BookingHistoryPageProps) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"upcoming" | "completed" | "cancelled">("upcoming");
   const [serviceFilter, setServiceFilter] = useState<"all" | "flight" | "hotel" | "car" | "activity" | "visa">("all");
+  
+  // Data states
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // Dialog states
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [isCancelling, setIsCancelling] = useState(false);
   
   // Review form states
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [hoverRating, setHoverRating] = useState(0);
 
-  const bookings: Booking[] = [
+  // Load bookings from backend
+  useEffect(() => {
+    const loadBookings = async () => {
+      try {
+        setLoading(true);
+        const bookingsData = await bookingApi.getMyBookings();
+        setBookings(bookingsData);
+      } catch (error: any) {
+        console.error('Failed to load bookings:', error);
+        if (error.message !== 'UNAUTHORIZED') {
+          toast.error('Không thể tải lịch sử đặt chỗ');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBookings();
+  }, []);
+
+  // Handle booking cancellation
+  const handleCancelBooking = async () => {
+    if (!selectedBooking || !cancelReason.trim()) {
+      toast.error('Vui lòng nhập lý do hủy');
+      return;
+    }
+
+    try {
+      setIsCancelling(true);
+      await bookingApi.cancel(selectedBooking.id, cancelReason);
+      
+      // Update local state
+      setBookings(prevBookings =>
+        prevBookings.map(b =>
+          b.id === selectedBooking.id ? { ...b, status: 'cancelled' } : b
+        )
+      );
+      
+      toast.success('Đã hủy đặt chỗ thành công');
+      setIsCancelDialogOpen(false);
+      setCancelReason("");
+      setSelectedBooking(null);
+      
+      // Reload bookings to get updated data
+      const bookingsData = await bookingApi.getMyBookings();
+      setBookings(bookingsData);
+    } catch (error: any) {
+      console.error('Failed to cancel booking:', error);
+      toast.error('Không thể hủy đặt chỗ. Vui lòng thử lại.');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  // Handle refund request
+  const handleRequestRefund = async (bookingId: string) => {
+    try {
+      await bookingApi.requestRefund(bookingId);
+      toast.success('Đã gửi yêu cầu hoàn tiền thành công');
+      
+      // Reload bookings
+      const bookingsData = await bookingApi.getMyBookings();
+      setBookings(bookingsData);
+    } catch (error: any) {
+      console.error('Failed to request refund:', error);
+      toast.error('Không thể gửi yêu cầu hoàn tiền');
+    }
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "flight": return Plane;
+      case "hotel": return Hotel;
+      case "car": return Car;
+      case "activity": return Activity;
+      case "visa": return FileText;
+      default: return Hotel;
+    }
+  };
+
+  const mockBookings: BookingItem[] = [
     {
-      id: "FL001",
+      id: "1",
       type: "flight",
-      status: "upcoming",
-      title: "Hà Nội → Đà Nẵng",
+      title: "Hà Nội → Hồ Chí Minh",
       subtitle: "Vietnam Airlines VN117",
-      date: "15/11/2025, 08:30",
-      location: "Sân bay Nội Bài",
+      date: "20/02/2025",
+      time: "14:00",
+      status: "confirmed",
       image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&h=300&fit=crop",
       price: 2500000,
       bookingCode: "VN117ABC",
@@ -291,24 +394,13 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
     },
   ];
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "flight": return Plane;
-      case "hotel": return Hotel;
-      case "car": return Car;
-      case "activity": return Activity;
-      case "visa": return FileText;
-      default: return Activity;
-    }
-  };
-
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case "flight": return "Vé máy bay";
-      case "hotel": return "Khách sạn";
-      case "car": return "Thuê xe";
-      case "activity": return "Hoạt động";
-      case "visa": return "Visa";
+      case "flight": return t('profile.bookingHistory.flight', 'Vé máy bay');
+      case "hotel": return t('profile.bookingHistory.hotel', 'Khách sạn');
+      case "car": return t('profile.bookingHistory.car', 'Thuê xe');
+      case "activity": return t('profile.bookingHistory.activity', 'Hoạt động');
+      case "visa": return t('profile.bookingHistory.visa', 'Visa');
       default: return "";
     }
   };
@@ -316,11 +408,11 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "upcoming":
-        return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">Sắp tới</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">{t('profile.bookingHistory.upcoming')}</Badge>;
       case "completed":
-        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Hoàn thành</Badge>;
+        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">{t('profile.bookingHistory.completed')}</Badge>;
       case "cancelled":
-        return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Đã hủy</Badge>;
+        return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">{t('profile.bookingHistory.cancelled')}</Badge>;
       default:
         return null;
     }
@@ -335,23 +427,23 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
 
   const stats = [
     { 
-      label: "Sắp tới", 
+      label: t('profile.bookingHistory.upcoming'), 
       value: bookings.filter(b => b.status === "upcoming").length, 
       icon: AlertCircle,
       color: "text-blue-600"
     },
     { 
-      label: "Đã hoàn thành", 
+      label: t('profile.bookingHistory.completed'), 
       value: bookings.filter(b => b.status === "completed").length, 
       icon: CheckCircle,
       color: "text-green-600"
     },
     { 
-      label: "Đã hủy", 
+      label: t('profile.bookingHistory.cancelled'), 
       value: bookings.filter(b => b.status === "cancelled").length, 
       icon: XCircle,
       color: "text-red-600"
-    },
+    }
   ];
 
   // Handler functions
@@ -373,11 +465,11 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
 
   const handleSubmitReview = () => {
     if (rating === 0) {
-      alert("Vui lòng chọn số sao đánh giá");
+      alert(t('profile.bookingHistory.pleaseSelectRating', 'Vui lòng chọn số sao đánh giá'));
       return;
     }
     // Mock submit
-    alert(`Đã gửi đánh giá ${rating} sao cho ${selectedBooking?.title}`);
+    alert(t('profile.bookingHistory.reviewSubmitted', `Đã gửi đánh giá {{rating}} sao cho {{title}}`, {rating, title: selectedBooking?.title}));
     setIsReviewDialogOpen(false);
     // Update booking to mark as reviewed
     if (selectedBooking) {
@@ -394,7 +486,11 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
     if (!selectedBooking) return;
     
     // Mock cancel request - in real app, would trigger backend process
-    alert(`Đã gửi yêu cầu hủy booking ${selectedBooking.bookingCode}.\n\nTheo chính sách, bạn sẽ được hoàn ${selectedBooking.cancellationPolicy?.refundPercentage}% (${selectedBooking.cancellationPolicy?.refundAmount.toLocaleString('vi-VN')}đ).\n\nTrạng thái: Đang chờ xử lý hoàn tiền.\nThời gian hoàn tiền dự kiến: 5-7 ngày làm việc.`);
+    alert(t('profile.bookingHistory.cancelRequestSent', `Đã gửi yêu cầu hủy booking {{code}}.\n\nTheo chính sách, bạn sẽ được hoàn {{percent}}% ({{amount}}đ).\n\nTrạng thái: Đang chờ xử lý hoàn tiền.\nThời gian hoàn tiền dự kiến: 5-7 ngày làm việc.`, {
+      code: selectedBooking.bookingCode,
+      percent: selectedBooking.cancellationPolicy?.refundPercentage,
+      amount: selectedBooking.cancellationPolicy?.refundAmount.toLocaleString('vi-VN')
+    }));
     
     setIsCancelDialogOpen(false);
     
@@ -407,8 +503,8 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">Lịch sử đặt chỗ</h1>
-          <p className="text-gray-600">Quản lý tất cả các booking của bạn</p>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('profile.bookingHistory.title')}</h1>
+          <p className="text-gray-600">{t('profile.bookingHistory.subtitle', 'Quản lý tất cả các booking của bạn')}</p>
         </div>
 
         {/* Stats */}
@@ -436,28 +532,28 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
             <TabsList className="grid grid-cols-3 w-full max-w-xl mb-6">
               <TabsTrigger value="upcoming">
                 <AlertCircle className="w-4 h-4 mr-2" />
-                Sắp tới
+                {t('profile.bookingHistory.upcoming')}
               </TabsTrigger>
               <TabsTrigger value="completed">
                 <CheckCircle className="w-4 h-4 mr-2" />
-                Đã hoàn thành
+                {t('profile.bookingHistory.completed')}
               </TabsTrigger>
               <TabsTrigger value="cancelled">
                 <XCircle className="w-4 h-4 mr-2" />
-                Đã hủy
+                {t('profile.bookingHistory.cancelled')}
               </TabsTrigger>
             </TabsList>
 
             {/* Filter by Service Type */}
             <div className="mb-6">
-              <p className="text-sm mb-2 text-gray-700">Lọc theo loại dịch vụ:</p>
+              <p className="text-sm mb-2 text-gray-700">{t('profile.bookingHistory.filterByService', 'Lọc theo loại dịch vụ')}:</p>
               <div className="flex flex-wrap gap-2">
                 <Button 
                   variant={serviceFilter === "all" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setServiceFilter("all")}
                 >
-                  Tất cả
+                  {t('profile.bookingHistory.all', 'Tất cả')}
                 </Button>
                 <Button 
                   variant={serviceFilter === "flight" ? "default" : "outline"}
@@ -465,7 +561,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                   onClick={() => setServiceFilter("flight")}
                 >
                   <Plane className="w-4 h-4 mr-1" />
-                  Vé máy bay
+                  {t('profile.bookingHistory.flight')}
                 </Button>
                 <Button 
                   variant={serviceFilter === "hotel" ? "default" : "outline"}
@@ -473,7 +569,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                   onClick={() => setServiceFilter("hotel")}
                 >
                   <Hotel className="w-4 h-4 mr-1" />
-                  Khách sạn
+                  {t('profile.bookingHistory.hotel')}
                 </Button>
                 <Button 
                   variant={serviceFilter === "car" ? "default" : "outline"}
@@ -481,7 +577,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                   onClick={() => setServiceFilter("car")}
                 >
                   <Car className="w-4 h-4 mr-1" />
-                  Thuê xe
+                  {t('profile.bookingHistory.car')}
                 </Button>
                 <Button 
                   variant={serviceFilter === "activity" ? "default" : "outline"}
@@ -489,7 +585,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                   onClick={() => setServiceFilter("activity")}
                 >
                   <Activity className="w-4 h-4 mr-1" />
-                  Hoạt động
+                  {t('profile.bookingHistory.activity')}
                 </Button>
                 <Button 
                   variant={serviceFilter === "visa" ? "default" : "outline"}
@@ -497,7 +593,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                   onClick={() => setServiceFilter("visa")}
                 >
                   <FileText className="w-4 h-4 mr-1" />
-                  Visa
+                  {t('profile.bookingHistory.visa')}
                 </Button>
               </div>
             </div>
@@ -506,7 +602,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
               <div className="space-y-4">
                 {filteredBookings.length === 0 ? (
                   <div className="text-center py-12">
-                    <p className="text-gray-500">Không có booking nào</p>
+                    <p className="text-gray-500">{t('profile.bookingHistory.noBookings', 'Không có booking nào')}</p>
                   </div>
                 ) : (
                   filteredBookings.map((booking) => {
@@ -515,7 +611,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                       <Card key={booking.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                         <div className="flex flex-col md:flex-row">
                           {/* Image */}
-                          <div className="md:w-48 h-48 md:h-auto flex-shrink-0">
+                          <div className="md:w-48 h-48 md:h-auto shrink-0">
                             <ImageWithFallback
                               src={booking.image}
                               alt={booking.title}
@@ -527,7 +623,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                           <div className="flex-1 p-6">
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
                                   <Icon className="w-5 h-5 text-blue-600" />
                                 </div>
                                 <div>
@@ -553,7 +649,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                                 <span className="text-sm">{booking.location}</span>
                               </div>
                               <div className="flex items-center gap-2 text-gray-600">
-                                <span className="text-sm">Mã đặt chỗ: <span className="text-gray-900">{booking.bookingCode}</span></span>
+                                <span className="text-sm">{t('profile.bookingHistory.bookingCode', 'Mã đặt chỗ')}: <span className="text-gray-900">{booking.bookingCode}</span></span>
                               </div>
                               <div className="flex items-center gap-2 text-gray-600">
                                 <span className="text-sm">{booking.details}</span>
@@ -562,7 +658,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
 
                             <div className="flex items-center justify-between pt-4 border-t">
                               <div>
-                                <p className="text-sm text-gray-600">Tổng giá</p>
+                                <p className="text-sm text-gray-600">{t('profile.bookingHistory.totalPrice', 'Tổng giá')}</p>
                                 <p className="text-2xl text-blue-600">
                                   {booking.price.toLocaleString('vi-VN')}đ
                                 </p>
@@ -575,7 +671,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                                   onClick={() => handleViewDetails(booking)}
                                 >
                                   <Eye className="w-4 h-4" />
-                                  Xem chi tiết
+                                  {t('profile.bookingHistory.viewDetails', 'Xem chi tiết')}
                                 </Button>
                                 
                                 {booking.status === "completed" && !booking.hasReview && (
@@ -585,7 +681,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                                     onClick={() => handleWriteReview(booking)}
                                   >
                                     <Star className="w-4 h-4" />
-                                    Viết đánh giá
+                                    {t('profile.bookingHistory.writeReview', 'Viết đánh giá')}
                                   </Button>
                                 )}
 
@@ -597,7 +693,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                                     disabled
                                   >
                                     <CheckCircle className="w-4 h-4" />
-                                    Đã đánh giá
+                                    {t('profile.bookingHistory.reviewed', 'Đã đánh giá')}
                                   </Button>
                                 )}
 
@@ -609,7 +705,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                                     onClick={() => handleRequestCancel(booking)}
                                   >
                                     <Ban className="w-4 h-4" />
-                                    Yêu cầu hủy
+                                    {t('profile.bookingHistory.requestCancel', 'Yêu cầu hủy')}
                                   </Button>
                                 )}
                               </div>
@@ -630,35 +726,35 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
       <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Chi tiết đơn hàng - {selectedBooking?.bookingCode}</DialogTitle>
+            <DialogTitle>{t('profile.bookingHistory.orderDetails', 'Chi tiết đơn hàng')} - {selectedBooking?.bookingCode}</DialogTitle>
             <DialogDescription>
-              Thông tin chi tiết về booking của bạn
+              {t('profile.bookingHistory.orderDetailsDesc', 'Thông tin chi tiết về booking của bạn')}
             </DialogDescription>
           </DialogHeader>
 
           {selectedBooking && (
             <div className="space-y-6">
               {/* Booking Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-lg">
+              <div className="bg-linear-to-r from-blue-600 to-blue-700 text-white p-6 rounded-lg">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h2 className="text-2xl mb-1">Wanderlust</h2>
-                    <p className="text-blue-100">E-Ticket / Vé điện tử</p>
+                    <p className="text-blue-100">{t('profile.bookingHistory.eTicket', 'E-Ticket / Vé điện tử')}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-blue-100">Booking Number</p>
+                    <p className="text-sm text-blue-100">{t('profile.bookingHistory.bookingNumber', 'Booking Number')}</p>
                     <p className="text-xl">{selectedBooking.bookingCode}</p>
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-blue-100">Loại dịch vụ</p>
+                    <p className="text-blue-100">{t('profile.bookingHistory.serviceType', 'Loại dịch vụ')}</p>
                     <p>{getTypeLabel(selectedBooking.type)}</p>
                   </div>
                   <div>
-                    <p className="text-blue-100">Trạng thái</p>
-                    <p>{selectedBooking.status === "upcoming" ? "Sắp tới" : selectedBooking.status === "completed" ? "Hoàn thành" : "Đã hủy"}</p>
+                    <p className="text-blue-100">{t('profile.bookingHistory.status', 'Trạng thái')}</p>
+                    <p>{selectedBooking.status === "upcoming" ? t('profile.bookingHistory.upcoming') : selectedBooking.status === "completed" ? t('profile.bookingHistory.completed') : t('profile.bookingHistory.cancelled')}</p>
                   </div>
                 </div>
               </div>
@@ -667,21 +763,21 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
               <Card className="p-6">
                 <h3 className="mb-4 flex items-center gap-2">
                   <Users className="w-5 h-5 text-blue-600" />
-                  Thông tin người tham gia
+                  {t('profile.bookingHistory.participantInfo', 'Thông tin người tham gia')}
                 </h3>
                 <div className="space-y-4">
                   {selectedBooking.participants?.map((participant, index) => (
                     <div key={index} className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
                       <div>
-                        <p className="text-sm text-gray-600">Họ và tên</p>
+                        <p className="text-sm text-gray-600">{t('profile.bookingHistory.fullName', 'Họ và tên')}</p>
                         <p>{participant.name}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Email</p>
+                        <p className="text-sm text-gray-600">{t('profile.bookingHistory.email', 'Email')}</p>
                         <p className="text-sm">{participant.email}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Số điện thoại</p>
+                        <p className="text-sm text-gray-600">{t('profile.bookingHistory.phone', 'Số điện thoại')}</p>
                         <p>{participant.phone}</p>
                       </div>
                     </div>
@@ -693,7 +789,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
               <Card className="p-6">
                 <h3 className="mb-4 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-blue-600" />
-                  Chi tiết {getTypeLabel(selectedBooking.type)}
+                  {t('profile.bookingHistory.detailsTitle', 'Chi tiết')} {getTypeLabel(selectedBooking.type)}
                 </h3>
                 
                 <div className="space-y-4">
@@ -704,15 +800,15 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
 
                   <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                     <div>
-                      <p className="text-sm text-gray-600">Ngày sử dụng</p>
+                      <p className="text-sm text-gray-600">{t('profile.bookingHistory.usageDate', 'Ngày sử dụng')}</p>
                       <p>{selectedBooking.date}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Địa điểm</p>
+                      <p className="text-sm text-gray-600">{t('profile.bookingHistory.location', 'Địa điểm')}</p>
                       <p>{selectedBooking.location}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-sm text-gray-600">Chi tiết</p>
+                      <p className="text-sm text-gray-600">{t('profile.bookingHistory.details', 'Chi tiết')}</p>
                       <p>{selectedBooking.details}</p>
                     </div>
                   </div>
@@ -723,29 +819,29 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
               <Card className="p-6">
                 <h3 className="mb-4 flex items-center gap-2">
                   <CreditCard className="w-5 h-5 text-blue-600" />
-                  Thông tin thanh toán
+                  {t('profile.bookingHistory.paymentInfo', 'Thông tin thanh toán')}
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Phương thức thanh toán</span>
+                    <span className="text-gray-600">{t('profile.bookingHistory.paymentMethod', 'Phương thức thanh toán')}</span>
                     <span>{selectedBooking.paymentDetails?.method}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Mã giao dịch</span>
+                    <span className="text-gray-600">{t('profile.bookingHistory.transactionId', 'Mã giao dịch')}</span>
                     <span className="text-sm">{selectedBooking.paymentDetails?.transactionId}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Thời gian thanh toán</span>
+                    <span className="text-gray-600">{t('profile.bookingHistory.paymentTime', 'Thời gian thanh toán')}</span>
                     <span>{selectedBooking.paymentDetails?.paidAt}</span>
                   </div>
                   <div className="border-t pt-2 flex justify-between">
-                    <span>Tổng cộng</span>
+                    <span>{t('profile.bookingHistory.totalAmount', 'Tổng cộng')}</span>
                     <span className="text-xl text-blue-600">{selectedBooking.price.toLocaleString('vi-VN')}đ</span>
                   </div>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                     <div className="flex items-center gap-2 text-green-800">
                       <CheckCircle className="w-5 h-5" />
-                      <span>Đã thanh toán</span>
+                      <span>{t('profile.bookingHistory.paid', 'Đã thanh toán')}</span>
                     </div>
                   </div>
                 </div>
@@ -755,11 +851,11 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
               <Card className="p-6">
                 <h3 className="mb-4 flex items-center gap-2">
                   <Phone className="w-5 h-5 text-blue-600" />
-                  Thông tin liên hệ / Hỗ trợ
+                  {t('profile.bookingHistory.contactSupport', 'Thông tin liên hệ / Hỗ trợ')}
                 </h3>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-600">Nhà cung cấp:</span>
+                    <span className="text-gray-600">{t('profile.bookingHistory.vendor', 'Nhà cung cấp')}:</span>
                     <span>{selectedBooking.vendorInfo?.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -778,12 +874,15 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                 <Card className="p-6 bg-amber-50 border-amber-200">
                   <h3 className="mb-3 flex items-center gap-2 text-amber-900">
                     <AlertCircle className="w-5 h-5" />
-                    Chính sách Hủy & Hoàn tiền
+                    {t('profile.bookingHistory.refundPolicy', 'Chính sách Hủy & Hoàn tiền')}
                   </h3>
                   <div className="space-y-2 text-sm text-amber-900">
-                    <p>• Hoàn {selectedBooking.cancellationPolicy.refundPercentage}% nếu hủy {selectedBooking.cancellationPolicy.deadline}</p>
-                    <p>• Số tiền hoàn: <span className="font-semibold">{selectedBooking.cancellationPolicy.refundAmount.toLocaleString('vi-VN')}đ</span></p>
-                    <p>• Thời gian hoàn tiền: 5-7 ngày làm việc</p>
+                    <p>• {t('profile.bookingHistory.refundInfo', 'Hoàn {{percent}}% nếu hủy {{deadline}}', {
+                      percent: selectedBooking.cancellationPolicy.refundPercentage,
+                      deadline: selectedBooking.cancellationPolicy.deadline
+                    })}</p>
+                    <p>• {t('profile.bookingHistory.refundAmount2', 'Số tiền hoàn')}: <span className="font-semibold">{selectedBooking.cancellationPolicy.refundAmount.toLocaleString('vi-VN')}đ</span></p>
+                    <p>• {t('profile.bookingHistory.refundDuration', 'Thời gian hoàn tiền: 5-7 ngày làm việc')}</p>
                   </div>
                 </Card>
               )}
@@ -792,13 +891,13 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
               <Card className="p-6 text-center">
                 <h3 className="mb-4 flex items-center justify-center gap-2">
                   <QrCode className="w-5 h-5 text-blue-600" />
-                  Mã QR cho check-in nhanh
+                  {t('profile.bookingHistory.qrCode', 'Mã QR cho check-in nhanh')}
                 </h3>
                 <div className="w-48 h-48 mx-auto bg-gray-200 rounded-lg flex items-center justify-center mb-4">
                   <QrCode className="w-32 h-32 text-gray-400" />
                 </div>
                 <p className="text-sm text-gray-600">
-                  Mã booking: {selectedBooking.bookingCode}
+                  {t('profile.bookingHistory.bookingCodeLabel', 'Mã booking')}: {selectedBooking.bookingCode}
                 </p>
               </Card>
             </div>
@@ -807,11 +906,11 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={handlePrintTicket}>
               <Printer className="w-4 h-4 mr-2" />
-              In vé
+              {t('profile.bookingHistory.print', 'In vé')}
             </Button>
-            <Button onClick={() => alert("Tải xuống PDF")}>
+            <Button onClick={() => alert(t('profile.bookingHistory.downloadPDF', 'Tải xuống PDF'))}>
               <Download className="w-4 h-4 mr-2" />
-              Tải xuống
+              {t('profile.bookingHistory.download', 'Tải xuống')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -853,21 +952,21 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
               </div>
               {rating > 0 && (
                 <p className="text-sm text-gray-600 mt-1">
-                  {rating === 1 && "Rất tệ"}
-                  {rating === 2 && "Tệ"}
-                  {rating === 3 && "Bình thường"}
-                  {rating === 4 && "Tốt"}
-                  {rating === 5 && "Tuyệt vời"}
+                  {rating === 1 && t('profile.bookingHistory.veryBad', 'Rất tệ')}
+                  {rating === 2 && t('profile.bookingHistory.bad', 'Tệ')}
+                  {rating === 3 && t('profile.bookingHistory.average', 'Bình thường')}
+                  {rating === 4 && t('profile.bookingHistory.good', 'Tốt')}
+                  {rating === 5 && t('profile.bookingHistory.excellent', 'Tuyệt vời')}
                 </p>
               )}
             </div>
 
             {/* Review Text */}
             <div>
-              <Label htmlFor="review">Nhận xét của bạn</Label>
+              <Label htmlFor="review">{t('profile.bookingHistory.yourReview', 'Nhận xét của bạn')}</Label>
               <Textarea
                 id="review"
-                placeholder="Chia sẻ trải nghiệm của bạn..."
+                placeholder={t('profile.bookingHistory.shareExperience', 'Chia sẻ trải nghiệm của bạn...')}
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
                 rows={5}
@@ -878,10 +977,10 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsReviewDialogOpen(false)}>
-              Hủy
+              {t('profile.bookingHistory.cancel', 'Hủy')}
             </Button>
             <Button onClick={handleSubmitReview}>
-              Gửi đánh giá
+              {t('profile.bookingHistory.submitReview', 'Gửi đánh giá')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -891,40 +990,40 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
       <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xác nhận hủy đơn hàng</DialogTitle>
+            <DialogTitle>{t('profile.bookingHistory.confirmCancel', 'Xác nhận hủy đơn hàng')}</DialogTitle>
             <DialogDescription>
-              Bạn có chắc chắn muốn hủy booking này?
+              {t('profile.bookingHistory.confirmCancelDesc', 'Bạn có chắc chắn muốn hủy booking này?')}
             </DialogDescription>
           </DialogHeader>
 
           {selectedBooking && selectedBooking.cancellationPolicy && (
             <div className="space-y-4">
               <Card className="p-4 bg-blue-50 border-blue-200">
-                <h4 className="mb-2">Thông tin booking</h4>
-                <p className="text-sm"><span className="text-gray-600">Mã đặt chỗ:</span> {selectedBooking.bookingCode}</p>
-                <p className="text-sm"><span className="text-gray-600">Dịch vụ:</span> {selectedBooking.title}</p>
-                <p className="text-sm"><span className="text-gray-600">Giá trị:</span> {selectedBooking.price.toLocaleString('vi-VN')}đ</p>
+                <h4 className="mb-2">{t('profile.bookingHistory.bookingInfo', 'Thông tin booking')}</h4>
+                <p className="text-sm"><span className="text-gray-600">{t('profile.bookingHistory.bookingCode')}:</span> {selectedBooking.bookingCode}</p>
+                <p className="text-sm"><span className="text-gray-600">{t('profile.bookingHistory.service', 'Dịch vụ')}:</span> {selectedBooking.title}</p>
+                <p className="text-sm"><span className="text-gray-600">{t('profile.bookingHistory.value', 'Giá trị')}:</span> {selectedBooking.price.toLocaleString('vi-VN')}đ</p>
               </Card>
 
               <Card className="p-4 bg-green-50 border-green-200">
-                <h4 className="mb-2 text-green-900">Chính sách hoàn tiền</h4>
+                <h4 className="mb-2 text-green-900">{t('profile.bookingHistory.refundPolicy')}</h4>
                 <p className="text-sm text-green-900">
-                  • Theo chính sách, bạn sẽ được hoàn{" "}
+                  • {t('profile.bookingHistory.policyRefund', 'Theo chính sách, bạn sẽ được hoàn')}{" "}
                   <span className="font-semibold">{selectedBooking.cancellationPolicy.refundPercentage}%</span>
                 </p>
                 <p className="text-sm text-green-900">
-                  • Số tiền hoàn lại:{" "}
+                  • {t('profile.bookingHistory.refundAmount2')}:{" "}
                   <span className="text-lg font-semibold">{selectedBooking.cancellationPolicy.refundAmount.toLocaleString('vi-VN')}đ</span>
                 </p>
                 <p className="text-sm text-green-900 mt-2">
-                  • Thời gian hoàn tiền: 5-7 ngày làm việc
+                  • {t('profile.bookingHistory.refundDuration')}
                 </p>
               </Card>
 
               <Card className="p-4 bg-amber-50 border-amber-200">
                 <p className="text-sm text-amber-900">
                   <AlertCircle className="w-4 h-4 inline mr-1" />
-                  Sau khi xác nhận, yêu cầu hủy sẽ được gửi đến hệ thống. Bạn sẽ nhận được email xác nhận và cập nhật về quá trình hoàn tiền.
+                  {t('profile.bookingHistory.cancelNote', 'Sau khi xác nhận, yêu cầu hủy sẽ được gửi đến hệ thống. Bạn sẽ nhận được email xác nhận và cập nhật về quá trình hoàn tiền.')}
                 </p>
               </Card>
             </div>
@@ -932,10 +1031,10 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCancelDialogOpen(false)}>
-              Không, giữ lại
+              {t('profile.bookingHistory.keepBooking', 'Không, giữ lại')}
             </Button>
             <Button variant="destructive" onClick={handleConfirmCancel}>
-              Xác nhận hủy
+              {t('profile.bookingHistory.confirmCancelButton', 'Xác nhận hủy')}
             </Button>
           </DialogFooter>
         </DialogContent>

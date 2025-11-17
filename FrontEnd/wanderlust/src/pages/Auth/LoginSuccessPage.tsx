@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { tokenService, API_BASE_URL } from '../../utils/api';
 import { PageType } from '../../MainApp'; // Import PageType
+import { API_BASE_URL, tokenService } from '../../utils/api';
 
 interface LoginSuccessPageProps {
   onLogin: (role: "user" | "admin" | "vendor") => void; // Fix type
@@ -112,7 +112,7 @@ export const LoginSuccessPage = ({ onLogin, onNavigate }: LoginSuccessPageProps)
   }, [onLogin, onNavigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-purple-700">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-600 to-purple-700">
       <div className="text-center text-white">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white mx-auto mb-4"></div>
         <p className="text-xl">{status}</p>

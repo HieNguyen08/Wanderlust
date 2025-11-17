@@ -1,29 +1,33 @@
-import { useState } from "react";
+import { Bell, Globe, Key, Lock, Shield, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner@2.0.3";
 import { ProfileLayout } from "../../components/ProfileLayout";
 import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Card } from "../../components/ui/card";
-import { Switch } from "../../components/ui/switch";
 import { Separator } from "../../components/ui/separator";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
-} from "../../components/ui/dialog";
-import { Lock, Bell, Globe, Shield, Trash2, Key } from "lucide-react";
+import { Switch } from "../../components/ui/switch";
 import type { PageType } from "../../MainApp";
-import { toast } from "sonner@2.0.3";
+import { profileApi } from "../../utils/api";
 
 interface SettingsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
 export default function SettingsPage({ onNavigate }: SettingsPageProps) {
+  const { t } = useTranslation();
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -39,19 +43,77 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
     smsBooking: false,
   });
 
-  const handleChangePassword = () => {
+  // Load notification settings from backend
+  useEffect(() => {
+    const loadNotificationSettings = async () => {
+      try {
+        const settings = await profileApi.getNotificationSettings();
+        setNotifications({
+          emailPromotions: settings.promotionalEmails || false,
+          emailBooking: settings.emailNotifications || false,
+          emailReminders: settings.bookingReminders || false,
+          pushPromotions: settings.promotionalEmails || false,
+          pushBooking: settings.pushNotifications || false,
+          smsBooking: settings.smsNotifications || false,
+        });
+      } catch (error: any) {
+        console.error('Failed to load notification settings:', error);
+      }
+    };
+
+    loadNotificationSettings();
+  }, []);
+
+  // Handle notification change
+  const handleNotificationChange = async (key: string, value: boolean) => {
+    try {
+      setNotifications({ ...notifications, [key]: value });
+      
+      // Map frontend keys to backend keys
+      const settingsMap: any = {
+        emailPromotions: { promotionalEmails: value },
+        emailBooking: { emailNotifications: value },
+        emailReminders: { bookingReminders: value },
+        pushPromotions: { promotionalEmails: value },
+        pushBooking: { pushNotifications: value },
+        smsBooking: { smsNotifications: value },
+      };
+      
+      await profileApi.updateNotificationSettings(settingsMap[key]);
+      toast.success('Cập nhật cài đặt thành công');
+    } catch (error: any) {
+      toast.error(error.message || 'Không thể cập nhật cài đặt');
+      // Revert on error
+      setNotifications({ ...notifications, [key]: !value });
+    }
+  };
+
+  const handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error("Mật khẩu xác nhận không khớp!");
+      toast.error(t('profile.passwordMismatch'));
       return;
     }
     if (passwordData.newPassword.length < 6) {
-      toast.error("Mật khẩu phải có ít nhất 6 ký tự!");
+      toast.error(t('profile.passwordTooShort'));
       return;
     }
-    // Mock success
-    toast.success("Đổi mật khẩu thành công!");
-    setIsChangePasswordOpen(false);
-    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    
+    try {
+      setLoading(true);
+      await profileApi.changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword,
+      });
+      
+      toast.success(t('profile.passwordChangeSuccess'));
+      setIsChangePasswordOpen(false);
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (error: any) {
+      toast.error(error.message || 'Không thể đổi mật khẩu');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,8 +121,8 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">Cài đặt tài khoản</h1>
-          <p className="text-gray-600">Quản lý cài đặt bảo mật và thông báo</p>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('settings.title')}</h1>
+          <p className="text-gray-600">{t('settings.subtitle')}</p>
         </div>
 
         {/* Change Password */}
@@ -71,13 +133,13 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
                 <Lock className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-xl text-gray-900">Bảo mật tài khoản</h2>
-                <p className="text-sm text-gray-600">Quản lý mật khẩu và bảo mật</p>
+                <h2 className="text-xl text-gray-900">{t('settings.accountSecurity')}</h2>
+                <p className="text-sm text-gray-600">{t('settings.securityDesc')}</p>
               </div>
             </div>
             <Button onClick={() => setIsChangePasswordOpen(true)} className="gap-2">
               <Key className="w-4 h-4" />
-              Đổi mật khẩu
+              {t('settings.changePassword')}
             </Button>
           </div>
 
@@ -86,7 +148,7 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
-                <p className="text-gray-900">Mật khẩu</p>
+                <p className="text-gray-900">{t('settings.password')}</p>
                 <p className="text-sm text-gray-600">••••••••••••</p>
               </div>
               <Button 
@@ -95,17 +157,17 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
                 onClick={() => setIsChangePasswordOpen(true)}
                 className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
               >
-                Thay đổi
+                {t('settings.change')}
               </Button>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
-                <p className="text-gray-900">Xác thực hai yếu tố (2FA)</p>
-                <p className="text-sm text-gray-600">Chưa kích hoạt</p>
+                <p className="text-gray-900">{t('settings.twoFactor')}</p>
+                <p className="text-sm text-gray-600">{t('settings.twoFactorStatus')}</p>
               </div>
               <Button variant="ghost" size="sm" disabled>
-                Kích hoạt
+                {t('settings.activate')}
               </Button>
             </div>
           </div>
@@ -118,8 +180,8 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
               <Bell className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <h2 className="text-xl text-gray-900">Thông báo</h2>
-              <p className="text-sm text-gray-600">Quản lý thông báo bạn muốn nhận</p>
+              <h2 className="text-xl text-gray-900">{t('settings.notifications')}</h2>
+              <p className="text-sm text-gray-600">{t('settings.notificationsDesc')}</p>
             </div>
           </div>
 
@@ -128,43 +190,43 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
           <div className="space-y-6">
             {/* Email Notifications */}
             <div>
-              <h3 className="text-gray-900 mb-4">Email</h3>
+              <h3 className="text-gray-900 mb-4">{t('settings.email')}</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-900">Thông tin đặt chỗ</p>
-                    <p className="text-sm text-gray-600">Nhận email xác nhận booking</p>
+                    <p className="text-gray-900">{t('settings.bookingInfo')}</p>
+                    <p className="text-sm text-gray-600">{t('settings.bookingInfoDesc')}</p>
                   </div>
                   <Switch
                     checked={notifications.emailBooking}
                     onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, emailBooking: checked })
+                      handleNotificationChange('emailBooking', checked)
                     }
                   />
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-900">Nhắc nhở chuyến đi</p>
-                    <p className="text-sm text-gray-600">Nhận email nhắc nhở trước chuyến đi</p>
+                    <p className="text-gray-900">{t('settings.tripReminders')}</p>
+                    <p className="text-sm text-gray-600">{t('settings.tripRemindersDesc')}</p>
                   </div>
                   <Switch
                     checked={notifications.emailReminders}
                     onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, emailReminders: checked })
+                      handleNotificationChange('emailReminders', checked)
                     }
                   />
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-900">Khuyến mãi</p>
-                    <p className="text-sm text-gray-600">Nhận email về ưu đãi và khuyến mãi</p>
+                    <p className="text-gray-900">{t('settings.promotions')}</p>
+                    <p className="text-sm text-gray-600">{t('settings.promotionsDesc')}</p>
                   </div>
                   <Switch
                     checked={notifications.emailPromotions}
                     onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, emailPromotions: checked })
+                      handleNotificationChange('emailPromotions', checked)
                     }
                   />
                 </div>
@@ -175,30 +237,30 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
 
             {/* Push Notifications */}
             <div>
-              <h3 className="text-gray-900 mb-4">Thông báo đẩy</h3>
+              <h3 className="text-gray-900 mb-4">{t('settings.pushNotifications')}</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-900">Thông tin đặt chỗ</p>
-                    <p className="text-sm text-gray-600">Nhận thông báo về booking của bạn</p>
+                    <p className="text-gray-900">{t('settings.bookingInfo')}</p>
+                    <p className="text-sm text-gray-600">{t('settings.bookingInfoDesc')}</p>
                   </div>
                   <Switch
                     checked={notifications.pushBooking}
                     onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, pushBooking: checked })
+                      handleNotificationChange('pushBooking', checked)
                     }
                   />
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-900">Khuyến mãi</p>
-                    <p className="text-sm text-gray-600">Nhận thông báo về ưu đãi mới</p>
+                    <p className="text-gray-900">{t('settings.promotions')}</p>
+                    <p className="text-sm text-gray-600">{t('settings.promotionsDesc')}</p>
                   </div>
                   <Switch
                     checked={notifications.pushPromotions}
                     onCheckedChange={(checked) =>
-                      setNotifications({ ...notifications, pushPromotions: checked })
+                      handleNotificationChange('pushPromotions', checked)
                     }
                   />
                 </div>
@@ -209,16 +271,16 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
 
             {/* SMS Notifications */}
             <div>
-              <h3 className="text-gray-900 mb-4">SMS</h3>
+              <h3 className="text-gray-900 mb-4">{t('settings.sms')}</h3>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-900">Thông tin đặt chỗ</p>
-                  <p className="text-sm text-gray-600">Nhận SMS xác nhận booking</p>
+                  <p className="text-gray-900">{t('settings.bookingInfo')}</p>
+                  <p className="text-sm text-gray-600">{t('settings.bookingInfoDesc')}</p>
                 </div>
                 <Switch
                   checked={notifications.smsBooking}
                   onCheckedChange={(checked) =>
-                    setNotifications({ ...notifications, smsBooking: checked })
+                    handleNotificationChange('smsBooking', checked)
                   }
                 />
               </div>
@@ -233,8 +295,8 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
               <Globe className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-xl text-gray-900">Ngôn ngữ & Khu vực</h2>
-              <p className="text-sm text-gray-600">Tùy chỉnh ngôn ngữ và tiền tệ</p>
+              <h2 className="text-xl text-gray-900">{t('settings.languageRegion')}</h2>
+              <p className="text-sm text-gray-600">{t('settings.languageRegionDesc')}</p>
             </div>
           </div>
 
@@ -242,13 +304,13 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
 
           <div className="space-y-4 max-w-md">
             <div>
-              <Label htmlFor="language">Ngôn ngữ</Label>
+              <Label htmlFor="language">{t('settings.language')}</Label>
               <select
                 id="language"
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="vi">Tiếng Việt</option>
-                <option value="en">English</option>
+                <option value="vi">{t('settings.vietnamese')}</option>
+                <option value="en">{t('settings.english')}</option>
                 <option value="zh">中文</option>
                 <option value="ja">日本語</option>
                 <option value="ko">한국어</option>
@@ -256,19 +318,19 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
             </div>
 
             <div>
-              <Label htmlFor="currency">Tiền tệ</Label>
+              <Label htmlFor="currency">{t('settings.currency')}</Label>
               <select
                 id="currency"
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="vnd">VND - Việt Nam Đồng</option>
-                <option value="usd">USD - US Dollar</option>
-                <option value="eur">EUR - Euro</option>
-                <option value="jpy">JPY - Japanese Yen</option>
+                <option value="vnd">{t('settings.vnd', 'VND - Việt Nam Đồng')}</option>
+                <option value="usd">{t('settings.usd', 'USD - US Dollar')}</option>
+                <option value="eur">{t('settings.eur', 'EUR - Euro')}</option>
+                <option value="jpy">{t('settings.jpy', 'JPY - Japanese Yen')}</option>
               </select>
             </div>
 
-            <Button className="w-full">Lưu thay đổi</Button>
+            <Button className="w-full">{t('settings.saveChanges')}</Button>
           </div>
         </Card>
 
@@ -279,8 +341,8 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
               <Shield className="w-6 h-6 text-yellow-600" />
             </div>
             <div>
-              <h2 className="text-xl text-gray-900">Bảo mật & Quyền riêng tư</h2>
-              <p className="text-sm text-gray-600">Quản lý cài đặt bảo mật tài khoản</p>
+              <h2 className="text-xl text-gray-900">{t('settings.privacySecurity')}</h2>
+              <p className="text-sm text-gray-600">{t('settings.securityDesc')}</p>
             </div>
           </div>
 
@@ -289,30 +351,30 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-900">Xác thực hai yếu tố</p>
-                <p className="text-sm text-gray-600">Tăng cường bảo mật tài khoản</p>
+                <p className="text-gray-900">{t('settings.twoFactor')}</p>
+                <p className="text-sm text-gray-600">{t('settings.securityDesc')}</p>
               </div>
-              <Button variant="outline">Kích hoạt</Button>
+              <Button variant="outline">{t('settings.activate')}</Button>
             </div>
 
             <Separator />
 
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-900">Thiết bị đã đăng nhập</p>
-                <p className="text-sm text-gray-600">Quản lý các thiết bị có quyền truy cập</p>
+                <p className="text-gray-900">{t('settings.loginDevices', 'Thiết bị đã đăng nhập')}</p>
+                <p className="text-sm text-gray-600">{t('settings.loginDevicesDesc', 'Quản lý các thiết bị có quyền truy cập')}</p>
               </div>
-              <Button variant="outline">Xem chi tiết</Button>
+              <Button variant="outline">{t('settings.viewDetails', 'Xem chi tiết')}</Button>
             </div>
 
             <Separator />
 
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-900">Tải dữ liệu cá nhân</p>
-                <p className="text-sm text-gray-600">Tải về dữ liệu của bạn</p>
+                <p className="text-gray-900">{t('settings.downloadData', 'Tải dữ liệu cá nhân')}</p>
+                <p className="text-sm text-gray-600">{t('settings.downloadDataDesc', 'Tải về dữ liệu của bạn')}</p>
               </div>
-              <Button variant="outline">Tải xuống</Button>
+              <Button variant="outline">{t('settings.download', 'Tải xuống')}</Button>
             </div>
           </div>
         </Card>
@@ -324,8 +386,8 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
               <Trash2 className="w-6 h-6 text-red-600" />
             </div>
             <div>
-              <h2 className="text-xl text-red-900">Vùng nguy hiểm</h2>
-              <p className="text-sm text-gray-600">Các hành động không thể hoàn tác</p>
+              <h2 className="text-xl text-red-900">{t('settings.dangerZone')}</h2>
+              <p className="text-sm text-gray-600">{t('settings.dangerZoneDesc', 'Các hành động không thể hoàn tác')}</p>
             </div>
           </div>
 
@@ -334,12 +396,12 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-900">Xóa tài khoản</p>
+                <p className="text-gray-900">{t('settings.deleteAccount')}</p>
                 <p className="text-sm text-gray-600">
-                  Xóa vĩnh viễn tài khoản và tất cả dữ liệu của bạn
+                  {t('settings.deleteAccountDesc')}
                 </p>
               </div>
-              <Button variant="destructive">Xóa tài khoản</Button>
+              <Button variant="destructive">{t('settings.deleteAccount')}</Button>
             </div>
           </div>
         </Card>
@@ -349,14 +411,14 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
       <Dialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Đổi mật khẩu</DialogTitle>
+            <DialogTitle>{t('settings.changePassword')}</DialogTitle>
             <DialogDescription>
-              Nhập mật khẩu hiện tại và mật khẩu mới để thay đổi
+              {t('settings.passwordDialogDesc', 'Nhập mật khẩu hiện tại và mật khẩu mới để thay đổi')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
+              <Label htmlFor="currentPassword">{t('profile.currentPassword')}</Label>
               <Input
                 id="currentPassword"
                 type="password"
@@ -366,7 +428,7 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
               />
             </div>
             <div>
-              <Label htmlFor="newPassword">Mật khẩu mới</Label>
+              <Label htmlFor="newPassword">{t('profile.newPassword')}</Label>
               <Input
                 id="newPassword"
                 type="password"
@@ -376,7 +438,7 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
               />
             </div>
             <div>
-              <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
+              <Label htmlFor="confirmPassword">{t('profile.confirmNewPassword')}</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -388,10 +450,10 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsChangePasswordOpen(false)}>
-              Hủy
+              {t('profile.cancel')}
             </Button>
             <Button onClick={handleChangePassword}>
-              Đổi mật khẩu
+              {t('settings.changePassword')}
             </Button>
           </DialogFooter>
         </DialogContent>

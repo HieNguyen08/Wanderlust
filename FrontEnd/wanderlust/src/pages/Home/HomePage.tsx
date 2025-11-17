@@ -1,11 +1,12 @@
+import { Award, ChevronLeft, ChevronRight, Clock, Compass, DollarSign, Heart, Landmark, MapPinned, Mountain, Plane, Shield, Sparkles, Star, Utensils, Waves } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { Sparkles, MapPinned, Compass, Mountain, Waves, Utensils, Landmark, Award, Heart, Plane, Shield, DollarSign, Clock, Star, ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import type { PageType } from "../../MainApp";
+import { Footer } from "../../components/Footer";
 import { HeroSearchHub } from "../../components/HeroSearchHub";
 import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
-import { Footer } from "../../components/Footer";
+import { Button } from "../../components/ui/button";
+import type { PageType } from "../../MainApp";
 
 interface HomePageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -13,6 +14,7 @@ interface HomePageProps {
 
 export default function HomePage({ onNavigate }: HomePageProps) {
   console.log("🏠 HomePage rendered!");
+  const { t } = useTranslation();
   const [isSearching, setIsSearching] = useState(false);
   const [searchType, setSearchType] = useState<"flight" | "hotel" | "car" | "activity">("hotel");
   const [destinationsPage, setDestinationsPage] = useState(0);
@@ -46,7 +48,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
             className="w-full h-full object-cover" 
             src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&h=800&fit=crop" 
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
+          <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/50" />
         </div>
         
         {/* Hero Content Container */}
@@ -57,12 +59,12 @@ export default function HomePage({ onNavigate }: HomePageProps) {
           {/* Hero Text */}
           <div className="mt-12 md:mt-20 max-w-4xl">
             <h2 className="text-white text-3xl md:text-5xl lg:text-6xl leading-tight drop-shadow-2xl">
-              Từ Đông Nam Á đến thế giới,
+              {t('home.heroTitle')}
               <br />
-              <span className="text-yellow-300">trong tầm tay bạn</span>
+              <span className="text-yellow-300">{t('home.heroTitleHighlight')}</span>
             </h2>
             <p className="text-white/90 text-lg md:text-xl mt-4 drop-shadow-lg">
-              Khám phá những điểm đến tuyệt vời với giá tốt nhất
+              {t('home.heroSubtitle')}
             </p>
           </div>
         </div>
@@ -81,9 +83,9 @@ export default function HomePage({ onNavigate }: HomePageProps) {
             <div className="flex-1 text-center md:text-left">
               <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
                 <Sparkles className="w-6 h-6 text-yellow-500" />
-                <h2 className="text-3xl md:text-4xl text-red-600">Điểm đến nổi bật</h2>
+                <h2 className="text-3xl md:text-4xl text-red-600">{t('home.featuredDestinations')}</h2>
               </div>
-              <p className="text-gray-600 text-base md:text-lg">Khám phá những điểm đến tuyệt vời trên khắp thế giới</p>
+              <p className="text-gray-600 text-base md:text-lg">{t('home.featuredDestinationsDesc')}</p>
             </div>
             <div className="hidden md:flex gap-2">
               <button
@@ -111,51 +113,51 @@ export default function HomePage({ onNavigate }: HomePageProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-w-full">
             {[
               {
-                name: "Santorini, Hy Lạp",
-                description: "Hoàng hôn thơ mộng",
+                nameKey: "home.destinations.santorini",
+                descKey: "home.destinations.santoriniDesc",
                 price: "từ 35.000.000đ",
                 image: "https://images.unsplash.com/photo-1669203408570-4140ee21f211?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYW50b3JpbmklMjBncmVlY2UlMjBzdW5zZXR8ZW58MXx8fHwxNzYxOTc1NzQ3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-                badge: "Hot",
+                badgeKey: "home.badges.hot",
                 destination: "Santorini"
               },
               {
-                name: "Maldives",
-                description: "Thiên đường nhiệt đới",
+                nameKey: "home.destinations.maldives",
+                descKey: "home.destinations.maldivesDesc",
                 price: "từ 45.000.000đ",
                 image: "https://images.unsplash.com/photo-1614505241347-7f4765c1035e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYWxkaXZlcyUyMGx1eHVyeSUyMHJlc29ydHxlbnwxfHx8fDE3NjE5MzU0NjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-                badge: "Luxury",
+                badgeKey: "home.badges.luxury",
                 destination: "Maldives"
               },
               {
-                name: "Swiss Alps",
-                description: "Núi tuyết hùng vĩ",
+                nameKey: "home.destinations.swissAlps",
+                descKey: "home.destinations.swissAlpsDesc",
                 price: "từ 50.000.000đ",
                 image: "https://images.unsplash.com/photo-1633942515749-f93dddbbcff9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzd2lzcyUyMGFscHMlMjBtb3VudGFpbnxlbnwxfHx8fDE3NjE4OTMxNDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-                badge: "Adventure",
+                badgeKey: "home.badges.adventure",
                 destination: "Switzerland"
               },
               {
-                name: "Dubai, UAE",
-                description: "Xa hoa và đẳng cấp",
+                nameKey: "home.destinations.dubai",
+                descKey: "home.destinations.dubaiDesc",
                 price: "từ 28.000.000đ",
                 image: "https://images.unsplash.com/photo-1657106251952-2d584ebdf886?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkdWJhaSUyMHNreWxpbmUlMjBuaWdodHxlbnwxfHx8fDE3NjE5ODkxMjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
-                badge: "Trending",
+                badgeKey: "home.badges.trending",
                 destination: "Dubai"
               },
               {
-                name: "Bali, Indonesia",
-                description: "Đảo thiên đường",
+                nameKey: "home.destinations.bali",
+                descKey: "home.destinations.baliDesc",
                 price: "từ 12.000.000đ",
                 image: "https://images.unsplash.com/photo-1656247203824-3d6f99461ba4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWxpJTIwcmljZSUyMHRlcnJhY2VzfGVufDF8fHx8MTc2MTkwMDA4Nnww&ixlib=rb-4.1.0&q=80&w=1080",
-                badge: "Best Value",
+                badgeKey: "home.badges.bestValue",
                 destination: "Bali"
               },
               {
-                name: "New York, USA",
-                description: "Thành phố không ngủ",
+                nameKey: "home.destinations.newYork",
+                descKey: "home.destinations.newYorkDesc",
                 price: "từ 40.000.000đ",
                 image: "https://images.unsplash.com/photo-1517176344182-95050758d384?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxuZXclMjB5b3JrJTIwY2l0eSUyMG1hbmhhdHRhbnxlbnwxfHx8fDE3NjE5MTIyODl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-                badge: "City Break",
+                badgeKey: "home.badges.cityBreak",
                 destination: "New York"
               }
             ].map((destination, index) => (
@@ -167,20 +169,20 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                 <div className="relative h-64 overflow-hidden">
                   <ImageWithFallback 
                     src={destination.image}
-                    alt={destination.name}
+                    alt={t(destination.nameKey)}
                     className="w-full h-full object-cover transition-transform group-hover:scale-110"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
                   <div className="absolute top-4 right-4">
-                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs">{destination.badge}</span>
+                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs">{t(destination.badgeKey)}</span>
                   </div>
                   <div className="absolute bottom-4 left-4 right-4 text-white">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-xl mb-1">{destination.name}</h3>
-                        <p className="text-sm text-gray-200">{destination.description}</p>
+                        <h3 className="text-xl mb-1">{t(destination.nameKey)}</h3>
+                        <p className="text-sm text-gray-200">{t(destination.descKey)}</p>
                       </div>
-                      <MapPinned className="w-5 h-5 flex-shrink-0 mt-1" />
+                      <MapPinned className="w-5 h-5 shrink-0 mt-1" />
                     </div>
                   </div>
                 </div>
@@ -196,7 +198,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                         onNavigate("hotel-list", { destination: destination.destination });
                       }}
                     >
-                      Xem chi tiết →
+                      {t('common.viewDetails')} →
                     </Button>
                   </div>
                 </div>
@@ -213,17 +215,17 @@ export default function HomePage({ onNavigate }: HomePageProps) {
             <div className="text-center mb-10">
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Compass className="w-6 h-6 text-blue-600" />
-                <h2 className="text-3xl md:text-4xl text-red-600">Gói tour phổ biến</h2>
+                <h2 className="text-3xl md:text-4xl text-red-600">{t('home.popularTours')}</h2>
               </div>
-              <p className="text-gray-600 text-base md:text-lg">Những gói tour du lịch được yêu thích nhất</p>
+              <p className="text-gray-600 text-base md:text-lg">{t('home.popularToursDesc')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 {
                   id: 1,
-                  title: "Tour Gia Đình",
-                  description: "Nghỉ dưỡng bãi biển cùng gia đình",
+                  titleKey: "home.tours.family",
+                  descKey: "home.tours.familyDesc",
                   duration: "5N4Đ",
                   price: "15.900.000đ",
                   priceNumber: 15900000,
@@ -234,8 +236,8 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                 },
                 {
                   id: 2,
-                  title: "Tuần trăng mật",
-                  description: "Kỷ niệm tình yêu lãng mạn",
+                  titleKey: "home.tours.honeymoon",
+                  descKey: "home.tours.honeymoonDesc",
                   duration: "7N6Đ",
                   price: "42.500.000đ",
                   priceNumber: 42500000,
@@ -246,8 +248,8 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                 },
                 {
                   id: 3,
-                  title: "Safari phiêu lưu",
-                  description: "Khám phá thiên nhiên hoang dã",
+                  titleKey: "home.tours.safari",
+                  descKey: "home.tours.safariDesc",
                   duration: "6N5Đ",
                   price: "38.900.000đ",
                   priceNumber: 38900000,
@@ -258,8 +260,8 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                 },
                 {
                   id: 4,
-                  title: "Du thuyền sang trọng",
-                  description: "Trải nghiệm biển cả đẳng cấp",
+                  titleKey: "home.tours.cruise",
+                  descKey: "home.tours.cruiseDesc",
                   duration: "10N9Đ",
                   price: "65.000.000đ",
                   priceNumber: 65000000,
@@ -272,7 +274,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                 // Convert to TourDetailPage format
                 const tourData = {
                   id: tour.id,
-                  name: tour.title,
+                  name: t(tour.titleKey),
                   location: tour.destination,
                   image: tour.image,
                   price: tour.priceNumber,
@@ -290,7 +292,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                     <div className="relative h-48 overflow-hidden">
                       <ImageWithFallback 
                         src={tour.image}
-                        alt={tour.title}
+                        alt={t(tour.titleKey)}
                         className="w-full h-full object-cover transition-transform group-hover:scale-110"
                       />
                       <div className="absolute top-3 left-3 bg-white px-3 py-1 rounded-full text-sm">
@@ -302,11 +304,11 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                         <span className="text-sm">{tour.rating}</span>
                       </div>
-                      <h3 className="text-lg mb-1">{tour.title}</h3>
-                      <p className="text-sm text-gray-600 mb-3">{tour.description}</p>
+                      <h3 className="text-lg mb-1">{t(tour.titleKey)}</h3>
+                      <p className="text-sm text-gray-600 mb-3">{t(tour.descKey)}</p>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-xs text-gray-500">Từ</p>
+                          <p className="text-xs text-gray-500">{t('common.from')}</p>
                           <p className="text-blue-600 text-lg">{tour.price}</p>
                         </div>
                         <Button 
@@ -317,7 +319,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                             onNavigate("tour-detail", tourData);
                           }}
                         >
-                          Đặt ngay
+                          {t('common.bookNow')}
                         </Button>
                       </div>
                     </div>
@@ -333,41 +335,41 @@ export default function HomePage({ onNavigate }: HomePageProps) {
           <div className="text-center mb-10">
             <div className="flex items-center justify-center gap-2 mb-3">
               <Award className="w-6 h-6 text-purple-600" />
-              <h2 className="text-3xl md:text-4xl text-red-600">Trải nghiệm du lịch</h2>
+              <h2 className="text-3xl md:text-4xl text-red-600">{t('home.travelExperiences')}</h2>
             </div>
-            <p className="text-gray-600 text-base md:text-lg">Những hoạt động phổ biến được yêu thích</p>
+            <p className="text-gray-600 text-base md:text-lg">{t('home.travelExperiencesDesc')}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
                 icon: Waves,
-                title: "Lặn biển",
-                description: "Khám phá đại dương xanh",
+                titleKey: "home.experiences.diving",
+                descKey: "home.experiences.divingDesc",
                 image: "https://images.unsplash.com/photo-1628371217613-714161455f6b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzY3ViYSUyMGRpdmluZyUyMGNvcmFsfGVufDF8fHx8MTc2MTk4OTEyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
                 tours: "120+ tours",
                 category: "attractions"
               },
               {
                 icon: Mountain,
-                title: "Leo núi",
-                description: "Chinh phục đỉnh cao",
+                titleKey: "home.experiences.hiking",
+                descKey: "home.experiences.hikingDesc",
                 image: "https://images.unsplash.com/photo-1609373066983-cee8662ea93f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoaWtpbmclMjBtb3VudGFpbiUyMGFkdmVudHVyZXxlbnwxfHx8fDE3NjE4OTIyODZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
                 tours: "85+ tours",
                 category: "tours"
               },
               {
                 icon: Utensils,
-                title: "Ẩm thực",
-                description: "Khám phá văn hóa ẩm thực",
+                titleKey: "home.experiences.culinary",
+                descKey: "home.experiences.culinaryDesc",
                 image: "https://images.unsplash.com/photo-1759972078854-77866a0685c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29kJTIwY3VsaW5hcnklMjB0b3VyfGVufDF8fHx8MTc2MTkzOTgxMnww&ixlib=rb-4.1.0&q=80&w=1080",
                 tours: "200+ tours",
                 category: "food"
               },
               {
                 icon: Landmark,
-                title: "Di sản",
-                description: "Tìm hiểu lịch sử văn hóa",
+                titleKey: "home.experiences.heritage",
+                descKey: "home.experiences.heritageDesc",
                 image: "https://images.unsplash.com/photo-1690476703929-0718aba7a511?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjdWx0dXJhbCUyMGhlcml0YWdlJTIwdGVtcGxlfGVufDF8fHx8MTc2MTk4OTEyOHww&ixlib=rb-4.1.0&q=80&w=1080",
                 tours: "150+ tours",
                 category: "attractions"
@@ -383,16 +385,16 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                   <div className="relative h-56 rounded-xl overflow-hidden mb-4 shadow-lg hover:shadow-xl transition-all">
                     <ImageWithFallback 
                       src={experience.image}
-                      alt={experience.title}
+                      alt={t(experience.titleKey)}
                       className="w-full h-full object-cover transition-transform group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
                       <div className="bg-white/20 backdrop-blur-sm p-4 rounded-full mb-3 group-hover:bg-white/30 transition-colors">
                         <Icon className="w-8 h-8" />
                       </div>
-                      <h3 className="text-xl mb-1">{experience.title}</h3>
-                      <p className="text-sm text-gray-200 mb-2">{experience.description}</p>
+                      <h3 className="text-xl mb-1">{t(experience.titleKey)}</h3>
+                      <p className="text-sm text-gray-200 mb-2">{t(experience.descKey)}</p>
                       <span className="text-xs bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">{experience.tours}</span>
                     </div>
                   </div>
@@ -408,35 +410,35 @@ export default function HomePage({ onNavigate }: HomePageProps) {
             <div className="text-center mb-12">
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Heart className="w-6 h-6 text-red-500" />
-                <h2 className="text-3xl md:text-4xl text-red-600">Tại sao chọn Wanderlust?</h2>
+                <h2 className="text-3xl md:text-4xl text-red-600">{t('home.whyChooseUs')}</h2>
               </div>
-              <p className="text-gray-600 text-base md:text-lg">Chúng tôi mang đến trải nghiệm du lịch tuyệt vời nhất</p>
+              <p className="text-gray-600 text-base md:text-lg">{t('home.whyChooseUsDesc')}</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
                 {
                   icon: Plane,
-                  title: "Đa dạng lựa chọn",
-                  description: "Hàng nghìn điểm đến trên toàn thế giới với giá tốt nhất",
+                  titleKey: "home.features.variety",
+                  descKey: "home.features.varietyDesc",
                   color: "blue"
                 },
                 {
                   icon: Shield,
-                  title: "An toàn & Tin cậy",
-                  description: "Đảm bảo an toàn cho mọi chuyến đi của bạn",
+                  titleKey: "home.features.security",
+                  descKey: "home.features.securityDesc",
                   color: "green"
                 },
                 {
                   icon: DollarSign,
-                  title: "Giá tốt nhất",
-                  description: "Cam kết giá rẻ nhất thị trường, hoàn tiền nếu tìm thấy giá thấp hơn",
+                  titleKey: "home.features.bestPrice",
+                  descKey: "home.features.bestPriceDesc",
                   color: "yellow"
                 },
                 {
                   icon: Clock,
-                  title: "Hỗ trợ 24/7",
-                  description: "Đội ngũ chăm sóc khách hàng luôn sẵn sàng hỗ trợ bạn",
+                  titleKey: "home.features.support247",
+                  descKey: "home.features.support247Desc",
                   color: "purple"
                 }
               ].map((feature, index) => {
@@ -455,8 +457,8 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                     <div className={`inline-flex items-center justify-center w-16 h-16 mb-4 rounded-full ${colorClasses[feature.color as keyof typeof colorClasses]}`}>
                       <Icon className="w-8 h-8" />
                     </div>
-                    <h3 className="text-lg mb-2">{feature.title}</h3>
-                    <p className="text-gray-600 text-sm">{feature.description}</p>
+                    <h3 className="text-lg mb-2">{t(feature.titleKey)}</h3>
+                    <p className="text-gray-600 text-sm">{t(feature.descKey)}</p>
                   </div>
                 );
               })}
@@ -469,9 +471,9 @@ export default function HomePage({ onNavigate }: HomePageProps) {
           <div className="text-center mb-12">
             <div className="flex items-center justify-center gap-2 mb-3">
               <Star className="w-6 h-6 text-yellow-500" />
-              <h2 className="text-3xl md:text-4xl text-red-600">Khách hàng nói gì về chúng tôi</h2>
+              <h2 className="text-3xl md:text-4xl text-red-600">{t('home.testimonials')}</h2>
             </div>
-            <p className="text-gray-600 text-base md:text-lg">Hơn 10,000+ khách hàng hài lòng</p>
+            <p className="text-gray-600 text-base md:text-lg">{t('home.testimonialsDesc')}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

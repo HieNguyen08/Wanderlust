@@ -1,14 +1,14 @@
+import { Calendar, Info, MapPin, Users } from "lucide-react";
 import { useState } from "react";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
 import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Separator } from "../../components/ui/separator";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { MapPin, Calendar, Users, Info } from "lucide-react";
 import type { PageType } from "../../MainApp";
 
 interface ActivityReviewPageProps {
@@ -118,7 +118,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
             {/* Alert */}
             <Card className="p-4 bg-blue-50 border-blue-200">
               <div className="flex gap-3">
-                <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900">
                   <p>
                     Voucher và thông tin tour sẽ được gửi qua email. Vui lòng mang theo voucher (in hoặc trên điện thoại) khi tham gia tour.
@@ -346,7 +346,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
             )}
 
             {/* Tour Information */}
-            <Card className="p-6 bg-gradient-to-br from-green-50 to-blue-50 border-green-200">
+            <Card className="p-6 bg-linear-to-br from-green-50 to-blue-50 border-green-200">
               <h3 className="text-lg text-gray-900 mb-4">Điều cần biết trước khi tham gia</h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
@@ -427,7 +427,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                 {/* Booking Info */}
                 <div className="space-y-3 mb-6">
                   <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                    <Calendar className="w-5 h-5 text-gray-600 shrink-0" />
                     <div>
                       <p className="text-sm text-gray-600">Ngày tham gia</p>
                       <p className="text-gray-900">{booking.date}</p>
@@ -435,7 +435,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <Users className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                    <Users className="w-5 h-5 text-gray-600 shrink-0" />
                     <div>
                       <p className="text-sm text-gray-600">Số lượng</p>
                       <p className="text-gray-900">
@@ -446,7 +446,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
 
                   {booking.hasPickup && (
                     <div className="flex items-start gap-3">
-                      <MapPin className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                      <MapPin className="w-5 h-5 text-gray-600 shrink-0" />
                       <div>
                         <p className="text-sm text-gray-600">Đưa đón</p>
                         <p className="text-green-600">Có bao gồm</p>

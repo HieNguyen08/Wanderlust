@@ -1,18 +1,17 @@
+import {
+    ArrowRight,
+    Calendar,
+    CheckCircle2,
+    Download,
+    FileText,
+    Home,
+    Mail,
+    Phone
+} from "lucide-react";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Separator } from "../../components/ui/separator";
-import { 
-  CheckCircle2, 
-  Download, 
-  Mail, 
-  Phone, 
-  Calendar,
-  FileText,
-  CreditCard,
-  Home,
-  ArrowRight
-} from "lucide-react";
 import type { PageType } from "../../MainApp";
 
 interface VisaConfirmationPageProps {
@@ -132,7 +131,7 @@ export default function VisaConfirmationPage({
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-start">
-              <Calendar className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+              <Calendar className="w-5 h-5 text-blue-600 mt-0.5 mr-3 shrink-0" />
               <div>
                 <h4 className="font-semibold text-blue-900 mb-1">Thời Gian Xử Lý</h4>
                 <p className="text-sm text-blue-800">
@@ -153,7 +152,7 @@ export default function VisaConfirmationPage({
           <h3 className="text-xl font-bold text-gray-900 mb-4">Bước Tiếp Theo</h3>
           <div className="space-y-4">
             <div className="flex items-start">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-4">
+              <div className="shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-4">
                 1
               </div>
               <div>
@@ -165,7 +164,7 @@ export default function VisaConfirmationPage({
             </div>
 
             <div className="flex items-start">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-4">
+              <div className="shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-4">
                 2
               </div>
               <div>
@@ -177,7 +176,7 @@ export default function VisaConfirmationPage({
             </div>
 
             <div className="flex items-start">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-4">
+              <div className="shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-4">
                 3
               </div>
               <div>
@@ -211,7 +210,7 @@ export default function VisaConfirmationPage({
         </div>
 
         {/* Contact Support */}
-        <Card className="p-6 mb-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+        <Card className="p-6 mb-6 bg-linear-to-r from-blue-600 to-blue-700 text-white">
           <h3 className="text-xl font-bold mb-4">Cần Hỗ Trợ?</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div className="flex items-center">

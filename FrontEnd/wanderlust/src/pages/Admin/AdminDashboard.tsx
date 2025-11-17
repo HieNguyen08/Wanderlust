@@ -1,18 +1,51 @@
+import {
+    ArrowDown,
+    ArrowUp,
+    BookOpen,
+    DollarSign,
+    Eye, MoreVertical,
+    TrendingUp,
+    Users
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner@2.0.3";
 import { AdminLayout } from "../../components/AdminLayout";
-import { Card } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
-import {
-  Users, DollarSign, BookOpen, TrendingUp,
-  ArrowUp, ArrowDown, Eye, MoreVertical
-} from "lucide-react";
+import { Card } from "../../components/ui/card";
 import type { PageType } from "../../MainApp";
+import { adminApi } from "../../utils/api";
 
 interface AdminDashboardProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
 export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
+  const [statistics, setStatistics] = useState<any>(null);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
+        const [stats, allBookings] = await Promise.all([
+          adminApi.getBookingStatistics(),
+          adminApi.getAllBookings()
+        ]);
+        setStatistics(stats);
+        setBookings(allBookings.slice(0, 5)); // Top 5 recent
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+        toast.error('Không thể tải dữ liệu dashboard');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
+
   const stats = [
     {
       title: "Tổng người dùng",
@@ -45,49 +78,6 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       trend: "up",
       icon: TrendingUp,
       color: "orange",
-    },
-  ];
-
-  const recentBookings = [
-    {
-      id: "BK001",
-      customer: "Nguyễn Văn A",
-      type: "Khách sạn",
-      amount: 3500000,
-      status: "confirmed",
-      date: "2025-01-15",
-    },
-    {
-      id: "BK002",
-      customer: "Trần Thị B",
-      type: "Vé máy bay",
-      amount: 2500000,
-      status: "pending",
-      date: "2025-01-15",
-    },
-    {
-      id: "BK003",
-      customer: "Lê Văn C",
-      type: "Tour",
-      amount: 6690000,
-      status: "confirmed",
-      date: "2025-01-14",
-    },
-    {
-      id: "BK004",
-      customer: "Phạm Thị D",
-      type: "Thuê xe",
-      amount: 1800000,
-      status: "cancelled",
-      date: "2025-01-14",
-    },
-    {
-      id: "BK005",
-      customer: "Hoàng Văn E",
-      type: "Hoạt động",
-      amount: 550000,
-      status: "confirmed",
-      date: "2025-01-13",
     },
   ];
 

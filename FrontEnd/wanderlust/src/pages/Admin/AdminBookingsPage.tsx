@@ -1,32 +1,43 @@
-import { useState } from "react";
-import { AdminLayout } from "../../components/AdminLayout";
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
-import {
-  Search, MoreVertical, Eye, RefreshCw, X,
-  Plane, Hotel, Car, Activity, Download,
-  CheckCircle, XCircle, Clock
+    Activity,
+    Car,
+    CheckCircle,
+    Clock,
+    Download,
+    Eye,
+    Hotel,
+    MoreVertical,
+    Plane,
+    RefreshCw,
+    Search,
+    X,
+    XCircle
 } from "lucide-react";
-import type { PageType } from "../../MainApp";
-import { BookingDetailDialog } from "../../components/admin/BookingDetailDialog";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import type { PageType } from "../../MainApp";
+import { AdminLayout } from "../../components/AdminLayout";
+import { BookingDetailDialog } from "../../components/admin/BookingDetailDialog";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import { Input } from "../../components/ui/input";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../../components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { adminApi } from "../../utils/api";
 
 interface AdminBookingsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -50,6 +61,25 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
   const [activeTab, setActiveTab] = useState("all");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadBookings = async () => {
+      try {
+        setLoading(true);
+        const data = await adminApi.getAllBookings();
+        setBookings(data);
+      } catch (error) {
+        console.error('Failed to load bookings:', error);
+        toast.error('Không thể tải danh sách bookings');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBookings();
+  }, []);
 
   const handleViewDetail = (booking: Booking) => {
     setSelectedBooking(booking);
@@ -66,12 +96,60 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
     // TODO: Implement cancel logic
   };
 
-  const handleRefund = (booking: Booking) => {
-    toast.success(`Đã hoàn tiền cho booking ${booking.id}`);
-    // TODO: Implement refund logic
+  const handleRefund = async (booking: Booking) => {
+    try {
+      await adminApi.deleteBooking(booking.id);
+      toast.success(`Đã hoàn tiền cho booking ${booking.id}`);
+      // Reload bookings
+      const data = await adminApi.getAllBookings();
+      setBookings(data);
+    } catch (error) {
+      toast.error('Không thể hoàn tiền');
+    }
   };
 
-  const bookings: Booking[] = [
+  const filteredBookings = bookings.filter(booking => {
+    const matchesSearch = searchQuery === "" ||
+      booking.customer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      booking.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      booking.id?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (activeTab === "all") return matchesSearch;
+    return matchesSearch && booking.status === activeTab;
+  });
+
+  const stats = [
+    {
+      label: "Tổng đặt chỗ",
+      value: bookings.length,
+      change: "+12.5%",
+      icon: Calendar,
+      color: "blue"
+    },
+    {
+      label: "Đã xác nhận",
+      value: bookings.filter(b => b.status === "confirmed").length,
+      change: "+8.2%",
+      icon: CheckCircle2,
+      color: "green"
+    },
+    {
+      label: "Chờ xử lý",
+      value: bookings.filter(b => b.status === "pending").length,
+      change: "-3.1%",
+      icon: Clock,
+      color: "orange"
+    },
+    {
+      label: "Đã hủy",
+      value: bookings.filter(b => b.status === "cancelled").length,
+      change: "+1.8%",
+      icon: XCircle,
+      color: "red"
+    },
+  ];
+
+  const mockBookings = [
     {
       id: "BK001",
       customer: "Nguyễn Văn A",
@@ -146,13 +224,6 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
     },
   ];
 
-  const stats = [
-    { label: "Tổng bookings", value: "1,245", color: "blue", icon: CheckCircle },
-    { label: "Chờ xử lý", value: "127", color: "yellow", icon: Clock },
-    { label: "Đã hủy", value: "85", color: "red", icon: XCircle },
-    { label: "Doanh thu", value: "₫523M", color: "green", icon: CheckCircle },
-  ];
-
   const getTypeBadge = (type: string) => {
     const config = {
       flight: { label: "Vé máy bay", icon: Plane, color: "blue" },
@@ -196,14 +267,6 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
         return null;
     }
   };
-
-  const filteredBookings = bookings.filter(booking => {
-    const matchesSearch = booking.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         booking.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         booking.service.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTab = activeTab === "all" || booking.type === activeTab;
-    return matchesSearch && matchesTab;
-  });
 
   return (
     <AdminLayout currentPage="admin-bookings" onNavigate={onNavigate} activePage="admin-bookings">

@@ -1,7 +1,7 @@
+import { AlertCircle, ArrowLeft, CheckCircle2, FileText, Upload, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
-import { ArrowLeft, Upload, FileText, CheckCircle2, X, AlertCircle } from "lucide-react";
 import type { PageType } from "../../MainApp";
 
 interface VisaDocumentsPageProps {
@@ -146,7 +146,7 @@ export default function VisaDocumentsPage({ country, formData, onNavigate }: Vis
 
         {/* Country Info */}
         {country && (
-          <Card className="p-6 mb-8 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+          <Card className="p-6 mb-8 bg-linear-to-r from-blue-600 to-blue-700 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold mb-2">
@@ -164,7 +164,7 @@ export default function VisaDocumentsPage({ country, formData, onNavigate }: Vis
         {/* Instructions */}
         <Card className="p-6 mb-6 bg-blue-50 border-blue-200">
           <div className="flex items-start">
-            <AlertCircle className="w-6 h-6 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+            <AlertCircle className="w-6 h-6 text-blue-600 mt-0.5 mr-3 shrink-0" />
             <div>
               <h3 className="font-bold text-blue-900 mb-2">Hướng dẫn upload hồ sơ</h3>
               <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
@@ -220,7 +220,7 @@ export default function VisaDocumentsPage({ country, formData, onNavigate }: Vis
                     <p className="text-sm text-gray-600">{doc.description}</p>
                   </div>
                   {uploaded && (
-                    <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 ml-4" />
+                    <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0 ml-4" />
                   )}
                 </div>
 

@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { ArrowLeft, ArrowRight, Clock, Hotel, MapPin, PartyPopper, Plane, Star } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { ArrowLeft, Plane, Hotel, PartyPopper, MapPin, Star, Clock, ArrowRight } from "lucide-react";
+import { Footer } from "../../components/Footer";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
 import type { PageType } from "../../MainApp";
-import { Footer } from "../../components/Footer";
 // Sử dụng API thật kết nối MongoDB local:
 import { travelGuideApi } from "../../utils/api";
 // Test API (không dùng nữa):
@@ -432,7 +432,7 @@ export default function GuideDetailPage({ guide: initialGuide, onNavigate }: Gui
                     alt={relatedGuide.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-6">
                     <h3 className="text-white text-2xl mb-2">{relatedGuide.title}</h3>
                     <p className="text-white/90">{relatedGuide.country}</p>

@@ -1,13 +1,13 @@
+import { ArrowLeft, Calendar, CheckCircle, Fuel, Heart, MapPin, Settings, Shield, Star, ThumbsUp, Users } from "lucide-react";
 import { useState } from "react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { ArrowLeft, Star, Fuel, Settings, Users, ThumbsUp, Heart, MapPin, Calendar, Shield, CheckCircle } from "lucide-react";
+import { Footer } from "../../components/Footer";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Separator } from "../../components/ui/separator";
 import { Input } from "../../components/ui/input";
+import { Separator } from "../../components/ui/separator";
 import type { PageType } from "../../MainApp";
-import { Footer } from "../../components/Footer";
 
 interface CarDetailPageProps {
   car: {
@@ -122,7 +122,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
       {/* Header */}      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 pt-[calc(60px+2rem)]">
         <Button
@@ -140,7 +140,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
             {/* Car Images */}
             <Card className="p-6 border-0 shadow-lg">
               {/* Main Image */}
-              <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden mb-4">
+              <div className="relative bg-linear-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden mb-4">
                 <ImageWithFallback
                   src={carImages[selectedImage]}
                   alt={car.name}
@@ -231,7 +231,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                 <div className="grid grid-cols-2 gap-4">
                   {features.map((feature, idx) => (
                     <div key={idx} className="flex gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                      <feature.icon className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                      <feature.icon className="w-6 h-6 text-blue-600 shrink-0" />
                       <div>
                         <p className="text-gray-900 mb-1">{feature.label}</p>
                         <p className="text-sm text-gray-600">{feature.desc}</p>
@@ -246,7 +246,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
             <Card className="p-6 border-0 shadow-lg">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl text-gray-900">Đánh giá</h2>
-                <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600">
+                <Badge className="bg-linear-to-r from-blue-600 to-indigo-600">
                   {reviews.length} đánh giá
                 </Badge>
               </div>
@@ -255,7 +255,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                 {reviews.map((review) => (
                   <div key={review.id} className="border-t pt-6 first:border-t-0 first:pt-0">
                     <div className="flex items-start gap-4 mb-3">
-                      <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden shrink-0">
                         <ImageWithFallback
                           src={review.avatar}
                           alt={review.name}
@@ -327,7 +327,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                         </button>
                       </div>
 
-                      <div className="mb-6 h-32 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 group-hover:scale-105 transition-transform">
+                      <div className="mb-6 h-32 flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-4 group-hover:scale-105 transition-transform">
                         <ImageWithFallback
                           src={recCar.image}
                           alt={recCar.name}
@@ -378,7 +378,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                             });
                           }}
                           size="sm"
-                          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                          className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                         >
                           Thuê ngay
                         </Button>
@@ -431,7 +431,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                   rental: { pickupDate: "Thứ 7, 8/11/2025", pickupTime: "09:00", dropoffDate: "Thứ 2, 10/11/2025", dropoffTime: "09:00", pickupLocation: "Pool Bandara CGK", dropoffLocation: "Pool Bandara CGK", days: 2 },
                   pricing: { carPrice: car.price * 2, fees: 0, deposit: car.price * 1.5 }
                 })} 
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 mb-4"
+                className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 mb-4"
                 size="lg"
               >
                 Đặt xe ngay

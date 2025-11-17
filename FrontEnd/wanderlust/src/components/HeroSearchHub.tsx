@@ -1,17 +1,29 @@
-import { useState } from "react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Calendar } from "./ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./ui/command";
-import { 
-  Hotel, Plane, Car, PartyPopper, MapPin, Calendar as CalendarIcon, 
-  Users, Search, PlaneTakeoff, PlaneLanding, ArrowRightLeft, 
-  Check, ChevronsUpDown, Plus, Minus, Clock
-} from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import {
+    ArrowRightLeft,
+    Calendar as CalendarIcon,
+    Car,
+    Check,
+    Clock,
+    Hotel,
+    MapPin,
+    Minus,
+    PartyPopper,
+    Plane,
+    PlaneLanding,
+    PlaneTakeoff,
+    Plus,
+    Search,
+    Users
+} from "lucide-react";
+import { useState } from "react";
 import type { PageType } from "../MainApp";
+import { Button } from "./ui/button";
+import { Calendar } from "./ui/calendar";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./ui/command";
+import { Input } from "./ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "./ui/utils";
 
 interface HeroSearchHubProps {
@@ -120,8 +132,8 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
     <div className="w-full max-w-6xl mx-auto px-4">
       <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-8 border-4 border-yellow-400 relative overflow-hidden">
         {/* Decorative Corner Elements */}
-        <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-yellow-400/20 to-transparent rounded-br-full"></div>
-        <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-yellow-400/20 to-transparent rounded-tl-full"></div>
+        <div className="absolute top-0 left-0 w-20 h-20 bg-linear-to-br from-yellow-400/20 to-transparent rounded-br-full"></div>
+        <div className="absolute bottom-0 right-0 w-20 h-20 bg-linear-to-tl from-yellow-400/20 to-transparent rounded-tl-full"></div>
         
         {/* Service Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 relative z-10">
@@ -135,7 +147,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                 className={cn(
                   "flex items-center gap-2 px-5 py-3 rounded-xl transition-all whitespace-nowrap",
                   isActive
-                    ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/50 scale-105 border-2 border-yellow-400"
+                    ? "bg-linear-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/50 scale-105 border-2 border-yellow-400"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:scale-105 border-2 border-transparent"
                 )}
               >
@@ -385,7 +397,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
             </div>
 
             {/* Search Button */}
-            <Button onClick={handleFlightSearch} className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 h-14 text-lg shadow-lg shadow-blue-500/30 border-2 border-yellow-400">
+            <Button onClick={handleFlightSearch} className="w-full bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 h-14 text-lg shadow-lg shadow-blue-500/30 border-2 border-yellow-400">
               <Search className="w-5 h-5 mr-2" />
               Tìm chuyến bay
             </Button>
@@ -423,7 +435,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
               <div className="grid md:grid-cols-[2fr_2fr_2fr_auto] divide-x divide-gray-200">
                 {/* Location */}
                 <div className="flex items-center gap-3 p-4">
-                  <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                  <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-xs text-gray-500">Địa điểm</div>
                     <Input
@@ -439,7 +451,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="flex items-center gap-3 p-4 text-left hover:bg-gray-50 transition-colors">
-                      <CalendarIcon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <CalendarIcon className="w-5 h-5 text-blue-600 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-gray-500">Nhận phòng - Trả phòng</div>
                         <div className="font-semibold truncate">
@@ -467,7 +479,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                 <Popover open={openHotelGuests} onOpenChange={setOpenHotelGuests}>
                   <PopoverTrigger asChild>
                     <button className="flex items-center gap-3 p-4 text-left hover:bg-gray-50 transition-colors">
-                      <Users className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <Users className="w-5 h-5 text-blue-600 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-gray-500">Khách & Phòng</div>
                         <div className="font-semibold truncate">
@@ -520,7 +532,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
 
                 {/* Search Button */}
                 <div className="flex items-center justify-center p-4">
-                  <Button onClick={handleHotelSearch} className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 h-12 w-12 rounded-full p-0 shadow-lg shadow-blue-500/30 border-2 border-yellow-400">
+                  <Button onClick={handleHotelSearch} className="bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 h-12 w-12 rounded-full p-0 shadow-lg shadow-blue-500/30 border-2 border-yellow-400">
                     <Search className="w-5 h-5" />
                   </Button>
                 </div>
@@ -563,7 +575,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
               <div className="grid md:grid-cols-[2fr_1.5fr_1fr_1.5fr_1fr_auto] divide-x divide-gray-200">
                 {/* Location */}
                 <div className="flex items-center gap-3 p-4">
-                  <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                  <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-xs text-gray-500">Địa điểm thuê xe</div>
                     <Input
@@ -579,7 +591,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="flex items-center gap-2 p-4 text-left hover:bg-gray-50 transition-colors">
-                      <CalendarIcon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <CalendarIcon className="w-5 h-5 text-blue-600 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-gray-500">Ngày nhận</div>
                         <div className="font-semibold text-sm truncate">
@@ -597,7 +609,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                 <Popover open={openCarStartTime} onOpenChange={setOpenCarStartTime}>
                   <PopoverTrigger asChild>
                     <button className="flex items-center gap-2 p-4 text-left hover:bg-gray-50 transition-colors">
-                      <Clock className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <Clock className="w-5 h-5 text-blue-600 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-gray-500">Giờ nhận</div>
                         <div className="font-semibold text-sm">{carStartTime}</div>
@@ -629,7 +641,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="flex items-center gap-2 p-4 text-left hover:bg-gray-50 transition-colors">
-                      <CalendarIcon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <CalendarIcon className="w-5 h-5 text-blue-600 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-gray-500">Ngày trả</div>
                         <div className="font-semibold text-sm truncate">
@@ -647,7 +659,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                 <Popover open={openCarEndTime} onOpenChange={setOpenCarEndTime}>
                   <PopoverTrigger asChild>
                     <button className="flex items-center gap-2 p-4 text-left hover:bg-gray-50 transition-colors">
-                      <Clock className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <Clock className="w-5 h-5 text-blue-600 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-gray-500">Giờ trả</div>
                         <div className="font-semibold text-sm">{carEndTime}</div>
@@ -677,7 +689,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
 
                 {/* Search Button */}
                 <div className="flex items-center justify-center p-4">
-                  <Button onClick={handleCarSearch} className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 h-12 w-12 rounded-full p-0 shadow-lg shadow-blue-500/30 border-2 border-yellow-400">
+                  <Button onClick={handleCarSearch} className="bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 h-12 w-12 rounded-full p-0 shadow-lg shadow-blue-500/30 border-2 border-yellow-400">
                     <Search className="w-5 h-5" />
                   </Button>
                 </div>
@@ -694,7 +706,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
               <div className="grid md:grid-cols-[2fr_1.5fr_auto] divide-x divide-gray-200">
                 {/* Location/Activity */}
                 <div className="flex items-center gap-3 p-4">
-                  <Search className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                  <Search className="w-5 h-5 text-blue-600 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-xs text-gray-500">Hoạt động hoặc địa điểm</div>
                     <Input
@@ -710,7 +722,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="flex items-center gap-3 p-4 text-left hover:bg-gray-50 transition-colors">
-                      <CalendarIcon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <CalendarIcon className="w-5 h-5 text-blue-600 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-gray-500">Ngày tham gia</div>
                         <div className="font-semibold">
@@ -726,7 +738,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
 
                 {/* Search Button */}
                 <div className="flex items-center justify-center p-4">
-                  <Button onClick={handleActivitySearch} className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 h-12 w-12 rounded-full p-0 shadow-lg shadow-blue-500/30 border-2 border-yellow-400">
+                  <Button onClick={handleActivitySearch} className="bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 h-12 w-12 rounded-full p-0 shadow-lg shadow-blue-500/30 border-2 border-yellow-400">
                     <Search className="w-5 h-5" />
                   </Button>
                 </div>

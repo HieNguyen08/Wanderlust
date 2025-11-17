@@ -1,38 +1,36 @@
-import { useState } from "react";
+import {
+    AlertCircle,
+    CheckCircle,
+    Clock,
+    CreditCard,
+    DollarSign,
+    Download,
+    Eye,
+    FileText,
+    Search,
+    User,
+    XCircle
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { AdminLayout } from "../../components/AdminLayout";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Input } from "../../components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "../../components/ui/dialog";
-import { Textarea } from "../../components/ui/textarea";
+import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import {
-  Search,
-  DollarSign,
-  CheckCircle,
-  XCircle,
-  Clock,
-  AlertCircle,
-  Eye,
-  Filter,
-  Download,
-  Calendar,
-  User,
-  CreditCard,
-  FileText,
-  TrendingUp,
-  TrendingDown
-} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { Textarea } from "../../components/ui/textarea";
 import type { PageType } from "../../MainApp";
+import { adminWalletApi } from "../../utils/api";
 
 interface AdminRefundsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -72,132 +70,50 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [refundRequests, setRefundRequests] = useState<RefundRequest[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data
-  const refundRequests: RefundRequest[] = [
-    {
-      id: "REF001",
-      bookingId: "HT001",
-      bookingCode: "HTL20251120",
-      serviceType: "hotel",
-      serviceName: "JW Marriott Phu Quoc - Deluxe Ocean View Room",
-      userId: "U001",
-      userName: "Nguyễn Văn A",
-      userEmail: "nguyenvana@email.com",
-      vendorName: "JW Marriott Phu Quoc",
-      originalAmount: 10500000,
-      refundPercentage: 80,
-      refundAmount: 8400000,
-      requestDate: "01/11/2025 16:30",
-      status: "pending",
-      paymentMethod: "VNPay",
-      transactionId: "VNPAY20241101002",
-      estimatedCompletionDate: "08/11/2025"
-    },
-    {
-      id: "REF002",
-      bookingId: "FL001",
-      bookingCode: "VN117ABC",
-      serviceType: "flight",
-      serviceName: "Hà Nội → Đà Nẵng - Vietnam Airlines VN117",
-      userId: "U002",
-      userName: "Trần Thị B",
-      userEmail: "tranthib@email.com",
-      vendorName: "Vietnam Airlines",
-      originalAmount: 2500000,
-      refundPercentage: 100,
-      refundAmount: 2500000,
-      requestDate: "01/11/2025 14:20",
-      status: "approved",
-      paymentMethod: "Momo",
-      transactionId: "MOMO20241101001",
-      processedBy: "Admin User",
-      processedAt: "01/11/2025 15:00",
-      estimatedCompletionDate: "06/11/2025"
-    },
-    {
-      id: "REF003",
-      bookingId: "VS001",
-      bookingCode: "VISA20251101",
-      serviceType: "visa",
-      serviceName: "Visa Nhật Bản - Du lịch",
-      userId: "U003",
-      userName: "Lê Văn C",
-      userEmail: "levanc@email.com",
-      vendorName: "Wanderlust Visa Services",
-      originalAmount: 1500000,
-      refundPercentage: 50,
-      refundAmount: 750000,
-      requestDate: "31/10/2025 10:15",
-      status: "processing",
-      paymentMethod: "Chuyển khoản",
-      transactionId: "BANK20241101003",
-      processedBy: "Admin User",
-      processedAt: "31/10/2025 11:00",
-      estimatedCompletionDate: "05/11/2025"
-    },
-    {
-      id: "REF004",
-      bookingId: "CR002",
-      bookingCode: "CAR20251015",
-      serviceType: "car",
-      serviceName: "Toyota Camry 2024 - Sedan cao cấp",
-      userId: "U004",
-      userName: "Phạm Thị D",
-      userEmail: "phamthid@email.com",
-      vendorName: "Premium Car Rental",
-      originalAmount: 1800000,
-      refundPercentage: 90,
-      refundAmount: 1620000,
-      requestDate: "28/10/2025 09:30",
-      status: "completed",
-      paymentMethod: "VNPay",
-      transactionId: "VNPAY20241015001",
-      processedBy: "Admin User",
-      processedAt: "28/10/2025 10:00",
-      estimatedCompletionDate: "30/10/2025"
-    },
-    {
-      id: "REF005",
-      bookingId: "AC002",
-      bookingCode: "ACT20251020",
-      serviceType: "activity",
-      serviceName: "Vé Vinpearl Land - Vé cả ngày",
-      userId: "U005",
-      userName: "Hoàng Văn E",
-      userEmail: "hoangvane@email.com",
-      vendorName: "Vinpearl",
-      originalAmount: 650000,
-      refundPercentage: 100,
-      refundAmount: 650000,
-      requestDate: "25/10/2025 14:45",
-      status: "rejected",
-      paymentMethod: "Momo",
-      transactionId: "MOMO20241020001",
-      processedBy: "Admin User",
-      processedAt: "25/10/2025 16:00",
-      rejectionReason: "Đã quá thời hạn hủy theo chính sách. Khách hàng yêu cầu hủy sau 24h trước sự kiện."
-    },
-    {
-      id: "REF006",
-      bookingId: "HT003",
-      bookingCode: "HTL20251105",
-      serviceType: "hotel",
-      serviceName: "Hilton Hanoi Opera - Executive Room",
-      userId: "U001",
-      userName: "Nguyễn Văn A",
-      userEmail: "nguyenvana@email.com",
-      vendorName: "Hilton Hanoi Opera",
-      originalAmount: 5600000,
-      refundPercentage: 100,
-      refundAmount: 5600000,
-      requestDate: "01/11/2025 11:20",
-      status: "pending",
-      paymentMethod: "Credit Card",
-      transactionId: "VISA20241101004",
-      estimatedCompletionDate: "08/11/2025"
-    },
-  ];
+  useEffect(() => {
+    loadRefunds();
+  }, []);
+
+  const loadRefunds = async () => {
+    try {
+      setLoading(true);
+      const data = await adminWalletApi.getPendingRefunds(0, 100);
+      // Map backend data to frontend format
+      const mappedRefunds = data.content?.map((item: any) => ({
+        id: item.transactionId || item.id,
+        bookingId: item.bookingId || '',
+        bookingCode: item.bookingCode || '',
+        serviceType: item.serviceType || 'hotel',
+        serviceName: item.serviceName || '',
+        userId: item.userId || '',
+        userName: item.userName || '',
+        userEmail: item.userEmail || '',
+        vendorName: item.vendorName || '',
+        originalAmount: item.originalAmount || item.amount || 0,
+        refundPercentage: item.refundPercentage || 100,
+        refundAmount: item.refundAmount || item.amount || 0,
+        requestDate: item.requestDate || item.createdAt || new Date().toISOString(),
+        status: (item.status?.toLowerCase() || 'pending') as RefundStatus,
+        cancellationReason: item.reason || item.cancellationReason,
+        paymentMethod: item.paymentMethod || 'VNPay',
+        transactionId: item.transactionId || item.id,
+        processedBy: item.processedBy,
+        processedAt: item.processedAt,
+        rejectionReason: item.rejectionReason,
+        estimatedCompletionDate: item.estimatedCompletionDate,
+      })) || [];
+      setRefundRequests(mappedRefunds);
+    } catch (error) {
+      console.error('Error loading refunds:', error);
+      toast.error('Không thể tải danh sách hoàn tiền');
+      // Keep using mock data if API fails
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const STATUS_CONFIG: Record<RefundStatus, { label: string; color: string; icon: any }> = {
     pending: {
@@ -291,13 +207,21 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
     setIsApproveDialogOpen(true);
   };
 
-  const handleConfirmApprove = () => {
+  const handleConfirmApprove = async () => {
     if (!selectedRefund) return;
     
-    // Mock API call
-    alert(`Đã duyệt yêu cầu hoàn tiền ${selectedRefund.bookingCode}\n\nHệ thống sẽ tự động:\n- Gọi API cổng thanh toán ${selectedRefund.paymentMethod} để hoàn ${selectedRefund.refundAmount.toLocaleString('vi-VN')}đ\n- Gửi email thông báo cho khách hàng\n- Gửi thông báo cho Vendor\n- Trừ tiền vào kỳ quyết toán tiếp theo của Vendor\n- Cập nhật trạng thái sang "Đang xử lý"`);
-    
-    setIsApproveDialogOpen(false);
+    try {
+      await adminWalletApi.approveRefund(
+        selectedRefund.transactionId,
+        `Approved by admin - Booking ${selectedRefund.bookingCode}`
+      );
+      toast.success(`Đã duyệt hoàn tiền ${selectedRefund.bookingCode}`);
+      setIsApproveDialogOpen(false);
+      loadRefunds(); // Reload data
+    } catch (error) {
+      console.error('Error approving refund:', error);
+      toast.error('Không thể duyệt hoàn tiền');
+    }
   };
 
   const handleRejectClick = (refund: RefundRequest) => {
@@ -306,17 +230,22 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
     setIsRejectDialogOpen(true);
   };
 
-  const handleConfirmReject = () => {
+  const handleConfirmReject = async () => {
     if (!selectedRefund) return;
     if (!rejectionReason.trim()) {
-      alert("Vui lòng nhập lý do từ chối");
+      toast.error("Vui lòng nhập lý do từ chối");
       return;
     }
     
-    // Mock API call
-    alert(`Đã từ chối yêu cầu hoàn tiền ${selectedRefund.bookingCode}\n\nLý do: ${rejectionReason}\n\nHệ thống sẽ gửi email thông báo cho khách hàng.`);
-    
-    setIsRejectDialogOpen(false);
+    try {
+      await adminWalletApi.rejectRefund(selectedRefund.transactionId, rejectionReason);
+      toast.success(`Đã từ chối hoàn tiền ${selectedRefund.bookingCode}`);
+      setIsRejectDialogOpen(false);
+      loadRefunds(); // Reload data
+    } catch (error) {
+      console.error('Error rejecting refund:', error);
+      toast.error('Không thể từ chối hoàn tiền');
+    }
   };
 
   const handleExport = () => {

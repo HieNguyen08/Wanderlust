@@ -1,10 +1,12 @@
-import { ArrowLeft, Star, MapPin, Wifi, Car, Utensils, Dumbbell, Check, Heart, Share2, Phone, Mail, Clock, Users, Bed, Coffee } from "lucide-react";
-import { Button } from "../../components/ui/button";
+import { ArrowLeft, Bed, Car, Check, Clock, Coffee, Dumbbell, Heart, Mail, MapPin, Phone, Share2, Star, Users, Utensils, Wifi } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner@2.0.3";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { Badge } from "../../components/ui/badge";
 import { Footer } from "../../components/Footer";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
 import type { PageType } from "../../MainApp";
-import { useState } from "react";
+import { hotelApi } from "../../utils/api";
 
 interface Hotel {
   id: string;
@@ -26,8 +28,47 @@ interface HotelDetailPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
-export default function HotelDetailPage({ hotel, onNavigate }: HotelDetailPageProps) {
+export default function HotelDetailPage({ hotel: initialHotel, onNavigate }: HotelDetailPageProps) {
   const [isFavorite, setIsFavorite] = useState(false);
+  const [hotel, setHotel] = useState<Hotel>(initialHotel);
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  
+  // Load hotel details from backend
+  useEffect(() => {
+    const loadHotelDetails = async () => {
+      if (!hotel.id) return;
+      
+      try {
+        setLoading(true);
+        
+        // Load full hotel details
+        const hotelData = await hotelApi.getById(hotel.id);
+        setHotel(hotelData);
+        
+        // Load rooms
+        const roomsData = await hotelApi.getRooms(hotel.id);
+        setRooms(roomsData);
+        
+        // Load reviews
+        try {
+          const reviewsData = await hotelApi.getReviews(hotel.id);
+          setReviews(reviewsData);
+        } catch (error) {
+          // Reviews might not be implemented yet
+          console.log('Reviews not available');
+        }
+      } catch (error: any) {
+        console.error('Failed to load hotel details:', error);
+        toast.error('Không thể tải thông tin khách sạn');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadHotelDetails();
+  }, [hotel.id]);
   
   const handleBookNow = () => {
     // Navigate to hotel review page with booking data
@@ -158,7 +199,7 @@ export default function HotelDetailPage({ hotel, onNavigate }: HotelDetailPagePr
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {hotel.amenities?.map((amenity) => (
                   <div key={amenity} className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shrink-0">
                       {amenity === "Wifi" && <Wifi className="w-5 h-5 text-white" />}
                       {amenity === "Chỗ đậu xe" && <Car className="w-5 h-5 text-white" />}
                       {amenity === "Nhà hàng" && <Utensils className="w-5 h-5 text-white" />}
@@ -178,7 +219,7 @@ export default function HotelDetailPage({ hotel, onNavigate }: HotelDetailPagePr
               <div className="bg-white rounded-xl p-6 shadow-sm">
                 <h2 className="text-2xl mb-6">Chi tiết phòng</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+                  <div className="flex items-center gap-3 p-4 bg-linear-to-br from-purple-50 to-purple-100 rounded-lg">
                     <Bed className="w-6 h-6 text-purple-600" />
                     <div>
                       <p className="text-xs text-gray-600">Loại phòng</p>
@@ -186,7 +227,7 @@ export default function HotelDetailPage({ hotel, onNavigate }: HotelDetailPagePr
                     </div>
                   </div>
                   {hotel.bedType && (
-                    <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+                    <div className="flex items-center gap-3 p-4 bg-linear-to-br from-blue-50 to-blue-100 rounded-lg">
                       <Users className="w-6 h-6 text-blue-600" />
                       <div>
                         <p className="text-xs text-gray-600">Giường</p>
@@ -195,7 +236,7 @@ export default function HotelDetailPage({ hotel, onNavigate }: HotelDetailPagePr
                     </div>
                   )}
                   {hotel.breakfast && (
-                    <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+                    <div className="flex items-center gap-3 p-4 bg-linear-to-br from-green-50 to-green-100 rounded-lg">
                       <Coffee className="w-6 h-6 text-green-600" />
                       <div>
                         <p className="text-xs text-gray-600">Ăn sáng</p>
@@ -220,7 +261,7 @@ export default function HotelDetailPage({ hotel, onNavigate }: HotelDetailPagePr
             </div>
 
             {/* Contact Info */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-sm">
+            <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-sm">
               <h2 className="text-2xl mb-6">Thông tin liên hệ</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3">
@@ -298,7 +339,7 @@ export default function HotelDetailPage({ hotel, onNavigate }: HotelDetailPagePr
 
               <Button
                 onClick={handleBookNow}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white h-14 text-lg shadow-lg hover:shadow-xl transition-all"
+                className="w-full bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white h-14 text-lg shadow-lg hover:shadow-xl transition-all"
                 size="lg"
               >
                 Đặt phòng ngay

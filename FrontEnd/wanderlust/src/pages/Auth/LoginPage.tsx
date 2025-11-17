@@ -1,16 +1,17 @@
-import { useState, useEffect } from "react";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
-import { Calendar } from "../../components/ui/calendar";
-import { Mail, Facebook, Plane, Calendar as CalendarIcon } from "lucide-react";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { authApi, tokenService } from "../../utils/api";
+import { Calendar as CalendarIcon, Facebook, Mail, Plane } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Button } from "../../components/ui/button";
+import { Calendar } from "../../components/ui/calendar";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { PageType } from "../../MainApp"; // Import PageType
+import { authApi, tokenService } from "../../utils/api";
 
 interface LoginPageProps {
   onNavigate: (page: PageType, data?: any) => void; // Use PageType
@@ -18,6 +19,7 @@ interface LoginPageProps {
 }
 
 export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
+  const { t } = useTranslation();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -93,6 +95,20 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Manual validation for Select fields
+    if (!gender) {
+      alert(t('auth.pleaseSelectGender') || 'Vui lòng chọn giới tính');
+      return;
+    }
+    if (!country) {
+      alert(t('auth.pleaseSelectCountry') || 'Vui lòng chọn quốc gia');
+      return;
+    }
+    if (!dateOfBirth) {
+      alert(t('auth.pleaseSelectDOB') || 'Vui lòng chọn ngày sinh');
+      return;
+    }
+    
     setLoading(true);
     try {
       const userData = {
@@ -157,7 +173,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 to-slate-200 p-4 relative overflow-hidden">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <ImageWithFallback
@@ -165,7 +181,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
           alt="Travel Background"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/50 via-purple-900/40 to-pink-900/50 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-linear-to-br from-blue-900/50 via-purple-900/40 to-pink-900/50 backdrop-blur-sm" />
       </div>
 
       {/* Main Container */}
@@ -173,7 +189,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
         <div className="relative w-full min-h-[650px] bg-white rounded-3xl shadow-2xl overflow-hidden">
           
           {/* Sliding Panel */}
-          <div className={`absolute top-0 left-0 w-full md:w-1/2 h-full bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-10 ${
+          <div className={`absolute top-0 left-0 w-full md:w-1/2 h-full bg-linear-to-br from-blue-600 via-blue-700 to-purple-700 transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-10 ${
             isSignUp ? 'md:translate-x-full md:rounded-l-3xl' : 'md:translate-x-0 md:rounded-r-3xl'
           } hidden md:block`}>
             <div className="flex flex-col items-center justify-center h-full text-white p-12">
@@ -182,16 +198,16 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                   <div className="w-20 h-20 mx-auto bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-6">
                     <Plane className="w-10 h-10 text-white" />
                   </div>
-                  <h2 className="text-white mb-4">Chào mừng quay lại!</h2>
+                  <h2 className="text-white mb-4">{t('auth.welcomeBack')}</h2>
                   <p className="text-white/90 leading-relaxed mb-8 max-w-sm mx-auto">
-                    Đăng nhập để tiếp tục hành trình khám phá thế giới cùng Wanderlust
+                    {t('auth.welcomeBackDesc')}
                   </p>
                   <Button
                     variant="outline"
                     className="border-2 border-white text-white hover:bg-white hover:text-blue-600 bg-transparent px-8 py-3 rounded-full transition-all duration-300"
                     onClick={handleSwitchToSignUp}
                   >
-                    ĐĂNG KÝ
+                    {t('auth.signUp').toUpperCase()}
                   </Button>
                 </div>
               ) : (
@@ -199,16 +215,16 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                   <div className="w-20 h-20 mx-auto bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-6">
                     <Plane className="w-10 h-10 text-white" />
                   </div>
-                  <h2 className="text-white mb-4">Xin chào!</h2>
+                  <h2 className="text-white mb-4">{t('auth.hello')}</h2>
                   <p className="text-white/90 leading-relaxed mb-8 max-w-sm mx-auto">
-                    Nhập thông tin cá nhân và bắt đầu hành trình với chúng tôi
+                    {t('auth.helloDesc')}
                   </p>
                   <Button
                     variant="outline"
                     className="border-2 border-white text-white hover:bg-white hover:text-blue-600 bg-transparent px-8 py-3 rounded-full transition-all duration-300"
                     onClick={handleSwitchToSignIn}
                   >
-                    ĐĂNG NHẬP
+                    {t('auth.signIn').toUpperCase()}
                   </Button>
                 </div>
               )}
@@ -225,10 +241,10 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                   {/* Logo */}
                   <div className="flex items-center justify-center gap-2 mb-8 md:hidden">
                     <Plane className="w-8 h-8 text-blue-600" />
-                    <h2 className="font-['Kadwa',_serif] text-gray-900">Wanderlust</h2>
+                    <h2 className="font-['Kadwa',serif] text-gray-900">Wanderlust</h2>
                   </div>
 
-                  <h3 className="text-gray-900 text-center mb-8">Đăng nhập</h3>
+                  <h3 className="text-gray-900 text-center mb-8">{t('auth.createAccount')}</h3>
 
                   {/* Social Login Buttons */}
                   <div className="space-y-3 mb-6">
@@ -239,7 +255,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                       onClick={handleGoogleLogin}
                     >
                       <Mail className="w-5 h-5 text-red-500 mr-3 group-hover:scale-110 transition-transform" />
-                      <span className="text-gray-700">Đăng nhập với Gmail</span>
+                      <span className="text-gray-700">{t('auth.signInWithGoogle')}</span>
                     </Button>
                     <Button
                       type="button"
@@ -248,7 +264,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                       onClick={handleFacebookLogin}
                     >
                       <Facebook className="w-5 h-5 text-blue-600 mr-3 group-hover:scale-110 transition-transform" />
-                      <span className="text-gray-700">Đăng nhập với Facebook</span>
+                      <span className="text-gray-700">{t('auth.signInWithFacebook')}</span>
                     </Button>
                   </div>
 
@@ -258,7 +274,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                       <div className="w-full border-t border-gray-300"></div>
                     </div>
                     <div className="relative flex justify-center">
-                      <span className="px-4 bg-white text-gray-500">hoặc</span>
+                      <span className="px-4 bg-white text-gray-500">{t('auth.or')}</span>
                     </div>
                   </div>
 
@@ -267,7 +283,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                     <div>
                       <Input
                         type="email"
-                        placeholder="Email"
+                        placeholder={t('auth.emailPlaceholder')}
                         value={email}
                         onChange={(e) => {
                           console.log("📧 Email changed:", e.target.value);
@@ -280,7 +296,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                     <div>
                       <Input
                         type="password"
-                        placeholder="Mật khẩu"
+                        placeholder={t('auth.passwordPlaceholder')}
                         value={password}
                         onChange={(e) => {
                           console.log("🔒 Password changed:", e.target.value ? "***" : "empty");
@@ -292,26 +308,26 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                     </div>
                     <div className="text-center">
                       <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors">
-                        Quên mật khẩu?
+                        {t('auth.forgotPassword')}
                       </a>
                     </div>
                     <button
                       type="submit"
-                      className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full py-3 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={loading || !email || !password}
                     >
-                      {loading ? 'ĐANG ĐĂNG NHẬP...' : 'ĐĂNG NHẬP'}
+                      {loading ? t('auth.signingIn') : t('auth.signIn')}
                     </button>
                   </form>
 
                   {/* Mobile Toggle */}
                   <p className="text-center text-gray-600 mt-6 md:hidden">
-                    Chưa có tài khoản?{" "}
+                    {t('auth.dontHaveAccount')}{" "}
                     <button
                       onClick={handleSwitchToSignUp}
                       className="text-blue-600 hover:text-blue-700"
                     >
-                      Đăng ký ngay
+                      {t('auth.registerNow')}
                     </button>
                   </p>
                 </div>
@@ -329,21 +345,21 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                   {/* Logo */}
                   <div className="flex items-center justify-center gap-2 mb-6 md:hidden">
                     <Plane className="w-8 h-8 text-blue-600" />
-                    <h2 className="font-['Kadwa',_serif] text-gray-900">Wanderlust</h2>
+                    <h2 className="font-['Kadwa',serif] text-gray-900">Wanderlust</h2>
                   </div>
 
-                  <h3 className="text-gray-900 text-center mb-6">Tạo tài khoản</h3>
+                  <h3 className="text-gray-900 text-center mb-6">{t('auth.signUpTitle')}</h3>
 
                   {/* Registration Form */}
                   <form onSubmit={handleSignUp} className="space-y-4">
                     {/* Name Fields */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label htmlFor="firstName" className="text-gray-700 text-sm">Họ *</Label>
+                        <Label htmlFor="firstName" className="text-gray-700 text-sm">{t('auth.firstNameLabel')} {t('auth.required')}</Label>
                         <Input
                           id="firstName"
                           type="text"
-                          placeholder="Nguyễn"
+                          placeholder={t('auth.firstNamePlaceholder')}
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
                           required
@@ -351,11 +367,11 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="lastName" className="text-gray-700 text-sm">Tên *</Label>
+                        <Label htmlFor="lastName" className="text-gray-700 text-sm">{t('auth.lastNameLabel')} {t('auth.required')}</Label>
                         <Input
                           id="lastName"
                           type="text"
-                          placeholder="Văn A"
+                          placeholder={t('auth.lastNamePlaceholder')}
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
                           required
@@ -366,22 +382,25 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
 
                     {/* Gender */}
                     <div>
-                      <Label htmlFor="gender" className="text-gray-700 text-sm">Giới tính *</Label>
-                      <Select value={gender} onValueChange={setGender} required>
+                      <Label htmlFor="gender" className="text-gray-700 text-sm">{t('auth.gender')} {t('auth.required')}</Label>
+                      <Select value={gender} onValueChange={(value) => {
+                        console.log('🎯 Gender selected:', value);
+                        setGender(value);
+                      }}>
                         <SelectTrigger className="mt-1 bg-slate-100 border-0 rounded-lg focus:ring-2 focus:ring-blue-600">
-                          <SelectValue placeholder="Chọn giới tính" />
+                          <SelectValue placeholder={t('auth.selectGender')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="MALE">Nam</SelectItem>
-                          <SelectItem value="FEMALE">Nữ</SelectItem>
-                          <SelectItem value="OTHER">Khác</SelectItem>
+                          <SelectItem value="MALE">{t('auth.male')}</SelectItem>
+                          <SelectItem value="FEMALE">{t('auth.female')}</SelectItem>
+                          <SelectItem value="OTHER">{t('auth.other')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     {/* Date of Birth */}
                     <div>
-                      <Label htmlFor="dob" className="text-gray-700 text-sm">Ngày sinh *</Label>
+                      <Label htmlFor="dob" className="text-gray-700 text-sm">{t('auth.dateOfBirth')} {t('auth.required')}</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -390,7 +409,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                             className="w-full mt-1 justify-start text-left bg-slate-100 border-0 hover:bg-slate-200"
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy", { locale: vi }) : <span className="text-gray-500">Chọn ngày sinh</span>}
+                            {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy", { locale: vi }) : <span className="text-gray-500">{t('auth.selectDateOfBirth')}</span>}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -398,7 +417,6 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                             mode="single"
                             selected={dateOfBirth}
                             onSelect={setDateOfBirth}
-                            initialFocus
                             disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                           />
                         </PopoverContent>
@@ -407,11 +425,11 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
 
                     {/* Email */}
                     <div>
-                      <Label htmlFor="email" className="text-gray-700 text-sm">Email *</Label>
+                      <Label htmlFor="email" className="text-gray-700 text-sm">{t('auth.email')} {t('auth.required')}</Label>
                       <Input
                         id="email"
                         type="email"
-                        placeholder="example@email.com"
+                        placeholder={t('auth.emailExample')}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -421,11 +439,11 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
 
                     {/* Mobile */}
                     <div>
-                      <Label htmlFor="mobile" className="text-gray-700 text-sm">Số điện thoại *</Label>
+                      <Label htmlFor="mobile" className="text-gray-700 text-sm">{t('auth.mobile')} {t('auth.required')}</Label>
                       <Input
                         id="mobile"
                         type="tel"
-                        placeholder="0912345678"
+                        placeholder={t('auth.mobilePlaceholder')}
                         value={mobile}
                         onChange={(e) => setMobile(e.target.value)}
                         required
@@ -436,11 +454,11 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
 
                     {/* Password */}
                     <div>
-                      <Label htmlFor="password" className="text-gray-700 text-sm">Mật khẩu *</Label>
+                      <Label htmlFor="password" className="text-gray-700 text-sm">{t('auth.password')} {t('auth.required')}</Label>
                       <Input
                         id="password"
                         type="password"
-                        placeholder="Tối thiểu 6 ký tự"
+                        placeholder={t('auth.passwordMinLength')}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
@@ -451,11 +469,11 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
 
                     {/* Address */}
                     <div>
-                      <Label htmlFor="address" className="text-gray-700 text-sm">Địa chỉ *</Label>
+                      <Label htmlFor="address" className="text-gray-700 text-sm">{t('auth.address')} {t('auth.required')}</Label>
                       <Input
                         id="address"
                         type="text"
-                        placeholder="123 Đường ABC"
+                        placeholder={t('auth.addressPlaceholder')}
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
                         required
@@ -466,11 +484,11 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                     {/* City & Country */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label htmlFor="city" className="text-gray-700 text-sm">Thành phố *</Label>
+                        <Label htmlFor="city" className="text-gray-700 text-sm">{t('auth.city')} {t('auth.required')}</Label>
                         <Input
                           id="city"
                           type="text"
-                          placeholder="Hà Nội"
+                          placeholder={t('auth.cityPlaceholder')}
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
                           required
@@ -478,10 +496,13 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="country" className="text-gray-700 text-sm">Quốc gia *</Label>
-                        <Select value={country} onValueChange={setCountry} required>
+                        <Label htmlFor="country" className="text-gray-700 text-sm">{t('auth.country')} {t('auth.required')}</Label>
+                        <Select value={country} onValueChange={(value) => {
+                          console.log('🌍 Country selected:', value);
+                          setCountry(value);
+                        }}>
                           <SelectTrigger className="mt-1 bg-slate-100 border-0 rounded-lg focus:ring-2 focus:ring-blue-600">
-                            <SelectValue placeholder="Chọn" />
+                            <SelectValue placeholder={t('auth.selectCountry')} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="VN">Việt Nam</SelectItem>
@@ -500,21 +521,21 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
 
                     <Button
                       type="submit"
-                      className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/30 mt-6"
+                      className="w-full py-3 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/30 mt-6"
                       disabled={loading}
                     >
-                      {loading ? 'ĐANG TẠO TÀI KHOẢN...' : 'ĐĂNG KÝ'}
+                      {loading ? t('auth.creatingAccount') : t('auth.signUp')}
                     </Button>
                   </form>
 
                   {/* Mobile Toggle */}
                   <p className="text-center text-gray-600 mt-6 md:hidden">
-                    Đã có tài khoản?{" "}
+                    {t('auth.alreadyHaveAccount')}{" "}
                     <button
                       onClick={handleSwitchToSignIn}
                       className="text-blue-600 hover:text-blue-700"
                     >
-                      Đăng nhập ngay
+                      {t('auth.loginNow')}
                     </button>
                   </p>
                 </div>
@@ -529,13 +550,13 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
             onClick={() => onNavigate("home")}
             className="text-white hover:text-blue-200 transition-colors inline-flex items-center gap-2 backdrop-blur-sm bg-black/20 px-6 py-3 rounded-full"
           >
-            ← Quay về trang chủ
+            ← {t('auth.backToHome')}
           </button>
         </div>
 
         {/* Mock Login Buttons for Testing */}
         <div className="text-center mt-4">
-          <p className="text-white/80 mb-3">Demo: Đăng nhập nhanh với vai trò</p>
+          <p className="text-white/80 mb-3">{t('auth.demoLogin')}</p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Button
               onClick={() => handleMockLogin("user")}

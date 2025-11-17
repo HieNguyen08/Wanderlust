@@ -28,7 +28,7 @@ export function HotelCardList({ hotel, onSelect }: HotelCardListProps) {
     <div className="w-full border rounded-lg overflow-hidden bg-white hover:shadow-lg transition-shadow">
       <div className="flex flex-col md:flex-row">
         {/* Image - Left */}
-        <div className="relative w-full md:w-[376px] h-[186px] flex-shrink-0">
+        <div className="relative w-full md:w-[376px] h-[186px] shrink-0">
           <ImageWithFallback
             src={hotel.image}
             alt={hotel.name}
@@ -61,7 +61,7 @@ export function HotelCardList({ hotel, onSelect }: HotelCardListProps) {
           <div className="space-y-1">
             <p className="text-sm font-semibold">Địa chỉ:</p>
             <div className="flex items-start gap-1">
-              <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+              <MapPin className="w-3 h-3 text-gray-400 mt-0.5 shrink-0" />
               <p className="text-xs text-gray-600">{hotel.address}</p>
             </div>
           </div>

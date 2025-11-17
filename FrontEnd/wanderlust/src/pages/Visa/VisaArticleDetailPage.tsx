@@ -1,23 +1,22 @@
-import { Footer } from "../../components/Footer";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { 
-  ArrowLeft,
-  Clock,
-  Calendar,
-  MessageCircle,
-  Phone,
-  Mail,
-  CheckCircle2,
-  AlertCircle,
-  FileText,
-  MapPin,
-  TrendingUp,
-  Users
+import {
+    AlertCircle,
+    ArrowLeft,
+    Calendar,
+    CheckCircle2,
+    Clock,
+    FileText,
+    Mail,
+    MapPin,
+    MessageCircle,
+    Phone,
+    TrendingUp
 } from "lucide-react";
 import type { PageType } from "../../MainApp";
+import { Footer } from "../../components/Footer";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
 
 interface VisaArticleDetailPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -42,7 +41,7 @@ export default function VisaArticleDetailPage({ onNavigate, article }: VisaArtic
 
   return (
     <div className="min-h-screen bg-gray-50">      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white">
+      <div className="bg-linear-to-br from-blue-600 to-blue-800 text-white">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <Button
             variant="ghost"
@@ -90,7 +89,7 @@ export default function VisaArticleDetailPage({ onNavigate, article }: VisaArtic
             </div>
 
             <div className="relative">
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl">
+              <div className="aspect-4/3 rounded-2xl overflow-hidden shadow-2xl">
                 <ImageWithFallback
                   src={article.image}
                   alt={article.country}
@@ -109,7 +108,7 @@ export default function VisaArticleDetailPage({ onNavigate, article }: VisaArtic
           {/* Sidebar - Now on left */}
           <div className="lg:col-span-1 space-y-6">
             {/* Quick Info */}
-            <Card className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 sticky top-4">
+            <Card className="p-6 bg-linear-to-br from-orange-50 to-orange-100 border-orange-200 sticky top-4">
               <h3 className="text-xl mb-4 flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-orange-600" />
                 Thông tin quan trọng
@@ -205,7 +204,7 @@ export default function VisaArticleDetailPage({ onNavigate, article }: VisaArtic
                   "Booking khách sạn"
                 ].map((item, index) => (
                   <div key={index} className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                     <span className="text-sm">{item}</span>
                   </div>
                 ))}
@@ -258,7 +257,7 @@ export default function VisaArticleDetailPage({ onNavigate, article }: VisaArtic
                       { title: "Giấy xác nhận công việc", desc: "Từ công ty hoặc giấy phép kinh doanh" }
                     ].map((item, index) => (
                       <div key={index} className="flex gap-4 items-start">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
                           <span className="text-sm font-medium text-blue-600">{index + 1}</span>
                         </div>
                         <div>
@@ -281,8 +280,8 @@ export default function VisaArticleDetailPage({ onNavigate, article }: VisaArtic
                     { step: "06", title: "Chờ kết quả", desc: `Thời gian xử lý: ${article.processingTime}` },
                     { step: "07", title: "Nhận visa", desc: "Nhận hộ chiếu đã có visa hoặc thông báo kết quả" }
                   ].map((item, index) => (
-                    <div key={index} className="flex gap-4 items-start p-4 bg-gradient-to-r from-blue-50 to-transparent rounded-lg hover:from-blue-100 transition-colors">
-                      <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
+                    <div key={index} className="flex gap-4 items-start p-4 bg-linear-to-r from-blue-50 to-transparent rounded-lg hover:from-blue-100 transition-colors">
+                      <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shrink-0 font-bold">
                         {item.step}
                       </div>
                       <div className="flex-1">
@@ -296,7 +295,7 @@ export default function VisaArticleDetailPage({ onNavigate, article }: VisaArtic
                 <h2>⚠️ Lưu ý quan trọng</h2>
                 <div className="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-lg not-prose">
                   <div className="flex gap-3">
-                    <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
                     <div className="space-y-3">
                       <p className="font-medium text-amber-900">Những điều cần lưu ý khi xin visa:</p>
                       <ul className="space-y-2 text-sm text-amber-800">
@@ -339,7 +338,7 @@ export default function VisaArticleDetailPage({ onNavigate, article }: VisaArtic
                 <h2>📊 Tỷ lệ thành công</h2>
                 <div className="bg-green-50 rounded-xl p-6 not-prose">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center shrink-0">
                       <CheckCircle2 className="w-6 h-6 text-green-600" />
                     </div>
                     <div>
@@ -363,7 +362,7 @@ export default function VisaArticleDetailPage({ onNavigate, article }: VisaArtic
                   bạn nên cân nhắc sử dụng dịch vụ tư vấn chuyên nghiệp.
                 </p>
 
-                <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl p-8 not-prose">
+                <div className="bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-xl p-8 not-prose">
                   <div className="text-center">
                     <h3 className="text-2xl mb-3">Cần hỗ trợ làm visa {article.country}?</h3>
                     <p className="text-orange-100 mb-6">

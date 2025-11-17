@@ -1,25 +1,35 @@
-import { useState } from "react";
-import { VendorLayout } from "../../components/VendorLayout";
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import {
-  Plus, Search, MoreVertical, Eye, Edit, Trash2,
-  AlertCircle, Clock, CheckCircle2, XCircle, RefreshCw
+    AlertCircle,
+    CheckCircle2,
+    Clock,
+    Edit,
+    Eye,
+    MoreVertical,
+    Plus,
+    RefreshCw,
+    Search,
+    Trash2,
+    XCircle
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
+import { VendorLayout } from "../../components/VendorLayout";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import { Input } from "../../components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { AddServiceDialog } from "../../components/vendor/AddServiceDialog";
 import { ServiceDetailDialog } from "../../components/vendor/ServiceDetailDialog";
-import { toast } from "sonner";
+import { vendorApi } from "../../utils/api";
 
 interface VendorServicesPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -54,81 +64,38 @@ export default function VendorServicesPage({
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - Trong thực tế sẽ fetch từ API
-  const services: Service[] = [
-    {
-      id: "SVC001",
-      type: "hotel",
-      name: "Deluxe Ocean View Room",
-      description: "Phòng cao cấp view biển với đầy đủ tiện nghi",
-      image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=300&fit=crop",
-      price: 3500000,
-      status: "approved",
-      submittedAt: "2025-01-10",
-      reviewedAt: "2025-01-11",
-      views: 1234,
-      bookings: 45,
-      revenue: 157500000,
-    },
-    {
-      id: "SVC002",
-      type: "hotel",
-      name: "Presidential Suite",
-      description: "Phòng tổng thống sang trọng với view toàn cảnh",
-      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop",
-      price: 8500000,
-      status: "pending",
-      submittedAt: "2025-01-15",
-      views: 0,
-      bookings: 0,
-      revenue: 0,
-    },
-    {
-      id: "SVC003",
-      type: "activity",
-      name: "Tour Hướng đạo sinh Phú Quốc",
-      description: "Tour khám phá thiên nhiên hoang dã 1 ngày",
-      image: "https://images.unsplash.com/photo-1527631746610-bca00a040d60?w=400&h=300&fit=crop",
-      price: 1500000,
-      status: "needs_revision",
-      submittedAt: "2025-01-12",
-      reviewedAt: "2025-01-13",
-      adminNote: "Vui lòng bổ sung thêm:\n1. Lịch trình chi tiết từng giờ\n2. Chính sách hủy tour rõ ràng hơn\n3. Tải ảnh chất lượng cao hơn (hiện tại ảnh hơi mờ)\n4. Làm rõ giá đã bao gồm bữa trưa chưa?",
-      views: 234,
-      bookings: 0,
-      revenue: 0,
-    },
-    {
-      id: "SVC004",
-      type: "car",
-      name: "Toyota Fortuner 7 chỗ",
-      description: "Xe 7 chỗ cao cấp, tài xế kinh nghiệm",
-      image: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=300&fit=crop",
-      price: 2000000,
-      status: "rejected",
-      submittedAt: "2025-01-14",
-      reviewedAt: "2025-01-14",
-      adminNote: "Yêu cầu từ chối:\n1. Giấy tờ xe chưa đầy đủ - thiếu bảo hiểm\n2. Ảnh xe không rõ biển số\n3. Chưa có đăng kiểm còn hạn\n\nVui lòng chuẩn bị đầy đủ giấy tờ và nộp lại.",
-      views: 0,
-      bookings: 0,
-      revenue: 0,
-    },
-    {
-      id: "SVC005",
-      type: "activity",
-      name: "Lặn biển Nha Trang",
-      description: "Trải nghiệm lặn biển khám phá san hô",
-      image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
-      price: 1200000,
-      status: "approved",
-      submittedAt: "2025-01-08",
-      reviewedAt: "2025-01-09",
-      views: 876,
-      bookings: 32,
-      revenue: 38400000,
-    },
-  ];
+  useEffect(() => {
+    loadServices();
+  }, []);
+
+  const loadServices = async () => {
+    try {
+      setLoading(true);
+      const data = await vendorApi.getVendorHotels();
+      // Map hotel data to service format
+      const mappedServices = data.map((hotel: any) => ({
+        id: hotel.id,
+        type: 'hotel' as ServiceType,
+        name: hotel.name,
+        description: hotel.description || '',
+        image: hotel.images?.[0] || hotel.image || '',
+        price: hotel.price || 0,
+        status: 'approved' as ServiceStatus,
+        submittedAt: hotel.createdAt || new Date().toISOString(),
+        views: 0,
+        bookings: 0,
+        revenue: 0,
+      }));
+      setServices(mappedServices);
+    } catch (error) {
+      toast.error('Không thể tải danh sách dịch vụ');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredServices = services.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

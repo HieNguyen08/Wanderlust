@@ -1,18 +1,23 @@
-import { AdminLayout } from "../../components/AdminLayout";
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
-import {
-  Download, TrendingUp, TrendingDown, DollarSign,
-  Users, BookOpen, Calendar, Activity
+    Activity,
+    BookOpen,
+    DollarSign,
+    Download,
+    TrendingDown,
+    TrendingUp,
+    Users
 } from "lucide-react";
+import { AdminLayout } from "../../components/AdminLayout";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../../components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import type { PageType } from "../../MainApp";
 
 interface AdminReportsPageProps {
@@ -141,7 +146,7 @@ export default function AdminReportsPage({ onNavigate }: AdminReportsPageProps) 
                     <div className="w-24 text-sm text-gray-600">{data.month}</div>
                     <div className="flex-1 relative h-12 bg-gray-100 rounded-lg overflow-hidden">
                       <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-end px-4"
+                        className="absolute inset-y-0 left-0 bg-linear-to-r from-blue-500 to-blue-600 flex items-center justify-end px-4"
                         style={{ width: `${(data.revenue / 850000000) * 100}%` }}
                       >
                         <span className="text-white font-semibold text-sm">
@@ -183,7 +188,7 @@ export default function AdminReportsPage({ onNavigate }: AdminReportsPageProps) 
               <div className="space-y-4">
                 {topServices.map((service, index) => (
                   <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0">
+                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
                       {index + 1}
                     </div>
                     <div className="flex-1">

@@ -111,7 +111,7 @@ export default function ConfirmationPage({ onNavigate, type, paymentInfo, ...boo
         {/* Important Information */}
         <Card className="p-6 mb-6">
           <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
               <Mail className="w-6 h-6 text-blue-600" />
             </div>
             <div className="flex-1">
@@ -197,7 +197,7 @@ export default function ConfirmationPage({ onNavigate, type, paymentInfo, ...boo
           
           <div className="space-y-4">
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
                 <span className="text-blue-600">1</span>
               </div>
               <div>
@@ -209,7 +209,7 @@ export default function ConfirmationPage({ onNavigate, type, paymentInfo, ...boo
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
                 <span className="text-blue-600">2</span>
               </div>
               <div>
@@ -225,7 +225,7 @@ export default function ConfirmationPage({ onNavigate, type, paymentInfo, ...boo
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
                 <span className="text-blue-600">3</span>
               </div>
               <div>

@@ -1,26 +1,28 @@
-import { useState, useEffect } from "react";
+import {
+    Calendar,
+    ChevronDown, ChevronUp,
+    Clock,
+    CreditCard,
+    Plane,
+    Shield,
+    Smartphone,
+    Tag,
+    Users,
+    Wallet
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import type { PageType } from "../../MainApp";
 import { Footer } from "../../components/Footer";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
 import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Separator } from "../../components/ui/separator";
-import { Badge } from "../../components/ui/badge";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { 
-  Plane, Clock, MapPin, Calendar, Users, Car, Settings,
-  CreditCard, Wallet, Smartphone, AlertCircle, Tag, ChevronDown, ChevronUp, Shield
-} from "lucide-react";
-import type { PageType } from "../../MainApp";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "../../components/ui/dialog";
 
 interface PaymentMethodsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -45,6 +47,7 @@ interface VoucherType {
 }
 
 export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentMethodsPageProps) {
+  const { t } = useTranslation();
   // State management
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<VoucherType | null>(null);
@@ -122,29 +125,29 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
     const voucher = availableVouchers.find(v => v.code === voucherCode.toUpperCase());
     
     if (!voucher) {
-      alert("Mã giảm giá không hợp lệ");
+      alert(t('payment.invalidVoucher', 'Mã giảm giá không hợp lệ'));
       return;
     }
     
     if (totalAmount < voucher.minOrderValue) {
-      alert(`Đơn hàng phải từ ${voucher.minOrderValue.toLocaleString('vi-VN')}đ để áp dụng mã này`);
+      alert(`${t('payment.minOrderRequired', 'Đơn hàng phải từ')} ${voucher.minOrderValue.toLocaleString('vi-VN')}đ ${t('payment.toApply', 'để áp dụng mã này')}`);
       return;
     }
     
     setAppliedVoucher(voucher);
     setVoucherCode("");
-    alert("✅ Áp dụng mã giảm giá thành công!");
+    alert(`✅ ${t('payment.voucherApplied', 'Áp dụng mã giảm giá thành công')}!`);
   };
 
   const handleSelectVoucherFromList = (voucher: VoucherType) => {
     if (totalAmount < voucher.minOrderValue) {
-      alert(`Đơn hàng phải từ ${voucher.minOrderValue.toLocaleString('vi-VN')}đ để áp dụng mã này`);
+      alert(`${t('payment.minOrderRequired', 'Đơn hàng phải từ')} ${voucher.minOrderValue.toLocaleString('vi-VN')}đ ${t('payment.toApply', 'để áp dụng mã này')}`);
       return;
     }
     
     setAppliedVoucher(voucher);
     setIsVoucherListOpen(false);
-    alert("✅ Áp dụng mã giảm giá thành công!");
+    alert(`✅ ${t('payment.voucherApplied', 'Áp dụng mã giảm giá thành công')}!`);
   };
 
   const handleRemoveVoucher = () => {
@@ -155,13 +158,13 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
   const handlePayment = () => {
     // Validation
     if (finalAmount > 0 && !selectedPaymentMethod) {
-      alert("Vui lòng chọn phương thức thanh toán");
+      alert(t('payment.selectPaymentMethod', 'Vui lòng chọn phương thức thanh toán'));
       return;
     }
 
     if (selectedPaymentMethod === "new-card") {
       if (!newCardData.cardNumber || !newCardData.cardName || !newCardData.expiryDate || !newCardData.cvv) {
-        alert("Vui lòng điền đầy đủ thông tin thẻ");
+        alert(t('payment.fillAllCardInfo', 'Vui lòng điền đầy đủ thông tin thẻ'));
         return;
       }
     }
@@ -206,9 +209,9 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
         {/* Breadcrumb */}
         <div className="mb-6">
           <div className="flex items-center gap-2 text-sm text-gray-600">
-            <span className="text-gray-400">Xem lại thông tin</span>
+            <span className="text-gray-400">{t('payment.reviewInfo', 'Xem lại thông tin')}</span>
             <span>/</span>
-            <span className="text-gray-900">Thanh toán</span>
+            <span className="text-gray-900">{t('payment.payment', 'Thanh toán')}</span>
           </div>
         </div>
 
@@ -222,8 +225,8 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                   <Tag className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
-                  <h2 className="text-xl text-gray-900">Mã giảm giá</h2>
-                  <p className="text-sm text-gray-600">Nhập hoặc chọn mã để được giảm giá</p>
+                  <h2 className="text-xl text-gray-900">{t('payment.voucher')}</h2>
+                  <p className="text-sm text-gray-600">{t('payment.voucherDesc')}</p>
                 </div>
               </div>
 
@@ -247,7 +250,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                       onClick={handleRemoveVoucher}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
-                      Xóa
+                      {t('payment.remove')}
                     </Button>
                   </div>
                 </div>
@@ -255,13 +258,13 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                 <div className="space-y-3">
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Nhập mã giảm giá"
+                      placeholder={t('payment.enterVoucher')}
                       value={voucherCode}
                       onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
                       className="flex-1 uppercase"
                     />
                     <Button onClick={handleApplyVoucher} className="whitespace-nowrap">
-                      Áp dụng
+                      {t('payment.apply')}
                     </Button>
                   </div>
 
@@ -269,7 +272,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                     onClick={() => setIsVoucherListOpen(!isVoucherListOpen)}
                     className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
                   >
-                    <span>Chọn từ Ví Voucher của bạn</span>
+                    <span>{t('payment.selectFromWallet')}</span>
                     {isVoucherListOpen ? (
                       <ChevronUp className="w-4 h-4" />
                     ) : (
@@ -305,13 +308,13 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
 
             {/* Block 2: Payment Methods */}
             <Card className="p-6">
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Wallet className="w-5 h-5 text-blue-600" />
+                  <CreditCard className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <h2 className="text-xl text-gray-900">Phương thức thanh toán</h2>
-                  <p className="text-sm text-gray-600">Chọn cách bạn muốn thanh toán</p>
+                  <h2 className="text-xl text-gray-900">{t('payment.paymentMethod')}</h2>
+                  <p className="text-sm text-gray-600">{t('payment.selectPaymentMethod2', 'Chọn phương thức thanh toán')}</p>
                 </div>
               </div>
 
@@ -329,7 +332,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <Wallet className="w-5 h-5 text-blue-600" />
-                          <span className="text-gray-900">Sử dụng Ví hệ thống</span>
+                          <span className="text-gray-900">{t('payment.useSystemWallet', 'Sử dụng Ví hệ thống')}</span>
                         </div>
                         <Badge variant="outline" className="bg-blue-50">
                           {walletBalance.toLocaleString('vi-VN')}đ
@@ -337,8 +340,8 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                       </div>
                       <p className="text-sm text-gray-600">
                         {walletBalance >= amountAfterVoucher
-                          ? "Đủ số dư để thanh toán toàn bộ"
-                          : `Thanh toán một phần ${Math.min(walletBalance, amountAfterVoucher).toLocaleString('vi-VN')}đ`
+                          ? t('payment.sufficientBalance', 'Đủ số dư để thanh toán toàn bộ')
+                          : t('payment.partialPayment', `Thanh toán một phần {{amount}}đ`, {amount: Math.min(walletBalance, amountAfterVoucher).toLocaleString('vi-VN')})
                         }
                       </p>
                     </label>
@@ -355,7 +358,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                         {/* Saved Payment Methods */}
                         {savedPaymentMethods.length > 0 && (
                           <div>
-                            <h3 className="text-sm text-gray-700 mb-3">Phương thức đã lưu</h3>
+                            <h3 className="text-sm text-gray-700 mb-3">{t('payment.savedMethods')}</h3>
                             <div className="space-y-2">
                               {savedPaymentMethods.map((method) => (
                                 <div
@@ -369,7 +372,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                                   <div className="flex items-center gap-3">
                                     <RadioGroupItem value={method.id} id={method.id} />
                                     <label htmlFor={method.id} className="flex items-center gap-3 flex-1 cursor-pointer">
-                                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                      <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                                         {method.type === "card" ? (
                                           <CreditCard className="w-5 h-5 text-white" />
                                         ) : (
@@ -409,7 +412,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
                                   <CreditCard className="w-5 h-5 text-gray-600" />
                                 </div>
-                                <span className="text-gray-900">Thêm Thẻ Tín dụng/Ghi nợ mới</span>
+                                <span className="text-gray-900">{t('payment.addNewCard', 'Thêm Thẻ Tín dụng/Ghi nợ mới')}</span>
                               </label>
                             </div>
                           </div>
@@ -417,7 +420,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                           {selectedPaymentMethod === "new-card" && (
                             <div className="mt-4 space-y-4 p-4 bg-gray-50 rounded-lg">
                               <div>
-                                <Label htmlFor="cardNumber">Số thẻ <span className="text-red-600">*</span></Label>
+                                <Label htmlFor="cardNumber">{t('payment.cardNumber')} <span className="text-red-600">*</span></Label>
                                 <Input
                                   id="cardNumber"
                                   placeholder="1234 5678 9012 3456"
@@ -429,7 +432,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                               </div>
 
                               <div>
-                                <Label htmlFor="cardName">Tên trên thẻ <span className="text-red-600">*</span></Label>
+                                <Label htmlFor="cardName">{t('payment.cardName')} <span className="text-red-600">*</span></Label>
                                 <Input
                                   id="cardName"
                                   placeholder="NGUYEN VAN A"
@@ -441,7 +444,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
 
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <Label htmlFor="expiryDate">Ngày hết hạn <span className="text-red-600">*</span></Label>
+                                  <Label htmlFor="expiryDate">{t('payment.expiryDate')} <span className="text-red-600">*</span></Label>
                                   <Input
                                     id="expiryDate"
                                     placeholder="MM/YY"
@@ -453,7 +456,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                                 </div>
 
                                 <div>
-                                  <Label htmlFor="cvv">CVV <span className="text-red-600">*</span></Label>
+                                  <Label htmlFor="cvv">{t('payment.cvv')} <span className="text-red-600">*</span></Label>
                                   <Input
                                     id="cvv"
                                     placeholder="123"
@@ -483,7 +486,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                               <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
                                 <Smartphone className="w-5 h-5 text-gray-600" />
                               </div>
-                              <span className="text-gray-900">Ví điện tử / QR Code</span>
+                              <span className="text-gray-900">{t('payment.eWallet', 'Ví điện tử / QR Code')}</span>
                             </label>
                           </div>
                         </div>
@@ -511,14 +514,13 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
             {/* Security Notice */}
             <Card className="p-4 bg-green-50 border-green-200">
               <div className="flex gap-3">
-                <Shield className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <Shield className="w-5 h-5 text-green-600 shrink-0" />
                 <div className="text-sm text-green-900">
                   <p className="mb-1">
-                    <strong>Thanh toán an toàn & bảo mật</strong>
+                    <strong>{t('payment.securePayment')}</strong>
                   </p>
                   <p className="text-green-800">
-                    Mọi giao dịch được mã hóa SSL 256-bit và tuân thủ chuẩn PCI DSS. 
-                    Chúng tôi không lưu trữ thông tin CVV của bạn.
+                    {t('payment.securePaymentDesc', 'Mọi giao dịch được mã hóa SSL 256-bit và tuân thủ chuẩn PCI DSS. Chúng tôi không lưu trữ thông tin CVV của bạn.')}
                   </p>
                 </div>
               </div>
@@ -532,15 +534,15 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
               disabled={finalAmount > 0 && !selectedPaymentMethod}
             >
               {finalAmount === 0 
-                ? "XÁC NHẬN ĐẶT CHỖ"
-                : `THANH TOÁN ${finalAmount.toLocaleString('vi-VN')}đ`
+                ? t('payment.confirmBooking')
+                : `${t('payment.pay', 'THANH TOÁN')} ${finalAmount.toLocaleString('vi-VN')}đ`
               }
             </Button>
 
             <p className="text-xs text-center text-gray-500">
-              Bằng cách tiếp tục, bạn đồng ý với{" "}
-              <button className="text-blue-600 hover:underline">Điều khoản Sử dụng</button> và{" "}
-              <button className="text-blue-600 hover:underline">Chính sách Bảo mật</button>
+              {t('payment.termsAgreement2', 'Bằng cách tiếp tục, bạn đồng ý với')}{" "}
+              <button className="text-blue-600 hover:underline">{t('payment.termsOfUse', 'Điều khoản Sử dụng')}</button> {t('payment.and', 'và')}{" "}
+              <button className="text-blue-600 hover:underline">{t('payment.privacyPolicy', 'Chính sách Bảo mật')}</button>
             </p>
           </div>
 
@@ -554,10 +556,10 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
 
                 {/* Price Details - Dynamic */}
                 <div className="space-y-3">
-                  <h3 className="text-gray-900 mb-3">Chi tiết Giá</h3>
+                  <h3 className="text-gray-900 mb-3">{t('payment.priceDetails', 'Chi tiết Giá')}</h3>
                   
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tạm tính</span>
+                    <span className="text-gray-600">{t('payment.subtotal')}</span>
                     <span className="text-gray-900">
                       {totalAmount.toLocaleString('vi-VN')}đ
                     </span>
@@ -565,7 +567,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
 
                   {appliedVoucher && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Giảm giá (Voucher)</span>
+                      <span className="text-gray-600">{t('payment.discountVoucher')}</span>
                       <span className="text-green-600">
                         -{voucherDiscount.toLocaleString('vi-VN')}đ
                       </span>
@@ -574,8 +576,8 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
 
                   {useWallet && walletUsed > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Đã dùng Ví</span>
-                      <span className="text-blue-600">
+                      <span className="text-gray-600">{t('payment.walletUsed')}</span>
+                      <span className="text-green-600">
                         -{walletUsed.toLocaleString('vi-VN')}đ
                       </span>
                     </div>
@@ -584,7 +586,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                   <Separator />
 
                   <div className="flex justify-between">
-                    <span className="text-gray-900">TỔNG CỘNG PHẢI TRẢ</span>
+                    <span className="text-gray-900">{t('payment.totalToPay')}</span>
                     <span className="text-2xl text-blue-600">
                       {finalAmount.toLocaleString('vi-VN')}đ
                     </span>
@@ -593,7 +595,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
                   {finalAmount === 0 && (
                     <div className="bg-green-50 rounded-lg p-3 mt-4">
                       <p className="text-sm text-green-900 text-center">
-                        ✅ Thanh toán toàn bộ bằng Ví
+                        ✅ {t('payment.fullWalletPayment', 'Thanh toán toàn bộ bằng Ví')}
                       </p>
                     </div>
                   )}
@@ -611,6 +613,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
 
 // Summary Components for each booking type
 function FlightSummary({ data }: { data: any }) {
+  const { t } = useTranslation();
   const outbound = data?.flightData?.outbound || {
     airline: "Vietnam Airlines",
     flightNumber: "VN210",
@@ -623,12 +626,12 @@ function FlightSummary({ data }: { data: any }) {
 
   return (
     <>
-      <h2 className="text-xl text-gray-900 mb-6">Chuyến bay của bạn</h2>
+      <h2 className="text-xl text-gray-900 mb-6">{t('payment.yourFlight', 'Chuyến bay của bạn')}</h2>
       
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="flex items-center gap-2 mb-3">
           <Plane className="w-4 h-4 text-blue-600" />
-          <span className="text-sm text-gray-600">Chiều đi</span>
+          <span className="text-sm text-gray-600">{t('payment.outbound', 'Chiều đi')}</span>
         </div>
 
         <div className="flex items-center gap-3 mb-3">
@@ -662,6 +665,7 @@ function FlightSummary({ data }: { data: any }) {
 }
 
 function HotelSummary({ data }: { data: any }) {
+  const { t } = useTranslation();
   const hotel = data?.hotelData?.hotel || {
     name: "Grand Saigon Hotel",
     image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
@@ -676,7 +680,7 @@ function HotelSummary({ data }: { data: any }) {
 
   return (
     <>
-      <h2 className="text-xl text-gray-900 mb-6">Đặt phòng của bạn</h2>
+      <h2 className="text-xl text-gray-900 mb-6">{t('payment.yourBooking', 'Đặt phòng của bạn')}</h2>
       
       <div className="aspect-video rounded-lg overflow-hidden mb-3">
         <ImageWithFallback
@@ -691,16 +695,16 @@ function HotelSummary({ data }: { data: any }) {
       <div className="space-y-2 text-sm">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-gray-600" />
-          <span className="text-gray-600">Check-in:</span>
+          <span className="text-gray-600">{t('payment.checkIn')}:</span>
           <span className="text-gray-900">{booking.checkIn}</span>
         </div>
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-gray-600" />
-          <span className="text-gray-600">Check-out:</span>
+          <span className="text-gray-600">{t('payment.checkOut')}:</span>
           <span className="text-gray-900">{booking.checkOut}</span>
         </div>
         <p className="text-gray-600">
-          {booking.roomType} • {booking.nights} đêm
+          {booking.roomType} • {booking.nights} {t('payment.nights', 'đêm')}
         </p>
       </div>
     </>
@@ -708,6 +712,7 @@ function HotelSummary({ data }: { data: any }) {
 }
 
 function CarRentalSummary({ data }: { data: any }) {
+  const { t } = useTranslation();
   const car = data?.carData?.car || {
     name: "Toyota Agya",
     image: "https://images.unsplash.com/photo-1590362891991-f776e747a588?w=400",
@@ -722,7 +727,7 @@ function CarRentalSummary({ data }: { data: any }) {
 
   return (
     <>
-      <h2 className="text-xl text-gray-900 mb-6">Chi tiết Thuê xe</h2>
+      <h2 className="text-xl text-gray-900 mb-6">{t('payment.carRentalDetails', 'Chi tiết Thuê xe')}</h2>
       
       <div className="aspect-video rounded-lg overflow-hidden mb-3">
         <ImageWithFallback
@@ -737,16 +742,16 @@ function CarRentalSummary({ data }: { data: any }) {
       <div className="space-y-2 text-sm">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-gray-600" />
-          <span className="text-gray-600">Nhận xe:</span>
+          <span className="text-gray-600">{t('payment.pickupCar', 'Nhận xe')}:</span>
           <span className="text-gray-900">{rental.pickup}</span>
         </div>
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-gray-600" />
-          <span className="text-gray-600">Trả xe:</span>
+          <span className="text-gray-600">{t('payment.returnCar', 'Trả xe')}:</span>
           <span className="text-gray-900">{rental.dropoff}</span>
         </div>
         <p className="text-gray-600">
-          {car.transmission} • {rental.days} ngày
+          {car.transmission} • {rental.days} {t('payment.days', 'ngày')}
         </p>
       </div>
     </>
@@ -754,6 +759,7 @@ function CarRentalSummary({ data }: { data: any }) {
 }
 
 function ActivitySummary({ data }: { data: any }) {
+  const { t } = useTranslation();
   const activity = data?.activityData?.activity || {
     name: "Tour 1 ngày Cù Lao Chàm",
     image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400"
@@ -767,7 +773,7 @@ function ActivitySummary({ data }: { data: any }) {
 
   return (
     <>
-      <h2 className="text-xl text-gray-900 mb-6">Chi tiết Đặt chỗ</h2>
+      <h2 className="text-xl text-gray-900 mb-6">{t('payment.bookingDetails', 'Chi tiết Đặt chỗ')}</h2>
       
       <div className="aspect-video rounded-lg overflow-hidden mb-3">
         <ImageWithFallback
@@ -782,13 +788,13 @@ function ActivitySummary({ data }: { data: any }) {
       <div className="space-y-2 text-sm">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-gray-600" />
-          <span className="text-gray-600">Ngày:</span>
+          <span className="text-gray-600">{t('payment.date', 'Ngày')}:</span>
           <span className="text-gray-900">{booking.date}</span>
         </div>
         <div className="flex items-center gap-2">
           <Users className="w-4 h-4 text-gray-600" />
           <span className="text-gray-900">
-            {booking.adults} Người lớn, {booking.children} Trẻ em
+            {booking.adults} {t('payment.adults', 'Người lớn')}, {booking.children} {t('payment.children', 'Trẻ em')}
           </span>
         </div>
       </div>

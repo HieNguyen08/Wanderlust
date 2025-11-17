@@ -154,7 +154,7 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
                   alt={dest.destination}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent" />
                 <h4 className="absolute bottom-6 left-6 text-white text-2xl font-bold">
                   {dest.destination}
                 </h4>
@@ -183,7 +183,7 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
                   alt={dest.destination}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent" />
                 <div className="absolute bottom-6 left-6">
                   <h4 className="text-white text-2xl font-bold mb-1">{dest.country}</h4>
                   <p className="text-white/90 text-sm">{dest.description}</p>
@@ -253,7 +253,7 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
                   alt={continent.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent" />
                 <h4 className="absolute bottom-6 left-6 text-white text-xl font-bold">
                   {continent.name}
                 </h4>

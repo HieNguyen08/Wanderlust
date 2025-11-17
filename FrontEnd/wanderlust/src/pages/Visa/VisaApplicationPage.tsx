@@ -1,16 +1,16 @@
+import { format } from "date-fns";
+import { AlertCircle, ArrowLeft, Calendar as CalendarIcon, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../../components/ui/button";
+import { Calendar } from "../../components/ui/calendar";
+import { Card } from "../../components/ui/card";
+import { Checkbox } from "../../components/ui/checkbox";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Card } from "../../components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Calendar } from "../../components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
-import { Textarea } from "../../components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
-import { Checkbox } from "../../components/ui/checkbox";
-import { ArrowLeft, Calendar as CalendarIcon, CheckCircle2, AlertCircle } from "lucide-react";
-import { format } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import { Textarea } from "../../components/ui/textarea";
 import type { PageType } from "../../MainApp";
 
 interface VisaApplicationPageProps {
@@ -512,7 +512,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start">
-                <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+                <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 mr-3 shrink-0" />
                 <div className="text-sm text-blue-800">
                   <p className="font-semibold mb-2">Lưu ý quan trọng:</p>
                   <ul className="list-disc list-inside space-y-1">
@@ -547,7 +547,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
 
         {/* Country Info */}
         {country && (
-          <Card className="p-6 mb-8 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+          <Card className="p-6 mb-8 bg-linear-to-r from-blue-600 to-blue-700 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold mb-2">

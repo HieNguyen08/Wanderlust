@@ -56,15 +56,15 @@ export function Footer() {
             <h4 className="text-white mb-4">Liên hệ</h4>
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2">
-                <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                <MapPin className="w-5 h-5 mt-0.5 shrink-0" />
                 <span>123 Nguyễn Huệ, Quận 1, TP.HCM, Việt Nam</span>
               </li>
               <li className="flex items-center gap-2">
-                <Phone className="w-5 h-5 flex-shrink-0" />
+                <Phone className="w-5 h-5 shrink-0" />
                 <span>1900 1234</span>
               </li>
               <li className="flex items-center gap-2">
-                <Mail className="w-5 h-5 flex-shrink-0" />
+                <Mail className="w-5 h-5 shrink-0" />
                 <span>support@wanderlust.vn</span>
               </li>
             </ul>

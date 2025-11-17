@@ -1,8 +1,12 @@
+import { CreditCard, Heart, History, LogOut, Settings, Ticket, User, Wallet } from "lucide-react";
 import { ReactNode } from "react";
-import { User, History, Heart, Settings, CreditCard, LogOut, Shield, Bell, Wallet, Ticket } from "lucide-react";
+import avatarMan from "../assets/images/avatarman.jpeg";
+import avatarOther from "../assets/images/avatarother.jpeg";
+import avatarWoman from "../assets/images/avatarwoman.jpeg";
 import type { PageType } from "../MainApp";
-import { Header } from "./Header";
+import { tokenService } from "../utils/api";
 import { Footer } from "./Footer";
+import { Header } from "./Header";
 
 interface ProfileLayoutProps {
   children: ReactNode;
@@ -12,6 +16,29 @@ interface ProfileLayoutProps {
 }
 
 export function ProfileLayout({ children, currentPage, onNavigate, activePage = "profile" }: ProfileLayoutProps) {
+  // Get user data from localStorage
+  const userData = tokenService.getUserData();
+  const displayName = userData ? `${userData.firstName} ${userData.lastName}` : "User";
+  const displayEmail = userData?.email || "user@email.com";
+  
+  // Get avatar based on gender
+  const getAvatarSrc = (userData: any): string => {
+    if (userData?.avatar) {
+      return userData.avatar;
+    }
+    const gender = userData?.gender?.toUpperCase();
+    switch (gender) {
+      case 'MALE':
+        return avatarMan;
+      case 'FEMALE':
+        return avatarWoman;
+      case 'OTHER':
+        return avatarOther;
+      default:
+        return avatarOther;
+    }
+  };
+
   const menuItems = [
     {
       id: "profile",
@@ -67,14 +94,19 @@ export function ProfileLayout({ children, currentPage, onNavigate, activePage = 
           <div className="lg:col-span-3">
             <div className="bg-white rounded-xl shadow-sm overflow-hidden sticky top-24">
               {/* User Info */}
-              <div className="p-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+              <div className="p-6 bg-linear-to-r from-blue-600 to-blue-700 text-white">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-                    <User className="w-8 h-8 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Nguyễn Văn A</h3>
-                    <p className="text-sm text-blue-100">nguyenvana@email.com</p>
+                  <img 
+                    src={getAvatarSrc(userData)} 
+                    alt="User Avatar" 
+                    className="w-16 h-16 rounded-full object-cover border-2 border-white"
+                    onError={(e) => {
+                      e.currentTarget.src = avatarOther;
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold truncate">{displayName}</h3>
+                    <p className="text-sm text-blue-100 truncate">{displayEmail}</p>
                   </div>
                 </div>
               </div>

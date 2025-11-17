@@ -1,22 +1,24 @@
-import { useState } from "react";
+import { ArrowLeft, ArrowUpDown, Filter, Fuel, Heart, Settings, SlidersHorizontal, Star, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { Fuel, Users, Settings, ArrowLeft, Heart, Star, Filter, SlidersHorizontal, ArrowUpDown } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import { Checkbox } from "../../components/ui/checkbox";
-import { Slider } from "../../components/ui/slider";
-import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Input } from "../../components/ui/input";
-import type { PageType } from "../../MainApp";
 import { Footer } from "../../components/Footer";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Input } from "../../components/ui/input";
+import { Slider } from "../../components/ui/slider";
+import type { PageType } from "../../MainApp";
+import { carRentalApi } from "../../utils/api";
 
 interface CarRentalListPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
 export default function CarRentalListPage({ onNavigate }: CarRentalListPageProps) {
-  const [selectedTypes, setSelectedTypes] = useState<string[]>(["Sport", "SUV"]);
-  const [selectedCapacities, setSelectedCapacities] = useState<string[]>(["2 Person", "8 or More"]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedCapacities, setSelectedCapacities] = useState<string[]>([]);
   const [maxPrice, setMaxPrice] = useState(100);
   const [showFilters, setShowFilters] = useState(false);
   const [visibleCars, setVisibleCars] = useState(9);
@@ -27,155 +29,31 @@ export default function CarRentalListPage({ onNavigate }: CarRentalListPageProps
   const [dropoffDate, setDropoffDate] = useState("");
   const [dropoffTime, setDropoffTime] = useState("");
 
-  const allCars = [
-    {
-      id: 1,
-      name: "Koenigsegg",
-      type: "Sport",
-      image: "https://images.unsplash.com/photo-1742056024244-02a093dae0b5?w=800&h=600&fit=crop",
-      gasoline: "90L",
-      transmission: "Manual",
-      capacity: "2 Person",
-      price: 99,
-      liked: true,
-      rating: 4.9,
-    },
-    {
-      id: 2,
-      name: "Nissan GT - R",
-      type: "Sport",
-      image: "https://images.unsplash.com/photo-1731142582229-e0ee70302c02?w=800&h=600&fit=crop",
-      gasoline: "80L",
-      transmission: "Manual",
-      capacity: "2 Person",
-      price: 80,
-      originalPrice: 100,
-      liked: false,
-      rating: 4.8,
-    },
-    {
-      id: 3,
-      name: "Rolls-Royce",
-      type: "Sport",
-      image: "https://images.unsplash.com/photo-1653047256226-5abbfa82f1d7?w=800&h=600&fit=crop",
-      gasoline: "70L",
-      transmission: "Manual",
-      capacity: "4 Person",
-      price: 96,
-      liked: false,
-      rating: 4.9,
-    },
-    {
-      id: 4,
-      name: "All New Rush",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800&h=600&fit=crop",
-      gasoline: "70L",
-      transmission: "Manual",
-      capacity: "6 Person",
-      price: 72,
-      originalPrice: 80,
-      liked: false,
-      rating: 4.7,
-    },
-    {
-      id: 5,
-      name: "CR - V",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1706752986827-f784d768d4c3?w=800&h=600&fit=crop",
-      gasoline: "80L",
-      transmission: "Manual",
-      capacity: "6 Person",
-      price: 80,
-      liked: true,
-      rating: 4.8,
-    },
-    {
-      id: 6,
-      name: "All New Terios",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800&h=600&fit=crop",
-      gasoline: "90L",
-      transmission: "Manual",
-      capacity: "6 Person",
-      price: 74,
-      liked: false,
-      rating: 4.6,
-    },
-    {
-      id: 7,
-      name: "MG ZX Exclusive",
-      type: "Hatchback",
-      image: "https://images.unsplash.com/photo-1743809809295-cfd2a2e3d40f?w=800&h=600&fit=crop",
-      gasoline: "70L",
-      transmission: "Manual",
-      capacity: "4 Person",
-      price: 76,
-      originalPrice: 80,
-      liked: false,
-      rating: 4.5,
-    },
-    {
-      id: 8,
-      name: "New MG ZS",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1706752986827-f784d768d4c3?w=800&h=600&fit=crop",
-      gasoline: "80L",
-      transmission: "Manual",
-      capacity: "6 Person",
-      price: 80,
-      liked: false,
-      rating: 4.7,
-    },
-    {
-      id: 9,
-      name: "MG ZX Excite",
-      type: "Hatchback",
-      image: "https://images.unsplash.com/photo-1743809809295-cfd2a2e3d40f?w=800&h=600&fit=crop",
-      gasoline: "90L",
-      transmission: "Manual",
-      capacity: "4 Person",
-      price: 74,
-      liked: true,
-      rating: 4.6,
-    },
-    {
-      id: 10,
-      name: "BMW M3",
-      type: "Sport",
-      image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=600&fit=crop",
-      gasoline: "85L",
-      transmission: "Manual",
-      capacity: "4 Person",
-      price: 95,
-      liked: false,
-      rating: 4.8,
-    },
-    {
-      id: 11,
-      name: "Mercedes GLE",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&h=600&fit=crop",
-      gasoline: "90L",
-      transmission: "Automatic",
-      capacity: "6 Person",
-      price: 88,
-      liked: false,
-      rating: 4.7,
-    },
-    {
-      id: 12,
-      name: "Toyota Camry",
-      type: "Sedan",
-      image: "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&h=600&fit=crop",
-      gasoline: "70L",
-      transmission: "Automatic",
-      capacity: "4 Person",
-      price: 65,
-      liked: false,
-      rating: 4.5,
-    },
-  ];
+  // Backend data state
+  const [allCars, setAllCars] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load cars from backend
+  useEffect(() => {
+    const loadCars = async () => {
+      try {
+        setLoading(true);
+        const cars = await carRentalApi.search({
+          minPrice: 0,
+          maxPrice: maxPrice,
+          type: selectedTypes.length > 0 ? selectedTypes[0] : undefined,
+        });
+        setAllCars(cars);
+      } catch (error) {
+        console.error('Failed to load cars:', error);
+        toast.error('Không thể tải danh sách xe');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCars();
+  }, [maxPrice, selectedTypes]);
 
   const toggleType = (type: string) => {
     setSelectedTypes(prev =>
@@ -193,11 +71,11 @@ export default function CarRentalListPage({ onNavigate }: CarRentalListPageProps
     const tempLocation = pickupLocation;
     const tempDate = pickupDate;
     const tempTime = pickupTime;
-    
+
     setPickupLocation(dropoffLocation);
     setPickupDate(dropoffDate);
     setPickupTime(dropoffTime);
-    
+
     setDropoffLocation(tempLocation);
     setDropoffDate(tempDate);
     setDropoffTime(tempTime);
@@ -226,7 +104,7 @@ export default function CarRentalListPage({ onNavigate }: CarRentalListPageProps
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
       {/* Header */}      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 pt-[calc(60px+2rem)]">
         {/* Pick-up / Drop-off Section */}
@@ -235,7 +113,7 @@ export default function CarRentalListPage({ onNavigate }: CarRentalListPageProps
           
           <div className="grid md:grid-cols-2 gap-6 relative">
             {/* Pick-up */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200">
+            <div className="bg-linear-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-white" />
@@ -277,14 +155,14 @@ export default function CarRentalListPage({ onNavigate }: CarRentalListPageProps
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:block">
               <button 
                 onClick={swapPickupDropoff}
-                className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110 active:scale-95"
+                className="w-14 h-14 bg-linear-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110 active:scale-95"
               >
                 <ArrowUpDown className="w-6 h-6 text-white" />
               </button>
             </div>
 
             {/* Drop-off */}
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200">
+            <div className="bg-linear-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-white" />
@@ -426,7 +304,7 @@ export default function CarRentalListPage({ onNavigate }: CarRentalListPageProps
                 />
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">$0</span>
-                  <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600">
+                  <Badge className="bg-linear-to-r from-blue-600 to-indigo-600">
                     ${maxPrice}.00
                   </Badge>
                   <span className="text-sm text-gray-600">$100</span>
@@ -484,7 +362,7 @@ export default function CarRentalListPage({ onNavigate }: CarRentalListPageProps
                           </button>
                         </div>
 
-                        <div className="mb-6 h-32 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 group-hover:scale-105 transition-transform">
+                        <div className="mb-6 h-32 flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-4 group-hover:scale-105 transition-transform">
                           <ImageWithFallback
                             src={car.image}
                             alt={car.name}
@@ -535,7 +413,7 @@ export default function CarRentalListPage({ onNavigate }: CarRentalListPageProps
                               });
                             }} 
                             size="sm"
-                            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                            className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                           >
                             Thuê ngay
                           </Button>
@@ -551,7 +429,7 @@ export default function CarRentalListPage({ onNavigate }: CarRentalListPageProps
                     <Button 
                       size="lg" 
                       onClick={handleLoadMore}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 gap-2"
+                      className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 gap-2"
                     >
                       Xem thêm xe
                       <Badge className="bg-white/20">

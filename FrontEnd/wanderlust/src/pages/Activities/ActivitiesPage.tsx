@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { Calendar, MapPin, Search, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner@2.0.3";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { Search, MapPin, Calendar, Users, Star } from "lucide-react";
+import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
 import type { PageType } from "../../MainApp";
-import { Footer } from "../../components/Footer";
+import { activityApi } from "../../utils/api";
 // Activity Category Icons (using Lucide icons instead of imported images)
 const categories = [
   { id: "all", name: "Tất cả hoạt động", icon: "grid" },
@@ -186,12 +188,34 @@ interface ActivitiesPageProps {
 export default function ActivitiesPage({ onNavigate, initialCategory }: ActivitiesPageProps) {
   const [selectedCategory, setSelectedCategory] = useState(initialCategory || "all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredActivities = mockActivities.filter((activity) => {
-    const matchesCategory = selectedCategory === "all" || activity.category === selectedCategory;
+  // Load activities from backend
+  useEffect(() => {
+    const loadActivities = async () => {
+      try {
+        setLoading(true);
+        const data = await activityApi.search({
+          category: selectedCategory !== "all" ? selectedCategory.toUpperCase() : undefined,
+        });
+        setActivities(data);
+      } catch (error: any) {
+        console.error('Failed to load activities:', error);
+        toast.error('Không thể tải danh sách hoạt động');
+        setActivities([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadActivities();
+  }, [selectedCategory]);
+
+  const filteredActivities = activities.filter((activity) => {
     const matchesSearch = activity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          activity.location.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return matchesSearch;
   });
 
   const handleActivityClick = (activity: Activity) => {
@@ -201,7 +225,7 @@ export default function ActivitiesPage({ onNavigate, initialCategory }: Activiti
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}      {/* Hero Section */}
-      <div className="relative w-full bg-gradient-to-r from-blue-600 to-blue-700 pb-8">
+      <div className="relative w-full bg-linear-to-r from-blue-600 to-blue-700 pb-8">
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-30"
           style={{
