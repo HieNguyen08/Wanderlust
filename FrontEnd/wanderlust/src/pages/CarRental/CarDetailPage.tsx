@@ -1,5 +1,4 @@
-import { ArrowLeft, Calendar, CheckCircle, Fuel, Heart, MapPin, Settings, Shield, Star, ThumbsUp, Users } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { Badge } from "../../components/ui/badge";
@@ -8,6 +7,11 @@ import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Separator } from "../../components/ui/separator";
 import type { PageType } from "../../MainApp";
+import { Footer } from "../../components/Footer";
+import { carRentalApi } from "../../utils/api";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 interface CarDetailPageProps {
   car: {
@@ -28,6 +32,125 @@ interface CarDetailPageProps {
 export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [recommendedCars, setRecommendedCars] = useState<any[]>([]);
+
+  // Rental form states
+  const [pickupDate, setPickupDate] = useState<string>("");
+  const [dropoffDate, setDropoffDate] = useState<string>("");
+  const [pickupLocation, setPickupLocation] = useState<string>("");
+
+  // Scroll to top when car changes (when user clicks on recommended car)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [car.id]);
+
+  // Fetch recommended cars from backend
+  useEffect(() => {
+    const fetchRecommendedCars = async () => {
+      try {
+        // Fetch ALL cars instead of just popular ones
+        const response = await carRentalApi.getAllCars();
+
+        // Response is directly an array, not wrapped in .data
+        const backendCars = Array.isArray(response) ? response : [];
+
+        // Map backend data to frontend format
+        const allMappedCars = backendCars.map((backendCar: any) => ({
+          id: backendCar.id,
+          name: `${backendCar.brand} ${backendCar.model}`,
+          brand: backendCar.brand,
+          model: backendCar.model,
+          type: backendCar.type || "SUV",
+          image: backendCar.images?.[0]?.url || "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800&h=600&fit=crop",
+          gasoline: backendCar.fuelType || "Gasoline",
+          transmission: backendCar.transmission || "Manual",
+          capacity: `${backendCar.seats || 5} People`,
+          seats: backendCar.seats,
+          price: backendCar.pricePerDay ? Math.round(backendCar.pricePerDay / 24000) : 0,
+          originalPrice: undefined,
+          liked: false,
+          rating: backendCar.averageRating || (4.5 + Math.random() * 0.5),
+        }));
+
+        // Filter out current car
+        const otherCars = allMappedCars.filter((c: any) => c.id !== car.id);
+
+        // Prioritize same type, then shuffle
+        const sameTypeCars = otherCars.filter((c: any) => c.type === car.type);
+        const differentTypeCars = otherCars.filter((c: any) => c.type !== car.type);
+
+        // Shuffle both arrays
+        const shuffledSameType = sameTypeCars.sort(() => Math.random() - 0.5);
+        const shuffledDifferentType = differentTypeCars.sort(() => Math.random() - 0.5);
+
+        // Combine: prefer same type first, then others, take 3
+        const recommended = [...shuffledSameType, ...shuffledDifferentType].slice(0, 3);
+
+        setRecommendedCars(recommended);
+      } catch (error) {
+        console.error("Failed to fetch recommended cars:", error);
+        // Keep empty array on error
+      }
+    };
+
+    fetchRecommendedCars();
+  }, [car.id]);
+
+  // Handle booking
+  const handleBooking = () => {
+    // Validate required fields
+    if (!pickupDate) {
+      toast.error("Vui lòng chọn ngày nhận xe");
+      return;
+    }
+    if (!dropoffDate) {
+      toast.error("Vui lòng chọn ngày trả xe");
+      return;
+    }
+    if (!pickupLocation) {
+      toast.error("Vui lòng nhập địa điểm nhận xe");
+      return;
+    }
+
+    // Validate dates
+    const pickup = new Date(pickupDate);
+    const dropoff = new Date(dropoffDate);
+
+    if (pickup >= dropoff) {
+      toast.error("Ngày trả xe phải sau ngày nhận xe");
+      return;
+    }
+
+    // Calculate rental days
+    const diffTime = Math.abs(dropoff.getTime() - pickup.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // Navigate to review page with rental data
+    onNavigate("car-review", {
+      car: {
+        id: car.id,
+        name: car.name,
+        type: car.type,
+        image: car.image,
+        transmission: car.transmission,
+        capacity: car.capacity
+      },
+      rental: {
+        pickupDate: format(pickup, "EEEE, dd/MM/yyyy", { locale: vi }),
+        pickupTime: "09:00",
+        dropoffDate: format(dropoff, "EEEE, dd/MM/yyyy", { locale: vi }),
+        dropoffTime: "09:00",
+        pickupLocation: pickupLocation,
+        dropoffLocation: pickupLocation, // Same location
+        days: diffDays
+      },
+      pricing: {
+        carPrice: car.price * diffDays,
+        fees: 0,
+        deposit: car.price * 1.5
+      }
+    });
+  };
 
   const carImages = [
     car.image,
@@ -81,46 +204,6 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
     },
   ];
 
-  const recommendedCars = [
-    {
-      id: 101,
-      name: "All New Rush",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800&h=600&fit=crop",
-      gasoline: "70L",
-      transmission: "Manual",
-      capacity: "6 People",
-      price: 72,
-      originalPrice: 80,
-      liked: false,
-      rating: 4.7,
-    },
-    {
-      id: 102,
-      name: "CR - V",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1706752986827-f784d768d4c3?w=800&h=600&fit=crop",
-      gasoline: "80L",
-      transmission: "Manual",
-      capacity: "6 People",
-      price: 80,
-      liked: true,
-      rating: 4.8,
-    },
-    {
-      id: 103,
-      name: "All New Terios",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800&h=600&fit=crop",
-      gasoline: "90L",
-      transmission: "Manual",
-      capacity: "6 People",
-      price: 74,
-      liked: false,
-      rating: 4.6,
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
       {/* Header */}      {/* Main Content */}
@@ -160,9 +243,8 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(idx)}
-                    className={`rounded-lg overflow-hidden border-2 transition-all ${
-                      selectedImage === idx ? 'border-blue-600 shadow-lg' : 'border-transparent hover:border-gray-300'
-                    }`}
+                    className={`rounded-lg overflow-hidden border-2 transition-all ${selectedImage === idx ? 'border-blue-600 shadow-lg' : 'border-transparent hover:border-gray-300'
+                      }`}
                   >
                     <ImageWithFallback
                       src={img}
@@ -184,9 +266,9 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                     <div className="flex items-center gap-2">
                       <div className="flex gap-1">
                         {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i} 
-                            className={`w-4 h-4 ${i < Math.floor(car.rating!) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${i < Math.floor(car.rating!) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
                           />
                         ))}
                       </div>
@@ -202,9 +284,9 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
               <div className="mb-6">
                 <h3 className="text-lg mb-3 text-gray-900">Mô tả</h3>
                 <p className="text-gray-700 leading-relaxed">
-                  {car.name} là một chiếc xe {car.type.toLowerCase()} cao cấp, mang đến sự kết hợp hoàn hảo 
-                  giữa hiệu suất mạnh mẽ và sự thoải mái tuyệt đối. Với thiết kế hiện đại và trang bị 
-                  tiện nghi đầy đủ, xe phù hợp cho c��� chuyến đi công tác lẫn du lịch gia đình.
+                  {car.name} là một chiếc xe {car.type?.toLowerCase() || 'cao cấp'}, mang đến sự kết hợp hoàn hảo
+                  giữa hiệu suất mạnh mẽ và sự thoải mái tuyệt đối. Với thiết kế hiện đại và trang bị
+                  tiện nghi đầy đủ, xe phù hợp cho cả chuyến đi công tác lẫn du lịch gia đình.
                 </p>
               </div>
 
@@ -296,8 +378,8 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                   <h2 className="text-2xl text-gray-900 mb-1">Xe đề xuất</h2>
                   <p className="text-gray-600">Xe tương tự bạn có thể thích</p>
                 </div>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   onClick={() => onNavigate("car-list")}
                   className="text-blue-600 hover:text-blue-700"
                 >
@@ -306,8 +388,8 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
               </div>
               <div className="grid md:grid-cols-3 gap-6">
                 {recommendedCars.map((recCar) => (
-                  <Card 
-                    key={recCar.id} 
+                  <Card
+                    key={recCar.id}
                     onClick={() => onNavigate("car-detail", recCar)}
                     className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0"
                   >
@@ -319,7 +401,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                           </h3>
                           <p className="text-sm text-gray-500">{recCar.type}</p>
                         </div>
-                        <button 
+                        <button
                           onClick={(e) => e.stopPropagation()}
                           className="transition-transform hover:scale-110"
                         >
@@ -368,9 +450,9 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                             <p className="text-sm text-gray-400 line-through">${recCar.originalPrice}</p>
                           )}
                         </div>
-                        <Button 
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
                             onNavigate("car-review", {
                               car: { id: recCar.id, name: recCar.name, type: recCar.type, image: recCar.image, transmission: recCar.transmission, capacity: recCar.capacity },
                               rental: { pickupDate: "Thứ 7, 8/11/2025", pickupTime: "09:00", dropoffDate: "Thứ 2, 10/11/2025", dropoffTime: "09:00", pickupLocation: "Pool Bandara CGK", dropoffLocation: "Pool Bandara CGK", days: 2 },
@@ -413,25 +495,35 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="text-sm text-gray-700 mb-2 block">Ngày nhận xe</label>
-                  <Input type="date" />
+                  <Input
+                    type="date"
+                    value={pickupDate}
+                    onChange={(e) => setPickupDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
                 </div>
                 <div>
                   <label className="text-sm text-gray-700 mb-2 block">Ngày trả xe</label>
-                  <Input type="date" />
+                  <Input
+                    type="date"
+                    value={dropoffDate}
+                    onChange={(e) => setDropoffDate(e.target.value)}
+                    min={pickupDate || new Date().toISOString().split('T')[0]}
+                  />
                 </div>
                 <div>
                   <label className="text-sm text-gray-700 mb-2 block">Địa điểm nhận xe</label>
-                  <Input placeholder="Nhập địa điểm" />
+                  <Input
+                    placeholder="Nhập địa điểm"
+                    value={pickupLocation}
+                    onChange={(e) => setPickupLocation(e.target.value)}
+                  />
                 </div>
               </div>
 
-              <Button 
-                onClick={() => onNavigate("car-review", {
-                  car: { id: car.id, name: car.name, type: car.type, image: car.image, transmission: car.transmission, capacity: car.capacity },
-                  rental: { pickupDate: "Thứ 7, 8/11/2025", pickupTime: "09:00", dropoffDate: "Thứ 2, 10/11/2025", dropoffTime: "09:00", pickupLocation: "Pool Bandara CGK", dropoffLocation: "Pool Bandara CGK", days: 2 },
-                  pricing: { carPrice: car.price * 2, fees: 0, deposit: car.price * 1.5 }
-                })} 
-                className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 mb-4"
+              <Button
+                onClick={handleBooking}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 mb-4"
                 size="lg"
               >
                 Đặt xe ngay

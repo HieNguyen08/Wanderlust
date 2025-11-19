@@ -14,31 +14,34 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import { Separator } from "../../components/ui/separator";
-import type { PageType } from "../../MainApp";
-import { locationApi, promotionApi, tokenService, userVoucherApi } from "../../utils/api";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import { toast } from "sonner@2.0.3";
+import { promotionApi, userVoucherApi, tokenService, hotelApi } from "../../utils/api";
 
 interface HotelLandingPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
-interface Location {
-  id: string;
-  code?: string;
+// Type cho destination (location từ backend)
+interface Destination {
+  id?: string;
+  code: string;
   name: string;
-  country?: string;
+  country: string;
   hotels?: string;
 }
 
 // Search Form Component
 function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => void; isSearching: boolean }) {
-  const [destinations, setDestinations] = useState<Location[]>([]);
-  const [loadingLocations, setLoadingLocations] = useState(true);
-  const [destination, setDestination] = useState<Location | null>(null);
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [destination, setDestination] = useState<Destination | null>(null);
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [rooms, setRooms] = useState(1);
+  const [loading, setLoading] = useState(true);
 
   // Popover states
   const [destinationOpen, setDestinationOpen] = useState(false);
@@ -46,21 +49,73 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
   const [checkOutOpen, setCheckOutOpen] = useState(false);
   const [guestsOpen, setGuestsOpen] = useState(false);
 
-  // Load locations from backend
+  // Fetch locations từ backend (dựa trên hotels)
   useEffect(() => {
-    const loadLocations = async () => {
+    const fetchLocations = async () => {
       try {
-        const response = await locationApi.getAll({ page: 0, size: 50, sortBy: 'popularity', sortDir: 'desc' });
-        const locationsData = response.content || response;
-        setDestinations(locationsData);
+        setLoading(true);
+        const response = await hotelApi.getHotelLocations();
+
+        console.log("📍 Hotel Locations API response:", response);
+
+        // Response là array trực tiếp
+        if (!Array.isArray(response)) {
+          console.error("Invalid locations data format:", response);
+          throw new Error("Invalid response format");
+        }
+
+        // Map backend data sang format Destination
+        const mappedLocations: Destination[] = response.map((loc: any) => ({
+          id: loc.id,
+          code: loc.airport_Code || loc.location_ID || "N/A",
+          name: loc.city,
+          country: loc.country,
+          hotels: `${loc.hotelCount}+` // Hiển thị số lượng hotels thực tế
+        }));
+
+        console.log("✅ Mapped locations from hotels:", mappedLocations);
+
+        // Nếu backend không có data (database rỗng), dùng fallback
+        if (mappedLocations.length === 0) {
+          console.warn("⚠️ No hotels found in database, using fallback data");
+          const fallbackLocations = [
+            { code: "SGN", name: "TP. Hồ Chí Minh", country: "Việt Nam", hotels: "500+" },
+            { code: "HAN", name: "Hà Nội", country: "Việt Nam", hotels: "450+" },
+            { code: "DAD", name: "Đà Nẵng", country: "Việt Nam", hotels: "340+" },
+            { code: "PQC", name: "Phú Quốc", country: "Việt Nam", hotels: "250+" },
+            { code: "NHA", name: "Nha Trang", country: "Việt Nam", hotels: "280+" },
+            { code: "DLI", name: "Đà Lạt", country: "Việt Nam", hotels: "180+" },
+            { code: "HUE", name: "Huế", country: "Việt Nam", hotels: "150+" },
+            { code: "VTE", name: "Vũng Tàu", country: "Việt Nam", hotels: "120+" },
+            { code: "BKK", name: "Bangkok", country: "Thailand", hotels: "800+" },
+            { code: "HKT", name: "Phuket", country: "Thailand", hotels: "600+" },
+            { code: "SIN", name: "Singapore", country: "Singapore", hotels: "550+" },
+            { code: "MLE", name: "Maldives", country: "Maldives", hotels: "300+" },
+          ];
+          setDestinations(fallbackLocations);
+        } else {
+          setDestinations(mappedLocations);
+        }
       } catch (error) {
-        console.error('Failed to load locations:', error);
-        toast.error('Không thể tải danh sách địa điểm');
+        console.error("❌ Failed to fetch locations:", error);
+        toast.error("Không thể tải danh sách địa điểm");
+
+        // Fallback data nếu API fails
+        const fallbackLocations = [
+          { code: "SGN", name: "TP. Hồ Chí Minh", country: "Việt Nam", hotels: "500+" },
+          { code: "HAN", name: "Hà Nội", country: "Việt Nam", hotels: "450+" },
+          { code: "DAD", name: "Đà Nẵng", country: "Việt Nam", hotels: "340+" },
+          { code: "PQC", name: "Phú Quốc", country: "Việt Nam", hotels: "250+" },
+          { code: "NHA", name: "Nha Trang", country: "Việt Nam", hotels: "280+" },
+        ];
+        console.log("🔄 Using fallback locations:", fallbackLocations);
+        setDestinations(fallbackLocations);
       } finally {
-        setLoadingLocations(false);
+        setLoading(false);
       }
     };
-    loadLocations();
+
+    fetchLocations();
   }, []);
 
   const handleSearch = () => {
@@ -124,7 +179,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
                 <CommandList>
                   <CommandEmpty>Không tìm thấy địa điểm.</CommandEmpty>
                   <CommandGroup>
-                    {destinations.map((dest) => (
+                    {destinations.map((dest: Destination) => (
                       <CommandItem
                         key={dest.code}
                         value={dest.name}
@@ -134,9 +189,8 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
                         }}
                       >
                         <Check
-                          className={`mr-2 h-4 w-4 ${
-                            destination?.code === dest.code ? "opacity-100" : "opacity-0"
-                          }`}
+                          className={`mr-2 h-4 w-4 ${destination?.code === dest.code ? "opacity-100" : "opacity-0"
+                            }`}
                         />
                         <div className="flex flex-col">
                           <span>{dest.name}, {dest.country}</span>
@@ -353,7 +407,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
 export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) {
   const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false);
-  
+
   // Promotions state
   const [promotions, setPromotions] = useState<any[]>([]);
   const [loadingPromotions, setLoadingPromotions] = useState(true);
@@ -409,11 +463,11 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
       setSavingVoucher(true);
       await userVoucherApi.saveToWallet(voucher.code);
       toast.success(`Đã lưu mã ${voucher.code} vào Ví Voucher!`);
-      
+
       // Refresh available vouchers
       const available = await userVoucherApi.getAvailable();
       setSavedVouchers(available.map((v: any) => v.voucherCode));
-      
+
       setSelectedVoucher(null);
     } catch (error: any) {
       toast.error(error.message || 'Không thể lưu voucher');
@@ -424,7 +478,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
 
   const handleSearch = (searchData: any) => {
     setIsSearching(true);
-    
+
     // Simulate search delay
     setTimeout(() => {
       setIsSearching(false);
@@ -483,7 +537,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
   return (
     <div className="bg-gray-50 w-full min-h-screen overflow-x-hidden">
       {/* Loading Overlay */}
-      <SearchLoadingOverlay 
+      <SearchLoadingOverlay
         isLoading={isSearching}
         searchType="hotel"
         message="Đang tìm kiếm khách sạn phù hợp..."
@@ -540,8 +594,8 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {promotions.map((offer) => (
-                <Card 
-                  key={offer.id} 
+                <Card
+                  key={offer.id}
                   className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all"
                   onClick={() => setSelectedVoucher(offer)}
                 >
@@ -557,8 +611,8 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
                     </Badge>
                     <div className="absolute bottom-6 left-6 right-6 text-white">
                       <div className="text-3xl mb-2">
-                        {offer.type === 'PERCENTAGE' 
-                          ? `Giảm ${offer.value}%` 
+                        {offer.type === 'PERCENTAGE'
+                          ? `Giảm ${offer.value}%`
                           : `Giảm ${(offer.value / 1000).toFixed(0)}K`
                         }
                       </div>
@@ -580,8 +634,8 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {domesticDestinations.map((dest, index) => (
-              <Card 
-                key={index} 
+              <Card
+                key={index}
                 className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all"
                 onClick={() => onNavigate("hotel-list", { destination: dest.name })}
               >
@@ -617,8 +671,8 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {internationalDestinations.map((dest, index) => (
-              <Card 
-                key={index} 
+              <Card
+                key={index}
                 className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all"
                 onClick={() => onNavigate("hotel-list", { destination: dest.name })}
               >
@@ -721,8 +775,8 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
                 </Badge>
                 <div className="absolute bottom-4 left-4 right-4 text-white">
                   <div className="text-3xl mb-1">
-                    {selectedVoucher.type === 'PERCENTAGE' 
-                      ? `Giảm ${selectedVoucher.value}%` 
+                    {selectedVoucher.type === 'PERCENTAGE'
+                      ? `Giảm ${selectedVoucher.value}%`
                       : `Giảm ${(selectedVoucher.value / 1000).toFixed(0)}K`
                     }
                   </div>
@@ -767,7 +821,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-gray-600">Giảm tối đa:</span>
                     <span className="font-medium text-red-600">
-                      {selectedVoucher.maxDiscount 
+                      {selectedVoucher.maxDiscount
                         ? `${(selectedVoucher.maxDiscount / 1000).toLocaleString('vi-VN')}k`
                         : 'Không giới hạn'
                       }
@@ -776,7 +830,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-gray-600">Số lượng còn lại:</span>
                     <span className="font-medium text-blue-600">
-                      {selectedVoucher.totalUsesLimit 
+                      {selectedVoucher.totalUsesLimit
                         ? `${selectedVoucher.totalUsesLimit - (selectedVoucher.usedCount || 0)} voucher`
                         : 'Không giới hạn'
                       }
@@ -800,10 +854,10 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
                 disabled={savedVouchers.includes(selectedVoucher.code) || savingVoucher}
               >
                 <Tag className="w-4 h-4 mr-2" />
-                {savingVoucher 
-                  ? 'Đang lưu...' 
-                  : savedVouchers.includes(selectedVoucher.code) 
-                    ? 'Đã lưu vào Ví Voucher' 
+                {savingVoucher
+                  ? 'Đang lưu...'
+                  : savedVouchers.includes(selectedVoucher.code)
+                    ? 'Đã lưu vào Ví Voucher'
                     : 'Lưu vào Ví Voucher'
                 }
               </Button>

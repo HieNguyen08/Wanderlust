@@ -17,11 +17,15 @@ public class RoomDTO {
     private Integer maxOccupancy;
     private String bedType;
     private BigDecimal size;
+    private String description;
     private List<Room.RoomImage> images;
     private List<String> amenities;
     private BigDecimal basePrice;
+    private BigDecimal originalPrice;
+    private Integer totalRooms;
     private Integer availableRooms;
     private CancellationPolicyType cancellationPolicy;
     private Boolean breakfastIncluded;
     private RoomStatusType status;
+    private List<Room.RoomOption> options;
 }

@@ -1,14 +1,14 @@
 import {
-    Calendar,
-    ChevronDown, ChevronUp,
-    Clock,
-    CreditCard,
-    Plane,
-    Shield,
-    Smartphone,
-    Tag,
-    Users,
-    Wallet
+  Calendar,
+  ChevronDown, ChevronUp,
+  Clock,
+  CreditCard,
+  Plane,
+  Shield,
+  Smartphone,
+  Tag,
+  Users,
+  Wallet
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -55,7 +55,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const [isVoucherListOpen, setIsVoucherListOpen] = useState(false);
   const [showNewCardForm, setShowNewCardForm] = useState(false);
-  
+
   // New card form
   const [newCardData, setNewCardData] = useState({
     cardNumber: "",
@@ -97,7 +97,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
   // Calculate discount
   const calculateDiscount = (): number => {
     if (!appliedVoucher) return 0;
-    
+
     if (appliedVoucher.type === "FIXED_AMOUNT") {
       return appliedVoucher.discount;
     } else {
@@ -123,17 +123,17 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
   // Handle voucher application
   const handleApplyVoucher = () => {
     const voucher = availableVouchers.find(v => v.code === voucherCode.toUpperCase());
-    
+
     if (!voucher) {
       alert(t('payment.invalidVoucher', 'Mã giảm giá không hợp lệ'));
       return;
     }
-    
+
     if (totalAmount < voucher.minOrderValue) {
       alert(`${t('payment.minOrderRequired', 'Đơn hàng phải từ')} ${voucher.minOrderValue.toLocaleString('vi-VN')}đ ${t('payment.toApply', 'để áp dụng mã này')}`);
       return;
     }
-    
+
     setAppliedVoucher(voucher);
     setVoucherCode("");
     alert(`✅ ${t('payment.voucherApplied', 'Áp dụng mã giảm giá thành công')}!`);
@@ -144,7 +144,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
       alert(`${t('payment.minOrderRequired', 'Đơn hàng phải từ')} ${voucher.minOrderValue.toLocaleString('vi-VN')}đ ${t('payment.toApply', 'để áp dụng mã này')}`);
       return;
     }
-    
+
     setAppliedVoucher(voucher);
     setIsVoucherListOpen(false);
     alert(`✅ ${t('payment.voucherApplied', 'Áp dụng mã giảm giá thành công')}!`);
@@ -206,405 +206,402 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
 
   return (
     <div className="min-h-screen bg-gray-50">      <div className="max-w-7xl mx-auto px-4 py-8 pt-[calc(60px+2rem)]">
-        {/* Breadcrumb */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <span className="text-gray-400">{t('payment.reviewInfo', 'Xem lại thông tin')}</span>
-            <span>/</span>
-            <span className="text-gray-900">{t('payment.payment', 'Thanh toán')}</span>
-          </div>
+      {/* Breadcrumb */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <span className="text-gray-400">{t('payment.reviewInfo', 'Xem lại thông tin')}</span>
+          <span>/</span>
+          <span className="text-gray-900">{t('payment.payment', 'Thanh toán')}</span>
         </div>
+      </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content - Left Column */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Block 1: Voucher */}
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                  <Tag className="w-5 h-5 text-orange-600" />
-                </div>
-                <div>
-                  <h2 className="text-xl text-gray-900">{t('payment.voucher')}</h2>
-                  <p className="text-sm text-gray-600">{t('payment.voucherDesc')}</p>
-                </div>
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Main Content - Left Column */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Block 1: Voucher */}
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                <Tag className="w-5 h-5 text-orange-600" />
               </div>
+              <div>
+                <h2 className="text-xl text-gray-900">{t('payment.voucher')}</h2>
+                <p className="text-sm text-gray-600">{t('payment.voucherDesc')}</p>
+              </div>
+            </div>
 
-              {appliedVoucher ? (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge className="bg-green-600 hover:bg-green-600">
-                          {appliedVoucher.code}
-                        </Badge>
-                        <span className="text-green-900">
-                          -{calculateDiscount().toLocaleString('vi-VN')}đ
-                        </span>
-                      </div>
-                      <p className="text-sm text-green-800">{appliedVoucher.description}</p>
+            {appliedVoucher ? (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge className="bg-green-600 hover:bg-green-600">
+                        {appliedVoucher.code}
+                      </Badge>
+                      <span className="text-green-900">
+                        -{calculateDiscount().toLocaleString('vi-VN')}đ
+                      </span>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleRemoveVoucher}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      {t('payment.remove')}
-                    </Button>
+                    <p className="text-sm text-green-800">{appliedVoucher.description}</p>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder={t('payment.enterVoucher')}
-                      value={voucherCode}
-                      onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
-                      className="flex-1 uppercase"
-                    />
-                    <Button onClick={handleApplyVoucher} className="whitespace-nowrap">
-                      {t('payment.apply')}
-                    </Button>
-                  </div>
-
-                  <button
-                    onClick={() => setIsVoucherListOpen(!isVoucherListOpen)}
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRemoveVoucher}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
-                    <span>{t('payment.selectFromWallet')}</span>
-                    {isVoucherListOpen ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    )}
-                  </button>
+                    {t('payment.remove')}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder={t('payment.enterVoucher')}
+                    value={voucherCode}
+                    onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                    className="flex-1 uppercase"
+                  />
+                  <Button onClick={handleApplyVoucher} className="whitespace-nowrap">
+                    {t('payment.apply')}
+                  </Button>
+                </div>
 
-                  {isVoucherListOpen && (
-                    <div className="space-y-2 pt-2">
-                      {availableVouchers.map((voucher) => (
-                        <button
-                          key={voucher.id}
-                          onClick={() => handleSelectVoucherFromList(voucher)}
-                          className="w-full text-left p-3 border border-gray-200 rounded-lg hover:border-blue-600 hover:bg-blue-50 transition-colors"
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <Badge variant="outline">{voucher.code}</Badge>
-                            <span className="text-sm text-gray-900">
-                              -{voucher.type === "FIXED_AMOUNT" 
-                                ? voucher.discount.toLocaleString('vi-VN') + "đ"
-                                : voucher.discount + "%"
-                              }
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-600">{voucher.description}</p>
-                        </button>
-                      ))}
-                    </div>
+                <button
+                  onClick={() => setIsVoucherListOpen(!isVoucherListOpen)}
+                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
+                >
+                  <span>{t('payment.selectFromWallet')}</span>
+                  {isVoucherListOpen ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
                   )}
-                </div>
-              )}
-            </Card>
+                </button>
 
-            {/* Block 2: Payment Methods */}
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <h2 className="text-xl text-gray-900">{t('payment.paymentMethod')}</h2>
-                  <p className="text-sm text-gray-600">{t('payment.selectPaymentMethod2', 'Chọn phương thức thanh toán')}</p>
+                {isVoucherListOpen && (
+                  <div className="space-y-2 pt-2">
+                    {availableVouchers.map((voucher) => (
+                      <button
+                        key={voucher.id}
+                        onClick={() => handleSelectVoucherFromList(voucher)}
+                        className="w-full text-left p-3 border border-gray-200 rounded-lg hover:border-blue-600 hover:bg-blue-50 transition-colors"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <Badge variant="outline">{voucher.code}</Badge>
+                          <span className="text-sm text-gray-900">
+                            -{voucher.type === "FIXED_AMOUNT"
+                              ? voucher.discount.toLocaleString('vi-VN') + "đ"
+                              : voucher.discount + "%"
+                            }
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600">{voucher.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+
+          {/* Block 2: Payment Methods */}
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <CreditCard className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-xl text-gray-900">{t('payment.paymentMethod')}</h2>
+                <p className="text-sm text-gray-600">{t('payment.selectPaymentMethod2', 'Chọn phương thức thanh toán')}</p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {/* Option 1: System Wallet (Checkbox) */}
+              <div className="border rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="use-wallet"
+                    checked={useWallet}
+                    onCheckedChange={(checked) => setUseWallet(checked as boolean)}
+                    className="mt-1"
+                  />
+                  <label htmlFor="use-wallet" className="flex-1 cursor-pointer">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="w-5 h-5 text-blue-600" />
+                        <span className="text-gray-900">{t('payment.useSystemWallet', 'Sử dụng Ví hệ thống')}</span>
+                      </div>
+                      <Badge variant="outline" className="bg-blue-50">
+                        {walletBalance.toLocaleString('vi-VN')}đ
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {walletBalance >= amountAfterVoucher
+                        ? t('payment.sufficientBalance', 'Đủ số dư để thanh toán toàn bộ')
+                        : t('payment.partialPayment', `Thanh toán một phần {{amount}}đ`, { amount: Math.min(walletBalance, amountAfterVoucher).toLocaleString('vi-VN') })
+                      }
+                    </p>
+                  </label>
                 </div>
               </div>
 
-              <div className="space-y-6">
-                {/* Option 1: System Wallet (Checkbox) */}
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      id="use-wallet"
-                      checked={useWallet}
-                      onCheckedChange={(checked) => setUseWallet(checked as boolean)}
-                      className="mt-1"
-                    />
-                    <label htmlFor="use-wallet" className="flex-1 cursor-pointer">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Wallet className="w-5 h-5 text-blue-600" />
-                          <span className="text-gray-900">{t('payment.useSystemWallet', 'Sử dụng Ví hệ thống')}</span>
-                        </div>
-                        <Badge variant="outline" className="bg-blue-50">
-                          {walletBalance.toLocaleString('vi-VN')}đ
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        {walletBalance >= amountAfterVoucher
-                          ? t('payment.sufficientBalance', 'Đủ số dư để thanh toán toàn bộ')
-                          : t('payment.partialPayment', `Thanh toán một phần {{amount}}đ`, {amount: Math.min(walletBalance, amountAfterVoucher).toLocaleString('vi-VN')})
-                        }
-                      </p>
-                    </label>
-                  </div>
-                </div>
+              {/* Option 2: Main Payment Methods (Only show if finalAmount > 0) */}
+              {finalAmount > 0 && (
+                <div>
+                  <Separator className="my-6" />
 
-                {/* Option 2: Main Payment Methods (Only show if finalAmount > 0) */}
-                {finalAmount > 0 && (
-                  <div>
-                    <Separator className="my-6" />
-                    
-                    <RadioGroup value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
-                      <div className="space-y-3">
-                        {/* Saved Payment Methods */}
-                        {savedPaymentMethods.length > 0 && (
-                          <div>
-                            <h3 className="text-sm text-gray-700 mb-3">{t('payment.savedMethods')}</h3>
-                            <div className="space-y-2">
-                              {savedPaymentMethods.map((method) => (
-                                <div
-                                  key={method.id}
-                                  className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                                    selectedPaymentMethod === method.id
-                                      ? "border-blue-600 bg-blue-50"
-                                      : "border-gray-200 hover:border-gray-300"
+                  <RadioGroup value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
+                    <div className="space-y-3">
+                      {/* Saved Payment Methods */}
+                      {savedPaymentMethods.length > 0 && (
+                        <div>
+                          <h3 className="text-sm text-gray-700 mb-3">{t('payment.savedMethods')}</h3>
+                          <div className="space-y-2">
+                            {savedPaymentMethods.map((method) => (
+                              <div
+                                key={method.id}
+                                className={`border rounded-lg p-4 cursor-pointer transition-colors ${selectedPaymentMethod === method.id
+                                    ? "border-blue-600 bg-blue-50"
+                                    : "border-gray-200 hover:border-gray-300"
                                   }`}
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <RadioGroupItem value={method.id} id={method.id} />
-                                    <label htmlFor={method.id} className="flex items-center gap-3 flex-1 cursor-pointer">
-                                      <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                        {method.type === "card" ? (
-                                          <CreditCard className="w-5 h-5 text-white" />
-                                        ) : (
-                                          <Smartphone className="w-5 h-5 text-white" />
-                                        )}
-                                      </div>
-                                      <div>
-                                        <p className="text-gray-900">{method.name}</p>
-                                        {method.lastFour && (
-                                          <p className="text-sm text-gray-600">•••• {method.lastFour}</p>
-                                        )}
-                                      </div>
-                                    </label>
-                                  </div>
+                              >
+                                <div className="flex items-center gap-3">
+                                  <RadioGroupItem value={method.id} id={method.id} />
+                                  <label htmlFor={method.id} className="flex items-center gap-3 flex-1 cursor-pointer">
+                                    <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                      {method.type === "card" ? (
+                                        <CreditCard className="w-5 h-5 text-white" />
+                                      ) : (
+                                        <Smartphone className="w-5 h-5 text-white" />
+                                      )}
+                                    </div>
+                                    <div>
+                                      <p className="text-gray-900">{method.name}</p>
+                                      {method.lastFour && (
+                                        <p className="text-sm text-gray-600">•••• {method.lastFour}</p>
+                                      )}
+                                    </div>
+                                  </label>
                                 </div>
-                              ))}
-                            </div>
+                              </div>
+                            ))}
                           </div>
+                        </div>
+                      )}
+
+                      {/* Add New Card */}
+                      <div>
+                        {savedPaymentMethods.length > 0 && (
+                          <Separator className="my-4" />
                         )}
 
-                        {/* Add New Card */}
-                        <div>
-                          {savedPaymentMethods.length > 0 && (
-                            <Separator className="my-4" />
-                          )}
-                          
-                          <div
-                            className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                              selectedPaymentMethod === "new-card"
-                                ? "border-blue-600 bg-blue-50"
-                                : "border-gray-200 hover:border-gray-300"
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <RadioGroupItem value="new-card" id="new-card" />
-                              <label htmlFor="new-card" className="flex items-center gap-3 flex-1 cursor-pointer">
-                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                                  <CreditCard className="w-5 h-5 text-gray-600" />
-                                </div>
-                                <span className="text-gray-900">{t('payment.addNewCard', 'Thêm Thẻ Tín dụng/Ghi nợ mới')}</span>
-                              </label>
-                            </div>
-                          </div>
-
-                          {selectedPaymentMethod === "new-card" && (
-                            <div className="mt-4 space-y-4 p-4 bg-gray-50 rounded-lg">
-                              <div>
-                                <Label htmlFor="cardNumber">{t('payment.cardNumber')} <span className="text-red-600">*</span></Label>
-                                <Input
-                                  id="cardNumber"
-                                  placeholder="1234 5678 9012 3456"
-                                  value={newCardData.cardNumber}
-                                  onChange={(e) => setNewCardData({ ...newCardData, cardNumber: e.target.value })}
-                                  className="mt-1"
-                                  maxLength={19}
-                                />
-                              </div>
-
-                              <div>
-                                <Label htmlFor="cardName">{t('payment.cardName')} <span className="text-red-600">*</span></Label>
-                                <Input
-                                  id="cardName"
-                                  placeholder="NGUYEN VAN A"
-                                  value={newCardData.cardName}
-                                  onChange={(e) => setNewCardData({ ...newCardData, cardName: e.target.value })}
-                                  className="mt-1 uppercase"
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <Label htmlFor="expiryDate">{t('payment.expiryDate')} <span className="text-red-600">*</span></Label>
-                                  <Input
-                                    id="expiryDate"
-                                    placeholder="MM/YY"
-                                    value={newCardData.expiryDate}
-                                    onChange={(e) => setNewCardData({ ...newCardData, expiryDate: e.target.value })}
-                                    className="mt-1"
-                                    maxLength={5}
-                                  />
-                                </div>
-
-                                <div>
-                                  <Label htmlFor="cvv">{t('payment.cvv')} <span className="text-red-600">*</span></Label>
-                                  <Input
-                                    id="cvv"
-                                    placeholder="123"
-                                    value={newCardData.cvv}
-                                    onChange={(e) => setNewCardData({ ...newCardData, cvv: e.target.value })}
-                                    className="mt-1"
-                                    maxLength={4}
-                                    type="password"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* E-Wallets / QR Code */}
                         <div
-                          className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                            selectedPaymentMethod === "ewallet"
+                          className={`border rounded-lg p-4 cursor-pointer transition-colors ${selectedPaymentMethod === "new-card"
                               ? "border-blue-600 bg-blue-50"
                               : "border-gray-200 hover:border-gray-300"
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-3">
-                            <RadioGroupItem value="ewallet" id="ewallet" />
-                            <label htmlFor="ewallet" className="flex items-center gap-3 flex-1 cursor-pointer">
+                            <RadioGroupItem value="new-card" id="new-card" />
+                            <label htmlFor="new-card" className="flex items-center gap-3 flex-1 cursor-pointer">
                               <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <Smartphone className="w-5 h-5 text-gray-600" />
+                                <CreditCard className="w-5 h-5 text-gray-600" />
                               </div>
-                              <span className="text-gray-900">{t('payment.eWallet', 'Ví điện tử / QR Code')}</span>
+                              <span className="text-gray-900">{t('payment.addNewCard', 'Thêm Thẻ Tín dụng/Ghi nợ mới')}</span>
                             </label>
                           </div>
                         </div>
 
-                        {selectedPaymentMethod === "ewallet" && (
-                          <div className="mt-4 grid grid-cols-3 gap-3">
-                            {["MoMo", "VNPay", "ZaloPay"].map((wallet) => (
-                              <button
-                                key={wallet}
-                                className="p-4 border border-gray-200 rounded-lg hover:border-blue-600 hover:bg-blue-50 transition-colors"
-                              >
-                                <Smartphone className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-                                <p className="text-sm text-center text-gray-900">{wallet}</p>
-                              </button>
-                            ))}
+                        {selectedPaymentMethod === "new-card" && (
+                          <div className="mt-4 space-y-4 p-4 bg-gray-50 rounded-lg">
+                            <div>
+                              <Label htmlFor="cardNumber">{t('payment.cardNumber')} <span className="text-red-600">*</span></Label>
+                              <Input
+                                id="cardNumber"
+                                placeholder="1234 5678 9012 3456"
+                                value={newCardData.cardNumber}
+                                onChange={(e) => setNewCardData({ ...newCardData, cardNumber: e.target.value })}
+                                className="mt-1"
+                                maxLength={19}
+                              />
+                            </div>
+
+                            <div>
+                              <Label htmlFor="cardName">{t('payment.cardName')} <span className="text-red-600">*</span></Label>
+                              <Input
+                                id="cardName"
+                                placeholder="NGUYEN VAN A"
+                                value={newCardData.cardName}
+                                onChange={(e) => setNewCardData({ ...newCardData, cardName: e.target.value })}
+                                className="mt-1 uppercase"
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="expiryDate">{t('payment.expiryDate')} <span className="text-red-600">*</span></Label>
+                                <Input
+                                  id="expiryDate"
+                                  placeholder="MM/YY"
+                                  value={newCardData.expiryDate}
+                                  onChange={(e) => setNewCardData({ ...newCardData, expiryDate: e.target.value })}
+                                  className="mt-1"
+                                  maxLength={5}
+                                />
+                              </div>
+
+                              <div>
+                                <Label htmlFor="cvv">{t('payment.cvv')} <span className="text-red-600">*</span></Label>
+                                <Input
+                                  id="cvv"
+                                  placeholder="123"
+                                  value={newCardData.cvv}
+                                  onChange={(e) => setNewCardData({ ...newCardData, cvv: e.target.value })}
+                                  className="mt-1"
+                                  maxLength={4}
+                                  type="password"
+                                />
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
-                    </RadioGroup>
+
+                      {/* E-Wallets / QR Code */}
+                      <div
+                        className={`border rounded-lg p-4 cursor-pointer transition-colors ${selectedPaymentMethod === "ewallet"
+                            ? "border-blue-600 bg-blue-50"
+                            : "border-gray-200 hover:border-gray-300"
+                          }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <RadioGroupItem value="ewallet" id="ewallet" />
+                          <label htmlFor="ewallet" className="flex items-center gap-3 flex-1 cursor-pointer">
+                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <Smartphone className="w-5 h-5 text-gray-600" />
+                            </div>
+                            <span className="text-gray-900">{t('payment.eWallet', 'Ví điện tử / QR Code')}</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {selectedPaymentMethod === "ewallet" && (
+                        <div className="mt-4 grid grid-cols-3 gap-3">
+                          {["MoMo", "VNPay", "ZaloPay"].map((wallet) => (
+                            <button
+                              key={wallet}
+                              className="p-4 border border-gray-200 rounded-lg hover:border-blue-600 hover:bg-blue-50 transition-colors"
+                            >
+                              <Smartphone className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                              <p className="text-sm text-center text-gray-900">{wallet}</p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </RadioGroup>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Security Notice */}
+          <Card className="p-4 bg-green-50 border-green-200">
+            <div className="flex gap-3">
+              <Shield className="w-5 h-5 text-green-600 shrink-0" />
+              <div className="text-sm text-green-900">
+                <p className="mb-1">
+                  <strong>{t('payment.securePayment')}</strong>
+                </p>
+                <p className="text-green-800">
+                  {t('payment.securePaymentDesc', 'Mọi giao dịch được mã hóa SSL 256-bit và tuân thủ chuẩn PCI DSS. Chúng tôi không lưu trữ thông tin CVV của bạn.')}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Block 3: Action Button */}
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={handlePayment}
+            disabled={finalAmount > 0 && !selectedPaymentMethod}
+          >
+            {finalAmount === 0
+              ? t('payment.confirmBooking')
+              : `${t('payment.pay', 'THANH TOÁN')} ${finalAmount.toLocaleString('vi-VN')}đ`
+            }
+          </Button>
+
+          <p className="text-xs text-center text-gray-500">
+            {t('payment.termsAgreement2', 'Bằng cách tiếp tục, bạn đồng ý với')}{" "}
+            <button className="text-blue-600 hover:underline">{t('payment.termsOfUse', 'Điều khoản Sử dụng')}</button> {t('payment.and', 'và')}{" "}
+            <button className="text-blue-600 hover:underline">{t('payment.privacyPolicy', 'Chính sách Bảo mật')}</button>
+          </p>
+        </div>
+
+        {/* Sidebar - Right Column */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-24">
+            <Card className="p-6">
+              {renderOrderSummary()}
+
+              <Separator className="my-6" />
+
+              {/* Price Details - Dynamic */}
+              <div className="space-y-3">
+                <h3 className="text-gray-900 mb-3">{t('payment.priceDetails', 'Chi tiết Giá')}</h3>
+
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">{t('payment.subtotal')}</span>
+                  <span className="text-gray-900">
+                    {totalAmount.toLocaleString('vi-VN')}đ
+                  </span>
+                </div>
+
+                {appliedVoucher && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">{t('payment.discountVoucher')}</span>
+                    <span className="text-green-600">
+                      -{voucherDiscount.toLocaleString('vi-VN')}đ
+                    </span>
+                  </div>
+                )}
+
+                {useWallet && walletUsed > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">{t('payment.walletUsed')}</span>
+                    <span className="text-green-600">
+                      -{walletUsed.toLocaleString('vi-VN')}đ
+                    </span>
+                  </div>
+                )}
+
+                <Separator />
+
+                <div className="flex justify-between">
+                  <span className="text-gray-900">{t('payment.totalToPay')}</span>
+                  <span className="text-2xl text-blue-600">
+                    {finalAmount.toLocaleString('vi-VN')}đ
+                  </span>
+                </div>
+
+                {finalAmount === 0 && (
+                  <div className="bg-green-50 rounded-lg p-3 mt-4">
+                    <p className="text-sm text-green-900 text-center">
+                      ✅ {t('payment.fullWalletPayment', 'Thanh toán toàn bộ bằng Ví')}
+                    </p>
                   </div>
                 )}
               </div>
             </Card>
-
-            {/* Security Notice */}
-            <Card className="p-4 bg-green-50 border-green-200">
-              <div className="flex gap-3">
-                <Shield className="w-5 h-5 text-green-600 shrink-0" />
-                <div className="text-sm text-green-900">
-                  <p className="mb-1">
-                    <strong>{t('payment.securePayment')}</strong>
-                  </p>
-                  <p className="text-green-800">
-                    {t('payment.securePaymentDesc', 'Mọi giao dịch được mã hóa SSL 256-bit và tuân thủ chuẩn PCI DSS. Chúng tôi không lưu trữ thông tin CVV của bạn.')}
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Block 3: Action Button */}
-            <Button
-              size="lg"
-              className="w-full"
-              onClick={handlePayment}
-              disabled={finalAmount > 0 && !selectedPaymentMethod}
-            >
-              {finalAmount === 0 
-                ? t('payment.confirmBooking')
-                : `${t('payment.pay', 'THANH TOÁN')} ${finalAmount.toLocaleString('vi-VN')}đ`
-              }
-            </Button>
-
-            <p className="text-xs text-center text-gray-500">
-              {t('payment.termsAgreement2', 'Bằng cách tiếp tục, bạn đồng ý với')}{" "}
-              <button className="text-blue-600 hover:underline">{t('payment.termsOfUse', 'Điều khoản Sử dụng')}</button> {t('payment.and', 'và')}{" "}
-              <button className="text-blue-600 hover:underline">{t('payment.privacyPolicy', 'Chính sách Bảo mật')}</button>
-            </p>
-          </div>
-
-          {/* Sidebar - Right Column */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-24">
-              <Card className="p-6">
-                {renderOrderSummary()}
-
-                <Separator className="my-6" />
-
-                {/* Price Details - Dynamic */}
-                <div className="space-y-3">
-                  <h3 className="text-gray-900 mb-3">{t('payment.priceDetails', 'Chi tiết Giá')}</h3>
-                  
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">{t('payment.subtotal')}</span>
-                    <span className="text-gray-900">
-                      {totalAmount.toLocaleString('vi-VN')}đ
-                    </span>
-                  </div>
-
-                  {appliedVoucher && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">{t('payment.discountVoucher')}</span>
-                      <span className="text-green-600">
-                        -{voucherDiscount.toLocaleString('vi-VN')}đ
-                      </span>
-                    </div>
-                  )}
-
-                  {useWallet && walletUsed > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">{t('payment.walletUsed')}</span>
-                      <span className="text-green-600">
-                        -{walletUsed.toLocaleString('vi-VN')}đ
-                      </span>
-                    </div>
-                  )}
-
-                  <Separator />
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-900">{t('payment.totalToPay')}</span>
-                    <span className="text-2xl text-blue-600">
-                      {finalAmount.toLocaleString('vi-VN')}đ
-                    </span>
-                  </div>
-
-                  {finalAmount === 0 && (
-                    <div className="bg-green-50 rounded-lg p-3 mt-4">
-                      <p className="text-sm text-green-900 text-center">
-                        ✅ {t('payment.fullWalletPayment', 'Thanh toán toàn bộ bằng Ví')}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </div>
           </div>
         </div>
       </div>
+    </div>
 
       <Footer onNavigate={onNavigate} />
     </div>
@@ -627,7 +624,7 @@ function FlightSummary({ data }: { data: any }) {
   return (
     <>
       <h2 className="text-xl text-gray-900 mb-6">{t('payment.yourFlight', 'Chuyến bay của bạn')}</h2>
-      
+
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="flex items-center gap-2 mb-3">
           <Plane className="w-4 h-4 text-blue-600" />
@@ -681,7 +678,7 @@ function HotelSummary({ data }: { data: any }) {
   return (
     <>
       <h2 className="text-xl text-gray-900 mb-6">{t('payment.yourBooking', 'Đặt phòng của bạn')}</h2>
-      
+
       <div className="aspect-video rounded-lg overflow-hidden mb-3">
         <ImageWithFallback
           src={hotel.image}
@@ -689,9 +686,9 @@ function HotelSummary({ data }: { data: any }) {
           className="w-full h-full object-cover"
         />
       </div>
-      
+
       <h3 className="text-lg text-gray-900 mb-3">{hotel.name}</h3>
-      
+
       <div className="space-y-2 text-sm">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-gray-600" />
@@ -728,7 +725,7 @@ function CarRentalSummary({ data }: { data: any }) {
   return (
     <>
       <h2 className="text-xl text-gray-900 mb-6">{t('payment.carRentalDetails', 'Chi tiết Thuê xe')}</h2>
-      
+
       <div className="aspect-video rounded-lg overflow-hidden mb-3">
         <ImageWithFallback
           src={car.image}
@@ -736,9 +733,9 @@ function CarRentalSummary({ data }: { data: any }) {
           className="w-full h-full object-cover"
         />
       </div>
-      
+
       <h3 className="text-lg text-gray-900 mb-3">{car.name}</h3>
-      
+
       <div className="space-y-2 text-sm">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-gray-600" />
@@ -759,22 +756,15 @@ function CarRentalSummary({ data }: { data: any }) {
 }
 
 function ActivitySummary({ data }: { data: any }) {
-  const { t } = useTranslation();
-  const activity = data?.activityData?.activity || {
-    name: "Tour 1 ngày Cù Lao Chàm",
-    image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400"
-  };
+  const activity = data?.activityData?.activity;
+  const booking = data?.activityData?.booking;
 
-  const booking = data?.activityData?.booking || {
-    date: "Thứ 7, 8/11/2025",
-    adults: 2,
-    children: 1
-  };
+  if (!activity || !booking) return null;
 
   return (
     <>
       <h2 className="text-xl text-gray-900 mb-6">{t('payment.bookingDetails', 'Chi tiết Đặt chỗ')}</h2>
-      
+
       <div className="aspect-video rounded-lg overflow-hidden mb-3">
         <ImageWithFallback
           src={activity.image}
@@ -782,9 +772,9 @@ function ActivitySummary({ data }: { data: any }) {
           className="w-full h-full object-cover"
         />
       </div>
-      
+
       <h3 className="text-lg text-gray-900 mb-3">{activity.name}</h3>
-      
+
       <div className="space-y-2 text-sm">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-gray-600" />
@@ -794,7 +784,7 @@ function ActivitySummary({ data }: { data: any }) {
         <div className="flex items-center gap-2">
           <Users className="w-4 h-4 text-gray-600" />
           <span className="text-gray-900">
-            {booking.adults} {t('payment.adults', 'Người lớn')}, {booking.children} {t('payment.children', 'Trẻ em')}
+            {booking.participants} Khách
           </span>
         </div>
       </div>

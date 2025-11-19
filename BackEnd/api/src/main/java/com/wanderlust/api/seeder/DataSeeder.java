@@ -29,6 +29,9 @@ public class DataSeeder implements CommandLineRunner {
     private final PromotionRepository promotionRepository;
     private final VisaArticleRepository visaArticleRepository;
     private final FlightRepository flightRepository;
+    private final HotelDataSeeder hotelDataSeeder;
+    private final CarRentalDataSeeder carRentalDataSeeder;
+    private final ActivityDataSeeder activityDataSeeder;
     private final ObjectMapper objectMapper;
 
     public DataSeeder(
@@ -36,11 +39,17 @@ public class DataSeeder implements CommandLineRunner {
             PromotionRepository promotionRepository,
             VisaArticleRepository visaArticleRepository,
             FlightRepository flightRepository,
+            HotelDataSeeder hotelDataSeeder,
+            CarRentalDataSeeder carRentalDataSeeder,
+            ActivityDataSeeder activityDataSeeder,
             ObjectMapper objectMapper) {
         this.travelGuideRepository = travelGuideRepository;
         this.promotionRepository = promotionRepository;
         this.visaArticleRepository = visaArticleRepository;
         this.flightRepository = flightRepository;
+        this.hotelDataSeeder = hotelDataSeeder;
+        this.carRentalDataSeeder = carRentalDataSeeder;
+        this.activityDataSeeder = activityDataSeeder;
         this.objectMapper = objectMapper;
     }
 
@@ -59,6 +68,15 @@ public class DataSeeder implements CommandLineRunner {
         
         // Seed Flights
         seedFlights();
+        
+        // Seed Hotels & Rooms (locations are auto-generated from hotels)
+        hotelDataSeeder.seedHotels();
+        
+        // Seed Car Rentals
+        carRentalDataSeeder.seedCarRentals();
+
+        // Seed Activities
+        activityDataSeeder.seed();
     }
 
     private void seedTravelGuides() {

@@ -180,7 +180,7 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
                   <SelectValue placeholder="Tất cả dịch vụ của bạn" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả dịch vụ của bạn</SelectItem>
+                  <SelectItem value="all">Tất cả dịch vụ của bạn</SelectItem>
                   <SelectItem value="hotels">Chỉ Khách sạn</SelectItem>
                   <SelectItem value="activities">Chỉ Hoạt động vui chơi</SelectItem>
                   <SelectItem value="cars">Chỉ Thuê xe</SelectItem>

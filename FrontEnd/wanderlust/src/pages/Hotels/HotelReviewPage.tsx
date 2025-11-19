@@ -53,16 +53,27 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
     rating: 4.5
   };
 
+  const room = hotelData?.room || {
+    id: "",
+    name: "Superior Twin Room",
+    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
+    size: 28,
+    amenities: []
+  };
+
   const booking = hotelData?.booking || {
     checkIn: "Thứ 6, 7/11/2025",
     checkOut: "Thứ 7, 8/11/2025",
     nights: 1,
     roomType: "Superior Twin Room",
     roomCount: 1,
-    guests: 2
+    guests: 2,
+    option: "Without Breakfast",
+    bedType: "2 giường đơn",
+    breakfast: false
   };
 
-  const pricing = {
+  const pricing = hotelData?.pricing || {
     roomPrice: 1294000,
     taxAndFees: 200000,
     insurance: 43500,
@@ -425,8 +436,8 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
                 <div className="mb-6">
                   <div className="aspect-video rounded-lg overflow-hidden mb-3">
                     <ImageWithFallback
-                      src={hotel.image}
-                      alt={hotel.name}
+                      src={room.image}
+                      alt={room.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -465,7 +476,14 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
                       <p className="text-gray-900">
                         ({booking.roomCount}x) {booking.roomType}
                       </p>
-                      <p className="text-xs text-gray-500">({booking.guests} khách)</p>
+                      <p className="text-xs text-gray-500">
+                        {booking.option && `${booking.option} • `}
+                        {booking.bedType && `${booking.bedType} • `}
+                        {booking.guests} khách
+                      </p>
+                      {booking.breakfast && (
+                        <p className="text-xs text-green-600 mt-1">✓ Bao gồm bữa sáng</p>
+                      )}
                     </div>
                   </div>
                 </div>

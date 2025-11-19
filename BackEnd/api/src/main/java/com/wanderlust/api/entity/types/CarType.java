@@ -4,5 +4,8 @@ public enum CarType {
     SEDAN,
     SUV,
     VAN,
-    LUXURY
+    LUXURY,
+    SPORT,
+    HATCHBACK,
+    ELECTRIC
 }

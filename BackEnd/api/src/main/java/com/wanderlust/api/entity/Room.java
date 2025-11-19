@@ -46,6 +46,7 @@ public class Room {
     private List<String> amenities; 
 
     private BigDecimal basePrice; // Sửa price (Float) -> basePrice (BigDecimal)
+    private BigDecimal originalPrice; // Giá gốc trước khi giảm
     
     private Integer totalRooms;
     private Integer availableRooms;
@@ -54,6 +55,9 @@ public class Room {
     
     private Boolean refundable;
     private Boolean breakfastIncluded;
+    
+    // Room options - different pricing/breakfast combinations
+    private List<RoomOption> options;
     
     private RoomStatusType status; // Sửa status (String) -> RoomStatusType (Enum)
 
@@ -71,5 +75,20 @@ public class Room {
         private String url;
         private String caption;
         private Integer order;
+    }
+    
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class RoomOption {
+        private String id;
+        private String name; // "Without Breakfast", "Breakfast for 2"
+        private String bedType;
+        private Boolean breakfast;
+        private Boolean cancellation;
+        private BigDecimal price;
+        private BigDecimal originalPrice;
+        private Integer roomsLeft;
+        private Integer earnPoints;
     }
 }

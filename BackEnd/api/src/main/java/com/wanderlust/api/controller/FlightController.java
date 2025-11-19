@@ -49,23 +49,6 @@ public class FlightController {
             @RequestParam String from,
             @RequestParam String to,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        
-        List<Flight> flights = flightService.getFlightsByDateRange(from, to, startDate, endDate);
-        return ResponseEntity.ok(flights);
-    }
-
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Flight> createFlight(@RequestBody Flight flight) {
-        Flight createdFlight = flightService.createFlight(flight);
-        return ResponseEntity.ok(createdFlight);
-    }
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteFlight(@PathVariable String id) {
-        flightService.deleteFlight(id);
         return ResponseEntity.noContent().build();
     }
 }

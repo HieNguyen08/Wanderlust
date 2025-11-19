@@ -1,18 +1,4 @@
-import {
-    Ban,
-    Calendar,
-    Edit,
-    Eye,
-    Mail,
-    MoreVertical,
-    Phone,
-    Plus,
-    Search,
-    Trash2
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import type { PageType } from "../../MainApp";
+import React, { useState, useEffect } from "react";
 import { AdminLayout } from "../../components/AdminLayout";
 import { UserDetailDialog } from "../../components/admin/UserDetailDialog";
 import { Badge } from "../../components/ui/badge";
@@ -27,12 +13,15 @@ import {
     DialogTrigger,
 } from "../../components/ui/dialog";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
-import { Input } from "../../components/ui/input";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../../components/ui/alert-dialog";
 import { Label } from "../../components/ui/label";
 import {
     Select,
@@ -49,97 +38,177 @@ import {
     TableHeader,
     TableRow,
 } from "../../components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { adminApi } from "../../utils/api";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import {
+  Search, Plus, MoreVertical, Edit, Trash2, Ban,
+  Mail, Phone, Calendar, Eye
+} from "lucide-react";
+import type { PageType } from "../../MainApp";
+import { UserDetailDialog } from "../../components/admin/UserDetailDialog";
+import { toast } from "sonner";
+import { adminUserApi, AdminUser } from "../../api/adminUserApi";
 
 interface AdminUsersPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: "user" | "admin" | "moderator";
-  status: "active" | "banned" | "suspended";
-  joinDate: string;
-  lastLogin: string;
-  bookings: number;
-  totalSpent: number;
-}
-
 export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // Add User Form
+  const [addFormData, setAddFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    role: "user" as "user" | "admin" | "moderator",
+    password: "",
+  });
+
+  // Edit User Dialog
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    role: "user" as "user" | "admin" | "moderator",
+    status: "active" as "active" | "banned" | "suspended",
+  });
+
+  // Ban Confirmation
+  const [isBanDialogOpen, setIsBanDialogOpen] = useState(false);
+  const [userToBan, setUserToBan] = useState<AdminUser | null>(null);
+
+  // Delete Confirmation
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await adminUserApi.getAllUsers();
+      setUsers(data);
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+      toast.error("Không thể tải danh sách người dùng");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        setLoading(true);
-        const data = await adminApi.getAllUsers();
-        setUsers(data);
-      } catch (error) {
-        console.error('Failed to load users:', error);
-        toast.error('Không thể tải danh sách users');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadUsers();
+    fetchUsers();
   }, []);
 
-  const handleViewDetail = (user: User) => {
+  const handleAddUser = async () => {
+    try {
+      await adminUserApi.createUser({
+        ...addFormData,
+        status: "active"
+      });
+      toast.success(`Đã thêm user: ${addFormData.name}`);
+      setIsAddUserOpen(false);
+      setAddFormData({
+        name: "",
+        email: "",
+        phone: "",
+        role: "user",
+        password: "",
+      });
+      fetchUsers();
+    } catch (error) {
+      console.error("Failed to create user:", error);
+      toast.error("Không thể tạo người dùng");
+    }
+  };
+
+  const handleViewDetail = (user: AdminUser) => {
     setSelectedUser(user);
     setIsDetailOpen(true);
   };
 
-  const handleEdit = (user: User) => {
-    toast.success(`Chỉnh sửa user: ${user.name}`);
-    // TODO: Open edit dialog
+  const handleEdit = (user: AdminUser) => {
+    setEditingUser(user);
+    setEditFormData({
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      status: user.status,
+    });
+    setIsEditDialogOpen(true);
   };
 
-  const handleBan = (user: User) => {
-    toast.error(`Đã chặn user: ${user.name}`);
-    // TODO: Implement ban logic
-  };
-
-  const handleDelete = async (user: User) => {
+  const handleSaveEdit = async () => {
+    if (!editingUser) return;
     try {
-      await adminApi.deleteUser(user.id);
-      toast.success(`Đã xóa user: ${user.name}`);
-      // Reload users
-      const data = await adminApi.getAllUsers();
-      setUsers(data);
+      await adminUserApi.updateUser(editingUser.id, editFormData);
+      toast.success(`Đã cập nhật thông tin user: ${editFormData.name}`);
+      setIsEditDialogOpen(false);
+      setEditingUser(null);
+      fetchUsers();
     } catch (error) {
-      toast.error('Không thể xóa user');
+      console.error("Failed to update user:", error);
+      toast.error("Không thể cập nhật người dùng");
     }
   };
 
-  const filteredUsers = users.filter(user => {
-    // Filter by search query
-    const matchesSearch = searchQuery === "" || 
-      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.phone?.toLowerCase().includes(searchQuery.toLowerCase());
+  const handleBan = (user: AdminUser) => {
+    setUserToBan(user);
+    setIsBanDialogOpen(true);
+  };
 
-    // Filter by active tab
-    const matchesTab = activeTab === "all" || user.role === activeTab;
+  const confirmBan = async () => {
+    if (userToBan) {
+      try {
+        await adminUserApi.banUser(userToBan.id);
+        toast.success(`Đã chặn user: ${userToBan.name}`);
+        setIsBanDialogOpen(false);
+        setUserToBan(null);
+        fetchUsers();
+      } catch (error) {
+        console.error("Failed to ban user:", error);
+        toast.error("Không thể chặn người dùng");
+      }
+    }
+  };
 
-    return matchesSearch && matchesTab;
-  });
+  const handleDelete = (user: AdminUser) => {
+    setUserToDelete(user);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (userToDelete) {
+      try {
+        await adminUserApi.deleteUser(userToDelete.id);
+        toast.success(`Đã xóa user: ${userToDelete.name}`);
+        setIsDeleteDialogOpen(false);
+        setUserToDelete(null);
+        fetchUsers();
+      } catch (error) {
+        console.error("Failed to delete user:", error);
+        toast.error("Không thể xóa người dùng");
+      }
+    }
+  };
 
   const stats = [
-    { label: "Tổng users", value: "2,450", color: "blue" },
-    { label: "Active", value: "2,340", color: "green" },
-    { label: "Suspended", value: "85", color: "yellow" },
-    { label: "Banned", value: "25", color: "red" },
+    { label: "Tổng users", value: users.length.toLocaleString(), color: "blue" },
+    { label: "Active", value: users.filter((u: AdminUser) => u.status === "active").length.toLocaleString(), color: "green" },
+    { label: "Suspended", value: users.filter((u: AdminUser) => u.status === "suspended").length.toLocaleString(), color: "yellow" },
+    { label: "Banned", value: users.filter((u: AdminUser) => u.status === "banned").length.toLocaleString(), color: "red" },
   ];
 
   const getRoleBadge = (role: string) => {
@@ -168,6 +237,13 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
     }
   };
 
+  const filteredUsers = users.filter((user: AdminUser) => {
+    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTab = activeTab === "all" || user.status === activeTab;
+    return matchesSearch && matchesTab;
+  });
+
   return (
     <AdminLayout currentPage="admin-users" onNavigate={onNavigate} activePage="admin-users">
       <div className="space-y-6">
@@ -194,19 +270,41 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
               <div className="space-y-4 py-4">
                 <div>
                   <Label htmlFor="name">Họ và tên</Label>
-                  <Input id="name" placeholder="Nguyễn Văn A" className="mt-1" />
+                  <Input
+                    id="name"
+                    placeholder="Nguyễn Văn A"
+                    className="mt-1"
+                    value={addFormData.name}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddFormData({ ...addFormData, name: e.target.value })}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="email@example.com" className="mt-1" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="email@example.com"
+                    className="mt-1"
+                    value={addFormData.email}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddFormData({ ...addFormData, email: e.target.value })}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="phone">Số điện thoại</Label>
-                  <Input id="phone" placeholder="+84 123 456 789" className="mt-1" />
+                  <Input
+                    id="phone"
+                    placeholder="+84 123 456 789"
+                    className="mt-1"
+                    value={addFormData.phone}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddFormData({ ...addFormData, phone: e.target.value })}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="role">Quyền</Label>
-                  <Select defaultValue="user">
+                  <Select
+                    value={addFormData.role}
+                    onValueChange={(value: string) => setAddFormData({ ...addFormData, role: value })}
+                  >
                     <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
@@ -219,9 +317,16 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                 </div>
                 <div>
                   <Label htmlFor="password">Mật khẩu</Label>
-                  <Input id="password" type="password" placeholder="********" className="mt-1" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="********"
+                    className="mt-1"
+                    value={addFormData.password}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddFormData({ ...addFormData, password: e.target.value })}
+                  />
                 </div>
-                <Button className="w-full">Tạo tài khoản</Button>
+                <Button className="w-full" onClick={handleAddUser}>Tạo tài khoản</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -245,7 +350,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
               <Input
                 placeholder="Tìm kiếm theo tên, email..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
@@ -266,9 +371,9 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
               <TabsTrigger value="all">Tất cả ({users.length})</TabsTrigger>
-              <TabsTrigger value="active">Active ({users.filter(u => u.status === 'active').length})</TabsTrigger>
-              <TabsTrigger value="suspended">Suspended ({users.filter(u => u.status === 'suspended').length})</TabsTrigger>
-              <TabsTrigger value="banned">Banned ({users.filter(u => u.status === 'banned').length})</TabsTrigger>
+              <TabsTrigger value="active">Active ({users.filter((u: AdminUser) => u.status === 'active').length})</TabsTrigger>
+              <TabsTrigger value="suspended">Suspended ({users.filter((u: AdminUser) => u.status === 'suspended').length})</TabsTrigger>
+              <TabsTrigger value="banned">Banned ({users.filter((u: AdminUser) => u.status === 'banned').length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">
@@ -288,89 +393,103 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
-                              {user.name.charAt(0)}
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">{user.name}</p>
-                              <p className="text-sm text-gray-500">{user.id}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Mail className="w-3 h-3" />
-                              {user.email}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Phone className="w-3 h-3" />
-                              {user.phone}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{getRoleBadge(user.role)}</TableCell>
-                        <TableCell>{getStatusBadge(user.status)}</TableCell>
-                        <TableCell className="font-medium">{user.bookings}</TableCell>
-                        <TableCell className="font-medium">
-                          {(user.totalSpent / 1000000).toFixed(1)}M
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Calendar className="w-3 h-3" />
-                            {user.joinDate}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="gap-2"
-                              onClick={() => handleViewDetail(user)}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <MoreVertical className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem 
-                                  className="gap-2"
-                                  onClick={() => handleEdit(user)}
-                                >
-                                  <Edit className="w-4 h-4" />
-                                  Chỉnh sửa
-                                </DropdownMenuItem>
-                                {user.status !== "banned" && (
-                                  <DropdownMenuItem 
-                                    className="gap-2 text-yellow-600"
-                                    onClick={() => handleBan(user)}
-                                  >
-                                    <Ban className="w-4 h-4" />
-                                    Chặn
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem 
-                                  className="gap-2 text-red-600"
-                                  onClick={() => handleDelete(user)}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                  Xóa
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-8">
+                          Đang tải dữ liệu...
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : filteredUsers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-8">
+                          Không tìm thấy user nào
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredUsers.map((user: AdminUser) => (
+                        <TableRow key={user.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
+                                {user.name.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">{user.name}</p>
+                                <p className="text-sm text-gray-500">{user.id}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <Mail className="w-3 h-3" />
+                                {user.email}
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <Phone className="w-3 h-3" />
+                                {user.phone}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{getRoleBadge(user.role)}</TableCell>
+                          <TableCell>{getStatusBadge(user.status)}</TableCell>
+                          <TableCell className="font-medium">{user.bookings}</TableCell>
+                          <TableCell className="font-medium">
+                            {(user.totalSpent / 1000000).toFixed(1)}M
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Calendar className="w-3 h-3" />
+                              {user.joinDate}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                                onClick={() => handleViewDetail(user)}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreVertical className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    className="gap-2"
+                                    onClick={() => handleEdit(user)}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                    Chỉnh sửa
+                                  </DropdownMenuItem>
+                                  {user.status !== "banned" && (
+                                    <DropdownMenuItem
+                                      className="gap-2 text-yellow-600"
+                                      onClick={() => handleBan(user)}
+                                    >
+                                      <Ban className="w-4 h-4" />
+                                      Chặn
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem
+                                    className="gap-2 text-red-600"
+                                    onClick={() => handleDelete(user)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    Xóa
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -388,6 +507,116 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
         onBan={handleBan}
         onDelete={handleDelete}
       />
+
+      {/* Edit User Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Chỉnh sửa User</DialogTitle>
+            <DialogDescription>
+              Cập nhật thông tin người dùng
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="name">Họ và tên</Label>
+              <Input
+                id="name"
+                placeholder="Nguyễn Văn A"
+                className="mt-1"
+                value={editFormData.name}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditFormData({ ...editFormData, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="email@example.com"
+                className="mt-1"
+                value={editFormData.email}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditFormData({ ...editFormData, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone">Số điện thoại</Label>
+              <Input
+                id="phone"
+                placeholder="+84 123 456 789"
+                className="mt-1"
+                value={editFormData.phone}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditFormData({ ...editFormData, phone: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="role">Quyền</Label>
+              <Select
+                value={editFormData.role}
+                onValueChange={(value: string) => setEditFormData({ ...editFormData, role: value })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="moderator">Moderator</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="status">Trạng thái</Label>
+              <Select
+                value={editFormData.status}
+                onValueChange={(value: string) => setEditFormData({ ...editFormData, status: value })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
+                  <SelectItem value="banned">Banned</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button className="w-full" onClick={handleSaveEdit}>Lưu thay đổi</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Ban Confirmation Dialog */}
+      <AlertDialog open={isBanDialogOpen} onOpenChange={setIsBanDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bạn chắc chắn muốn chặn user này?</AlertDialogTitle>
+            <AlertDialogDescription>
+              User này sẽ bị chặn và không thể truy cập vào hệ thống.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmBan}>Chặn</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bạn chắc chắn muốn xóa user này?</AlertDialogTitle>
+            <AlertDialogDescription>
+              User này sẽ bị xóa khỏi hệ thống.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Xóa</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }

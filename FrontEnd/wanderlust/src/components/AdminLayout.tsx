@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { 
-  LayoutDashboard, Users, BookOpen, Hotel, Activity, 
+  LayoutDashboard, Users, BookOpen, Plane, Activity, 
   Star, BarChart3, Settings, LogOut, Menu, X,
   Bell, Search, Home, FileText, DollarSign, Wallet, Gift, ClipboardCheck
 } from "lucide-react";
@@ -15,7 +15,7 @@ interface AdminLayoutProps {
   children: ReactNode;
   currentPage: PageType;
   onNavigate: (page: PageType, data?: any) => void;
-  activePage?: "admin-dashboard" | "admin-users" | "admin-bookings" | "admin-hotels" | "admin-activities" | "admin-reviews" | "admin-reports" | "admin-settings" | "admin-refunds" | "admin-refund-wallet" | "admin-pending-services" | "admin-vouchers";
+  activePage?: "admin-dashboard" | "admin-users" | "admin-bookings" | "admin-flights" | "admin-activities" | "admin-reviews" | "admin-reports" | "admin-settings" | "admin-refunds" | "admin-refund-wallet" | "admin-pending-services" | "admin-vouchers";
 }
 
 export function AdminLayout({ children, currentPage, onNavigate, activePage = "admin-dashboard" }: AdminLayoutProps) {
@@ -44,10 +44,10 @@ export function AdminLayout({ children, currentPage, onNavigate, activePage = "a
       badge: "127",
     },
     {
-      id: "admin-hotels",
-      label: "Quản lý Khách sạn",
-      icon: Hotel,
-      page: "admin-hotels" as PageType,
+      id: "admin-flights",
+      label: "Quản lý Chuyến bay",
+      icon: Plane,
+      page: "admin-flights" as PageType,
       badge: null,
     },
     {

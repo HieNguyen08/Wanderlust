@@ -1,38 +1,35 @@
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
-import { Calendar as CalendarIcon, Check, ChevronDown, Clock, Fuel, Heart, Settings, Shield, Star, Users, Zap } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { Footer } from "../../components/Footer";
+import { Fuel, Users, Settings, Heart, Star, Shield, Clock, Zap, MapPin, Calendar as CalendarIcon, ChevronDown, Check } from "lucide-react";
+import { Button } from "../../components/ui/button";
+import { Header } from "../../components/Header";
 import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import type { PageType } from "../../MainApp";
+import { Footer } from "../../components/Footer";
+import { Card } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Calendar } from "../../components/ui/calendar";
 import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
-import type { PageType } from "../../MainApp";
-import { carRentalApi, locationApi } from "../../utils/api";
+import { Checkbox } from "../../components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
+import { Label } from "../../components/ui/label";
+import { useState, useRef, useEffect } from "react";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import { toast } from "sonner";
+import { locationApi, carRentalApi } from "../../utils/api";
 
 interface CarRentalLandingPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
-// Danh sách thành phố Việt Nam
-const vietnamCities = [
-  { code: "SGN", name: "TP. Hồ Chí Minh", airport: "Sân bay Tân Sơn Nhất" },
-  { code: "HAN", name: "Hà Nội", airport: "Sân bay Nội Bài" },
-  { code: "DAD", name: "Đà Nẵng", airport: "Sân bay Đà Nẵng" },
-  { code: "CXR", name: "Nha Trang", airport: "Sân bay Cam Ranh" },
-  { code: "PQC", name: "Phú Quốc", airport: "Sân bay Phú Quốc" },
-  { code: "HPH", name: "Hải Phòng", airport: "Sân bay Cát Bi" },
-  { code: "VCA", name: "Cần Thơ", airport: "Sân bay Cần Thơ" },
-  { code: "DLI", name: "Đà Lạt", airport: "Sân bay Liên Khương" },
-  { code: "VII", name: "Vinh", airport: "Sân bay Vinh" },
-  { code: "HUI", name: "Huế", airport: "Sân bay Phú Bài" },
-];
+interface LocationItem {
+  code: string;
+  name: string;
+  airport?: string;
+}
 
 // Danh sách giờ
 const timeSlots = [
@@ -45,56 +42,28 @@ const timeSlots = [
 ];
 
 export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPageProps) {
+  // Locations from backend
+  const [locations, setLocations] = useState<LocationItem[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(true);
+
+  // Cars from backend
+  const [popularCars, setPopularCars] = useState<any[]>([]);
+  const [recommendedCars, setRecommendedCars] = useState<any[]>([]);
+  const [loadingCars, setLoadingCars] = useState(true);
+
   // Search form state
-  const [pickupLocation, setPickupLocation] = useState<typeof vietnamCities[0] | null>(null);
+  const [pickupLocation, setPickupLocation] = useState<LocationItem | null>(null);
   const [pickupDate, setPickupDate] = useState<Date>();
   const [pickupTime, setPickupTime] = useState<string>("09:00");
-  const [dropoffLocation, setDropoffLocation] = useState<typeof vietnamCities[0] | null>(null);
+  const [dropoffLocation, setDropoffLocation] = useState<LocationItem | null>(null);
   const [dropoffDate, setDropoffDate] = useState<Date>();
   const [dropoffTime, setDropoffTime] = useState<string>("09:00");
   const [sameLocation, setSameLocation] = useState(true);
+  const [withDriver, setWithDriver] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Backend data state
-  const [popularCars, setPopularCars] = useState<any[]>([]);
-  const [loadingCars, setLoadingCars] = useState(true);
-  const [locations, setLocations] = useState<any[]>([]);
-  const [loadingLocations, setLoadingLocations] = useState(true);
-
-  // Load popular cars from backend
-  useEffect(() => {
-    const loadPopularCars = async () => {
-      try {
-        setLoadingCars(true);
-        const cars = await carRentalApi.getPopular();
-        setPopularCars(cars);
-      } catch (error) {
-        console.error('Failed to load popular cars:', error);
-        toast.error('Không thể tải danh sách xe phổ biến');
-      } finally {
-        setLoadingCars(false);
-      }
-    };
-
-    loadPopularCars();
-  }, []);
-
-  // Load locations from backend
-  useEffect(() => {
-    const loadLocations = async () => {
-      try {
-        setLoadingLocations(true);
-        const locs = await locationApi.getAll({ page: 0, size: 50 });
-        setLocations(locs.content || locs);
-      } catch (error) {
-        console.error('Failed to load locations:', error);
-      } finally {
-        setLoadingLocations(false);
-      }
-    };
-
-    loadLocations();
-  }, []);
+  // Ref for search section
+  const searchSectionRef = useRef<HTMLDivElement>(null);
 
   // Popover states
   const [pickupLocationOpen, setPickupLocationOpen] = useState(false);
@@ -104,16 +73,118 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
   const [dropoffDateOpen, setDropoffDateOpen] = useState(false);
   const [dropoffTimeOpen, setDropoffTimeOpen] = useState(false);
 
+  // Fetch locations from backend
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        setLoadingLocations(true);
+        const response = await locationApi.getAllLocations({ page: 0, size: 100 });
+
+        // Response has .content for paginated data
+        const locationsData = response.content || [];
+
+        // Map backend data to LocationItem format
+        const mappedLocations: LocationItem[] = locationsData.map((loc: any) => ({
+          code: loc.airport_Code || loc.location_ID || "N/A",
+          name: loc.city,
+          airport: loc.airport_Name || `Sân bay ${loc.city}`
+        }));
+
+        // Fallback if no data
+        if (mappedLocations.length === 0) {
+          const fallbackLocations: LocationItem[] = [
+            { code: "SGN", name: "TP. Hồ Chí Minh", airport: "Sân bay Tân Sơn Nhất" },
+            { code: "HAN", name: "Hà Nội", airport: "Sân bay Nội Bài" },
+            { code: "DAD", name: "Đà Nẵng", airport: "Sân bay Đà Nẵng" },
+            { code: "CXR", name: "Nha Trang", airport: "Sân bay Cam Ranh" },
+            { code: "PQC", name: "Phú Quốc", airport: "Sân bay Phú Quốc" },
+          ];
+          setLocations(fallbackLocations);
+        } else {
+          setLocations(mappedLocations);
+        }
+      } catch (error) {
+        console.error("Failed to fetch locations:", error);
+        // Use fallback on error
+        const fallbackLocations: LocationItem[] = [
+          { code: "SGN", name: "TP. Hồ Chí Minh", airport: "Sân bay Tân Sơn Nhất" },
+          { code: "HAN", name: "Hà Nội", airport: "Sân bay Nội Bài" },
+          { code: "DAD", name: "Đà Nẵng", airport: "Sân bay Đà Nẵng" },
+        ];
+        setLocations(fallbackLocations);
+      } finally {
+        setLoadingLocations(false);
+      }
+    };
+
+    fetchLocations();
+  }, []);
+
+  // Fetch cars from backend
+  useEffect(() => {
+    const fetchCars = async () => {
+      try {
+        setLoadingCars(true);
+        // Use getAllCars to ensure consistency across all pages
+        const response = await carRentalApi.getAllCars();
+
+        // Map backend data to frontend format
+        const mappedCars = (Array.isArray(response) ? response : []).map((car: any) => ({
+          id: car.id,
+          name: `${car.brand} ${car.model}`,
+          brand: car.brand,
+          model: car.model,
+          type: car.type || "SUV",
+          image: car.images?.[0]?.url || "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800&h=600&fit=crop",
+          gasoline: car.fuelType || "Gasoline",
+          transmission: car.transmission || "Automatic",
+          capacity: `${car.seats || 5} People`,
+          seats: car.seats,
+          price: car.pricePerDay ? Math.round(car.pricePerDay / 24000) : 0,
+          originalPrice: undefined,
+          liked: false,
+          rating: car.averageRating || (4.5 + Math.random() * 0.5),
+          totalTrips: car.totalTrips || 0,
+        }));
+
+        // Sort by totalTrips descending to get most popular cars
+        const sortedByPopularity = [...mappedCars].sort((a, b) => b.totalTrips - a.totalTrips);
+
+        // Popular: Top 4 most booked cars
+        setPopularCars(sortedByPopularity.slice(0, 4));
+
+        // Recommended: Remaining cars, shuffled for variety
+        const remaining = mappedCars.filter(car =>
+          !sortedByPopularity.slice(0, 4).some(popular => popular.id === car.id)
+        );
+        const shuffled = remaining.sort(() => Math.random() - 0.5);
+        setRecommendedCars(shuffled.slice(0, 8));
+      } catch (error) {
+        console.error("Failed to fetch cars:", error);
+        toast.error("Không thể tải danh sách xe");
+      } finally {
+        setLoadingCars(false);
+      }
+    };
+
+    fetchCars();
+  }, []);
+
+  // Scroll to search section
+  const scrollToSearch = () => {
+    searchSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
   // Handle swap
   const handleSwap = () => {
     const tempLocation = pickupLocation;
     const tempDate = pickupDate;
     const tempTime = pickupTime;
-    
+
     setPickupLocation(dropoffLocation);
     setPickupDate(dropoffDate);
     setPickupTime(dropoffTime);
-    
+
     setDropoffLocation(tempLocation);
     setDropoffDate(tempDate);
     setDropoffTime(tempTime);
@@ -144,7 +215,7 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
     }
 
     setIsSearching(true);
-    
+
     setTimeout(() => {
       setIsSearching(false);
       const searchParams = {
@@ -154,122 +225,25 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
         dropoffLocation: sameLocation ? pickupLocation?.name : dropoffLocation?.name,
         dropoffDate: dropoffDate ? format(dropoffDate, "dd/MM/yyyy", { locale: vi }) : null,
         dropoffTime,
+        withDriver,
       };
       onNavigate("car-list", { searchData: searchParams });
     }, 2000);
   };
 
-  const recommendedCars = [
-    {
-      id: 1,
-      name: "All New Rush",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800&h=600&fit=crop",
-      gasoline: "70L",
-      transmission: "Automatic",
-      capacity: "6 People",
-      price: 1800000,
-      originalPrice: 2000000,
-      liked: false,
-      rating: 4.7,
-    },
-    {
-      id: 2,
-      name: "CR - V",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1706752986827-f784d768d4c3?w=800&h=600&fit=crop",
-      gasoline: "80L",
-      transmission: "Automatic",
-      capacity: "6 People",
-      price: 2000000,
-      liked: true,
-      rating: 4.8,
-    },
-    {
-      id: 3,
-      name: "All New Terios",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800&h=600&fit=crop",
-      gasoline: "90L",
-      transmission: "Manual",
-      capacity: "6 People",
-      price: 1850000,
-      liked: false,
-      rating: 4.6,
-    },
-    {
-      id: 4,
-      name: "CR - V",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1706752986827-f784d768d4c3?w=800&h=600&fit=crop",
-      gasoline: "80L",
-      transmission: "Automatic",
-      capacity: "6 People",
-      price: 2000000,
-      liked: true,
-      rating: 4.8,
-    },
-    {
-      id: 5,
-      name: "MG ZX Exclusice",
-      type: "Hatchback",
-      image: "https://images.unsplash.com/photo-1743809809295-cfd2a2e3d40f?w=800&h=600&fit=crop",
-      gasoline: "70L",
-      transmission: "Manual",
-      capacity: "4 People",
-      price: 1900000,
-      originalPrice: 2000000,
-      liked: false,
-      rating: 4.5,
-    },
-    {
-      id: 6,
-      name: "New MG ZS",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1706752986827-f784d768d4c3?w=800&h=600&fit=crop",
-      gasoline: "80L",
-      transmission: "Automatic",
-      capacity: "6 People",
-      price: 2000000,
-      liked: false,
-      rating: 4.7,
-    },
-    {
-      id: 7,
-      name: "MG ZX Excite",
-      type: "Hatchback",
-      image: "https://images.unsplash.com/photo-1743809809295-cfd2a2e3d40f?w=800&h=600&fit=crop",
-      gasoline: "90L",
-      transmission: "Manual",
-      capacity: "4 People",
-      price: 1850000,
-      liked: true,
-      rating: 4.6,
-    },
-    {
-      id: 8,
-      name: "New MG ZS",
-      type: "SUV",
-      image: "https://images.unsplash.com/photo-1706752986827-f784d768d4c3?w=800&h=600&fit=crop",
-      gasoline: "80L",
-      transmission: "Automatic",
-      capacity: "6 People",
-      price: 2000000,
-      liked: false,
-      rating: 4.7,
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
       {/* Loading Overlay */}
-      <SearchLoadingOverlay 
+      <SearchLoadingOverlay
         isLoading={isSearching}
         searchType="car"
         message="Đang tìm kiếm xe phù hợp..."
       />
 
-      {/* Header */}      {/* Main Content */}
+      {/* Header */}
+      <Header currentPage="car-rental" onNavigate={onNavigate} />
+
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 pt-[calc(60px+2rem)]">
         {/* Hero Banners */}
         <div className="grid md:grid-cols-2 gap-6 mb-12">
@@ -278,7 +252,7 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
             <div className="absolute inset-0 bg-linear-to-tr from-transparent to-white/10" />
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-            
+
             <div className="relative z-10 p-8 flex flex-col justify-between h-[360px]">
               <div>
                 <Badge className="bg-white/20 text-white border-0 mb-4">
@@ -291,8 +265,8 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
                 <p className="text-white/90 text-base max-w-[280px] mb-6">
                   Dễ dàng thuê xe an toàn và đáng tin cậy. Tất nhiên với giá tốt nhất.
                 </p>
-                <Button 
-                  onClick={() => onNavigate("car-list")} 
+                <Button
+                  onClick={scrollToSearch}
                   className="bg-white text-blue-600 hover:bg-white/90 shadow-lg"
                   size="lg"
                 >
@@ -317,7 +291,7 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
             <div className="absolute inset-0 bg-linear-to-tr from-transparent to-white/10" />
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-            
+
             <div className="relative z-10 p-8 flex flex-col justify-between h-[360px]">
               <div>
                 <Badge className="bg-white/20 text-white border-0 mb-4">
@@ -330,8 +304,8 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
                 <p className="text-white/90 text-base max-w-[280px] mb-6">
                   Cung cấp dịch vụ thuê xe giá rẻ và tiện nghi an toàn thoải mái.
                 </p>
-                <Button 
-                  onClick={() => onNavigate("car-list")} 
+                <Button
+                  onClick={scrollToSearch}
                   className="bg-white text-indigo-600 hover:bg-white/90 shadow-lg"
                   size="lg"
                 >
@@ -352,333 +326,356 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
         </div>
 
         {/* Pick-up / Drop-off Section */}
-        <Card className="p-6 mb-12 shadow-lg border-0">
-          <h3 className="text-xl mb-6 text-gray-900">Tìm kiếm xe phù hợp</h3>
-          
-          <div className="grid md:grid-cols-2 gap-6 relative">
-            {/* Pick-up */}
-            <div className="bg-linear-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-white" />
+        <div ref={searchSectionRef}>
+          <Card className="p-6 mb-12 shadow-lg border-0">
+            <h3 className="text-xl mb-6 text-gray-900">Tìm kiếm xe phù hợp</h3>
+
+            {/* Driver Option */}
+            <div className="mb-6 pb-6 border-b">
+              <Label className="mb-3 block">With or without driver?</Label>
+              <RadioGroup value={withDriver ? "with" : "without"} onValueChange={(value) => setWithDriver(value === "with")}>
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="without" id="without-driver" />
+                    <Label htmlFor="without-driver" className="cursor-pointer">Without Driver</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="with" id="with-driver" />
+                    <Label htmlFor="with-driver" className="cursor-pointer">With Driver</Label>
+                  </div>
                 </div>
-                <h4 className="text-gray-900">Pick - Up</h4>
+              </RadioGroup>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6 relative">
+              {/* Pick-up */}
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-white" />
+                  </div>
+                  <h4 className="text-gray-900">Pick - Up</h4>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Pickup Location */}
+                  <div>
+                    <label className="text-sm mb-2 block text-gray-700">Địa điểm</label>
+                    <Popover open={pickupLocationOpen} onOpenChange={setPickupLocationOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={pickupLocationOpen}
+                          className="w-full justify-between bg-white border-blue-200 hover:bg-white hover:border-blue-300"
+                        >
+                          {pickupLocation ? (
+                            <span className="truncate">{pickupLocation.name}</span>
+                          ) : (
+                            <span className="text-gray-500">Chọn thành phố</span>
+                          )}
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[300px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Tìm thành phố..." />
+                          <CommandList>
+                            <CommandEmpty>Không tìm thấy thành phố.</CommandEmpty>
+                            <CommandGroup>
+                              {loadingLocations ? (
+                                <CommandItem disabled>Đang tải...</CommandItem>
+                              ) : (
+                                locations.map((city) => (
+                                  <CommandItem
+                                    key={city.code}
+                                    value={city.name}
+                                    onSelect={() => {
+                                      setPickupLocation(city);
+                                      if (sameLocation) {
+                                        setDropoffLocation(city);
+                                      }
+                                      setPickupLocationOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={`mr-2 h-4 w-4 ${pickupLocation?.code === city.code ? "opacity-100" : "opacity-0"
+                                        }`}
+                                    />
+                                    <div className="flex flex-col">
+                                      <span>{city.name} ({city.code})</span>
+                                      <span className="text-xs text-gray-500">{city.airport}</span>
+                                    </div>
+                                  </CommandItem>
+                                ))
+                              )}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Pickup Date */}
+                  <div>
+                    <label className="text-sm mb-2 block text-gray-700">Ngày</label>
+                    <Popover open={pickupDateOpen} onOpenChange={setPickupDateOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left bg-white border-blue-200 hover:bg-white hover:border-blue-300"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {pickupDate ? (
+                            format(pickupDate, "dd/MM/yyyy", { locale: vi })
+                          ) : (
+                            <span className="text-gray-500">Chọn ngày</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={pickupDate}
+                          onSelect={(date) => {
+                            setPickupDate(date);
+                            setPickupDateOpen(false);
+                          }}
+                          disabled={(date) => date < new Date()}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Pickup Time */}
+                  <div>
+                    <label className="text-sm mb-2 block text-gray-700">Giờ</label>
+                    <Popover open={pickupTimeOpen} onOpenChange={setPickupTimeOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between bg-white border-blue-200 hover:bg-white hover:border-blue-300"
+                        >
+                          <span>{pickupTime}</span>
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Tìm giờ..." />
+                          <CommandList>
+                            <CommandEmpty>Không tìm thấy.</CommandEmpty>
+                            <CommandGroup>
+                              {timeSlots.map((time) => (
+                                <CommandItem
+                                  key={time}
+                                  value={time}
+                                  onSelect={() => {
+                                    setPickupTime(time);
+                                    setPickupTimeOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${pickupTime === time ? "opacity-100" : "opacity-0"
+                                      }`}
+                                  />
+                                  {time}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+
+                {/* Same Location Checkbox */}
+                <div className="flex items-center gap-2 mt-4">
+                  <Checkbox
+                    id="same-location"
+                    checked={sameLocation}
+                    onCheckedChange={(checked) => {
+                      setSameLocation(checked as boolean);
+                      if (checked && pickupLocation) {
+                        setDropoffLocation(pickupLocation);
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor="same-location"
+                    className="text-sm text-gray-700 cursor-pointer select-none"
+                  >
+                    Trả xe tại cùng địa điểm
+                  </label>
+                </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                {/* Pickup Location */}
-                <div>
-                  <label className="text-sm mb-2 block text-gray-700">Địa điểm</label>
-                  <Popover open={pickupLocationOpen} onOpenChange={setPickupLocationOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={pickupLocationOpen}
-                        className="w-full justify-between bg-white border-blue-200 hover:bg-white hover:border-blue-300"
-                      >
-                        {pickupLocation ? (
-                          <span className="truncate">{pickupLocation.name}</span>
-                        ) : (
-                          <span className="text-gray-500">Chọn thành phố</span>
-                        )}
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Tìm thành phố..." />
-                        <CommandList>
-                          <CommandEmpty>Không tìm thấy thành phố.</CommandEmpty>
-                          <CommandGroup>
-                            {vietnamCities.map((city) => (
-                              <CommandItem
-                                key={city.code}
-                                value={city.name}
-                                onSelect={() => {
-                                  setPickupLocation(city);
-                                  if (sameLocation) {
-                                    setDropoffLocation(city);
-                                  }
-                                  setPickupLocationOpen(false);
-                                }}
-                              >
-                                <Check
-                                  className={`mr-2 h-4 w-4 ${
-                                    pickupLocation?.code === city.code ? "opacity-100" : "opacity-0"
-                                  }`}
-                                />
-                                <div className="flex flex-col">
-                                  <span>{city.name} ({city.code})</span>
-                                  <span className="text-xs text-gray-500">{city.airport}</span>
-                                </div>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                
-                {/* Pickup Date */}
-                <div>
-                  <label className="text-sm mb-2 block text-gray-700">Ngày</label>
-                  <Popover open={pickupDateOpen} onOpenChange={setPickupDateOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left bg-white border-blue-200 hover:bg-white hover:border-blue-300"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {pickupDate ? (
-                          format(pickupDate, "dd/MM/yyyy", { locale: vi })
-                        ) : (
-                          <span className="text-gray-500">Chọn ngày</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={pickupDate}
-                        onSelect={(date) => {
-                          setPickupDate(date);
-                          setPickupDateOpen(false);
-                        }}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                
-                {/* Pickup Time */}
-                <div>
-                  <label className="text-sm mb-2 block text-gray-700">Giờ</label>
-                  <Popover open={pickupTimeOpen} onOpenChange={setPickupTimeOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between bg-white border-blue-200 hover:bg-white hover:border-blue-300"
-                      >
-                        <span>{pickupTime}</span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0" align="start">
-                      <Command>
-                        <CommandInput placeholder="Tìm giờ..." />
-                        <CommandList>
-                          <CommandEmpty>Không tìm thấy.</CommandEmpty>
-                          <CommandGroup>
-                            {timeSlots.map((time) => (
-                              <CommandItem
-                                key={time}
-                                value={time}
-                                onSelect={() => {
-                                  setPickupTime(time);
-                                  setPickupTimeOpen(false);
-                                }}
-                              >
-                                <Check
-                                  className={`mr-2 h-4 w-4 ${
-                                    pickupTime === time ? "opacity-100" : "opacity-0"
-                                  }`}
-                                />
-                                {time}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-              
-              {/* Same Location Checkbox */}
-              <div className="flex items-center gap-2 mt-4">
-                <Checkbox 
-                  id="same-location" 
-                  checked={sameLocation}
-                  onCheckedChange={(checked) => {
-                    setSameLocation(checked as boolean);
-                    if (checked && pickupLocation) {
-                      setDropoffLocation(pickupLocation);
-                    }
-                  }}
-                />
-                <label 
-                  htmlFor="same-location" 
-                  className="text-sm text-gray-700 cursor-pointer select-none"
+
+              {/* Swap Button */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:block">
+                <button
+                  onClick={handleSwap}
+                  className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110 active:scale-95"
                 >
-                  Trả xe tại cùng địa điểm
-                </label>
+                  <svg className="w-6 h-6 text-white rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Drop-off */}
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-white" />
+                  </div>
+                  <h4 className="text-gray-900">Drop - Off</h4>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Dropoff Location */}
+                  <div>
+                    <label className="text-sm mb-2 block text-gray-700">Địa điểm</label>
+                    <Popover open={dropoffLocationOpen} onOpenChange={setDropoffLocationOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={dropoffLocationOpen}
+                          disabled={sameLocation}
+                          className="w-full justify-between bg-white border-purple-200 hover:bg-white hover:border-purple-300 disabled:opacity-50"
+                        >
+                          {dropoffLocation ? (
+                            <span className="truncate">{dropoffLocation.name}</span>
+                          ) : (
+                            <span className="text-gray-500">Chọn thành phố</span>
+                          )}
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[300px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Tìm thành phố..." />
+                          <CommandList>
+                            <CommandEmpty>Không tìm thấy thành phố.</CommandEmpty>
+                            <CommandGroup>
+                              {loadingLocations ? (
+                                <CommandItem disabled>Đang tải...</CommandItem>
+                              ) : (
+                                locations.map((city) => (
+                                  <CommandItem
+                                    key={city.code}
+                                    value={city.name}
+                                    onSelect={() => {
+                                      setDropoffLocation(city);
+                                      setDropoffLocationOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={`mr-2 h-4 w-4 ${dropoffLocation?.code === city.code ? "opacity-100" : "opacity-0"
+                                        }`}
+                                    />
+                                    <div className="flex flex-col">
+                                      <span>{city.name} ({city.code})</span>
+                                      <span className="text-xs text-gray-500">{city.airport}</span>
+                                    </div>
+                                  </CommandItem>
+                                ))
+                              )}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Dropoff Date */}
+                  <div>
+                    <label className="text-sm mb-2 block text-gray-700">Ngày</label>
+                    <Popover open={dropoffDateOpen} onOpenChange={setDropoffDateOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left bg-white border-purple-200 hover:bg-white hover:border-purple-300"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dropoffDate ? (
+                            format(dropoffDate, "dd/MM/yyyy", { locale: vi })
+                          ) : (
+                            <span className="text-gray-500">Chọn ngày</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={dropoffDate}
+                          onSelect={(date) => {
+                            setDropoffDate(date);
+                            setDropoffDateOpen(false);
+                          }}
+                          disabled={(date) => date < (pickupDate || new Date())}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Dropoff Time */}
+                  <div>
+                    <label className="text-sm mb-2 block text-gray-700">Giờ</label>
+                    <Popover open={dropoffTimeOpen} onOpenChange={setDropoffTimeOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between bg-white border-purple-200 hover:bg-white hover:border-purple-300"
+                        >
+                          <span>{dropoffTime}</span>
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Tìm giờ..." />
+                          <CommandList>
+                            <CommandEmpty>Không tìm thấy.</CommandEmpty>
+                            <CommandGroup>
+                              {timeSlots.map((time) => (
+                                <CommandItem
+                                  key={time}
+                                  value={time}
+                                  onSelect={() => {
+                                    setDropoffTime(time);
+                                    setDropoffTimeOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${dropoffTime === time ? "opacity-100" : "opacity-0"
+                                      }`}
+                                  />
+                                  {time}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Swap Button */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:block">
-              <button 
-                onClick={handleSwap}
-                className="w-14 h-14 bg-linear-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110 active:scale-95"
+            <div className="mt-6 flex justify-center">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                onClick={handleSearch}
               >
-                <svg className="w-6 h-6 text-white rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                </svg>
-              </button>
+                Tìm kiếm xe
+              </Button>
             </div>
-
-            {/* Drop-off */}
-            <div className="bg-linear-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-white" />
-                </div>
-                <h4 className="text-gray-900">Drop - Off</h4>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                {/* Dropoff Location */}
-                <div>
-                  <label className="text-sm mb-2 block text-gray-700">Địa điểm</label>
-                  <Popover open={dropoffLocationOpen} onOpenChange={setDropoffLocationOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={dropoffLocationOpen}
-                        disabled={sameLocation}
-                        className="w-full justify-between bg-white border-purple-200 hover:bg-white hover:border-purple-300 disabled:opacity-50"
-                      >
-                        {dropoffLocation ? (
-                          <span className="truncate">{dropoffLocation.name}</span>
-                        ) : (
-                          <span className="text-gray-500">Chọn thành phố</span>
-                        )}
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Tìm thành phố..." />
-                        <CommandList>
-                          <CommandEmpty>Không tìm thấy thành phố.</CommandEmpty>
-                          <CommandGroup>
-                            {vietnamCities.map((city) => (
-                              <CommandItem
-                                key={city.code}
-                                value={city.name}
-                                onSelect={() => {
-                                  setDropoffLocation(city);
-                                  setDropoffLocationOpen(false);
-                                }}
-                              >
-                                <Check
-                                  className={`mr-2 h-4 w-4 ${
-                                    dropoffLocation?.code === city.code ? "opacity-100" : "opacity-0"
-                                  }`}
-                                />
-                                <div className="flex flex-col">
-                                  <span>{city.name} ({city.code})</span>
-                                  <span className="text-xs text-gray-500">{city.airport}</span>
-                                </div>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                
-                {/* Dropoff Date */}
-                <div>
-                  <label className="text-sm mb-2 block text-gray-700">Ngày</label>
-                  <Popover open={dropoffDateOpen} onOpenChange={setDropoffDateOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left bg-white border-purple-200 hover:bg-white hover:border-purple-300"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dropoffDate ? (
-                          format(dropoffDate, "dd/MM/yyyy", { locale: vi })
-                        ) : (
-                          <span className="text-gray-500">Chọn ngày</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={dropoffDate}
-                        onSelect={(date) => {
-                          setDropoffDate(date);
-                          setDropoffDateOpen(false);
-                        }}
-                        disabled={(date) => date < (pickupDate || new Date())}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                
-                {/* Dropoff Time */}
-                <div>
-                  <label className="text-sm mb-2 block text-gray-700">Giờ</label>
-                  <Popover open={dropoffTimeOpen} onOpenChange={setDropoffTimeOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between bg-white border-purple-200 hover:bg-white hover:border-purple-300"
-                      >
-                        <span>{dropoffTime}</span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0" align="start">
-                      <Command>
-                        <CommandInput placeholder="Tìm giờ..." />
-                        <CommandList>
-                          <CommandEmpty>Không tìm thấy.</CommandEmpty>
-                          <CommandGroup>
-                            {timeSlots.map((time) => (
-                              <CommandItem
-                                key={time}
-                                value={time}
-                                onSelect={() => {
-                                  setDropoffTime(time);
-                                  setDropoffTimeOpen(false);
-                                }}
-                              >
-                                <Check
-                                  className={`mr-2 h-4 w-4 ${
-                                    dropoffTime === time ? "opacity-100" : "opacity-0"
-                                  }`}
-                                />
-                                {time}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 flex justify-center">
-            <Button 
-              size="lg"
-              className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-              onClick={handleSearch}
-            >
-              Tìm kiếm xe
-            </Button>
-          </div>
-        </Card>
+          </Card>
+        </div>
 
         {/* Popular Cars */}
         <section className="mb-12">
@@ -713,8 +710,8 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
 
         {/* Show More */}
         <div className="flex flex-col items-center gap-4">
-          <Button 
-            onClick={() => onNavigate("car-list")} 
+          <Button
+            onClick={scrollToSearch}
             size="lg"
             className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
           >
@@ -734,8 +731,8 @@ function CarCard({ car, onNavigate }: { car: any; onNavigate: (page: PageType, d
   const [isLiked, setIsLiked] = useState(car.liked);
 
   return (
-    <Card 
-      onClick={() => onNavigate("car-detail", car)} 
+    <Card
+      onClick={() => onNavigate("car-detail", car)}
       className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 bg-white"
     >
       <div className="p-6">
@@ -744,19 +741,18 @@ function CarCard({ car, onNavigate }: { car: any; onNavigate: (page: PageType, d
             <h3 className="text-lg text-gray-900 group-hover:text-blue-600 transition-colors">{car.name}</h3>
             <p className="text-sm text-gray-500">{car.type}</p>
           </div>
-          <button 
-            onClick={(e) => { 
-              e.stopPropagation(); 
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
               setIsLiked(!isLiked);
-            }} 
+            }}
             className="transition-transform hover:scale-110 active:scale-95"
           >
-            <Heart 
-              className={`w-6 h-6 transition-all duration-300 ${
-                isLiked 
-                  ? 'fill-red-500 text-red-500 scale-110' 
+            <Heart
+              className={`w-6 h-6 transition-all duration-300 ${isLiked
+                  ? 'fill-red-500 text-red-500 scale-110'
                   : 'text-gray-300 hover:text-red-500'
-              }`} 
+                }`}
             />
           </button>
         </div>
@@ -795,22 +791,22 @@ function CarCard({ car, onNavigate }: { car: any; onNavigate: (page: PageType, d
         <div className="flex items-center justify-between pt-4 border-t">
           <div>
             <div className="flex items-baseline gap-1">
-              <span className="text-xl text-blue-600">{(car.price / 1000).toLocaleString('vi-VN')}k</span>
-              <span className="text-sm text-gray-500">/ngày</span>
+              <span className="text-xl text-blue-600">{Math.round(car.price / 24000).toLocaleString('vi-VN')}</span>
+              <span className="text-sm text-gray-500">$/ngày</span>
             </div>
             {car.originalPrice && (
-              <p className="text-sm text-gray-400 line-through">{(car.originalPrice / 1000).toLocaleString('vi-VN')}k</p>
+              <p className="text-sm text-gray-400 line-through">${Math.round(car.originalPrice / 24000).toLocaleString('vi-VN')}</p>
             )}
           </div>
-          <Button 
-            onClick={(e) => { 
-              e.stopPropagation(); 
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
               onNavigate("car-review", {
                 car: { id: car.id, name: car.name, type: car.type, image: car.image, transmission: car.transmission, capacity: car.capacity },
                 rental: { pickupDate: "Thứ 7, 8/11/2025", pickupTime: "09:00", dropoffDate: "Thứ 2, 10/11/2025", dropoffTime: "09:00", pickupLocation: "TP. Hồ Chí Minh", dropoffLocation: "TP. Hồ Chí Minh", days: 2 },
                 pricing: { carPrice: car.price * 2, fees: 0, deposit: car.price * 1.5 }
               });
-            }} 
+            }}
             size="sm"
             className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
           >

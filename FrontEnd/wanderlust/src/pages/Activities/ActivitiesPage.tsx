@@ -1,11 +1,16 @@
-import { Calendar, MapPin, Search, Star } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner@2.0.3";
+import { useState, useEffect } from "react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { Footer } from "../../components/Footer";
+import { Search, MapPin, Calendar, Users, Star, ChevronDown } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import type { PageType } from "../../MainApp";
+import { Footer } from "../../components/Footer";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
+import { Calendar as CalendarComponent } from "../../components/ui/calendar";
+import { Header } from "../../components/Header";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 import { activityApi } from "../../utils/api";
+
 // Activity Category Icons (using Lucide icons instead of imported images)
 const categories = [
   { id: "all", name: "Tất cả hoạt động", icon: "grid" },
@@ -30,192 +35,119 @@ interface Activity {
   description: string;
 }
 
-const mockActivities: Activity[] = [
-  {
-    id: "act-1",
-    name: "Vé VinWonders Nha Trang",
-    image: "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&h=600&fit=crop",
-    price: 550000,
-    originalPrice: 650000,
-    category: "attractions",
-    rating: 4.8,
-    reviews: 2345,
-    location: "Nha Trang",
-    duration: "Cả ngày",
-    description: "Công viên giải trí hàng đầu tại Nha Trang với nhiều trò chơi hấp dẫn",
-  },
-  {
-    id: "act-2",
-    name: "Vé Công viên nước The Amazing Bay",
-    image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
-    price: 465000,
-    category: "attractions",
-    rating: 4.7,
-    reviews: 1876,
-    location: "Nha Trang",
-    duration: "Cả ngày",
-    description: "Công viên nước hiện đại với nhiều hoạt động thú vị",
-  },
-  {
-    id: "act-3",
-    name: "Sun World Ba Na Hills tại Đà Nẵng",
-    image: "https://images.unsplash.com/photo-1609137144813-7d9921338f24?w=800&h=600&fit=crop",
-    price: 550000,
-    originalPrice: 700000,
-    category: "attractions",
-    rating: 4.9,
-    reviews: 5432,
-    location: "Đà Nẵng",
-    duration: "Cả ngày",
-    description: "Khu du lịch nổi tiếng với cầu Vàng và phong cảnh tuyệt đẹp",
-  },
-  {
-    id: "act-4",
-    name: "Tour Thái Lan trọn gói (Bangkok, Pattaya)",
-    image: "https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&h=600&fit=crop",
-    price: 6690000,
-    category: "tours",
-    rating: 4.6,
-    reviews: 987,
-    location: "Thái Lan",
-    duration: "4 ngày 3 đêm",
-    description: "Tour trọn gói khám phá Bangkok và Pattaya",
-  },
-  {
-    id: "act-5",
-    name: "Địa đạo Củ Chi - Tour nửa ngày",
-    image: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800&h=600&fit=crop",
-    price: 405000,
-    category: "tours",
-    rating: 4.5,
-    reviews: 2134,
-    location: "TP. Hồ Chí Minh",
-    duration: "Nửa ngày",
-    description: "Khám phá lịch sử tại địa đạo Củ Chi",
-  },
-  {
-    id: "act-6",
-    name: "Dịch vụ massage & spa tại I-Resort",
-    image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&h=600&fit=crop",
-    price: 450000,
-    originalPrice: 600000,
-    category: "spa",
-    rating: 4.8,
-    reviews: 1456,
-    location: "Nha Trang",
-    duration: "2-3 giờ",
-    description: "Thư giãn với dịch vụ spa cao cấp và tắm bùn khoáng",
-  },
-  {
-    id: "act-7",
-    name: "Ăn tối trên sông Sài Gòn",
-    image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop",
-    price: 850000,
-    category: "food",
-    rating: 4.7,
-    reviews: 876,
-    location: "TP. Hồ Chí Minh",
-    duration: "2-3 giờ",
-    description: "Thưởng thức bữa tối lãng mạn trên du thuyền sông Sài Gòn",
-  },
-  {
-    id: "act-8",
-    name: "Vé show Ký ức Hội An",
-    image: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&h=600&fit=crop",
-    price: 400000,
-    category: "music",
-    rating: 4.9,
-    reviews: 3421,
-    location: "Hội An",
-    duration: "1 giờ 15 phút",
-    description: "Trải nghiệm show diễn nghệ thuật đặc sắc về văn hóa Hội An",
-  },
-  {
-    id: "act-9",
-    name: "Hong Kong Disneyland",
-    image: "https://images.unsplash.com/photo-1512081720881-7d1f6d6e5e2e?w=800&h=600&fit=crop",
-    price: 1200000,
-    category: "attractions",
-    rating: 4.8,
-    reviews: 4567,
-    location: "Hong Kong",
-    duration: "Cả ngày",
-    description: "Công viên giải trí nổi tiếng thế giới",
-  },
-  {
-    id: "act-10",
-    name: "Tour Singapore và Malaysia",
-    image: "https://images.unsplash.com/photo-1565967511849-76a60a516170?w=800&h=600&fit=crop",
-    price: 8390000,
-    category: "tours",
-    rating: 4.7,
-    reviews: 654,
-    location: "Singapore & Malaysia",
-    duration: "5 ngày 4 đêm",
-    description: "Khám phá 2 quốc gia Đông Nam Á",
-  },
-  {
-    id: "act-11",
-    name: "Buffet hải sản tại Nha Trang",
-    image: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&h=600&fit=crop",
-    price: 550000,
-    category: "food",
-    rating: 4.6,
-    reviews: 1234,
-    location: "Nha Trang",
-    duration: "2 giờ",
-    description: "Thưởng thức hải sản tươi ngon",
-  },
-  {
-    id: "act-12",
-    name: "Spa thư giãn tại Đà Nẵng",
-    image: "https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=800&h=600&fit=crop",
-    price: 380000,
-    category: "spa",
-    rating: 4.7,
-    reviews: 987,
-    location: "Đà Nẵng",
-    duration: "90 phút",
-    description: "Dịch vụ massage chuyên nghiệp",
-  },
-];
-
 interface ActivitiesPageProps {
   onNavigate: (page: PageType, data?: any) => void;
   initialCategory?: string;
 }
 
-export default function ActivitiesPage({ onNavigate, initialCategory }: ActivitiesPageProps) {
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory || "all");
+export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: ActivitiesPageProps) {
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState("");
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load activities from backend
+  // Advanced Search States
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
+  const [openLocation, setOpenLocation] = useState(false);
+  const [openDate, setOpenDate] = useState(false);
+  const [openGuests, setOpenGuests] = useState(false);
+
+  // Advanced Filters States (kept for future use or if UI elements are re-added)
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000]);
+  const [minRating, setMinRating] = useState(0);
+  const [sortBy, setSortBy] = useState("recommended");
+
+  // Popular destinations
+  const destinations = [
+    { code: "NT", name: "Nha Trang", count: 245 },
+    { code: "DN", name: "Đà Nẵng", count: 189 },
+    { code: "HCM", name: "TP. Hồ Chí Minh", count: 312 },
+    { code: "HA", name: "Hội An", count: 156 },
+    { code: "PQ", name: "Phú Quốc", count: 178 },
+    { code: "HN", name: "Hà Nội", count: 234 },
+    { code: "DL", name: "Đà Lạt", count: 167 },
+    { code: "VT", name: "Vũng Tàu", count: 98 },
+  ];
+
+  const totalGuests = adults + children;
+
   useEffect(() => {
-    const loadActivities = async () => {
+    const fetchActivities = async () => {
       try {
         setLoading(true);
-        const data = await activityApi.search({
-          category: selectedCategory !== "all" ? selectedCategory.toUpperCase() : undefined,
-        });
-        setActivities(data);
-      } catch (error: any) {
-        console.error('Failed to load activities:', error);
-        toast.error('Không thể tải danh sách hoạt động');
-        setActivities([]);
+        const data = await activityApi.getAllActivities();
+
+        // Map backend data to frontend format
+        const mapCategory = (backendCategory: string) => {
+          const cat = backendCategory?.toUpperCase();
+          switch (cat) {
+            case 'ATTRACTION': return 'attractions';
+            case 'TOUR': return 'tours';
+            case 'FOOD': return 'food';
+            case 'RELAXATION': return 'spa';
+            case 'ENTERTAINMENT': return 'music';
+            case 'ADVENTURE': return 'tours';
+            case 'CULTURE': return 'attractions';
+            default: return 'other';
+          }
+        };
+
+        const mappedActivities = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          image: item.images?.[0]?.url || "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&h=600&fit=crop",
+          price: item.price,
+          originalPrice: item.originalPrice,
+          category: mapCategory(item.category),
+          rating: item.averageRating || 0,
+          reviews: item.totalReviews || 0,
+          location: item.meetingPoint || "Vietnam", // Use meeting point as location for now
+          duration: item.duration,
+          description: item.description
+        }));
+
+        setActivities(mappedActivities);
+      } catch (err) {
+        console.error("Error fetching activities:", err);
+        setError("Failed to load activities");
       } finally {
         setLoading(false);
       }
     };
 
-    loadActivities();
-  }, [selectedCategory]);
+    fetchActivities();
+  }, []);
 
+  // Filter logic
   const filteredActivities = activities.filter((activity) => {
+    const matchesCategory = selectedCategory === "all" || activity.category === selectedCategory;
     const matchesSearch = activity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         activity.location.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+      activity.location.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesLocation = !selectedLocation || activity.location.toLowerCase().includes(selectedLocation.toLowerCase());
+    const matchesPriceRange = activity.price >= priceRange[0] && activity.price <= priceRange[1];
+    const matchesRating = activity.rating >= minRating;
+
+    return matchesCategory && matchesSearch && matchesLocation && matchesPriceRange && matchesRating;
+  });
+
+  // Sort activities
+  const sortedActivities = [...filteredActivities].sort((a, b) => {
+    switch (sortBy) {
+      case "price-low":
+        return a.price - b.price;
+      case "price-high":
+        return b.price - a.price;
+      case "rating":
+        return b.rating - a.rating;
+      case "reviews":
+        return b.reviews - a.reviews;
+      default:
+        return 0; // recommended
+    }
   });
 
   const handleActivityClick = (activity: Activity) => {
@@ -224,16 +156,19 @@ export default function ActivitiesPage({ onNavigate, initialCategory }: Activiti
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}      {/* Hero Section */}
-      <div className="relative w-full bg-linear-to-r from-blue-600 to-blue-700 pb-8">
-        <div 
+      {/* Header */}
+      <Header currentPage="activities" onNavigate={onNavigate} />
+
+      {/* Hero Section */}
+      <div className="relative w-full bg-gradient-to-r from-blue-600 to-blue-700 pb-8">
+        <div
           className="absolute inset-0 bg-cover bg-center opacity-30"
           style={{
             backgroundImage: 'url(https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1920&h=800&fit=crop)'
           }}
         />
         <div className="absolute inset-0 bg-black/40" />
-        
+
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8">
           {/* Hero Title */}
           <div className="pt-12 md:pt-20 max-w-4xl">
@@ -243,21 +178,176 @@ export default function ActivitiesPage({ onNavigate, initialCategory }: Activiti
           </div>
         </div>
 
-        {/* Search Bar */}
+        {/* Advanced Search Bar */}
         <div className="relative z-20 max-w-6xl mx-auto px-4 mt-8">
-          <div className="bg-white rounded-xl p-4 shadow-2xl">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 flex items-center gap-3 border border-gray-300 rounded-lg px-4 py-3">
-                <Search className="w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Tìm hoạt động, địa điểm..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 outline-none"
-                />
-              </div>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8">
+          <div className="bg-white rounded-xl p-6 shadow-2xl">
+            {/* Main Search Row */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+              {/* Location */}
+              <Popover open={openLocation} onOpenChange={setOpenLocation}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left border-2 border-gray-300 hover:border-blue-500 h-14"
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-500">Địa điểm</p>
+                        <p className="text-sm font-medium truncate">
+                          {selectedLocation || "Chọn địa điểm"}
+                        </p>
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    </div>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="start">
+                  <div className="p-4">
+                    <h4 className="font-medium mb-3">Điểm đến phổ biến</h4>
+                    <div className="space-y-1">
+                      {destinations.map((dest) => (
+                        <button
+                          key={dest.code}
+                          onClick={() => {
+                            setSelectedLocation(dest.name);
+                            setOpenLocation(false);
+                          }}
+                          className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 transition-colors text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <MapPin className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm">{dest.name}</span>
+                          </div>
+                          <span className="text-xs text-gray-500">{dest.count} hoạt động</span>
+                        </button>
+                      ))}
+                    </div>
+                    {selectedLocation && (
+                      <Button
+                        variant="ghost"
+                        className="w-full mt-3"
+                        onClick={() => {
+                          setSelectedLocation("");
+                          setOpenLocation(false);
+                        }}
+                      >
+                        Xóa bộ lọc
+                      </Button>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Date */}
+              <Popover open={openDate} onOpenChange={setOpenDate}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left border-2 border-gray-300 hover:border-blue-500 h-14"
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      <Calendar className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-500">Ngày tham gia</p>
+                        <p className="text-sm font-medium truncate">
+                          {selectedDate ? format(selectedDate, "dd/MM/yyyy", { locale: vi }) : "Chọn ngày"}
+                        </p>
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    </div>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      setSelectedDate(date);
+                      setOpenDate(false);
+                    }}
+                    initialFocus
+                    locale={vi}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              {/* Guests */}
+              <Popover open={openGuests} onOpenChange={setOpenGuests}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left border-2 border-gray-300 hover:border-blue-500 h-14"
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      <Users className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-500">Số người</p>
+                        <p className="text-sm font-medium truncate">
+                          {totalGuests} người
+                        </p>
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    </div>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80" align="start">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">Người lớn</p>
+                        <p className="text-sm text-gray-500">Từ 12 tuổi</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setAdults(Math.max(1, adults - 1))}
+                          disabled={adults <= 1}
+                        >
+                          -
+                        </Button>
+                        <span className="w-8 text-center font-medium">{adults}</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setAdults(Math.min(10, adults + 1))}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">Trẻ em</p>
+                        <p className="text-sm text-gray-500">2-11 tuổi</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setChildren(Math.max(0, children - 1))}
+                          disabled={children <= 0}
+                        >
+                          -
+                        </Button>
+                        <span className="w-8 text-center font-medium">{children}</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setChildren(Math.min(10, children + 1))}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Search Button */}
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white h-14">
+                <Search className="w-5 h-5 mr-2" />
                 Tìm kiếm
               </Button>
             </div>
@@ -273,11 +363,10 @@ export default function ActivitiesPage({ onNavigate, initialCategory }: Activiti
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
-                  selectedCategory === cat.id
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${selectedCategory === cat.id
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 <span>{cat.name}</span>
               </button>
@@ -300,72 +389,85 @@ export default function ActivitiesPage({ onNavigate, initialCategory }: Activiti
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredActivities.map((activity) => (
-            <div
-              key={activity.id}
-              onClick={() => handleActivityClick(activity)}
-              className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer group"
-            >
-              <div className="relative h-48 overflow-hidden">
-                <ImageWithFallback
-                  src={activity.image}
-                  alt={activity.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                />
-                {activity.originalPrice && (
-                  <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    -{Math.round((1 - activity.price / activity.originalPrice) * 100)}%
-                  </div>
-                )}
-              </div>
-
-              <div className="p-4">
-                <h4 className="font-semibold text-gray-800 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                  {activity.name}
-                </h4>
-
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>{activity.location}</span>
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12 text-red-500">
+            <p>{error}</p>
+            <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+              Thử lại
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedActivities.map((activity) => (
+              <div
+                key={activity.id}
+                onClick={() => handleActivityClick(activity)}
+                className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer group"
+              >
+                <div className="relative h-48 overflow-hidden">
+                  <ImageWithFallback
+                    src={activity.image}
+                    alt={activity.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                  {activity.originalPrice && (
+                    <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      -{Math.round((1 - activity.price / activity.originalPrice) * 100)}%
+                    </div>
+                  )}
                 </div>
 
-                {activity.duration && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                    <Calendar className="w-4 h-4" />
-                    <span>{activity.duration}</span>
-                  </div>
-                )}
+                <div className="p-4">
+                  <h4 className="font-semibold text-gray-800 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                    {activity.name}
+                  </h4>
 
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-semibold text-gray-800">{activity.rating}</span>
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                    <MapPin className="w-4 h-4" />
+                    <span>{activity.location}</span>
                   </div>
-                  <span className="text-sm text-gray-600">({activity.reviews} đánh giá)</span>
-                </div>
 
-                <div className="flex items-end justify-between">
-                  <div>
-                    {activity.originalPrice && (
-                      <p className="text-sm text-gray-400 line-through">
-                        {activity.originalPrice.toLocaleString('vi-VN')}đ
+                  {activity.duration && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                      <Calendar className="w-4 h-4" />
+                      <span>{activity.duration}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="font-semibold text-gray-800">{activity.rating}</span>
+                    </div>
+                    <span className="text-sm text-gray-600">({activity.reviews} đánh giá)</span>
+                  </div>
+
+                  <div className="flex items-end justify-between">
+                    <div>
+                      {activity.originalPrice && (
+                        <p className="text-sm text-gray-400 line-through">
+                          {activity.originalPrice.toLocaleString('vi-VN')}đ
+                        </p>
+                      )}
+                      <p className="text-xl font-bold text-red-600">
+                        {activity.price.toLocaleString('vi-VN')}đ
                       </p>
-                    )}
-                    <p className="text-xl font-bold text-red-600">
-                      {activity.price.toLocaleString('vi-VN')}đ
-                    </p>
+                    </div>
+                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      Xem chi tiết
+                    </Button>
                   </div>
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                    Xem chi tiết
-                  </Button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {filteredActivities.length === 0 && (
+        {!loading && !error && filteredActivities.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
               Không tìm thấy hoạt động phù hợp

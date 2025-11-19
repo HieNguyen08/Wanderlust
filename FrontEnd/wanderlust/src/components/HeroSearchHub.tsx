@@ -69,6 +69,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
   const [openFrom, setOpenFrom] = useState(false);
   const [openTo, setOpenTo] = useState(false);
   const [openPassengers, setOpenPassengers] = useState(false);
+  const [openFlightDates, setOpenFlightDates] = useState(false);
   
   // Hotel states
   const [hotelType, setHotelType] = useState<HotelType>("all");
@@ -79,6 +80,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
   const [hotelChildren, setHotelChildren] = useState(0);
   const [hotelRooms, setHotelRooms] = useState(1);
   const [openHotelGuests, setOpenHotelGuests] = useState(false);
+  const [openHotelLocation, setOpenHotelLocation] = useState(false);
   
   // Car Rental states
   const [carDriverType, setCarDriverType] = useState<CarDriverType>("without");
@@ -93,6 +95,9 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
   // Activities states
   const [activityLocation, setActivityLocation] = useState("");
   const [activityDate, setActivityDate] = useState<Date>();
+  const [activityAdults, setActivityAdults] = useState(2);
+  const [activityChildren, setActivityChildren] = useState(0);
+  const [openActivityGuests, setOpenActivityGuests] = useState(false);
 
   const handleSwapAirports = () => {
     const temp = fromAirport;
@@ -116,7 +121,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
   };
 
   const handleActivitySearch = () => {
-    onSearch?.({ type: "activities", location: activityLocation, date: activityDate });
+    onSearch?.({ type: "activities", location: activityLocation, date: activityDate, adults: activityAdults, children: activityChildren });
     onNavigate("activities");
   };
 
@@ -292,44 +297,52 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
             </div>
 
             {/* Dates & Passengers Row */}
-            <div className="grid md:grid-cols-3 gap-3">
-              {/* Departure Date */}
-              <Popover>
+            <div className="grid md:grid-cols-2 gap-3">
+              {/* Flight Dates - Combined Date Range Picker */}
+              <Popover open={openFlightDates} onOpenChange={setOpenFlightDates}>
                 <PopoverTrigger asChild>
                   <button className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 transition-colors text-left">
                     <CalendarIcon className="w-5 h-5 text-blue-600" />
                     <div className="flex-1">
-                      <div className="text-xs text-gray-500">Ngày đi</div>
+                      <div className="text-xs text-gray-500">
+                        {tripType === "one-way" ? "Ngày đi" : "Ngày đi - Ngày về"}
+                      </div>
                       <div className="font-semibold">
-                        {flightDepartDate ? format(flightDepartDate, "dd/MM/yyyy", { locale: vi }) : "Chọn ngày"}
+                        {tripType === "one-way" ? (
+                          flightDepartDate ? format(flightDepartDate, "dd/MM/yyyy", { locale: vi }) : "Chọn ngày"
+                        ) : (
+                          flightDepartDate && flightReturnDate
+                            ? `${format(flightDepartDate, "dd/MM", { locale: vi })} - ${format(flightReturnDate, "dd/MM/yyyy", { locale: vi })}`
+                            : flightDepartDate
+                            ? format(flightDepartDate, "dd/MM/yyyy", { locale: vi })
+                            : "Chọn ngày"
+                        )}
                       </div>
                     </div>
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={flightDepartDate} onSelect={setFlightDepartDate} />
+                  {tripType === "one-way" ? (
+                    <Calendar 
+                      mode="single" 
+                      selected={flightDepartDate} 
+                      onSelect={setFlightDepartDate}
+                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    />
+                  ) : (
+                    <Calendar
+                      mode="range"
+                      selected={{ from: flightDepartDate, to: flightReturnDate }}
+                      onSelect={(range) => {
+                        setFlightDepartDate(range?.from);
+                        setFlightReturnDate(range?.to);
+                      }}
+                      numberOfMonths={2}
+                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    />
+                  )}
                 </PopoverContent>
               </Popover>
-
-              {/* Return Date */}
-              {(tripType === "round-trip" || hasReturnDate) && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 transition-colors text-left">
-                      <CalendarIcon className="w-5 h-5 text-blue-600" />
-                      <div className="flex-1">
-                        <div className="text-xs text-gray-500">Ngày về</div>
-                        <div className="font-semibold">
-                          {flightReturnDate ? format(flightReturnDate, "dd/MM/yyyy", { locale: vi }) : "Chọn ngày"}
-                        </div>
-                      </div>
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={flightReturnDate} onSelect={setFlightReturnDate} />
-                  </PopoverContent>
-                </Popover>
-              )}
 
               {/* Passengers */}
               <Popover open={openPassengers} onOpenChange={setOpenPassengers}>
@@ -407,45 +420,62 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
         {/* Hotels Form */}
         {activeService === "hotels" && (
           <div className="space-y-4 relative z-10">
-            {/* Sub-tabs */}
-            <div className="flex gap-2">
-              {[
-                { value: "all", label: "Tất cả" },
-                { value: "hotels", label: "Khách sạn" },
-                { value: "villa", label: "Biệt thự" },
-                { value: "apartment", label: "Căn hộ" },
-              ].map((type) => (
-                <button
-                  key={type.value}
-                  onClick={() => setHotelType(type.value as HotelType)}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm transition-all border-2",
-                    hotelType === type.value
-                      ? "bg-blue-100 text-blue-700 border-yellow-400 shadow-md"
-                      : "bg-gray-50 text-gray-600 hover:bg-gray-100 border-transparent"
-                  )}
-                >
-                  {type.label}
-                </button>
-              ))}
-            </div>
-
             {/* Unified Search Bar */}
             <div className="border-2 border-gray-200 rounded-xl overflow-hidden hover:border-blue-400 transition-colors">
               <div className="grid md:grid-cols-[2fr_2fr_2fr_auto] divide-x divide-gray-200">
                 {/* Location */}
-                <div className="flex items-center gap-3 p-4">
-                  <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-gray-500">Địa điểm</div>
-                    <Input
-                      value={hotelLocation}
-                      onChange={(e) => setHotelLocation(e.target.value)}
-                      placeholder="Thành phố, khách sạn..."
-                      className="border-0 p-0 h-6 focus-visible:ring-0 font-semibold"
-                    />
-                  </div>
-                </div>
+                <Popover open={openHotelLocation} onOpenChange={setOpenHotelLocation}>
+                  <PopoverTrigger asChild>
+                    <button className="flex items-center gap-3 p-4 text-left hover:bg-gray-50 transition-colors">
+                      <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-gray-500">Địa điểm</div>
+                        <div className="font-semibold truncate">
+                          {hotelLocation || "Chọn địa điểm"}
+                        </div>
+                      </div>
+                      <ChevronsUpDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Tìm địa điểm..." />
+                      <CommandList>
+                        <CommandEmpty>Không tìm thấy địa điểm.</CommandEmpty>
+                        <CommandGroup>
+                          {[
+                            { code: "HCM", name: "TP. Hồ Chí Minh", count: 450 },
+                            { code: "HN", name: "Hà Nội", count: 380 },
+                            { code: "DN", name: "Đà Nẵng", count: 220 },
+                            { code: "NT", name: "Nha Trang", count: 180 },
+                            { code: "PQ", name: "Phú Quốc", count: 165 },
+                            { code: "HA", name: "Hội An", count: 140 },
+                            { code: "VT", name: "Vũng Tàu", count: 125 },
+                            { code: "DL", name: "Đà Lạt", count: 155 },
+                          ].map((location) => (
+                            <CommandItem
+                              key={location.code}
+                              value={location.name}
+                              onSelect={() => {
+                                setHotelLocation(location.name);
+                                setOpenHotelLocation(false);
+                              }}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4", hotelLocation === location.name ? "opacity-100" : "opacity-0")} />
+                              <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="w-4 h-4 text-gray-400" />
+                                  <span>{location.name}</span>
+                                </div>
+                                <span className="text-xs text-gray-500">{location.count} khách sạn</span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
 
                 {/* Check-in & Check-out */}
                 <Popover>
@@ -703,16 +733,16 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
           <div className="space-y-4 relative z-10">
             {/* Unified Search Bar */}
             <div className="border-2 border-gray-200 rounded-xl overflow-hidden hover:border-blue-400 transition-colors">
-              <div className="grid md:grid-cols-[2fr_1.5fr_auto] divide-x divide-gray-200">
+              <div className="grid md:grid-cols-[2fr_1.5fr_1.5fr_auto] divide-x divide-gray-200">
                 {/* Location/Activity */}
                 <div className="flex items-center gap-3 p-4">
-                  <Search className="w-5 h-5 text-blue-600 shrink-0" />
+                  <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-gray-500">Hoạt động hoặc địa điểm</div>
+                    <div className="text-xs text-gray-500">Địa điểm</div>
                     <Input
                       value={activityLocation}
                       onChange={(e) => setActivityLocation(e.target.value)}
-                      placeholder="Tìm hoạt động, địa điểm..."
+                      placeholder="Chọn địa điểm..."
                       className="border-0 p-0 h-6 focus-visible:ring-0 font-semibold"
                     />
                   </div>
@@ -733,6 +763,55 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar mode="single" selected={activityDate} onSelect={setActivityDate} />
+                  </PopoverContent>
+                </Popover>
+
+                {/* Guests */}
+                <Popover open={openActivityGuests} onOpenChange={setOpenActivityGuests}>
+                  <PopoverTrigger asChild>
+                    <button className="flex items-center gap-3 p-4 text-left hover:bg-gray-50 transition-colors">
+                      <Users className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-gray-500">Số người</div>
+                        <div className="font-semibold truncate">
+                          {activityAdults + activityChildren} người
+                        </div>
+                      </div>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80" align="start">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Người lớn</p>
+                          <p className="text-sm text-gray-500">Từ 12 tuổi</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Button size="sm" variant="outline" onClick={() => setActivityAdults(Math.max(1, activityAdults - 1))} disabled={activityAdults <= 1}>
+                            <Minus className="w-4 h-4" />
+                          </Button>
+                          <span className="w-8 text-center">{activityAdults}</span>
+                          <Button size="sm" variant="outline" onClick={() => setActivityAdults(activityAdults + 1)}>
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Trẻ em</p>
+                          <p className="text-sm text-gray-500">2-11 tuổi</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Button size="sm" variant="outline" onClick={() => setActivityChildren(Math.max(0, activityChildren - 1))} disabled={activityChildren <= 0}>
+                            <Minus className="w-4 h-4" />
+                          </Button>
+                          <span className="w-8 text-center">{activityChildren}</span>
+                          <Button size="sm" variant="outline" onClick={() => setActivityChildren(activityChildren + 1)}>
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
                   </PopoverContent>
                 </Popover>
 

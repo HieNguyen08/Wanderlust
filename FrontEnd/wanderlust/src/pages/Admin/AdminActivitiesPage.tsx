@@ -11,7 +11,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "../../components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../../components/ui/alert-dialog";
 import { Label } from "../../components/ui/label";
 import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
@@ -52,6 +63,29 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
   const [isAddActivityOpen, setIsAddActivityOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<ActivityItem | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  
+  // Edit State
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingActivity, setEditingActivity] = useState<ActivityItem | null>(null);
+  
+  // Delete State
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [activityToDelete, setActivityToDelete] = useState<ActivityItem | null>(null);
+  
+  // Form State
+  const [formData, setFormData] = useState({
+    name: "",
+    location: "",
+    category: "attractions",
+    duration: "",
+    participants: 1,
+    price: 0,
+    rating: 4.5,
+    reviews: 0,
+    image: "",
+    description: "",
+    status: "active" as "active" | "inactive",
+  });
 
   const activities: ActivityItem[] = [
     {
@@ -159,14 +193,207 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
   };
 
   const handleEdit = (activity: ActivityItem) => {
-    toast.success(`Chỉnh sửa ${activity.name}`);
-    // TODO: Open edit dialog or navigate to edit page
+    setEditingActivity(activity);
+    setFormData({
+      name: activity.name,
+      location: activity.location,
+      category: activity.category,
+      duration: activity.duration,
+      participants: activity.participants,
+      price: activity.price,
+      rating: activity.rating,
+      reviews: activity.reviews,
+      image: activity.image,
+      description: "",
+      status: activity.status,
+    });
+    setIsEditDialogOpen(true);
+  };
+  
+  const handleSaveEdit = () => {
+    if (editingActivity) {
+      // TODO: Call API to update activity
+      toast.success(`Đã cập nhật hoạt động: ${formData.name}`);
+      setIsEditDialogOpen(false);
+      setEditingActivity(null);
+      resetForm();
+    }
   };
 
   const handleDelete = (activity: ActivityItem) => {
-    toast.error(`Xóa ${activity.name}`);
-    // TODO: Show delete confirmation
+    setActivityToDelete(activity);
+    setIsDeleteDialogOpen(true);
   };
+  
+  const confirmDelete = () => {
+    if (activityToDelete) {
+      // TODO: Call API to delete activity
+      toast.error(`Đã xóa hoạt động: ${activityToDelete.name}`);
+      setIsDeleteDialogOpen(false);
+      setActivityToDelete(null);
+    }
+  };
+  
+  const handleAddActivity = () => {
+    // TODO: Call API to create activity
+    toast.success(`Đã thêm hoạt động: ${formData.name}`);
+    setIsAddActivityOpen(false);
+    resetForm();
+  };
+  
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      location: "",
+      category: "attractions",
+      duration: "",
+      participants: 1,
+      price: 0,
+      rating: 4.5,
+      reviews: 0,
+      image: "",
+      description: "",
+      status: "active",
+    });
+  };
+  
+  const categories = [
+    { value: "attractions", label: "Điểm tham quan" },
+    { value: "tours", label: "Tours" },
+    { value: "spa", label: "Spa" },
+    { value: "food", label: "Ẩm thực" },
+    { value: "music", label: "Nhạc hội" },
+    { value: "water-sports", label: "Thể thao nước" },
+    { value: "adventure", label: "Mạo hiểm" },
+    { value: "relax", label: "Thư giãn" },
+  ];
+  
+  const ActivityFormFields = () => (
+    <div className="grid grid-cols-2 gap-4 py-4">
+      <div className="col-span-2">
+        <Label htmlFor="name">Tên hoạt động *</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          placeholder="Lặn biển ngắm san hô..."
+          className="mt-1"
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="location">Địa điểm *</Label>
+        <Input
+          id="location"
+          value={formData.location}
+          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+          placeholder="Nha Trang, Việt Nam"
+          className="mt-1"
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="category">Danh mục *</Label>
+        <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+          <SelectTrigger className="mt-1">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((cat) => (
+              <SelectItem key={cat.value} value={cat.value}>
+                {cat.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label htmlFor="duration">Thời lượng *</Label>
+        <Input
+          id="duration"
+          value={formData.duration}
+          onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+          placeholder="4 giờ"
+          className="mt-1"
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="participants">Số người *</Label>
+        <Input
+          id="participants"
+          type="number"
+          value={formData.participants}
+          onChange={(e) => setFormData({ ...formData, participants: Number(e.target.value) })}
+          placeholder="15"
+          className="mt-1"
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="price">Giá (VND) *</Label>
+        <Input
+          id="price"
+          type="number"
+          value={formData.price}
+          onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+          placeholder="850000"
+          className="mt-1"
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="rating">Đánh giá *</Label>
+        <Input
+          id="rating"
+          type="number"
+          min="1"
+          max="5"
+          step="0.1"
+          value={formData.rating}
+          onChange={(e) => setFormData({ ...formData, rating: Number(e.target.value) })}
+          placeholder="4.8"
+          className="mt-1"
+          required
+        />
+      </div>
+      <div className="col-span-2">
+        <Label htmlFor="description">Mô tả *</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          placeholder="Mô tả chi tiết về hoạt động..."
+          className="mt-1"
+          rows={3}
+          required
+        />
+      </div>
+      <div className="col-span-2">
+        <Label htmlFor="image">URL hình ảnh *</Label>
+        <Input
+          id="image"
+          value={formData.image}
+          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+          placeholder="https://..."
+          className="mt-1"
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="status">Trạng thái *</Label>
+        <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
+          <SelectTrigger className="mt-1">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Hoạt động</SelectItem>
+            <SelectItem value="inactive">Tạm ngưng</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
 
   return (
     <AdminLayout currentPage="admin-activities" onNavigate={onNavigate} activePage="admin-activities">
@@ -191,47 +418,10 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
                   Nhập thông tin hoạt động vui chơi mới vào hệ thống
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid grid-cols-2 gap-4 py-4">
-                <div className="col-span-2">
-                  <Label htmlFor="activityName">Tên hoạt động</Label>
-                  <Input id="activityName" placeholder="Lặn biển ngắm san hô..." className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="location">Địa điểm</Label>
-                  <Input id="location" placeholder="Nha Trang, Việt Nam" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="category">Danh mục</Label>
-                  <Input id="category" placeholder="Thể thao nước" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="duration">Thời lượng</Label>
-                  <Input id="duration" placeholder="4 giờ" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="participants">Số người</Label>
-                  <Input id="participants" type="number" placeholder="15" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="price">Giá (VND)</Label>
-                  <Input id="price" type="number" placeholder="850000" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="stars">Đánh giá</Label>
-                  <Input id="stars" type="number" min="1" max="5" step="0.1" placeholder="4.8" className="mt-1" />
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="description">Mô tả</Label>
-                  <Textarea id="description" placeholder="Mô tả chi tiết..." className="mt-1" rows={3} />
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="image">URL hình ảnh</Label>
-                  <Input id="image" placeholder="https://..." className="mt-1" />
-                </div>
-                <div className="col-span-2">
-                  <Button className="w-full">Thêm hoạt động</Button>
-                </div>
-              </div>
+              <ActivityFormFields />
+              <DialogFooter>
+                <Button onClick={handleAddActivity}>Thêm hoạt động</Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
@@ -470,6 +660,38 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Edit Activity Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Chỉnh sửa hoạt động</DialogTitle>
+            <DialogDescription>
+              Cập nhật thông tin hoạt động vui chơi
+            </DialogDescription>
+          </DialogHeader>
+          <ActivityFormFields />
+          <DialogFooter>
+            <Button onClick={handleSaveEdit}>Lưu thay đổi</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Activity Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xóa hoạt động</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xóa hoạt động này không? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy bỏ</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Xóa</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }

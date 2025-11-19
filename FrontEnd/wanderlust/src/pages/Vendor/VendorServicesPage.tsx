@@ -62,6 +62,7 @@ export default function VendorServicesPage({
   const [activeTab, setActiveTab] = useState<ServiceStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingService, setEditingService] = useState<Service | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
@@ -174,8 +175,8 @@ export default function VendorServicesPage({
   };
 
   const handleEdit = (service: Service) => {
-    toast.info(`Chỉnh sửa ${service.name}`);
-    // TODO: Open edit dialog
+    setEditingService(service);
+    setIsAddDialogOpen(true);
   };
 
   const handleResubmit = (service: Service) => {
@@ -404,11 +405,21 @@ export default function VendorServicesPage({
       {/* Add Service Dialog */}
       <AddServiceDialog
         open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
+        onOpenChange={(open) => {
+          setIsAddDialogOpen(open);
+          if (!open) {
+            setEditingService(null);
+          }
+        }}
         onSuccess={() => {
           setIsAddDialogOpen(false);
-          toast.success("Đã gửi yêu cầu thêm dịch vụ mới. Admin sẽ duyệt trong 1-2 ngày làm việc.");
+          setEditingService(null);
+          toast.success(editingService 
+            ? "Đã lưu thay đổi và gửi lại để Admin duyệt." 
+            : "Đã gửi yêu cầu thêm dịch vụ mới. Admin sẽ duyệt trong 1-2 ngày làm việc."
+          );
         }}
+        editService={editingService}
       />
 
       {/* Service Detail Dialog */}
