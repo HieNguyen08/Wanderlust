@@ -1,19 +1,21 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.dto.AuthResponseDTO;
-import com.wanderlust.api.dto.LoginRequestDTO;
-import com.wanderlust.api.entity.User;
-import com.wanderlust.api.services.JwtService;
-import com.wanderlust.api.services.UserService;
+import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
+import com.wanderlust.api.dto.AuthResponseDTO;
+import com.wanderlust.api.dto.LoginRequestDTO;
+import com.wanderlust.api.entity.User;
+import com.wanderlust.api.services.JwtService;
+import com.wanderlust.api.services.UserService;
+import com.wanderlust.api.services.WalletService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -22,6 +24,7 @@ public class AuthController {
 
     private final UserService userService;
     private final JwtService jwtService;
+    private final WalletService walletService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
@@ -56,6 +59,9 @@ public class AuthController {
         
         // Đăng ký user mới
         User newUser = userService.registerUser(user);
+
+        // Tạo ví cho user mới
+        walletService.createWalletForNewUser(newUser.getUserId());
         
         // Tạo JWT token
         String token = jwtService.generateToken(newUser);

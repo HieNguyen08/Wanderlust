@@ -6,7 +6,7 @@ import avatarOther from '../assets/images/avatarother.jpeg';
 import avatarWoman from '../assets/images/avatarwoman.jpeg';
 import '../i18n';
 import type { PageType } from "../MainApp";
-import { tokenService } from "../utils/api";
+import { tokenService, walletApi } from "../utils/api";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 
@@ -24,11 +24,11 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  
+
   // Get user data from localStorage
   const userData = tokenService.getUserData();
   const displayName = userData ? `${userData.firstName}` : "User";
-  
+
   // Get avatar based on gender
   const getAvatarSrc = (userData: any): string => {
     // 1. Ưu tiên avatar của người dùng nếu có
@@ -49,12 +49,12 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
         return avatarOther;
     }
   };
-  
+
   // Derive login state from userRole prop
   const isLoggedIn = userRole !== null;
   const isAdmin = userRole === "admin";
   const isVendor = userRole === "vendor";
-  
+
   // DEBUG: Log role changes
   useEffect(() => {
     console.log("🎭 Header - userRole:", userRole);
@@ -62,9 +62,17 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
     console.log("🎭 Header - isVendor:", isVendor);
     console.log("🎭 Header - currentPage:", currentPage);
   }, [userRole, isAdmin, isVendor, currentPage]);
-  
-  // Mock wallet balance
-  const [walletBalance] = useState(2450000);
+
+  // Wallet balance
+  const [walletBalance, setWalletBalance] = useState(0);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      walletApi.getWallet()
+        .then(data => setWalletBalance(data.balance || 0))
+        .catch(err => console.error("Failed to fetch wallet balance", err));
+    }
+  }, [isLoggedIn]);
 
   // Language options
   const languages = [
@@ -73,11 +81,11 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
     { code: "ja", name: "日本語", flag: "🇯🇵" },
     { code: "ko", name: "한국어", flag: "🇰🇷" },
   ];
-  
+
   // Handle language change
   const handleLanguageChange = (e: React.MouseEvent, langCode: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+    // e.preventDefault();
+    // e.stopPropagation();
     console.log('🌐 Changing language to:', langCode);
     setLanguageDropdownOpen(false);
     i18n.changeLanguage(langCode).then(() => {
@@ -150,7 +158,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
   const isWhiteHeader = scrolled;
 
   return (
-    <div 
+    <div
       className={`
         fixed top-0 left-0 right-0 z-50 transition-all duration-300
         ${isWhiteHeader
@@ -165,11 +173,11 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
           {/* Logo + Navigation */}
           <div className="flex items-center gap-6 flex-1">
             {/* Logo */}
-            <h1 
+            <h1
               className={`
-                font-['Kadwa',serif] cursor-pointer transition-all duration-300
-                ${isWhiteHeader 
-                  ? 'text-gray-900' 
+                font-['Kadwa',serif] cursor-pointer transition-all duration-300 text-4xl
+                ${isWhiteHeader
+                  ? 'text-gray-900'
                   : 'text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]'
                 }
               `}
@@ -177,7 +185,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
             >
               Wanderlust
             </h1>
-            
+
             {/* Desktop Navigation - Inline */}
             <nav className="hidden lg:flex items-center gap-1">
               {navItems.map((item) => (
@@ -186,7 +194,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                   onClick={() => item.page && onNavigate(item.page)}
                   className={`
                     relative px-4 py-2 rounded-md transition-all duration-200
-                    ${activeSection === item.id 
+                    ${activeSection === item.id
                       ? isWhiteHeader
                         ? 'text-blue-600 bg-blue-50'
                         : 'text-yellow-300 bg-black/20 backdrop-blur-sm'
@@ -202,7 +210,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                   )}
                 </button>
               ))}
-              
+
               {/* More Dropdown */}
               <div className="relative">
                 <button
@@ -228,8 +236,8 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
 
                 {moreDropdownOpen && (
                   <>
-                    <div 
-                      className="fixed inset-0 z-10" 
+                    <div
+                      className="fixed inset-0 z-10"
                       onClick={() => setMoreDropdownOpen(false)}
                     />
                     <div className="absolute top-full mt-2 left-0 bg-white rounded-lg shadow-xl py-2 min-w-[200px] z-20">
@@ -267,7 +275,11 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
           {/* Right Actions */}
           <div className="flex items-center gap-2">
             {/* Language Switcher - Redesigned */}
-            <div className="relative">
+            <div
+              className="relative"
+              onMouseEnter={() => setLanguageDropdownOpen(true)}
+              onMouseLeave={() => setLanguageDropdownOpen(false)}
+            >
               <button
                 onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
                 className={`
@@ -286,8 +298,8 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
               </button>              {/* Language Dropdown */}
               {languageDropdownOpen && (
                 <>
-                  <div 
-                    className="fixed inset-0 z-40" 
+                  <div
+                    className="fixed inset-0 z-40"
                     onClick={() => setLanguageDropdownOpen(false)}
                   />
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
@@ -315,7 +327,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                 </>
               )}
             </div>
-            
+
             {/* Auth Buttons / Profile - Desktop Only */}
             <div className="hidden md:flex gap-2 items-center">
               {isLoggedIn ? (
@@ -350,9 +362,9 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                         }
                       `}
                     >
-                      <img 
-                        src={getAvatarSrc(userData)} 
-                        alt="User Avatar" 
+                      <img
+                        src={getAvatarSrc(userData)}
+                        alt="User Avatar"
                         className="w-7 h-7 rounded-full object-cover"
                         onError={(e) => {
                           e.currentTarget.src = avatarOther;
@@ -364,8 +376,8 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
 
                     {profileDropdownOpen && (
                       <>
-                        <div 
-                          className="fixed inset-0 z-10" 
+                        <div
+                          className="fixed inset-0 z-10"
                           onClick={() => setProfileDropdownOpen(false)}
                         />
                         <div className="absolute top-full mt-2 right-0 bg-white rounded-lg shadow-xl py-2 min-w-[220px] z-20">
@@ -477,25 +489,24 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
               ) : (
                 // Login/Register Buttons - Compact
                 <>
-                  <Button 
-                    variant="outline" 
-                    className={`px-5 h-9 border-none ${
-                      scrolled 
-                        ? 'bg-gray-100 hover:bg-gray-200 text-blue-600' 
-                        : 'bg-white hover:bg-gray-50 text-blue-600'
-                    }`}
+                  <Button
+                    variant="outline"
+                    className={`px-5 h-9 border-none ${scrolled
+                      ? 'bg-gray-100 hover:bg-gray-200 text-blue-600'
+                      : 'bg-white hover:bg-gray-50 text-blue-600'
+                      }`}
                     onClick={() => {
                       console.log("🔘 ĐĂNG NHẬP button clicked!");
-                      onNavigate("login");
+                      onNavigate("login", { mode: "login" });
                     }}
                   >
                     {t('auth.login')}
                   </Button>
-                  <Button 
+                  <Button
                     className="bg-blue-600 hover:bg-blue-700 text-white px-5 h-9"
                     onClick={() => {
                       console.log("🔘 ĐĂNG KÝ button clicked!");
-                      onNavigate("login");
+                      onNavigate("login", { mode: "register" });
                     }}
                   >
                     {t('auth.register')}
@@ -505,7 +516,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
             </div>
 
             {/* Mobile Menu Toggle */}
-            <button 
+            <button
               className={`
                 lg:hidden p-2 rounded-md transition-all
                 ${scrolled
@@ -522,7 +533,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <nav 
+          <nav
             className={`
               lg:hidden pb-4 pt-2 border-t space-y-1
               ${scrolled ? 'border-gray-200' : 'border-white/20'}
@@ -539,7 +550,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                 }}
                 className={`
                   w-full text-left px-4 py-3 rounded-md transition-all
-                  ${activeSection === item.id 
+                  ${activeSection === item.id
                     ? scrolled
                       ? 'text-blue-600 bg-blue-50'
                       : 'text-yellow-300 bg-black/20'
@@ -607,8 +618,8 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                     }}
                     className={`
                       w-full text-left px-4 py-3 rounded-md flex items-center justify-between
-                      ${scrolled 
-                        ? 'bg-blue-50 hover:bg-blue-100' 
+                      ${scrolled
+                        ? 'bg-blue-50 hover:bg-blue-100'
                         : 'bg-black/20 hover:bg-black/30'
                       }
                     `}
@@ -621,7 +632,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                       </div>
                     </div>
                   </button>
-                  
+
                   <button
                     onClick={() => {
                       onNavigate("profile");
@@ -629,8 +640,8 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                     }}
                     className={`
                       w-full text-left px-4 py-3 rounded-md flex items-center gap-3
-                      ${scrolled 
-                        ? 'text-gray-700 hover:bg-gray-50' 
+                      ${scrolled
+                        ? 'text-gray-700 hover:bg-gray-50'
                         : 'text-white hover:bg-black/20'
                       }
                     `}
@@ -646,8 +657,8 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                     }}
                     className={`
                       w-full text-left px-4 py-3 rounded-md flex items-center gap-3
-                      ${scrolled 
-                        ? 'text-red-600 hover:bg-red-50' 
+                      ${scrolled
+                        ? 'text-red-600 hover:bg-red-50'
                         : 'text-red-300 hover:bg-black/20'
                       }
                     `}
@@ -658,24 +669,23 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                 </>
               ) : (
                 <>
-                  <Button 
-                    variant="outline" 
-                    className={`w-full border-none ${
-                      scrolled 
-                        ? 'bg-gray-100 hover:bg-gray-200 text-blue-600' 
-                        : 'bg-white hover:bg-gray-50 text-blue-600'
-                    }`}
+                  <Button
+                    variant="outline"
+                    className={`w-full border-none ${scrolled
+                      ? 'bg-gray-100 hover:bg-gray-200 text-blue-600'
+                      : 'bg-white hover:bg-gray-50 text-blue-600'
+                      }`}
                     onClick={() => {
-                      onNavigate("login");
+                      onNavigate("login", { mode: "login" });
                       setMobileMenuOpen(false);
                     }}
                   >
                     {t('auth.login')}
                   </Button>
-                  <Button 
+                  <Button
                     className="bg-blue-600 hover:bg-blue-700 text-white w-full"
                     onClick={() => {
-                      onNavigate("login");
+                      onNavigate("login", { mode: "register" });
                       setMobileMenuOpen(false);
                     }}
                   >

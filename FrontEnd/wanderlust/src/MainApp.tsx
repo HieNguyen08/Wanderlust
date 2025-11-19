@@ -25,14 +25,14 @@ import { ActivitiesPage, ActivityDetailPage, ActivityReviewPage } from "./pages/
 
 // Visa
 import {
-    VisaApplicationPage,
-    VisaArticleDetailPage,
-    VisaConfirmationPage,
-    VisaConsultationPage,
-    VisaDocumentsPage,
-    VisaLandingPage,
-    VisaPaymentPage,
-    VisaTrackingPage
+  VisaApplicationPage,
+  VisaArticleDetailPage,
+  VisaConfirmationPage,
+  VisaConsultationPage,
+  VisaDocumentsPage,
+  VisaLandingPage,
+  VisaPaymentPage,
+  VisaTrackingPage
 } from "./pages/Visa";
 
 // Travel Guide
@@ -43,42 +43,42 @@ import { BookingDetailsPage, ConfirmationPage, SearchPage } from "./pages/Bookin
 
 // Profile (User)
 import {
-    BookingHistoryPage,
-    PaymentMethodsPage,
-    ProfilePage,
-    SavedItemsPage,
-    SavedPaymentMethodsPage,
-    SettingsPage,
-    TopUpWalletPage,
-    UserVouchersPage,
-    UserWalletPage
+  BookingHistoryPage,
+  PaymentMethodsPage,
+  ProfilePage,
+  SavedItemsPage,
+  SavedPaymentMethodsPage,
+  SettingsPage,
+  TopUpWalletPage,
+  UserVouchersPage,
+  UserWalletPage
 } from "./pages/Profile";
 
 // Admin
 import {
-    AdminActivitiesPage,
-    AdminBookingsPage,
-    AdminDashboard,
-    AdminHotelsPage,
-    AdminPendingServicesPage,
-    AdminRefundsPage,
-    AdminRefundWalletPage,
-    AdminReportsPage,
-    AdminReviewsPage,
-    AdminSettingsPage,
-    AdminUsersPage,
-    AdminVouchersPage
+  AdminActivitiesPage,
+  AdminBookingsPage,
+  AdminDashboard,
+  AdminHotelsPage,
+  AdminPendingServicesPage,
+  AdminRefundsPage,
+  AdminRefundWalletPage,
+  AdminReportsPage,
+  AdminReviewsPage,
+  AdminSettingsPage,
+  AdminUsersPage,
+  AdminVouchersPage
 } from "./pages/Admin";
 
 // Vendor
 import {
-    VendorBookingsPage,
-    VendorDashboard,
-    VendorReportsPage,
-    VendorReviewsPage,
-    VendorServicesPage,
-    VendorSettingsPage,
-    VendorVouchersPage
+  VendorBookingsPage,
+  VendorDashboard,
+  VendorReportsPage,
+  VendorReviewsPage,
+  VendorServicesPage,
+  VendorSettingsPage,
+  VendorVouchersPage
 } from "./pages/Vendor";
 
 // Others
@@ -90,7 +90,7 @@ export default function MainApp() {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
   const [pageData, setPageData] = useState<any>(null);
   const [userRole, setUserRole] = useState<"user" | "admin" | "vendor" | null>(null);
-  
+
   // DEBUG: Log current page to console
   useEffect(() => {
     console.log("📍 Current page:", currentPage);
@@ -113,7 +113,7 @@ export default function MainApp() {
   useEffect(() => {
     const path = window.location.pathname;
     console.log("🛣️ Detected URL path:", path);
-    
+
     if (path === '/login-success' && window.location.search.includes('token')) {
       console.log("🚀 Auto-navigating to login-success page!");
       setCurrentPage('login-success');
@@ -146,8 +146,8 @@ export default function MainApp() {
       <div>
         {/* Header - shown on all pages except login */}
         {shouldShowHeader && (
-          <Header 
-            currentPage={currentPage} 
+          <Header
+            currentPage={currentPage}
             onNavigate={handleNavigate}
             userRole={userRole}
             onLogout={handleLogout}
@@ -213,7 +213,7 @@ export default function MainApp() {
         {currentPage === "vendor-reports" && <VendorReportsPage onNavigate={handleNavigate} />}
         {currentPage === "vendor-settings" && <VendorSettingsPage onNavigate={handleNavigate} />}
         {currentPage === "vendor-vouchers" && <VendorVouchersPage onNavigate={handleNavigate} />}
-        {currentPage === "login" && <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} />}
+        {currentPage === "login" && <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} initialMode={pageData?.mode} />}
         {currentPage === "login-success" && <LoginSuccessPage onNavigate={handleNavigate} onLogin={handleLogin} />}
       </div>
     </I18nextProvider>

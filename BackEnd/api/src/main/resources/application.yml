@@ -5,7 +5,7 @@ spring:
   data:
     mongodb:
       # MongoDB Local - Working 100%
-      uri: mongodb+srv://dangthanhanh_db_user:01862001@cluster0.ozaixgp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      uri: mongodb+srv://dangthanhanh_db_user:01862001@cluster0.ozaixgp.mongodb.net/?appName=Cluster0
       database: wanderlust
       
       # MongoDB Atlas - SSL errors with Java 21 (tested with driver 4.11.1 and 5.2.1)
