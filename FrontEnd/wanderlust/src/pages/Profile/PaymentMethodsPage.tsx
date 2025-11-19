@@ -754,16 +754,10 @@ function CarRentalSummary({ data }: { data: any }) {
 }
 
 function ActivitySummary({ data }: { data: any }) {
-  const activity = data?.activityData?.activity || {
-    name: "Tour 1 ngày Cù Lao Chàm",
-    image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400"
-  };
+  const activity = data?.activityData?.activity;
+  const booking = data?.activityData?.booking;
 
-  const booking = data?.activityData?.booking || {
-    date: "Thứ 7, 8/11/2025",
-    adults: 2,
-    children: 1
-  };
+  if (!activity || !booking) return null;
 
   return (
     <>
@@ -788,7 +782,7 @@ function ActivitySummary({ data }: { data: any }) {
         <div className="flex items-center gap-2">
           <Users className="w-4 h-4 text-gray-600" />
           <span className="text-gray-900">
-            {booking.adults} Người lớn, {booking.children} Trẻ em
+            {booking.participants} Khách
           </span>
         </div>
       </div>

@@ -44,6 +44,12 @@ public class HotelController {
     }
     // --- PUBLIC / USER ENDPOINTS ---
 
+    // GET /api/hotels/locations - Get unique locations from hotels
+    @GetMapping("/hotels/locations")
+    public ResponseEntity<?> getHotelLocations() {
+        return ResponseEntity.ok(hotelService.getUniqueLocations());
+    }
+
     // GET /api/hotels - Search (location, dates, etc)
     @GetMapping("/hotels")
     public ResponseEntity<List<HotelDTO>> searchHotels(@ModelAttribute HotelSearchCriteria criteria) {

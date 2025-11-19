@@ -57,7 +57,7 @@ import {
   AdminDashboard, 
   AdminUsersPage, 
   AdminBookingsPage, 
-  AdminHotelsPage, 
+  AdminFlightsPage, 
   AdminActivitiesPage, 
   AdminReviewsPage, 
   AdminReportsPage, 
@@ -82,7 +82,7 @@ import {
 // Others
 import { AboutPage, PromotionsPage, OffersPage } from "./pages/Others";
 
-export type PageType = "home" | "flights" | "search" | "booking" | "confirmation" | "offers" | "hotel" | "hotel-list" | "hotel-detail" | "visa" | "visa-article" | "visa-consultation" | "visa-tracking" | "visa-application" | "visa-documents" | "visa-payment" | "visa-confirmation" | "activities" | "activity-detail" | "travel-guide" | "guide-detail" | "travel-article" | "about" | "promotions" | "tour-detail" | "car-rental" | "car-list" | "car-detail" | "profile" | "booking-history" | "saved-items" | "vouchers" | "wallet" | "topup-wallet" | "settings" | "saved-payment-methods" | "payment-methods" | "flight-review" | "hotel-review" | "car-review" | "activity-review" | "admin-dashboard" | "admin-users" | "admin-bookings" | "admin-hotels" | "admin-activities" | "admin-reviews" | "admin-reports" | "admin-settings" | "admin-refunds" | "admin-refund-wallet" | "admin-pending-services" | "admin-vouchers" | "vendor-dashboard" | "vendor-services" | "vendor-bookings" | "vendor-reviews" | "vendor-reports" | "vendor-settings" | "vendor-vouchers" | "login" | "login-success";
+export type PageType = "home" | "flights" | "search" | "booking" | "confirmation" | "offers" | "hotel" | "hotel-list" | "hotel-detail" | "visa" | "visa-article" | "visa-consultation" | "visa-tracking" | "visa-application" | "visa-documents" | "visa-payment" | "visa-confirmation" | "activities" | "activity-detail" | "travel-guide" | "guide-detail" | "travel-article" | "about" | "promotions" | "tour-detail" | "car-rental" | "car-list" | "car-detail" | "profile" | "booking-history" | "saved-items" | "vouchers" | "wallet" | "topup-wallet" | "settings" | "saved-payment-methods" | "payment-methods" | "flight-review" | "hotel-review" | "car-review" | "activity-review" | "admin-dashboard" | "admin-users" | "admin-bookings" | "admin-flights" | "admin-activities" | "admin-reviews" | "admin-reports" | "admin-settings" | "admin-refunds" | "admin-refund-wallet" | "admin-pending-services" | "admin-vouchers" | "vendor-dashboard" | "vendor-services" | "vendor-bookings" | "vendor-reviews" | "vendor-reports" | "vendor-settings" | "vendor-vouchers" | "login" | "login-success";
 
 export default function MainApp() {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
@@ -158,7 +158,7 @@ export default function MainApp() {
       {currentPage === "offers" && <OffersPage onNavigate={handleNavigate} />}
       {currentPage === "hotel" && <HotelLandingPage onNavigate={handleNavigate} />}
       {currentPage === "hotel-list" && <HotelListPage searchParams={pageData} onNavigate={handleNavigate} />}
-      {currentPage === "hotel-detail" && pageData && <HotelDetailPage hotel={pageData} onNavigate={handleNavigate} />}
+      {currentPage === "hotel-detail" && pageData && <HotelDetailPage hotel={pageData} hotelId={pageData.id || pageData.hotelId} onNavigate={handleNavigate} />}
       {currentPage === "visa" && <VisaLandingPage onNavigate={handleNavigate} />}
       {currentPage === "visa-article" && pageData && <VisaArticleDetailPage article={pageData} onNavigate={handleNavigate} />}
       {currentPage === "visa-consultation" && <VisaConsultationPage requestData={pageData} onNavigate={handleNavigate} />}
@@ -194,7 +194,7 @@ export default function MainApp() {
       {currentPage === "admin-dashboard" && <AdminDashboard onNavigate={handleNavigate} />}
       {currentPage === "admin-users" && <AdminUsersPage onNavigate={handleNavigate} />}
       {currentPage === "admin-bookings" && <AdminBookingsPage onNavigate={handleNavigate} />}
-      {currentPage === "admin-hotels" && <AdminHotelsPage onNavigate={handleNavigate} />}
+       {currentPage === "admin-flights" && <AdminFlightsPage onNavigate={handleNavigate} />}
       {currentPage === "admin-activities" && <AdminActivitiesPage onNavigate={handleNavigate} />}
       {currentPage === "admin-reviews" && <AdminReviewsPage onNavigate={handleNavigate} />}
       {currentPage === "admin-reports" && <AdminReportsPage onNavigate={handleNavigate} />}

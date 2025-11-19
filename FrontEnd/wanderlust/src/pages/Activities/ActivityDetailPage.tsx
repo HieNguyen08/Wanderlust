@@ -19,6 +19,7 @@ import { Badge } from "../../components/ui/badge";
 import type { PageType } from "../../MainApp";
 import { useState } from "react";
 import { Footer } from "../../components/Footer";
+import { Header } from "../../components/Header";
 
 interface ActivityDetailPageProps {
   activity: {
@@ -74,15 +75,21 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
         image: activity.image,
         category: activity.category,
         location: activity.location,
-        duration: activity.duration
+        duration: activity.duration || "Cả ngày",
+        vendor: "Travel Partner Co., Ltd",
+        includes: included
       },
       booking: {
-        date: selectedDate || "Thứ 7, 8/11/2025",
+        date: selectedDate,
         time: "09:00",
-        participants: guestCount
+        participants: guestCount,
+        adults: Math.floor(guestCount * 0.7) || 1,
+        children: Math.floor(guestCount * 0.3),
+        hasPickup: true
       },
       pricing: {
-        activityPrice: activity.price * guestCount,
+        unitPrice: activity.price,
+        totalPrice: activity.price * guestCount,
         fees: 0,
         insurance: 50000
       }
@@ -91,7 +98,7 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}      {/* Breadcrumb */}
+      {/* Breadcrumb */}
       <div className="bg-white border-b pt-[60px]">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
           <div className="flex items-center gap-2 text-sm text-gray-600">

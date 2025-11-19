@@ -10,6 +10,11 @@ interface VoucherDetailDialogProps {
 }
 
 export function VoucherDetailDialog({ open, onOpenChange, voucher }: VoucherDetailDialogProps) {
+  // Guard clause: if voucher is null, don't render the dialog content
+  if (!voucher) {
+    return null;
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "ACTIVE":

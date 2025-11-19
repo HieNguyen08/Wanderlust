@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Footer } from "../../components/Footer";
+import { Header } from "../../components/Header";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -39,30 +40,23 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
-  // Mock data
-  const activity = activityData?.activity || {
-    name: "Tour 1 ngày Cù Lao Chàm",
-    image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800",
-    vendor: "Hoi An Explorer Tours",
-    duration: "8 giờ",
-    includes: ["Đưa đón", "Bữa trưa", "Hướng dẫn viên"]
-  };
+  const activity = activityData?.activity;
+  const booking = activityData?.booking;
+  const pricing = activityData?.pricing;
 
-  const booking = activityData?.booking || {
-    date: "Thứ 7, 8/11/2025",
-    adults: 2,
-    children: 1,
-    hasPickup: true
-  };
+  if (!activity || !booking || !pricing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+        <p>Không tìm thấy thông tin đặt chỗ.</p>
+        <Button onClick={() => onNavigate("activities")}>Quay lại danh sách</Button>
+      </div>
+    );
+  }
+  
+  // Ensure includes array exists
+  const activityIncludes = activity.includes || [];
 
-  const pricing = {
-    adultPrice: 600000,
-    childPrice: 400000
-  };
-
-  const totalPrice = 
-    (pricing.adultPrice * booking.adults) + 
-    (pricing.childPrice * booking.children);
+  const finalTotal = pricing.totalPrice + (pricing.insurance || 0);
 
   const handleContinueToPayment = () => {
     if (!contactInfo.fullName || !contactInfo.email || !contactInfo.phone) {
@@ -91,12 +85,13 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
       participantInfo,
       pickupInfo,
       activityData,
-      totalPrice
+      totalPrice: finalTotal
     });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">      <div className="max-w-7xl mx-auto px-4 py-8 pt-[calc(60px+2rem)]">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8 pt-[calc(60px+2rem)]">
         {/* Breadcrumb */}
         <div className="mb-6">
           <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -352,7 +347,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                 <div>
                   <h4 className="text-sm text-gray-900 mb-2">✅ Bao gồm:</h4>
                   <ul className="space-y-1 text-sm text-gray-700">
-                    {activity.includes.map((item: string, index: number) => (
+                    {activityIncludes.map((item: string, index: number) => (
                       <li key={index}>• {item}</li>
                     ))}
                   </ul>
@@ -463,28 +458,28 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                   
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">
-                      Người lớn ({booking.adults} x {pricing.adultPrice.toLocaleString('vi-VN')}đ)
+                      Vé tham quan ({booking.participants} x {pricing.unitPrice.toLocaleString('vi-VN')}đ)
                     </span>
                     <span className="text-gray-900">
-                      {(pricing.adultPrice * booking.adults).toLocaleString('vi-VN')}đ
+                      {pricing.totalPrice.toLocaleString('vi-VN')}đ
                     </span>
                   </div>
 
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">
-                      Trẻ em ({booking.children} x {pricing.childPrice.toLocaleString('vi-VN')}đ)
-                    </span>
-                    <span className="text-gray-900">
-                      {(pricing.childPrice * booking.children).toLocaleString('vi-VN')}đ
-                    </span>
-                  </div>
+                  {pricing.insurance > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Bảo hiểm</span>
+                      <span className="text-gray-900">
+                        {pricing.insurance.toLocaleString('vi-VN')}đ
+                      </span>
+                    </div>
+                  )}
 
                   <Separator />
 
                   <div className="flex justify-between">
                     <span className="text-gray-900">Tổng cộng</span>
                     <span className="text-2xl text-blue-600">
-                      {totalPrice.toLocaleString('vi-VN')}đ
+                      {finalTotal.toLocaleString('vi-VN')}đ
                     </span>
                   </div>
                 </div>

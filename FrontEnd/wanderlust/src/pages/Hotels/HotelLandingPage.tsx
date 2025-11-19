@@ -16,42 +16,106 @@ import { Separator } from "../../components/ui/separator";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { toast } from "sonner@2.0.3";
-import { promotionApi, userVoucherApi, tokenService } from "../../utils/api";
+import { promotionApi, userVoucherApi, tokenService, hotelApi } from "../../utils/api";
 
 interface HotelLandingPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
-// Danh sách địa điểm
-const destinations = [
-  { code: "SGN", name: "TP. Hồ Chí Minh", country: "Việt Nam", hotels: "500+" },
-  { code: "HAN", name: "Hà Nội", country: "Việt Nam", hotels: "450+" },
-  { code: "DAD", name: "Đà Nẵng", country: "Việt Nam", hotels: "340+" },
-  { code: "PQC", name: "Phú Quốc", country: "Việt Nam", hotels: "250+" },
-  { code: "NHA", name: "Nha Trang", country: "Việt Nam", hotels: "280+" },
-  { code: "DLI", name: "Đà Lạt", country: "Việt Nam", hotels: "180+" },
-  { code: "HUE", name: "Huế", country: "Việt Nam", hotels: "120+" },
-  { code: "VTE", name: "Vũng Tàu", country: "Việt Nam", hotels: "160+" },
-  { code: "BKK", name: "Bangkok", country: "Thái Lan", hotels: "800+" },
-  { code: "HKT", name: "Phuket", country: "Thái Lan", hotels: "450+" },
-  { code: "SIN", name: "Singapore", country: "Singapore", hotels: "380+" },
-  { code: "MLE", name: "Maldives", country: "Maldives", hotels: "180+" },
-];
+// Type cho destination (location từ backend)
+interface Destination {
+  id?: string;
+  code: string;
+  name: string;
+  country: string;
+  hotels?: string;
+}
 
 // Search Form Component
 function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => void; isSearching: boolean }) {
-  const [destination, setDestination] = useState<typeof destinations[0] | null>(null);
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [destination, setDestination] = useState<Destination | null>(null);
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [rooms, setRooms] = useState(1);
+  const [loading, setLoading] = useState(true);
 
   // Popover states
   const [destinationOpen, setDestinationOpen] = useState(false);
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [checkOutOpen, setCheckOutOpen] = useState(false);
   const [guestsOpen, setGuestsOpen] = useState(false);
+
+  // Fetch locations từ backend (dựa trên hotels)
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        setLoading(true);
+        const response = await hotelApi.getHotelLocations();
+        
+        console.log("📍 Hotel Locations API response:", response);
+        
+        // Response là array trực tiếp
+        if (!Array.isArray(response)) {
+          console.error("Invalid locations data format:", response);
+          throw new Error("Invalid response format");
+        }
+        
+        // Map backend data sang format Destination
+        const mappedLocations: Destination[] = response.map((loc: any) => ({
+          id: loc.id,
+          code: loc.airport_Code || loc.location_ID || "N/A",
+          name: loc.city,
+          country: loc.country,
+          hotels: `${loc.hotelCount}+` // Hiển thị số lượng hotels thực tế
+        }));
+        
+        console.log("✅ Mapped locations from hotels:", mappedLocations);
+        
+        // Nếu backend không có data (database rỗng), dùng fallback
+        if (mappedLocations.length === 0) {
+          console.warn("⚠️ No hotels found in database, using fallback data");
+          const fallbackLocations = [
+            { code: "SGN", name: "TP. Hồ Chí Minh", country: "Việt Nam", hotels: "500+" },
+            { code: "HAN", name: "Hà Nội", country: "Việt Nam", hotels: "450+" },
+            { code: "DAD", name: "Đà Nẵng", country: "Việt Nam", hotels: "340+" },
+            { code: "PQC", name: "Phú Quốc", country: "Việt Nam", hotels: "250+" },
+            { code: "NHA", name: "Nha Trang", country: "Việt Nam", hotels: "280+" },
+            { code: "DLI", name: "Đà Lạt", country: "Việt Nam", hotels: "180+" },
+            { code: "HUE", name: "Huế", country: "Việt Nam", hotels: "150+" },
+            { code: "VTE", name: "Vũng Tàu", country: "Việt Nam", hotels: "120+" },
+            { code: "BKK", name: "Bangkok", country: "Thailand", hotels: "800+" },
+            { code: "HKT", name: "Phuket", country: "Thailand", hotels: "600+" },
+            { code: "SIN", name: "Singapore", country: "Singapore", hotels: "550+" },
+            { code: "MLE", name: "Maldives", country: "Maldives", hotels: "300+" },
+          ];
+          setDestinations(fallbackLocations);
+        } else {
+          setDestinations(mappedLocations);
+        }
+      } catch (error) {
+        console.error("❌ Failed to fetch locations:", error);
+        toast.error("Không thể tải danh sách địa điểm");
+        
+        // Fallback data nếu API fails
+        const fallbackLocations = [
+          { code: "SGN", name: "TP. Hồ Chí Minh", country: "Việt Nam", hotels: "500+" },
+          { code: "HAN", name: "Hà Nội", country: "Việt Nam", hotels: "450+" },
+          { code: "DAD", name: "Đà Nẵng", country: "Việt Nam", hotels: "340+" },
+          { code: "PQC", name: "Phú Quốc", country: "Việt Nam", hotels: "250+" },
+          { code: "NHA", name: "Nha Trang", country: "Việt Nam", hotels: "280+" },
+        ];
+        console.log("🔄 Using fallback locations:", fallbackLocations);
+        setDestinations(fallbackLocations);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLocations();
+  }, []);
 
   const handleSearch = () => {
     // Validation
@@ -114,7 +178,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
                 <CommandList>
                   <CommandEmpty>Không tìm thấy địa điểm.</CommandEmpty>
                   <CommandGroup>
-                    {destinations.map((dest) => (
+                    {destinations.map((dest: Destination) => (
                       <CommandItem
                         key={dest.code}
                         value={dest.name}

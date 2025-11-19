@@ -719,3 +719,289 @@ export const flightApi = {
     return response.json();
   },
 };
+
+// Hotel API endpoints
+export const hotelApi = {
+  // Tìm kiếm khách sạn với filters
+  searchHotels: async (params?: {
+    location?: string; // Tên thành phố hoặc locationId
+    checkInDate?: string; // format: YYYY-MM-DD
+    checkOutDate?: string; // format: YYYY-MM-DD
+    guests?: number;
+    minStar?: number;
+    maxPrice?: number;
+  }) => {
+    const searchParams = new URLSearchParams();
+    
+    if (params?.location) {
+      searchParams.append('location', params.location);
+    }
+    if (params?.checkInDate) {
+      searchParams.append('checkInDate', params.checkInDate);
+    }
+    if (params?.checkOutDate) {
+      searchParams.append('checkOutDate', params.checkOutDate);
+    }
+    if (params?.guests) {
+      searchParams.append('guests', params.guests.toString());
+    }
+    if (params?.minStar) {
+      searchParams.append('minStar', params.minStar.toString());
+    }
+    if (params?.maxPrice) {
+      searchParams.append('maxPrice', params.maxPrice.toString());
+    }
+
+    const url = searchParams.toString() 
+      ? `${API_BASE_URL}/api/hotels?${searchParams.toString()}`
+      : `${API_BASE_URL}/api/hotels`;
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to search hotels');
+    }
+    return response.json();
+  },
+
+  // Lấy danh sách khách sạn nổi bật
+  getFeaturedHotels: async () => {
+    const response = await fetch(`${API_BASE_URL}/api/hotels/featured`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch featured hotels');
+    }
+    return response.json();
+  },
+
+  // Lấy danh sách locations từ hotels hiện có
+  getHotelLocations: async () => {
+    const response = await fetch(`${API_BASE_URL}/api/hotels/locations`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch hotel locations');
+    }
+    return response.json();
+  },
+
+  // Lấy thông tin chi tiết khách sạn theo ID
+  getHotelById: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/hotels/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch hotel details');
+    }
+    return response.json();
+  },
+
+  // Lấy danh sách phòng của khách sạn
+  getHotelRooms: async (hotelId: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/hotels/${hotelId}/rooms`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch hotel rooms');
+    }
+    return response.json();
+  },
+
+  // Lấy đánh giá của khách sạn (placeholder)
+  getHotelReviews: async (hotelId: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/hotels/${hotelId}/reviews`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch hotel reviews');
+    }
+    return response.json();
+  },
+};
+
+// Location API endpoints
+export const locationApi = {
+  // Lấy tất cả locations với pagination
+  getAllLocations: async (params?: {
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDir?: string;
+  }) => {
+    const searchParams = new URLSearchParams();
+    
+    if (params?.page !== undefined) {
+      searchParams.append('page', params.page.toString());
+    }
+    if (params?.size !== undefined) {
+      searchParams.append('size', params.size.toString());
+    }
+    if (params?.sortBy) {
+      searchParams.append('sortBy', params.sortBy);
+    }
+    if (params?.sortDir) {
+      searchParams.append('sortDir', params.sortDir);
+    }
+
+    const url = searchParams.toString() 
+      ? `${API_BASE_URL}/api/locations?${searchParams.toString()}`
+      : `${API_BASE_URL}/api/locations`;
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch locations');
+    }
+    return response.json();
+  },
+
+  // Lấy locations nổi bật
+  getFeaturedLocations: async () => {
+    const response = await fetch(`${API_BASE_URL}/api/locations/featured`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch featured locations');
+    }
+    return response.json();
+  },
+
+  // Tìm kiếm location theo query
+  searchLocations: async (query: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/locations/search?query=${encodeURIComponent(query)}`);
+    if (!response.ok) {
+      throw new Error('Failed to search locations');
+    }
+    return response.json();
+  },
+
+  // Lấy chi tiết location theo ID
+  getLocationById: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/locations/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch location details');
+    }
+    return response.json();
+  },
+};
+
+// ============================================
+// CAR RENTAL API
+// ============================================
+export const carRentalApi = {
+  // Get all car rentals with optional filters
+  getAllCars: async (params?: {
+    locationId?: string;
+    brand?: string;
+    type?: string;
+    minPrice?: number;
+    maxPrice?: number;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.locationId) queryParams.append('locationId', params.locationId);
+    if (params?.brand) queryParams.append('brand', params.brand);
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.minPrice) queryParams.append('minPrice', params.minPrice.toString());
+    if (params?.maxPrice) queryParams.append('maxPrice', params.maxPrice.toString());
+
+    const url = `${API_BASE_URL}/api/car-rentals${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch cars');
+    }
+    return response.json();
+  },
+
+  // Get popular/recommended cars
+  getPopularCars: async () => {
+    const response = await fetch(`${API_BASE_URL}/api/car-rentals/popular`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch popular cars');
+    }
+    return response.json();
+  },
+
+  // Get car details by ID
+  getCarById: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/car-rentals/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch car details');
+    }
+    return response.json();
+  },
+
+  // Check car availability
+  checkAvailability: async (id: string, startDate: string, endDate: string) => {
+    const response = await fetch(
+      `${API_BASE_URL}/api/car-rentals/${id}/availability?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`
+    );
+    if (!response.ok) {
+      throw new Error('Failed to check availability');
+    }
+    return response.json();
+  },
+
+  // Calculate rental price
+  calculatePrice: async (id: string, data: {
+    startDate: string;
+    endDate: string;
+    withDriver?: boolean;
+    insurance?: boolean;
+    delivery?: boolean;
+  }) => {
+    const response = await fetch(
+      `${API_BASE_URL}/api/car-rentals/${id}/calculate-price`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      }
+    );
+    if (!response.ok) {
+      throw new Error('Failed to calculate price');
+    }
+    return response.json();
+  },
+};
+
+// Activity API endpoints
+export const activityApi = {
+  // Get all activities with optional filters
+  getAllActivities: async (params?: {
+    locationId?: string;
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    startDate?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.locationId) queryParams.append('locationId', params.locationId);
+    if (params?.category) queryParams.append('category', params.category);
+    if (params?.minPrice) queryParams.append('minPrice', params.minPrice.toString());
+    if (params?.maxPrice) queryParams.append('maxPrice', params.maxPrice.toString());
+    if (params?.startDate) queryParams.append('startDate', params.startDate);
+
+    const url = `${API_BASE_URL}/api/activities${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch activities');
+    }
+    return response.json();
+  },
+
+  // Get popular/recommended activities
+  getPopularActivities: async () => {
+    const response = await fetch(`${API_BASE_URL}/api/activities/popular`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch popular activities');
+    }
+    return response.json();
+  },
+
+  // Get activity details by ID
+  getActivityById: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/activities/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch activity details');
+    }
+    return response.json();
+  },
+
+  // Search activities
+  searchActivities: async (query: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/activities/search?q=${encodeURIComponent(query)}`);
+    if (!response.ok) {
+      throw new Error('Failed to search activities');
+    }
+    return response.json();
+  }
+};

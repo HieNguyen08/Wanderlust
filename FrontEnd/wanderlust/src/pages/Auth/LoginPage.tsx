@@ -24,7 +24,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
   const [loading, setLoading] = useState(false);
 
   console.log("🎨 LoginPage rendered - isSignUp:", isSignUp, "email:", email, "password:", password ? "***" : "empty");
-  
+
   useEffect(() => {
     console.log("🔧 LoginPage MOUNTED");
     return () => console.log("💀 LoginPage UNMOUNTED");
@@ -55,15 +55,15 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
-    
+
     console.log("🔐 handleSignIn called with:", { email, password: "***" });
-    
+
     setLoading(true);
     try {
       console.log("📡 Calling authApi.login...");
       const response = await authApi.login(email, password);
       console.log("✅ Login response:", response);
-      
+
       // Lưu token và thông tin user
       tokenService.setToken(response.token);
       tokenService.setUserData({
@@ -74,12 +74,12 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
         role: response.role,
         gender: response.gender
       });
-      
+
       console.log("💾 Saved to localStorage:", {
         token: response.token.substring(0, 20) + "...",
         userData: tokenService.getUserData()
       });
-      
+
       if (onLogin) onLogin(response.role || "user");
       onNavigate("home");
     } catch (error: any) {
@@ -92,7 +92,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     setLoading(true);
     try {
       const userData = {
@@ -107,10 +107,10 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
         city,
         country
       };
-      
+
       // Register endpoint giờ trả về AuthResponseDTO với token luôn
       const response = await authApi.register(userData);
-      
+
       // Lưu token và user data
       tokenService.setToken(response.token);
       tokenService.setUserData({
@@ -121,7 +121,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
         role: response.role,
         gender: response.gender
       });
-      
+
       if (onLogin) onLogin(response.role || "user");
       onNavigate("home");
     } catch (error: any) {
@@ -151,9 +151,17 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
     setPassword("");
   };
 
-  const handleMockLogin = (role: "user" | "admin" | "vendor") => {
-    if (onLogin) onLogin(role);
-    onNavigate("home");
+  const handleQuickFill = (role: "user" | "admin" | "vendor") => {
+    if (role === "admin") {
+      setEmail("admin@gmail.com");
+      setPassword("123456");
+    } else if (role === "vendor") {
+      setEmail("vendor@gmail.com");
+      setPassword("123456");
+    } else {
+      setEmail("user@gmail.com");
+      setPassword("123456");
+    }
   };
 
   return (
@@ -171,11 +179,10 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
       {/* Main Container */}
       <div className="relative z-10 w-full max-w-6xl">
         <div className="relative w-full min-h-[650px] bg-white rounded-3xl shadow-2xl overflow-hidden">
-          
+
           {/* Sliding Panel */}
-          <div className={`absolute top-0 left-0 w-full md:w-1/2 h-full bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-10 ${
-            isSignUp ? 'md:translate-x-full md:rounded-l-3xl' : 'md:translate-x-0 md:rounded-r-3xl'
-          } hidden md:block`}>
+          <div className={`absolute top-0 left-0 w-full md:w-1/2 h-full bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-10 ${isSignUp ? 'md:translate-x-full md:rounded-l-3xl' : 'md:translate-x-0 md:rounded-r-3xl'
+            } hidden md:block`}>
             <div className="flex flex-col items-center justify-center h-full text-white p-12">
               {!isSignUp ? (
                 <div className="text-center animate-enter">
@@ -216,9 +223,8 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
           </div>
 
           {/* Sign In Form */}
-          <div className={`absolute top-0 w-full md:w-1/2 h-full transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] ${
-            isSignUp ? 'md:translate-x-0 md:opacity-0 md:pointer-events-none' : 'md:translate-x-full md:opacity-100'
-          } ${isSignUp ? 'hidden' : 'block'}`}>
+          <div className={`absolute top-0 w-full md:w-1/2 h-full transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] ${isSignUp ? 'md:translate-x-0 md:opacity-0 md:pointer-events-none' : 'md:translate-x-full md:opacity-100'
+            } ${isSignUp ? 'hidden' : 'block'}`}>
             <div className="flex items-center justify-center h-full">
               <div className="w-full max-w-sm px-8 md:px-12">
                 <div className="animate-enter">
@@ -320,9 +326,8 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
           </div>
 
           {/* Sign Up Form */}
-          <div className={`absolute top-0 w-full md:w-1/2 h-full transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] overflow-y-auto ${
-            !isSignUp ? 'md:-translate-x-full md:opacity-0 md:pointer-events-none' : 'md:translate-x-0 md:opacity-100'
-          } ${!isSignUp ? 'hidden' : 'block'}`}>
+          <div className={`absolute top-0 w-full md:w-1/2 h-full transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] overflow-y-auto ${!isSignUp ? 'md:-translate-x-full md:opacity-0 md:pointer-events-none' : 'md:translate-x-0 md:opacity-100'
+            } ${!isSignUp ? 'hidden' : 'block'}`}>
             <div className="flex items-start md:items-center justify-center min-h-full py-8">
               <div className="w-full max-w-md px-6 md:px-8">
                 <div className="animate-enter">
@@ -535,23 +540,23 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
 
         {/* Mock Login Buttons for Testing */}
         <div className="text-center mt-4">
-          <p className="text-white/80 mb-3">Demo: Đăng nhập nhanh với vai trò</p>
+          <p className="text-white/80 mb-3">Demo: Điền nhanh thông tin đăng nhập</p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Button
-              onClick={() => handleMockLogin("user")}
+              onClick={() => handleQuickFill("user")}
               variant="outline"
               className="bg-white/90 hover:bg-white border-none text-blue-600 px-5 h-10"
             >
               👤 User
             </Button>
             <Button
-              onClick={() => handleMockLogin("admin")}
+              onClick={() => handleQuickFill("admin")}
               className="bg-purple-600 hover:bg-purple-700 text-white px-5 h-10"
             >
               🛡️ Admin
             </Button>
             <Button
-              onClick={() => handleMockLogin("vendor")}
+              onClick={() => handleQuickFill("vendor")}
               className="bg-green-600 hover:bg-green-700 text-white px-5 h-10"
             >
               🏪 Vendor

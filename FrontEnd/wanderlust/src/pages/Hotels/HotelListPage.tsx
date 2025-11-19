@@ -7,6 +7,9 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Footer } from "../../components/Footer";
 import type { PageType } from "../../MainApp";
+import { hotelApi } from "../../utils/api";
+import { toast } from "sonner";
+import { format, parse } from "date-fns";
 
 interface Hotel {
   id: string;
@@ -39,113 +42,89 @@ interface HotelListPageProps {
   onNavigate: (page: string, data?: any) => void;
 }
 
-// Mock hotel data
-const mockHotels: Hotel[] = [
-  {
-    id: "hotel-1",
-    name: "Vinpearl Resort & Spa Đà Nẵng",
-    rating: 5,
-    address: "Phạm Văn Đồng, Sơn Trà, Đà Nẵng",
-    image: "https://images.unsplash.com/photo-1731080647266-85cf1bc27162?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBob3RlbCUyMHJlc29ydHxlbnwxfHx8fDE3NTk5OTQwMjh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    price: 2500000,
-    originalPrice: 3000000,
-    freeCancellation: true,
-    tags: ["Thanh toán tại KS"],
-    roomType: "Phòng Deluxe",
-    bedType: "2 giường đơn",
-    breakfast: true,
-    amenities: ["Wifi", "Hồ bơi", "Spa", "Nhà hàng", "Phòng tập gym"],
-    propertyType: "Resort",
-  },
-  {
-    id: "hotel-2",
-    name: "Premier Village Danang Resort",
-    rating: 5,
-    address: "99 Võ Nguyên Giáp, Sơn Trà, Đà Nẵng",
-    image: "https://images.unsplash.com/photo-1729605412240-bc3cb17d7600?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZWFjaCUyMHJlc29ydCUyMGhvdGVsfGVufDF8fHx8MTc2MDAwMzM4NHww&ixlib=rb-4.1.0&q=80&w=1080",
-    price: 3200000,
-    originalPrice: 4000000,
-    freeCancellation: true,
-    tags: ["Phù hợp gia đình"],
-    roomType: "Biệt thự 2 phòng ngủ",
-    bedType: "1 giường king, 2 giường đơn",
-    breakfast: true,
-    amenities: ["Wifi", "Hồ bơi", "Chỗ đậu xe", "Nhà hàng", "Dịch vụ phòng"],
-    propertyType: "Resort",
-  },
-  {
-    id: "hotel-3",
-    name: "Novotel Danang Premier Han River",
-    rating: 4,
-    address: "36 Bạch Đằng, Hải Châu, Đà Nẵng",
-    image: "https://images.unsplash.com/photo-1655292912612-bb5b1bda9355?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBob3RlbCUyMHJvb218ZW58MXx8fHwxNzYwMDk3NzM2fDA&ixlib=rb-4.1.0&q=80&w=1080",
-    price: 1800000,
-    originalPrice: 2200000,
-    freeCancellation: true,
-    tags: ["Có xuất hóa đơn"],
-    roomType: "Phòng Superior",
-    bedType: "1 giường queen",
-    breakfast: true,
-    amenities: ["Wifi", "Hồ bơi", "Phòng tập gym", "Nhà hàng"],
-    propertyType: "Khách sạn",
-  },
-  {
-    id: "hotel-4",
-    name: "Fusion Suites Danang Beach",
-    rating: 4,
-    address: "Võ Nguyên Giáp, Sơn Trà, Đà Nẵng",
-    image: "https://images.unsplash.com/photo-1649731000184-7ced04998f44?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxib3V0aXF1ZSUyMGhvdGVsfGVufDF8fHx8MTc2MDAwNDY4Mnww&ixlib=rb-4.1.0&q=80&w=1080",
-    price: 2100000,
-    freeCancellation: true,
-    tags: ["All-inclusive breakfast"],
-    roomType: "Suite 1 phòng ngủ",
-    bedType: "1 giường king",
-    breakfast: true,
-    amenities: ["Wifi", "Hồ bơi", "Spa", "Dịch vụ giặt ủi"],
-    propertyType: "Khách sạn",
-  },
-  {
-    id: "hotel-5",
-    name: "Grand Mercure Danang",
-    rating: 5,
-    address: "Lô A1, Đường Trường Sa, Hòa Hải, Ngũ Hành Sơn, Đà Nẵng",
-    image: "https://images.unsplash.com/photo-1614568112072-770f89361490?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjaXR5JTIwaG90ZWx8ZW58MXx8fHwxNzYwMDQyODc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-    price: 2800000,
-    originalPrice: 3500000,
-    freeCancellation: true,
-    tags: ["Phù hợp gia đình", "Thanh toán tại KS"],
-    roomType: "Phòng Deluxe Ocean View",
-    bedType: "2 giường đơn",
-    breakfast: true,
-    amenities: ["Wifi", "Hồ bơi", "Nhà hàng", "Quầy bar", "Spa"],
-    propertyType: "Khách sạn",
-  },
-  {
-    id: "hotel-6",
-    name: "InterContinental Danang Sun Peninsula Resort",
-    rating: 5,
-    address: "Bãi Bắc, Sơn Trà, Đà Nẵng",
-    image: "https://images.unsplash.com/photo-1623718649591-311775a30c43?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXNvcnQlMjBwb29sfGVufDF8fHx8MTc2MDA4OTcyMHww&ixlib=rb-4.1.0&q=80&w=1080",
-    price: 4500000,
-    originalPrice: 5500000,
-    freeCancellation: true,
-    tags: ["Luxury Resort"],
-    roomType: "Junior Suite Ocean View",
-    bedType: "1 giường king",
-    breakfast: true,
-    amenities: ["Wifi", "Hồ bơi", "Spa", "Nhà hàng", "Phòng tập gym", "Trung tâm thể dục"],
-    propertyType: "Resort",
-  },
-];
-
 export default function HotelListPage({
   searchParams,
   onNavigate,
 }: HotelListPageProps) {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("popular");
-  const [hotels, setHotels] = useState<Hotel[]>(mockHotels);
-  const [filteredHotels, setFilteredHotels] = useState<Hotel[]>(mockHotels);
+  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [filteredHotels, setFilteredHotels] = useState<Hotel[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch hotels from backend when component mounts
+  useEffect(() => {
+    const fetchHotels = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Prepare search params
+        const apiParams: any = {};
+        
+        // Map destination to location
+        if (searchParams?.destination) {
+          apiParams.location = searchParams.destination;
+        }
+        
+        // Map check-in/check-out dates (convert from dd/MM/yyyy to yyyy-MM-dd)
+        if (searchParams?.checkIn) {
+          try {
+            const checkInDate = parse(searchParams.checkIn, "dd/MM/yyyy", new Date());
+            apiParams.checkInDate = format(checkInDate, "yyyy-MM-dd");
+          } catch (err) {
+            console.error("Invalid checkIn date format:", searchParams.checkIn);
+          }
+        }
+        
+        if (searchParams?.checkOut) {
+          try {
+            const checkOutDate = parse(searchParams.checkOut, "dd/MM/yyyy", new Date());
+            apiParams.checkOutDate = format(checkOutDate, "yyyy-MM-dd");
+          } catch (err) {
+            console.error("Invalid checkOut date format:", searchParams.checkOut);
+          }
+        }
+        
+        // Map guests (adults + children)
+        if (searchParams?.guests) {
+          const totalGuests = searchParams.guests.adults + searchParams.guests.children;
+          apiParams.guests = totalGuests;
+        }
+
+        console.log("🔍 Fetching hotels with params:", apiParams);
+        const hotelsData = await hotelApi.searchHotels(apiParams);
+        
+        console.log("✅ Fetched hotels:", hotelsData);
+        
+        // Map backend HotelDTO to frontend Hotel interface
+        const mappedHotels: Hotel[] = hotelsData.map((hotel: any) => ({
+          id: hotel.id,
+          name: hotel.name,
+          rating: hotel.starRating || hotel.averageRating || 0,
+          address: hotel.address,
+          image: hotel.images?.[0]?.url || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
+          price: hotel.lowestPrice || 0,
+          freeCancellation: hotel.policies?.cancellation !== "NO_REFUND",
+          amenities: hotel.amenities || [],
+          propertyType: hotel.hotelType || "HOTEL",
+          tags: [],
+          breakfast: hotel.amenities?.includes("Bữa sáng miễn phí"),
+        }));
+        
+        setHotels(mappedHotels);
+        setFilteredHotels(mappedHotels);
+      } catch (error: any) {
+        console.error("❌ Error fetching hotels:", error);
+        toast.error("Không thể tải danh sách khách sạn. Vui lòng thử lại.");
+        setHotels([]);
+        setFilteredHotels([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHotels();
+  }, [searchParams]);
 
   // Apply filters
   const handleFilterChange = (filters: any) => {
@@ -306,7 +285,12 @@ export default function HotelListPage({
 
           {/* Hotel Cards */}
           <div className="p-4 lg:p-6">
-            {filteredHotels.length === 0 ? (
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p className="text-gray-500 mt-4">Đang tải danh sách khách sạn...</p>
+              </div>
+            ) : filteredHotels.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">
                   Không tìm thấy khách sạn phù hợp với bộ lọc của bạn

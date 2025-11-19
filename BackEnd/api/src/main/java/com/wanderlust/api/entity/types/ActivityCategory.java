@@ -5,5 +5,7 @@ public enum ActivityCategory {
     ADVENTURE,
     CULTURE,
     FOOD,
-    ENTERTAINMENT
+    ENTERTAINMENT,
+    RELAXATION,
+    ATTRACTION
 }
