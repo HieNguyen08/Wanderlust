@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Award, Building2, Calendar as CalendarIcon, Check, ChevronDown, Clock, Gift, Hotel, MapPin, Minus, Plus, Repeat, Search, Sparkles, Star, Tag, TrendingUp, Users } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
@@ -14,15 +14,12 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import { Separator } from "../../components/ui/separator";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
-import { toast } from "sonner@2.0.3";
-import { promotionApi, userVoucherApi, tokenService, hotelApi } from "../../utils/api";
+import { PageType } from "../../MainApp";
+import { hotelApi, promotionApi, tokenService, userVoucherApi } from "../../utils/api";
 
 interface HotelLandingPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
-
 // Type cho destination (location từ backend)
 interface Destination {
   id?: string;
@@ -231,7 +228,6 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
                   setCheckInOpen(false);
                 }}
                 disabled={(date) => date < new Date()}
-                initialFocus
               />
             </PopoverContent>
           </Popover>
@@ -247,7 +243,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
           <Popover open={checkOutOpen} onOpenChange={setCheckOutOpen} modal={true}>
             <PopoverTrigger asChild>
               <div className="bg-white border border-[#a1b0cc] rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition-colors">
-                <Calendar className="w-5 h-5 text-gray-400" />
+                <CalendarIcon className="w-5 h-5 text-gray-400" />
                 <div className="flex-1">
                   <label className="text-xs text-gray-500 block">Thời gian trả phòng</label>
                   <span className="text-sm text-[#7c8db0] font-['Sansita'] font-bold">
@@ -267,7 +263,6 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
                   setCheckOutOpen(false);
                 }}
                 disabled={(date) => date < (checkIn || new Date())}
-                initialFocus
               />
             </PopoverContent>
           </Popover>

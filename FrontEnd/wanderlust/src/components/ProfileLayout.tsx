@@ -1,5 +1,6 @@
 import { CreditCard, Heart, History, LogOut, Settings, Ticket, User, Wallet } from "lucide-react";
 import { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import avatarMan from "../assets/images/avatarman.jpeg";
 import avatarOther from "../assets/images/avatarother.jpeg";
 import avatarWoman from "../assets/images/avatarwoman.jpeg";
@@ -16,6 +17,8 @@ interface ProfileLayoutProps {
 }
 
 export function ProfileLayout({ children, currentPage, onNavigate, activePage = "profile" }: ProfileLayoutProps) {
+  const { t } = useTranslation();
+  
   // Get user data from localStorage
   const userData = tokenService.getUserData();
   const displayName = userData ? `${userData.firstName} ${userData.lastName}` : "User";
@@ -42,43 +45,43 @@ export function ProfileLayout({ children, currentPage, onNavigate, activePage = 
   const menuItems = [
     {
       id: "profile",
-      label: "Thông tin cá nhân",
+      label: t('auth.profile'),
       icon: User,
       page: "profile" as PageType,
     },
     {
       id: "bookings",
-      label: "Lịch sử đặt chỗ",
+      label: t('auth.bookingHistory'),
       icon: History,
       page: "booking-history" as PageType,
     },
     {
       id: "saved",
-      label: "Mục đã lưu",
+      label: t('auth.savedItems'),
       icon: Heart,
       page: "saved-items" as PageType,
     },
     {
       id: "vouchers",
-      label: "Ví Voucher",
+      label: t('profileLayout.vouchers'),
       icon: Ticket,
       page: "vouchers" as PageType,
     },
     {
       id: "wallet",
-      label: "Ví của tôi",
+      label: t('auth.myWallet'),
       icon: Wallet,
       page: "wallet" as PageType,
     },
     {
       id: "saved-payment-methods",
-      label: "Phương thức thanh toán",
+      label: t('profileLayout.paymentMethods'),
       icon: CreditCard,
       page: "saved-payment-methods" as PageType,
     },
     {
       id: "settings",
-      label: "Cài đặt tài khoản",
+      label: t('profileLayout.accountSettings'),
       icon: Settings,
       page: "settings" as PageType,
     },
@@ -141,7 +144,7 @@ export function ProfileLayout({ children, currentPage, onNavigate, activePage = 
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all"
                   >
                     <LogOut className="w-5 h-5" />
-                    <span>Đăng xuất</span>
+                    <span>{t('auth.logout')}</span>
                   </button>
                 </div>
               </nav>

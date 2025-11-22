@@ -1,10 +1,23 @@
-import { Award, Camera, Edit, MapPin, Save, X } from "lucide-react";
+import { Award, Camera, Edit, Link as LinkIcon, MapPin, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner@2.0.3";
 import avatarMan from "../../assets/images/avatarman.jpeg";
+import avatarMan1 from "../../assets/images/avatarman1.jpeg";
+import avatarMan2 from "../../assets/images/avatarman2.jpeg";
+import avatarMan3 from "../../assets/images/avatarman3.jpeg";
+import avatarMan4 from "../../assets/images/avatarman4.jpeg";
+import avatarMan5 from "../../assets/images/avatarman5.jpeg";
 import avatarOther from "../../assets/images/avatarother.jpeg";
+import avatarOther1 from "../../assets/images/avatarother1.jpeg";
+import avatarOther2 from "../../assets/images/avatarother2.jpeg";
+import avatarOther3 from "../../assets/images/avatarother3.jpeg";
 import avatarWoman from "../../assets/images/avatarwoman.jpeg";
+import avatarWoman1 from "../../assets/images/avatarwoman1.jpeg";
+import avatarWoman2 from "../../assets/images/avatarwoman2.jpeg";
+import avatarWoman3 from "../../assets/images/avatarwoman3.jpeg";
+import avatarWoman4 from "../../assets/images/avatarwoman4.jpeg";
+import avatarWoman5 from "../../assets/images/avatarwoman5.jpeg";
 import { ProfileLayout } from "../../components/ProfileLayout";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -34,6 +47,7 @@ export default function ProfilePage({ onNavigate }: ProfilePageProps) {
   const [totalTrips, setTotalTrips] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
+  const [customAvatarUrl, setCustomAvatarUrl] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -49,11 +63,24 @@ export default function ProfilePage({ onNavigate }: ProfilePageProps) {
     avatar: "",
   });
 
-  // Default avatar options
+  // Default avatar options - tất cả ảnh từ assets/images
   const defaultAvatars = [
-    { id: 'male', src: avatarMan, label: 'Nam' },
-    { id: 'female', src: avatarWoman, label: 'Nữ' },
-    { id: 'other', src: avatarOther, label: 'Khác' },
+    { id: 'man', src: avatarMan, label: 'Nam 1' },
+    { id: 'man1', src: avatarMan1, label: 'Nam 2' },
+    { id: 'man2', src: avatarMan2, label: 'Nam 3' },
+    { id: 'man3', src: avatarMan3, label: 'Nam 4' },
+    { id: 'man4', src: avatarMan4, label: 'Nam 5' },
+    { id: 'man5', src: avatarMan5, label: 'Nam 6' },
+    { id: 'woman', src: avatarWoman, label: 'Nữ 1' },
+    { id: 'woman1', src: avatarWoman1, label: 'Nữ 2' },
+    { id: 'woman2', src: avatarWoman2, label: 'Nữ 3' },
+    { id: 'woman3', src: avatarWoman3, label: 'Nữ 4' },
+    { id: 'woman4', src: avatarWoman4, label: 'Nữ 5' },
+    { id: 'woman5', src: avatarWoman5, label: 'Nữ 6' },
+    { id: 'other', src: avatarOther, label: 'Khác 1' },
+    { id: 'other1', src: avatarOther1, label: 'Khác 2' },
+    { id: 'other2', src: avatarOther2, label: 'Khác 3' },
+    { id: 'other3', src: avatarOther3, label: 'Khác 4' },
   ];
 
   // Get avatar based on gender
@@ -110,16 +137,20 @@ export default function ProfilePage({ onNavigate }: ProfilePageProps) {
     }
   };
 
-  // Handle custom avatar upload
-  const handleCustomAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        handleAvatarChange(base64String);
-      };
-      reader.readAsDataURL(file);
+  // Handle custom avatar URL
+  const handleCustomAvatarUrl = async () => {
+    if (!customAvatarUrl.trim()) {
+      toast.error('Vui lòng nhập URL của ảnh');
+      return;
+    }
+    
+    // Validate URL format
+    try {
+      new URL(customAvatarUrl);
+      await handleAvatarChange(customAvatarUrl);
+      setCustomAvatarUrl('');
+    } catch (error) {
+      toast.error('URL không hợp lệ. Vui lòng nhập đúng định dạng URL');
     }
   };
 
@@ -274,48 +305,59 @@ export default function ProfilePage({ onNavigate }: ProfilePageProps) {
             <DialogHeader>
               <DialogTitle>Thay đổi ảnh đại diện</DialogTitle>
               <DialogDescription>
-                Chọn một trong các ảnh mặc định hoặc tải ảnh của bạn lên
+                Chọn một trong các ảnh mặc định hoặc nhập URL của ảnh bạn muốn sử dụng
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               {/* Default Avatars */}
-              <div className="grid grid-cols-3 gap-4">
-                {defaultAvatars.map((avatar) => (
-                  <button
-                    key={avatar.id}
-                    onClick={() => handleAvatarChange(avatar.src)}
-                    className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <img
-                      src={avatar.src}
-                      alt={avatar.label}
-                      className="w-20 h-20 rounded-full object-cover border-2 border-gray-200 hover:border-blue-500"
-                    />
-                    <span className="text-sm text-gray-600">{avatar.label}</span>
-                  </button>
-                ))}
+              <div className="max-h-[400px] overflow-y-auto">
+                <div className="grid grid-cols-4 gap-3 p-2">
+                  {defaultAvatars.map((avatar) => (
+                    <button
+                      key={avatar.id}
+                      onClick={() => handleAvatarChange(avatar.src)}
+                      className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <img
+                        src={avatar.src}
+                        alt={avatar.label}
+                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 hover:border-blue-500"
+                      />
+                      <span className="text-xs text-gray-600">{avatar.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
               
-              {/* Custom Upload */}
+              {/* Custom Avatar URL */}
               <div className="border-t pt-4">
-                <label className="block">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCustomAvatarUpload}
-                    className="hidden"
-                    id="avatar-upload"
+                <Label htmlFor="avatar-url" className="mb-2 block">Hoặc nhập URL của ảnh:</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="avatar-url"
+                    type="url"
+                    placeholder="https://example.com/avatar.jpg"
+                    value={customAvatarUrl}
+                    onChange={(e) => setCustomAvatarUrl(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleCustomAvatarUrl();
+                      }
+                    }}
+                    className="flex-1"
                   />
                   <Button
                     type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => document.getElementById('avatar-upload')?.click()}
+                    onClick={handleCustomAvatarUrl}
+                    className="gap-2"
                   >
-                    <Camera className="w-4 h-4 mr-2" />
-                    Tải ảnh lên
+                    <LinkIcon className="w-4 h-4" />
+                    Áp dụng
                   </Button>
-                </label>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Ví dụ: https://i.imgur.com/abc123.jpg
+                </p>
               </div>
             </div>
           </DialogContent>

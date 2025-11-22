@@ -8,6 +8,7 @@ import {
     Users
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner@2.0.3";
 import { AdminLayout } from "../../components/AdminLayout";
 import { Badge } from "../../components/ui/badge";
@@ -21,6 +22,7 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
+  const { t } = useTranslation();
   const [statistics, setStatistics] = useState<any>(null);
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +39,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         setBookings(allBookings.slice(0, 5)); // Top 5 recent
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
-        toast.error('Không thể tải dữ liệu dashboard');
+        toast.error(t('admin.cannotLoadDashboard'));
       } finally {
         setLoading(false);
       }
@@ -48,7 +50,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
   const stats = [
     {
-      title: "Tổng người dùng",
+      title: t('admin.totalUsers'),
       value: "2,450",
       change: "+12.5%",
       trend: "up",
@@ -56,7 +58,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       color: "blue",
     },
     {
-      title: "Doanh thu tháng này",
+      title: t('admin.monthlyRevenue'),
       value: "₫245.5M",
       change: "+23.1%",
       trend: "up",
@@ -64,7 +66,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       color: "green",
     },
     {
-      title: "Booking mới",
+      title: t('admin.newBookings'),
       value: "127",
       change: "-4.3%",
       trend: "down",
@@ -72,7 +74,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       color: "purple",
     },
     {
-      title: "Tăng trưởng",
+      title: t('admin.growth'),
       value: "18.2%",
       change: "+2.4%",
       trend: "up",
@@ -115,11 +117,11 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "confirmed":
-        return <Badge className="bg-green-100 text-green-700">Xác nhận</Badge>;
+        return <Badge className="bg-green-100 text-green-700">{t('admin.confirmed')}</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-700">Chờ xử lý</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700">{t('admin.pending')}</Badge>;
       case "cancelled":
-        return <Badge className="bg-red-100 text-red-700">Đã hủy</Badge>;
+        return <Badge className="bg-red-100 text-red-700">{t('admin.cancelled')}</Badge>;
       default:
         return null;
     }
@@ -130,8 +132,8 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">Dashboard</h1>
-          <p className="text-gray-600">Tổng quan hoạt động hệ thống</p>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('admin.dashboard')}</h1>
+          <p className="text-gray-600">{t('admin.systemOverview')}</p>
         </div>
 
         {/* Stats Cards */}
@@ -155,7 +157,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                   <span className={`text-sm font-medium ${stat.trend === "up" ? "text-green-600" : "text-red-600"}`}>
                     {stat.change}
                   </span>
-                  <span className="text-sm text-gray-500">so với tháng trước</span>
+                  <span className="text-sm text-gray-500">{t('admin.comparedToLastMonth')}</span>
                 </div>
               </Card>
             );
@@ -166,13 +168,13 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           {/* Recent Bookings */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Booking gần đây</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('admin.recentBookings')}</h2>
               <Button variant="ghost" size="sm" onClick={() => onNavigate("admin-bookings")}>
-                Xem tất cả
+                {t('common.viewAll')}
               </Button>
             </div>
             <div className="space-y-4">
-              {recentBookings.map((booking) => (
+              {bookings.map((booking) => (
                 <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -196,9 +198,9 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           {/* Top Hotels */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Khách sạn hàng đầu</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('admin.topHotels')}</h2>
               <Button variant="ghost" size="sm" onClick={() => onNavigate("admin-hotels")}>
-                Xem tất cả
+                {t('common.viewAll')}
               </Button>
             </div>
             <div className="space-y-4">
@@ -225,9 +227,9 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         {/* Pending Reviews */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Đánh giá chờ duyệt</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{t('admin.pendingReviews')}</h2>
             <Button variant="ghost" size="sm" onClick={() => onNavigate("admin-reviews")}>
-              Xem tất cả
+              {t('common.viewAll')}
             </Button>
           </div>
           <div className="space-y-4">
@@ -258,8 +260,8 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">{review.date}</span>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline">Từ chối</Button>
-                    <Button size="sm">Duyệt</Button>
+                    <Button size="sm" variant="outline">{t('admin.reject')}</Button>
+                    <Button size="sm">{t('admin.approve')}</Button>
                   </div>
                 </div>
               </div>
@@ -275,7 +277,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
             onClick={() => onNavigate("admin-users")}
           >
             <Users className="w-6 h-6" />
-            <span>Thêm User</span>
+            <span>{t('admin.addUser')}</span>
           </Button>
           <Button
             variant="outline"
@@ -283,7 +285,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
             onClick={() => onNavigate("admin-hotels")}
           >
             <Eye className="w-6 h-6" />
-            <span>Thêm Khách sạn</span>
+            <span>{t('admin.addHotel')}</span>
           </Button>
           <Button
             variant="outline"
@@ -291,7 +293,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
             onClick={() => onNavigate("admin-bookings")}
           >
             <BookOpen className="w-6 h-6" />
-            <span>Xem Bookings</span>
+            <span>{t('admin.viewBookings')}</span>
           </Button>
           <Button
             variant="outline"
@@ -299,7 +301,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
             onClick={() => onNavigate("admin-reports")}
           >
             <TrendingUp className="w-6 h-6" />
-            <span>Báo cáo</span>
+            <span>{t('admin.reports')}</span>
           </Button>
         </div>
       </div>

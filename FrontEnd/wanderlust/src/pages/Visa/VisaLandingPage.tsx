@@ -14,6 +14,7 @@ import {
     Users
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
 import { Footer } from "../../components/Footer";
@@ -27,90 +28,95 @@ interface VisaLandingPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
-const WHY_CHOOSE_US = [
-  {
-    icon: Users,
-    title: "Tư vấn chuyên nghiệp",
-    description: "Đội ngũ chuyên viên giàu kinh nghiệm, tư vấn tận tâm"
-  },
-  {
-    icon: CheckCircle2,
-    title: "Tỷ lệ phê duyệt cao",
-    description: "Hơn 95% hồ sơ được chúng tôi xử lý đều thành công"
-  },
-  {
-    icon: Clock,
-    title: "Xử lý nhanh chóng",
-    description: "Cam kết xử lý hồ sơ trong thời gian ngắn nhất"
-  },
-  {
-    icon: Shield,
-    title: "Bảo mật tuyệt đối",
-    description: "Thông tin cá nhân được bảo vệ nghiêm ngặt"
-  }
-];
-
-const ArticleCard = ({ article, onNavigate }: { article: any; onNavigate: (page: PageType, data?: any) => void }) => (
-  <Card 
-    className="overflow-hidden group hover:shadow-lg transition-all cursor-pointer"
-    onClick={() => onNavigate("visa-article", article)}
-  >
-    <div className="relative h-48 overflow-hidden">
-      <ImageWithFallback
-        src={article.image}
-        alt={article.country}
-        className="w-full h-full object-cover transition-transform group-hover:scale-110"
-      />
-      <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
-      <div className="absolute top-4 left-4 flex gap-2">
-        <Badge className="bg-gray-900/70 text-white border-0 backdrop-blur-sm">
-          {article.category}
-        </Badge>
-        {article.popular && (
-          <Badge className="bg-red-500 text-white border-0">
-            <Flame className="w-3 h-3 mr-1" />
-            Hot
+const ArticleCard = ({ article, onNavigate }: { article: any; onNavigate: (page: PageType, data?: any) => void }) => {
+  const { t } = useTranslation();
+  
+  return (
+    <Card 
+      className="overflow-hidden group hover:shadow-lg transition-all cursor-pointer"
+      onClick={() => onNavigate("visa-article", article)}
+    >
+      <div className="relative h-48 overflow-hidden">
+        <ImageWithFallback
+          src={article.image}
+          alt={article.country}
+          className="w-full h-full object-cover transition-transform group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
+        <div className="absolute top-4 left-4 flex gap-2">
+          <Badge className="bg-gray-900/70 text-white border-0 backdrop-blur-sm">
+            {article.category}
           </Badge>
-        )}
+          {article.popular && (
+            <Badge className="bg-red-500 text-white border-0">
+              <Flame className="w-3 h-3 mr-1" />
+              Hot
+            </Badge>
+          )}
+        </div>
+        <div className="absolute bottom-4 left-4 right-4 text-white">
+          <div className="text-2xl mb-1">{article.flag}</div>
+          <h3 className="line-clamp-2">{article.title}</h3>
+        </div>
       </div>
-      <div className="absolute bottom-4 left-4 right-4 text-white">
-        <div className="text-2xl mb-1">{article.flag}</div>
-        <h3 className="line-clamp-2">{article.title}</h3>
-      </div>
-    </div>
-    
-    <div className="p-4">
-      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{article.excerpt}</p>
       
-      <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
-        <div className="flex items-center gap-1">
-          <Clock className="w-3 h-3" />
-          {article.readTime}
+      <div className="p-4">
+        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{article.excerpt}</p>
+        
+        <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
+          <div className="flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            {article.readTime}
+          </div>
+          <div className="flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            {article.processingTime}
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          <Calendar className="w-3 h-3" />
-          {article.processingTime}
-        </div>
-      </div>
 
-      <Button 
-        className="w-full"
-        variant="outline"
-        onClick={(e) => {
-          e.stopPropagation();
-          onNavigate("visa-consultation", { countryId: article.id, country: article.country });
-        }}
-      >
-        Liên hệ tư vấn
-        <ArrowRight className="w-4 h-4 ml-2" />
-      </Button>
-    </div>
-  </Card>
-);
+        <Button 
+          className="w-full"
+          variant="outline"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigate("visa-consultation", { countryId: article.id, country: article.country });
+          }}
+        >
+          {t('visa.consultation')}
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
+    </Card>
+  );
+};
 
 export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
+  const { t } = useTranslation();
   const [allArticles, setAllArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const WHY_CHOOSE_US = [
+    {
+      icon: Users,
+      title: t('visa.professionalAdvice'),
+      description: t('visa.professionalAdviceDesc')
+    },
+    {
+      icon: CheckCircle2,
+      title: t('visa.highSuccess'),
+      description: t('visa.highSuccessDesc')
+    },
+    {
+      icon: Clock,
+      title: t('visa.fastProcessing'),
+      description: t('visa.fastProcessingDesc')
+    },
+    {
+      icon: Shield,
+      title: t('visa.support247'),
+      description: t('visa.support247Desc')
+    }
+  ];
 
   useEffect(() => {
     const fetchVisaArticles = async () => {
@@ -120,7 +126,7 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
         setAllArticles(data);
       } catch (error) {
         console.error('Error fetching visa articles:', error);
-        toast.error('Không thể tải danh sách visa');
+        toast.error(t('common.error'));
       } finally {
         setLoading(false);
       }
@@ -140,7 +146,7 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải danh sách visa...</p>
+          <p className="text-gray-600">{t('visa.loadingVisa')}</p>
         </div>
       </div>
     );
@@ -161,13 +167,13 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
           <div className="text-center text-white max-w-4xl px-4">
             <Badge className="bg-blue-500/90 text-white border-0 mb-4 px-4 py-2">
               <Globe className="w-4 h-4 mr-2" />
-              Dịch vụ Visa uy tín
+              {t('visa.title')}
             </Badge>
             <h1 className="text-5xl md:text-6xl mb-6">
-              Tư Vấn Làm Visa Chuyên Nghiệp
+              {t('visa.heroTitle')}
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-gray-200">
-              Hướng dẫn chi tiết - Tư vấn tận tâm - Tỷ lệ thành công cao
+              {t('visa.heroSubtitle')}
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
               <Button 
@@ -176,7 +182,7 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
                 onClick={() => onNavigate("visa-consultation")}
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
-                Đăng ký tư vấn ngay
+                {t('visa.consultNow')}
               </Button>
               <Button 
                 size="lg" 
@@ -200,8 +206,8 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
                 <Flame className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-4xl">Visa Hot</h2>
-                <p className="text-gray-600">Thông tin visa được quan tâm nhất</p>
+                <h2 className="text-4xl">{t('visa.hotDestinations')}</h2>
+                <p className="text-gray-600">{t('visa.whyChooseUsDesc')}</p>
               </div>
               <Badge className="bg-red-500 text-white border-0 px-4 py-2 ml-auto">
                 <TrendingUp className="w-4 h-4 mr-1" />
@@ -222,8 +228,8 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
             <div className="flex items-center gap-3 mb-8">
               <div className="text-5xl">🌏</div>
               <div>
-                <h2 className="text-4xl">Visa Châu Á</h2>
-                <p className="text-gray-600">Thông tin visa các nước châu Á</p>
+                <h2 className="text-4xl">{t('visa.asiaVisa')}</h2>
+                <p className="text-gray-600">{t('visa.visaDetails')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -240,8 +246,8 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
             <div className="flex items-center gap-3 mb-8">
               <div className="text-5xl">🇪🇺</div>
               <div>
-                <h2 className="text-4xl">Visa Châu Âu</h2>
-                <p className="text-gray-600">Thông tin visa các nước châu Âu</p>
+                <h2 className="text-4xl">{t('visa.europeVisa')}</h2>
+                <p className="text-gray-600">{t('visa.visaDetails')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -258,8 +264,8 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
             <div className="flex items-center gap-3 mb-8">
               <div className="text-5xl">🌎</div>
               <div>
-                <h2 className="text-4xl">Visa Châu Mỹ</h2>
-                <p className="text-gray-600">Thông tin visa các nước châu Mỹ</p>
+                <h2 className="text-4xl">{t('visa.americaVisa')}</h2>
+                <p className="text-gray-600">{t('visa.visaDetails')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -294,8 +300,8 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
             <div className="flex items-center gap-3 mb-8">
               <div className="text-5xl">🦁</div>
               <div>
-                <h2 className="text-4xl">Visa Châu Phi</h2>
-                <p className="text-gray-600">Thông tin visa các nước châu Phi</p>
+                <h2 className="text-4xl">{t('visa.africaVisa')}</h2>
+                <p className="text-gray-600">{t('visa.visaDetails')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -311,8 +317,8 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
       <div className="bg-linear-to-br from-blue-50 to-blue-100 py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl mb-4">Tại sao chọn chúng tôi?</h2>
-            <p className="text-gray-700 text-lg">Dịch vụ tư vấn visa uy tín hàng đầu Việt Nam</p>
+            <h2 className="text-4xl mb-4">{t('visa.whyChooseUs')}</h2>
+            <p className="text-gray-700 text-lg">{t('visa.whyChooseUsDesc')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -332,9 +338,9 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
       {/* CTA Section */}
       <div className="bg-linear-to-r from-orange-500 to-orange-600 py-16">
         <div className="max-w-4xl mx-auto px-4 text-center text-white">
-          <h2 className="text-4xl mb-4">Bạn cần hỗ trợ làm visa?</h2>
+          <h2 className="text-4xl mb-4">{t('visa.needHelp')}</h2>
           <p className="text-xl mb-8 text-orange-100">
-            Đăng ký ngay để được tư vấn miễn phí bởi đội ngũ chuyên viên giàu kinh nghiệm
+            {t('visa.consultationSubtitle')}
           </p>
           
           <div className="flex gap-4 justify-center flex-wrap">
@@ -344,7 +350,7 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
               onClick={() => onNavigate("visa-consultation")}
             >
               <MessageCircle className="w-5 h-5 mr-2" />
-              Đăng ký tư vấn miễn phí
+              {t('visa.freeConsultation')}
             </Button>
             <Button 
               size="lg" 
@@ -352,7 +358,7 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
               className="border-white text-white hover:bg-white/20 h-14 px-8 text-lg"
             >
               <Mail className="w-5 h-5 mr-2" />
-              Email: visa@wanderlust.vn
+              {t('visa.emailSupport')}: visa@wanderlust.vn
             </Button>
           </div>
 

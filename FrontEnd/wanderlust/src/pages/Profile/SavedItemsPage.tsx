@@ -1,15 +1,15 @@
 import {
-    CheckCircle,
-    Clock,
-    Dumbbell,
-    Eye,
-    Heart, MapPin,
-    ParkingCircle,
-    Share2,
-    Star,
-    Utensils,
-    Wifi,
-    X
+  CheckCircle,
+  Clock,
+  Dumbbell,
+  Eye,
+  Heart, MapPin,
+  ParkingCircle,
+  Share2,
+  Star,
+  Utensils,
+  Wifi,
+  X
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -19,12 +19,12 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "../../components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import type { PageType } from "../../MainApp";
@@ -224,9 +224,9 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
 
   const getTypeLabel = (type: string) => {
     switch(type) {
-      case "hotel": return t('savedItems.hotel', 'Khách sạn');
-      case "activity": return t('savedItems.activity', 'Hoạt động');
-      case "destination": return t('savedItems.destination', 'Điểm đến');
+      case "hotel": return t('profile.savedItems.hotel', 'Khách sạn');
+      case "activity": return t('profile.savedItems.activity', 'Hoạt động');
+      case "destination": return t('profile.savedItems.destination', 'Điểm đến');
       default: return "";
     }
   };
@@ -236,9 +236,9 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">{t('savedItems.title')}</h1>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('profile.savedItems.title')}</h1>
           <p className="text-gray-600">
-            {t('savedItems.subtitle')} ({savedItems.length} {t('savedItems.items', 'mục')})
+            {t('profile.savedItems.subtitle')} ({savedItems.length} {t('profile.savedItems.items', 'mục')})
           </p>
         </div>
 
@@ -246,22 +246,22 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
         <Card className="p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid grid-cols-4 w-full max-w-xl">
-              <TabsTrigger value="all">{t('savedItems.all')} ({savedItems.length})</TabsTrigger>
-              <TabsTrigger value="hotel">{t('savedItems.hotel', 'Khách sạn')} ({savedItems.filter(i => i.type === 'hotel').length})</TabsTrigger>
-              <TabsTrigger value="activity">{t('savedItems.activity', 'Hoạt động')} ({savedItems.filter(i => i.type === 'activity').length})</TabsTrigger>
-              <TabsTrigger value="destination">{t('savedItems.destination', 'Điểm đến')} ({savedItems.filter(i => i.type === 'destination').length})</TabsTrigger>
+              <TabsTrigger value="all">{t('profile.savedItems.all')} ({savedItems.length})</TabsTrigger>
+              <TabsTrigger value="hotel">{t('profile.savedItems.hotel', 'Khách sạn')} ({savedItems.filter(i => i.type === 'hotel').length})</TabsTrigger>
+              <TabsTrigger value="activity">{t('profile.savedItems.activity', 'Hoạt động')} ({savedItems.filter(i => i.type === 'activity').length})</TabsTrigger>
+              <TabsTrigger value="destination">{t('profile.savedItems.destination', 'Điểm đến')} ({savedItems.filter(i => i.type === 'destination').length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">
               {filteredItems.length === 0 ? (
                 <div className="text-center py-12">
                   <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg mb-2">{t('savedItems.noItemsTitle')}</p>
+                  <p className="text-gray-500 text-lg mb-2">{t('profile.savedItems.noItemsTitle')}</p>
                   <p className="text-gray-400 mb-6">
-                    {t('savedItems.noItemsDesc', 'Lưu các địa điểm và dịch vụ yêu thích để dễ dàng tìm lại sau này')}
+                    {t('profile.savedItems.noItemsDesc', 'Lưu các địa điểm và dịch vụ yêu thích để dễ dàng tìm lại sau này')}
                   </p>
                   <Button onClick={() => onNavigate("home")}>
-                    {t('savedItems.exploreNow')}
+                    {t('profile.savedItems.exploreNow')}
                   </Button>
                 </div>
               ) : (
@@ -305,7 +305,7 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
                               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                               <span className="text-sm">{item.rating}</span>
                             </div>
-                            <span className="text-sm text-gray-600">({item.reviews} {t('savedItems.reviews', 'đánh giá')})</span>
+                            <span className="text-sm text-gray-600">({item.reviews} {t('profile.savedItems.reviews', 'đánh giá')})</span>
                           </div>
                         )}
 
@@ -316,12 +316,12 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
                                 {item.price.toLocaleString('vi-VN')}đ
                               </p>
                               {item.type === "hotel" && (
-                                <p className="text-sm text-gray-600">{t('savedItems.perNight')}</p>
+                                <p className="text-sm text-gray-600">{t('profile.savedItems.perNight')}</p>
                               )}
                             </div>
                           ) : (
                             <div className="text-sm text-gray-600">
-                              {t('savedItems.savedOn', 'Đã lưu')} {new Date(item.savedDate).toLocaleDateString('vi-VN')}
+                              {t('profile.savedItems.savedOn', 'Đã lưu')} {new Date(item.savedDate).toLocaleDateString('vi-VN')}
                             </div>
                           )}
 
@@ -338,7 +338,7 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
                               onClick={() => handleViewDetails(item)}
                             >
                               <Eye className="w-4 h-4 mr-1" />
-                              {t('savedItems.viewDetails', 'Xem chi tiết')}
+                              {t('profile.savedItems.viewDetails', 'Xem chi tiết')}
                             </Button>
                           </div>
                         </div>
@@ -402,17 +402,17 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
                       <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                       <span className="text-xl">{selectedItem.rating}</span>
                     </div>
-                    <span className="text-gray-600">({selectedItem.reviews} {t('savedItems.reviews', 'đánh giá')})</span>
+                    <span className="text-gray-600">({selectedItem.reviews} {t('profile.savedItems.reviews', 'đánh giá')})</span>
                   </div>
                 )}
                 {selectedItem.price && (
                   <div className="text-right">
-                    <p className="text-sm text-gray-600">{t('savedItems.priceFrom', 'Giá từ')}</p>
+                    <p className="text-sm text-gray-600">{t('profile.savedItems.priceFrom', 'Giá từ')}</p>
                     <p className="text-3xl text-blue-600">
                       {selectedItem.price.toLocaleString('vi-VN')}đ
                     </p>
                     {selectedItem.type === "hotel" && (
-                      <p className="text-sm text-gray-600">{t('savedItems.perNight')}</p>
+                      <p className="text-sm text-gray-600">{t('profile.savedItems.perNight')}</p>
                     )}
                   </div>
                 )}
@@ -420,7 +420,7 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
 
               {/* Description */}
               <div>
-                <h4 className="mb-2 text-gray-900">{t('savedItems.description', 'Mô tả')}</h4>
+                <h4 className="mb-2 text-gray-900">{t('profile.savedItems.description', 'Mô tả')}</h4>
                 <p className="text-gray-700 leading-relaxed">{selectedItem.description}</p>
               </div>
 
@@ -548,7 +548,7 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
               className="gap-2"
             >
               <Heart className="w-4 h-4 fill-red-500 text-red-500" />
-              {t('savedItems.unsave')}
+              {t('profile.savedItems.unsave')}
             </Button>
             <Button 
               variant="outline"
@@ -556,7 +556,7 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
               className="gap-2"
             >
               <Share2 className="w-4 h-4" />
-              {t('savedItems.share')}
+              {t('profile.savedItems.share')}
             </Button>
             <Button onClick={() => {
               // Navigate to appropriate page based on type
@@ -567,7 +567,7 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
               }
               setIsDetailDialogOpen(false);
             }}>
-              {t('savedItems.bookNow')}
+              {t('profile.savedItems.bookNow')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -4,7 +4,7 @@ import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { Badge } from "../../components/ui/badge";
 import { Header } from "../../components/Header";
-import { Footer } from "../../components/Footer";
+
 import type { PageType } from "../../MainApp";
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
@@ -259,8 +259,8 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
                           <Star
                             key={i}
                             className={`w-5 h-5 ${i < hotel.rating
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "text-gray-300"
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-gray-300"
                               }`}
                           />
                         ))}
@@ -609,7 +609,7 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
       </div>
 
       {/* Footer */}
-      <Footer onNavigate={onNavigate} />
+      <Footer />
     </div>
   );
 }

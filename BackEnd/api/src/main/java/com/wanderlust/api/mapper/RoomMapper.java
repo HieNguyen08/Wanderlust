@@ -25,6 +25,8 @@ public interface RoomMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "slug", ignore = true)
+    @Mapping(target = "refundable", ignore = true)
     Room toEntity(RoomDTO dto);
 
     /**
@@ -33,5 +35,7 @@ public interface RoomMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "slug", ignore = true)
+    @Mapping(target = "refundable", ignore = true)
     void updateEntityFromDTO(RoomDTO dto, @MappingTarget Room room);
 }

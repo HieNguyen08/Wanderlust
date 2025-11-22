@@ -1,9 +1,10 @@
+import { Bell, Copy } from "lucide-react";
 import { useState } from "react";
-import svgPaths from "../../imports/svg-b0swlovnmc";
+import { useTranslation } from "react-i18next";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { Button } from "../../components/ui/button";
-import { Bell, Copy, Clock } from "lucide-react";
 import { Footer } from "../../components/Footer";
+import { Button } from "../../components/ui/button";
+import svgPaths from "../../imports/svg-b0swlovnmc";
 import type { PageType } from "../../MainApp";
 
 interface OffersPageProps {
@@ -12,22 +13,23 @@ interface OffersPageProps {
 
 // Hero Section
 function HeroSection() {
+  const { t } = useTranslation();
   return (
     <div className="bg-[#fff1e4] py-16 px-8">
       <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-16">
         <div className="flex-1 max-w-[670px]">
-          <h1 className="text-[32px] mb-6">Ưu đãi hàng tuần</h1>
+          <h1 className="text-[32px] mb-6">{t('offers.weeklyOffers')}</h1>
           <div className="text-[16px] leading-relaxed mb-6">
             <p className="mb-4">
-              🌟 <span className="text-[14px]">Ưu đãi nghỉ ngơi độc quyền ở Paris! Tiết kiệm 20% cho chuyến đi trong mơ của bạn!</span> 🌟
+              🌟 <span className="text-[14px]">{t('offers.parisExclusive')}</span> 🌟
             </p>
             <p>
-              Bắt đầu cuộc hành trình khó quên đến thành phố lãng mạn Paris, Pháp, với ưu đãi độc quyền trong thời gian có hạn của chúng tôi! Đắm mình trong sự quyến rũ của Thành phố Ánh sáng trong khi tận hưởng mức tiết kiệm đáng kinh ngạc 20% cho toàn bộ chuyến đi của bạn! Dưới đây là các tính năng độc quyền của thỏa thuận này:
+              {t('offers.parisDescription')}
             </p>
           </div>
           <Button className="bg-[#0194f3] hover:bg-[#0180d6] text-white">
             <Bell className="w-4 h-4 mr-2" />
-            Đăng ký để nhận thêm các thông tin ưu đãi đặc biệt
+            {t('offers.subscribeForDeals')}
           </Button>
         </div>
 
@@ -45,23 +47,24 @@ function HeroSection() {
 
 // Filter Section
 function FilterSection() {
+  const { t } = useTranslation();
   return (
     <div className="flex gap-2">
       <select className="border rounded px-4 py-2 bg-white">
-        <option>Flights</option>
-        <option>Hotels</option>
-        <option>Tours</option>
+        <option>{t('common.flights')}</option>
+        <option>{t('common.hotels')}</option>
+        <option>{t('offers.tours')}</option>
       </select>
       <select className="border rounded px-4 py-2 bg-white">
-        <option>Trending</option>
-        <option>New</option>
-        <option>Popular</option>
+        <option>{t('offers.trending')}</option>
+        <option>{t('offers.new')}</option>
+        <option>{t('offers.popular')}</option>
       </select>
       <select className="border rounded px-4 py-2 bg-white">
-        <option>Time of stay</option>
-        <option>This weekend</option>
-        <option>Next week</option>
-        <option>Next month</option>
+        <option>{t('offers.timeOfStay')}</option>
+        <option>{t('offers.thisWeekend')}</option>
+        <option>{t('offers.nextWeek')}</option>
+        <option>{t('offers.nextMonth')}</option>
       </select>
     </div>
   );
@@ -69,6 +72,7 @@ function FilterSection() {
 
 // Offer Card
 function OfferCard() {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -86,8 +90,8 @@ function OfferCard() {
       />
       
       <div className="p-4">
-        <p className="text-sm text-gray-600 mb-2">Wanderlust Travel Agency</p>
-        <h3 className="text-[16px] mb-4">15% Off on All-Inclusive Vacation Packages</h3>
+        <p className="text-sm text-gray-600 mb-2">{t('offers.travelAgency')}</p>
+        <h3 className="text-[16px] mb-4">{t('offers.vacationPackage')}</h3>
         
         <div className="flex items-center gap-2 mb-4">
           <div className="flex-1 border-2 border-dashed border-[#5d36af] rounded p-2 text-center">
@@ -97,17 +101,17 @@ function OfferCard() {
             onClick={handleCopy}
             className="flex items-center gap-2 px-4 py-2 text-[#0194f3] hover:bg-gray-50 rounded transition-colors"
           >
-            <span className="text-sm">{copied ? "Copied!" : "Copy"}</span>
+            <span className="text-sm">{copied ? t('offers.copied') : t('offers.copy')}</span>
             <Copy className="w-3 h-3" />
           </button>
         </div>
 
         <div className="flex items-center justify-between">
           <div className="bg-[#ecd8c5] px-3 py-1 rounded text-xs">
-            Expires in 23h:20m
+            {t('offers.expiresIn')}
           </div>
           <Button size="sm" className="bg-[#0194f3] hover:bg-[#0180d6] text-white">
-            Explore Now
+            {t('offers.exploreNow')}
           </Button>
         </div>
       </div>

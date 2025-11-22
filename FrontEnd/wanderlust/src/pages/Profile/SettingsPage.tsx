@@ -121,8 +121,8 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">{t('settings.title')}</h1>
-          <p className="text-gray-600">{t('settings.subtitle')}</p>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('profile.settings.title')}</h1>
+          <p className="text-gray-600">{t('profile.settings.subtitle')}</p>
         </div>
 
         {/* Change Password */}
@@ -133,13 +133,13 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
                 <Lock className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-xl text-gray-900">{t('settings.accountSecurity')}</h2>
-                <p className="text-sm text-gray-600">{t('settings.securityDesc')}</p>
+                <h2 className="text-xl text-gray-900">{t('profile.settings.accountSecurity')}</h2>
+                <p className="text-sm text-gray-600">{t('profile.settings.securityDesc')}</p>
               </div>
             </div>
             <Button onClick={() => setIsChangePasswordOpen(true)} className="gap-2">
               <Key className="w-4 h-4" />
-              {t('settings.changePassword')}
+              {t('profile.settings.changePassword')}
             </Button>
           </div>
 
@@ -148,7 +148,7 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
-                <p className="text-gray-900">{t('settings.password')}</p>
+                <p className="text-gray-900">{t('profile.settings.password')}</p>
                 <p className="text-sm text-gray-600">••••••••••••</p>
               </div>
               <Button 
@@ -157,17 +157,17 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
                 onClick={() => setIsChangePasswordOpen(true)}
                 className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
               >
-                {t('settings.change')}
+                {t('profile.settings.change')}
               </Button>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
-                <p className="text-gray-900">{t('settings.twoFactor')}</p>
-                <p className="text-sm text-gray-600">{t('settings.twoFactorStatus')}</p>
+                <p className="text-gray-900">{t('profile.settings.twoFactor')}</p>
+                <p className="text-sm text-gray-600">{t('profile.settings.twoFactorStatus')}</p>
               </div>
               <Button variant="ghost" size="sm" disabled>
-                {t('settings.activate')}
+                {t('profile.settings.activate')}
               </Button>
             </div>
           </div>
@@ -180,8 +180,8 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
               <Bell className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <h2 className="text-xl text-gray-900">{t('settings.notifications')}</h2>
-              <p className="text-sm text-gray-600">{t('settings.notificationsDesc')}</p>
+              <h2 className="text-xl text-gray-900">{t('profile.settings.notifications')}</h2>
+              <p className="text-sm text-gray-600">{t('profile.settings.notificationsDesc')}</p>
             </div>
           </div>
 
@@ -190,12 +190,12 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
           <div className="space-y-6">
             {/* Email Notifications */}
             <div>
-              <h3 className="text-gray-900 mb-4">{t('settings.email')}</h3>
+              <h3 className="text-gray-900 mb-4">{t('profile.settings.email')}</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-900">{t('settings.bookingInfo')}</p>
-                    <p className="text-sm text-gray-600">{t('settings.bookingInfoDesc')}</p>
+                    <p className="text-gray-900">{t('profile.settings.bookingInfo')}</p>
+                    <p className="text-sm text-gray-600">{t('profile.settings.bookingInfoDesc')}</p>
                   </div>
                   <Switch
                     checked={notifications.emailBooking}
@@ -207,8 +207,8 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-900">{t('settings.tripReminders')}</p>
-                    <p className="text-sm text-gray-600">{t('settings.tripRemindersDesc')}</p>
+                    <p className="text-gray-900">{t('profile.settings.tripReminders')}</p>
+                    <p className="text-sm text-gray-600">{t('profile.settings.tripRemindersDesc')}</p>
                   </div>
                   <Switch
                     checked={notifications.emailReminders}
@@ -220,8 +220,8 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-900">{t('settings.promotions')}</p>
-                    <p className="text-sm text-gray-600">{t('settings.promotionsDesc')}</p>
+                    <p className="text-gray-900">{t('profile.settings.promotions')}</p>
+                    <p className="text-sm text-gray-600">{t('profile.settings.promotionsDesc')}</p>
                   </div>
                   <Switch
                     checked={notifications.emailPromotions}
@@ -237,12 +237,12 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
 
             {/* Push Notifications */}
             <div>
-              <h3 className="text-gray-900 mb-4">{t('settings.pushNotifications')}</h3>
+              <h3 className="text-gray-900 mb-4">{t('profile.settings.pushNotifications')}</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-900">{t('settings.bookingInfo')}</p>
-                    <p className="text-sm text-gray-600">{t('settings.bookingInfoDesc')}</p>
+                    <p className="text-gray-900">{t('profile.settings.bookingInfo')}</p>
+                    <p className="text-sm text-gray-600">{t('profile.settings.bookingInfoDesc')}</p>
                   </div>
                   <Switch
                     checked={notifications.pushBooking}
@@ -254,8 +254,8 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-900">{t('settings.promotions')}</p>
-                    <p className="text-sm text-gray-600">{t('settings.promotionsDesc')}</p>
+                    <p className="text-gray-900">{t('profile.settings.promotions')}</p>
+                    <p className="text-sm text-gray-600">{t('profile.settings.promotionsDesc')}</p>
                   </div>
                   <Switch
                     checked={notifications.pushPromotions}
@@ -271,11 +271,11 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
 
             {/* SMS Notifications */}
             <div>
-              <h3 className="text-gray-900 mb-4">{t('settings.sms')}</h3>
+              <h3 className="text-gray-900 mb-4">{t('profile.settings.sms')}</h3>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-900">{t('settings.bookingInfo')}</p>
-                  <p className="text-sm text-gray-600">{t('settings.bookingInfoDesc')}</p>
+                  <p className="text-gray-900">{t('profile.settings.bookingInfo')}</p>
+                  <p className="text-sm text-gray-600">{t('profile.settings.bookingInfoDesc')}</p>
                 </div>
                 <Switch
                   checked={notifications.smsBooking}
@@ -295,8 +295,8 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
               <Globe className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-xl text-gray-900">{t('settings.languageRegion')}</h2>
-              <p className="text-sm text-gray-600">{t('settings.languageRegionDesc')}</p>
+              <h2 className="text-xl text-gray-900">{t('profile.settings.languageRegion')}</h2>
+              <p className="text-sm text-gray-600">{t('profile.settings.languageRegionDesc')}</p>
             </div>
           </div>
 
@@ -304,13 +304,13 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
 
           <div className="space-y-4 max-w-md">
             <div>
-              <Label htmlFor="language">{t('settings.language')}</Label>
+              <Label htmlFor="language">{t('profile.settings.language')}</Label>
               <select
                 id="language"
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="vi">{t('settings.vietnamese')}</option>
-                <option value="en">{t('settings.english')}</option>
+                <option value="vi">{t('profile.settings.vietnamese')}</option>
+                <option value="en">{t('profile.settings.english')}</option>
                 <option value="zh">中文</option>
                 <option value="ja">日本語</option>
                 <option value="ko">한국어</option>
@@ -318,19 +318,19 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
             </div>
 
             <div>
-              <Label htmlFor="currency">{t('settings.currency')}</Label>
+              <Label htmlFor="currency">{t('profile.settings.currency')}</Label>
               <select
                 id="currency"
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="vnd">{t('settings.vnd', 'VND - Việt Nam Đồng')}</option>
-                <option value="usd">{t('settings.usd', 'USD - US Dollar')}</option>
-                <option value="eur">{t('settings.eur', 'EUR - Euro')}</option>
-                <option value="jpy">{t('settings.jpy', 'JPY - Japanese Yen')}</option>
+                <option value="vnd">{t('profile.settings.vnd', 'VND - Việt Nam Đồng')}</option>
+                <option value="usd">{t('profile.settings.usd', 'USD - US Dollar')}</option>
+                <option value="eur">{t('profile.settings.eur', 'EUR - Euro')}</option>
+                <option value="jpy">{t('profile.settings.jpy', 'JPY - Japanese Yen')}</option>
               </select>
             </div>
 
-            <Button className="w-full">{t('settings.saveChanges')}</Button>
+            <Button className="w-full">{t('profile.settings.saveChanges')}</Button>
           </div>
         </Card>
 
@@ -341,8 +341,8 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
               <Shield className="w-6 h-6 text-yellow-600" />
             </div>
             <div>
-              <h2 className="text-xl text-gray-900">{t('settings.privacySecurity')}</h2>
-              <p className="text-sm text-gray-600">{t('settings.securityDesc')}</p>
+              <h2 className="text-xl text-gray-900">{t('profile.settings.privacySecurity')}</h2>
+              <p className="text-sm text-gray-600">{t('profile.settings.securityDesc')}</p>
             </div>
           </div>
 
@@ -351,30 +351,30 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-900">{t('settings.twoFactor')}</p>
-                <p className="text-sm text-gray-600">{t('settings.securityDesc')}</p>
+                <p className="text-gray-900">{t('profile.settings.twoFactor')}</p>
+                <p className="text-sm text-gray-600">{t('profile.settings.securityDesc')}</p>
               </div>
-              <Button variant="outline">{t('settings.activate')}</Button>
+              <Button variant="outline">{t('profile.settings.activate')}</Button>
             </div>
 
             <Separator />
 
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-900">{t('settings.loginDevices', 'Thiết bị đã đăng nhập')}</p>
-                <p className="text-sm text-gray-600">{t('settings.loginDevicesDesc', 'Quản lý các thiết bị có quyền truy cập')}</p>
+                <p className="text-gray-900">{t('profile.settings.loginDevices', 'Thiết bị đã đăng nhập')}</p>
+                <p className="text-sm text-gray-600">{t('profile.settings.loginDevicesDesc', 'Quản lý các thiết bị có quyền truy cập')}</p>
               </div>
-              <Button variant="outline">{t('settings.viewDetails', 'Xem chi tiết')}</Button>
+              <Button variant="outline">{t('profile.settings.viewDetails', 'Xem chi tiết')}</Button>
             </div>
 
             <Separator />
 
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-900">{t('settings.downloadData', 'Tải dữ liệu cá nhân')}</p>
-                <p className="text-sm text-gray-600">{t('settings.downloadDataDesc', 'Tải về dữ liệu của bạn')}</p>
+                <p className="text-gray-900">{t('profile.settings.downloadData', 'Tải dữ liệu cá nhân')}</p>
+                <p className="text-sm text-gray-600">{t('profile.settings.downloadDataDesc', 'Tải về dữ liệu của bạn')}</p>
               </div>
-              <Button variant="outline">{t('settings.download', 'Tải xuống')}</Button>
+              <Button variant="outline">{t('profile.settings.download', 'Tải xuống')}</Button>
             </div>
           </div>
         </Card>
@@ -386,8 +386,8 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
               <Trash2 className="w-6 h-6 text-red-600" />
             </div>
             <div>
-              <h2 className="text-xl text-red-900">{t('settings.dangerZone')}</h2>
-              <p className="text-sm text-gray-600">{t('settings.dangerZoneDesc', 'Các hành động không thể hoàn tác')}</p>
+              <h2 className="text-xl text-red-900">{t('profile.settings.dangerZone')}</h2>
+              <p className="text-sm text-gray-600">{t('profile.settings.dangerZoneDesc', 'Các hành động không thể hoàn tác')}</p>
             </div>
           </div>
 
@@ -396,12 +396,12 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-900">{t('settings.deleteAccount')}</p>
+                <p className="text-gray-900">{t('profile.settings.deleteAccount')}</p>
                 <p className="text-sm text-gray-600">
-                  {t('settings.deleteAccountDesc')}
+                  {t('profile.settings.deleteAccountDesc')}
                 </p>
               </div>
-              <Button variant="destructive">{t('settings.deleteAccount')}</Button>
+              <Button variant="destructive">{t('profile.settings.deleteAccount')}</Button>
             </div>
           </div>
         </Card>
@@ -411,9 +411,9 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
       <Dialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('settings.changePassword')}</DialogTitle>
+            <DialogTitle>{t('profile.settings.changePassword')}</DialogTitle>
             <DialogDescription>
-              {t('settings.passwordDialogDesc', 'Nhập mật khẩu hiện tại và mật khẩu mới để thay đổi')}
+              {t('profile.settings.passwordDialogDesc', 'Nhập mật khẩu hiện tại và mật khẩu mới để thay đổi')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -453,7 +453,7 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
               {t('profile.cancel')}
             </Button>
             <Button onClick={handleChangePassword}>
-              {t('settings.changePassword')}
+              {t('profile.settings.changePassword')}
             </Button>
           </DialogFooter>
         </DialogContent>

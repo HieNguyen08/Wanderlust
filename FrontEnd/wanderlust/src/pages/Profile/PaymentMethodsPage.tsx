@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
 import { Footer } from "../../components/Footer";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
@@ -23,6 +24,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Separator } from "../../components/ui/separator";
+import { bookingApi } from "../../utils/api";
 
 interface PaymentMethodsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -55,6 +57,7 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const [isVoucherListOpen, setIsVoucherListOpen] = useState(false);
   const [showNewCardForm, setShowNewCardForm] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // New card form
   const [newCardData, setNewCardData] = useState({
@@ -155,37 +158,148 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
   };
 
   // Handle payment
-  const handlePayment = () => {
+  const handlePayment = async () => {
     // Validation
     if (finalAmount > 0 && !selectedPaymentMethod) {
-      alert(t('payment.selectPaymentMethod', 'Vui lòng chọn phương thức thanh toán'));
+      toast.error(t('payment.selectPaymentMethod', 'Vui lòng chọn phương thức thanh toán'));
       return;
     }
 
     if (selectedPaymentMethod === "new-card") {
       if (!newCardData.cardNumber || !newCardData.cardName || !newCardData.expiryDate || !newCardData.cvv) {
-        alert(t('payment.fillAllCardInfo', 'Vui lòng điền đầy đủ thông tin thẻ'));
+        toast.error(t('payment.fillAllCardInfo', 'Vui lòng điền đầy đủ thông tin thẻ'));
         return;
       }
     }
 
-    // Simulate payment processing
-    const paymentInfo = {
-      bookingType,
-      totalAmount,
-      voucherDiscount,
-      walletUsed,
-      finalAmount,
-      paymentMethod: finalAmount === 0 ? "wallet" : selectedPaymentMethod
-    };
+    try {
+      setIsProcessingPayment(true);
 
-    console.log("Processing payment:", paymentInfo);
+      // Create booking based on type
+      let createdBooking = null;
+      
+      if (bookingType === "flight") {
+        // Prepare flight booking data
+        const passengers = bookingData?.passengers || [];
+        const contactInfo = bookingData?.contactInfo || {};
+        const flightData = bookingData?.flightData || {};
+        
+        const bookingPayload = {
+          productType: "FLIGHT",
+          productId: flightData?.outbound?.flightNumber || "FLIGHT001", // Use actual flight ID if available
+          startDate: flightData?.outbound?.date || new Date().toISOString(),
+          endDate: flightData?.return?.date || undefined,
+          quantity: passengers.length || 1,
+          guestInfo: {
+            firstName: contactInfo?.fullName?.split(' ')[0] || passengers[0]?.firstName || "Guest",
+            lastName: contactInfo?.fullName?.split(' ').slice(1).join(' ') || passengers[0]?.lastName || "User",
+            email: contactInfo?.email || "guest@example.com",
+            phone: contactInfo?.phone || ""
+          },
+          specialRequests: `Flight: ${flightData?.outbound?.from} to ${flightData?.outbound?.to}. Passengers: ${passengers.length}. Class: ${flightData?.outbound?.class || 'Economy'}`
+        };
 
-    // Navigate to confirmation page
-    onNavigate("confirmation", {
-      ...bookingData,
-      paymentInfo
-    });
+        createdBooking = await bookingApi.createBooking(bookingPayload);
+        toast.success(t('payment.bookingCreated', 'Đã tạo booking thành công!'));
+      } else if (bookingType === "hotel") {
+        // Prepare hotel booking data
+        const contactInfo = bookingData?.contactInfo || {};
+        const guestInfo = bookingData?.guestInfo || {};
+        const hotel = bookingData?.hotelData?.hotel || {};
+        const booking = bookingData?.hotelData?.booking || {};
+        
+        const bookingPayload = {
+          productType: "HOTEL",
+          productId: hotel?.id || "HOTEL001",
+          startDate: booking?.checkIn || new Date().toISOString(),
+          endDate: booking?.checkOut || undefined,
+          quantity: booking?.roomCount || 1,
+          guestInfo: {
+            firstName: (bookingData?.bookingForMyself ? contactInfo?.fullName : guestInfo?.fullName)?.split(' ')[0] || "Guest",
+            lastName: (bookingData?.bookingForMyself ? contactInfo?.fullName : guestInfo?.fullName)?.split(' ').slice(1).join(' ') || "User",
+            email: contactInfo?.email || "guest@example.com",
+            phone: contactInfo?.phone || ""
+          },
+          specialRequests: `Hotel: ${hotel?.name}. Room: ${booking?.roomType}. Guests: ${booking?.guests}. ${booking?.breakfast ? 'With Breakfast' : 'Without Breakfast'}`
+        };
+
+        createdBooking = await bookingApi.createBooking(bookingPayload);
+        toast.success(t('payment.bookingCreated', 'Đã tạo booking thành công!'));
+      } else if (bookingType === "car-rental") {
+        // Prepare car rental booking data
+        const contactInfo = bookingData?.contactInfo || {};
+        const driverInfo = bookingData?.driverInfo || {};
+        const car = bookingData?.carData?.car || {};
+        const rental = bookingData?.carData?.rental || {};
+        
+        const bookingPayload = {
+          productType: "CAR_RENTAL",
+          productId: car?.id || "CAR001",
+          startDate: rental?.pickup || new Date().toISOString(),
+          endDate: rental?.dropoff || undefined,
+          quantity: 1,
+          guestInfo: {
+            firstName: driverInfo?.fullName?.split(' ')[0] || "Guest",
+            lastName: driverInfo?.fullName?.split(' ').slice(1).join(' ') || "User",
+            email: contactInfo?.email || "guest@example.com",
+            phone: driverInfo?.phone || contactInfo?.phone || ""
+          },
+          specialRequests: `Car: ${car?.name}. Location: ${rental?.location}. Days: ${rental?.days}. Driver: ${driverInfo?.fullName}`
+        };
+
+        createdBooking = await bookingApi.createBooking(bookingPayload);
+        toast.success(t('payment.bookingCreated', 'Đã tạo booking thành công!'));
+      } else if (bookingType === "activity") {
+        // Prepare activity booking data
+        const contactInfo = bookingData?.contactInfo || {};
+        const participantInfo = bookingData?.participantInfo || {};
+        const activity = bookingData?.activityData?.activity || {};
+        const booking = bookingData?.activityData?.booking || {};
+        
+        const bookingPayload = {
+          productType: "ACTIVITY",
+          productId: activity?.id || "ACTIVITY001",
+          startDate: booking?.date || new Date().toISOString(),
+          endDate: undefined,
+          quantity: booking?.participants || 1,
+          guestInfo: {
+            firstName: participantInfo?.fullName?.split(' ')[0] || contactInfo?.fullName?.split(' ')[0] || "Guest",
+            lastName: participantInfo?.fullName?.split(' ').slice(1).join(' ') || contactInfo?.fullName?.split(' ').slice(1).join(' ') || "User",
+            email: contactInfo?.email || "guest@example.com",
+            phone: participantInfo?.phone || contactInfo?.phone || ""
+          },
+          specialRequests: `Activity: ${activity?.name}. Participants: ${booking?.participants}. ${booking?.hasPickup ? 'With Pickup' : 'No Pickup'}`
+        };
+
+        createdBooking = await bookingApi.createBooking(bookingPayload);
+        toast.success(t('payment.bookingCreated', 'Đã tạo booking thành công!'));
+      }
+
+      // Prepare payment info
+      const paymentInfo = {
+        bookingType,
+        totalAmount,
+        voucherDiscount,
+        walletUsed,
+        finalAmount,
+        paymentMethod: finalAmount === 0 ? "wallet" : selectedPaymentMethod,
+        bookingId: createdBooking?.id
+      };
+
+      console.log("Payment processed:", paymentInfo);
+
+      // Navigate to confirmation page
+      onNavigate("confirmation", {
+        ...bookingData,
+        paymentInfo,
+        bookingRef: createdBooking?.id || `WL${Date.now().toString().slice(-8)}`
+      });
+    } catch (error: any) {
+      console.error('Payment/Booking error:', error);
+      toast.error(error.message || t('payment.bookingFailed', 'Không thể tạo booking. Vui lòng thử lại.'));
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   // Render order summary based on booking type
@@ -528,12 +642,18 @@ export default function PaymentMethodsPage({ onNavigate, bookingData }: PaymentM
             size="lg"
             className="w-full"
             onClick={handlePayment}
-            disabled={finalAmount > 0 && !selectedPaymentMethod}
+            disabled={(finalAmount > 0 && !selectedPaymentMethod) || isProcessingPayment}
           >
-            {finalAmount === 0
-              ? t('payment.confirmBooking')
-              : `${t('payment.pay', 'THANH TOÁN')} ${finalAmount.toLocaleString('vi-VN')}đ`
-            }
+            {isProcessingPayment ? (
+              <>
+                <span className="animate-spin mr-2">⏳</span>
+                {t('payment.processing', 'Đang xử lý...')}
+              </>
+            ) : finalAmount === 0 ? (
+              t('payment.confirmBooking')
+            ) : (
+              `${t('payment.pay', 'THANH TOÁN')} ${finalAmount.toLocaleString('vi-VN')}đ`
+            )}
           </Button>
 
           <p className="text-xs text-center text-gray-500">
@@ -756,6 +876,7 @@ function CarRentalSummary({ data }: { data: any }) {
 }
 
 function ActivitySummary({ data }: { data: any }) {
+  const { t } = useTranslation();
   const activity = data?.activityData?.activity;
   const booking = data?.activityData?.booking;
 

@@ -10,14 +10,18 @@ import java.util.List;
 
 @Repository
 public interface ActivityRepository extends MongoRepository<Activity, String> {
-    
+
     // Tìm các activity nổi bật
     List<Activity> findByFeaturedTrue();
 
     // Tìm theo vendor (cho trang quản lý của partner)
     List<Activity> findByVendorId(String vendorId);
-    
+
     // Ví dụ tìm kiếm đơn giản (Search phức tạp sẽ dùng MongoTemplate trong Service)
     List<Activity> findByLocationId(String locationId);
+
     List<Activity> findByCategory(ActivityCategory category);
+
+    // Tìm kiếm theo tên (cho Global Search)
+    List<Activity> findByNameContainingIgnoreCase(String name);
 }

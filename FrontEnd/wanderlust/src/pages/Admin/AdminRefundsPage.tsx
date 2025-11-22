@@ -12,6 +12,7 @@ import {
     XCircle
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AdminLayout } from "../../components/AdminLayout";
 import { Badge } from "../../components/ui/badge";
@@ -63,6 +64,7 @@ interface RefundRequest {
 }
 
 export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<RefundStatus | "all">("pending");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRefund, setSelectedRefund] = useState<RefundRequest | null>(null);
@@ -108,7 +110,7 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
       setRefundRequests(mappedRefunds);
     } catch (error) {
       console.error('Error loading refunds:', error);
-      toast.error('Không thể tải danh sách hoàn tiền');
+      toast.error(t('admin.cannotLoadRefunds'));
       // Keep using mock data if API fails
     } finally {
       setLoading(false);
@@ -117,27 +119,27 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
 
   const STATUS_CONFIG: Record<RefundStatus, { label: string; color: string; icon: any }> = {
     pending: {
-      label: "Chờ duyệt",
+      label: t('admin.pending'),
       color: "bg-yellow-100 text-yellow-800 border-yellow-200",
       icon: Clock
     },
     approved: {
-      label: "Đã duyệt",
+      label: t('admin.approved'),
       color: "bg-blue-100 text-blue-800 border-blue-200",
       icon: CheckCircle
     },
     processing: {
-      label: "Đang xử lý",
+      label: t('admin.processing'),
       color: "bg-purple-100 text-purple-800 border-purple-200",
       icon: AlertCircle
     },
     completed: {
-      label: "Hoàn thành",
+      label: t('admin.completed'),
       color: "bg-green-100 text-green-800 border-green-200",
       icon: CheckCircle
     },
     rejected: {
-      label: "Từ chối",
+      label: t('admin.rejected'),
       color: "bg-red-100 text-red-800 border-red-200",
       icon: XCircle
     }
@@ -167,28 +169,28 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
   // Calculate stats
   const stats = [
     {
-      label: "Chờ duyệt",
+      label: t('admin.pendingApproval'),
       value: refundRequests.filter(r => r.status === "pending").length,
       amount: refundRequests.filter(r => r.status === "pending").reduce((sum, r) => sum + r.refundAmount, 0),
       icon: Clock,
       color: "text-yellow-600"
     },
     {
-      label: "Đang xử lý",
+      label: t('admin.processing'),
       value: refundRequests.filter(r => r.status === "approved" || r.status === "processing").length,
       amount: refundRequests.filter(r => r.status === "approved" || r.status === "processing").reduce((sum, r) => sum + r.refundAmount, 0),
       icon: AlertCircle,
       color: "text-blue-600"
     },
     {
-      label: "Hoàn thành",
+      label: t('admin.completed'),
       value: refundRequests.filter(r => r.status === "completed").length,
       amount: refundRequests.filter(r => r.status === "completed").reduce((sum, r) => sum + r.refundAmount, 0),
       icon: CheckCircle,
       color: "text-green-600"
     },
     {
-      label: "Từ chối",
+      label: t('admin.rejected'),
       value: refundRequests.filter(r => r.status === "rejected").length,
       amount: 0,
       icon: XCircle,
@@ -215,12 +217,12 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
         selectedRefund.transactionId,
         `Approved by admin - Booking ${selectedRefund.bookingCode}`
       );
-      toast.success(`Đã duyệt hoàn tiền ${selectedRefund.bookingCode}`);
+      toast.success(t('admin.refundApproved', { code: selectedRefund.bookingCode }));
       setIsApproveDialogOpen(false);
       loadRefunds(); // Reload data
     } catch (error) {
       console.error('Error approving refund:', error);
-      toast.error('Không thể duyệt hoàn tiền');
+      toast.error(t('admin.cannotApproveRefund'));
     }
   };
 
@@ -233,18 +235,18 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
   const handleConfirmReject = async () => {
     if (!selectedRefund) return;
     if (!rejectionReason.trim()) {
-      toast.error("Vui lòng nhập lý do từ chối");
+      toast.error(t('admin.pleaseEnterRejectionReason'));
       return;
     }
     
     try {
       await adminWalletApi.rejectRefund(selectedRefund.transactionId, rejectionReason);
-      toast.success(`Đã từ chối hoàn tiền ${selectedRefund.bookingCode}`);
+      toast.success(t('admin.refundRejected', { code: selectedRefund.bookingCode }));
       setIsRejectDialogOpen(false);
       loadRefunds(); // Reload data
     } catch (error) {
       console.error('Error rejecting refund:', error);
-      toast.error('Không thể từ chối hoàn tiền');
+      toast.error(t('admin.cannotRejectRefund'));
     }
   };
 
@@ -258,12 +260,12 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl text-gray-900 mb-2">Quản lý Hoàn tiền</h1>
-            <p className="text-gray-600">Xử lý các yêu cầu hoàn tiền từ khách hàng</p>
+            <h1 className="text-3xl text-gray-900 mb-2">{t('admin.manageRefunds')}</h1>
+            <p className="text-gray-600">{t('admin.manageRefundsDesc')}</p>
           </div>
           <Button onClick={handleExport} variant="outline">
             <Download className="w-4 h-4 mr-2" />
-            Xuất báo cáo
+            {t('admin.exportReport')}
           </Button>
         </div>
 
@@ -282,7 +284,7 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
                 </div>
                 {stat.amount > 0 && (
                   <div className="pt-2 border-t">
-                    <p className="text-xs text-gray-600">Tổng giá trị</p>
+                    <p className="text-xs text-gray-600">{t('admin.totalValue')}</p>
                     <p className="text-sm">{stat.amount.toLocaleString('vi-VN')}đ</p>
                   </div>
                 )}
@@ -296,7 +298,7 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
-              placeholder="Tìm kiếm theo mã booking, tên khách hàng, dịch vụ..."
+              placeholder={t('admin.searchRefunds')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -309,27 +311,27 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
             <TabsList className="grid grid-cols-3 lg:grid-cols-6 w-full mb-6">
               <TabsTrigger value="all">
-                Tất cả ({refundRequests.length})
+                {t('common.all')} ({refundRequests.length})
               </TabsTrigger>
               <TabsTrigger value="pending">
                 <Clock className="w-4 h-4 mr-1" />
-                Chờ duyệt
+                {t('admin.pending')}
               </TabsTrigger>
               <TabsTrigger value="approved">
                 <CheckCircle className="w-4 h-4 mr-1" />
-                Đã duyệt
+                {t('admin.approved')}
               </TabsTrigger>
               <TabsTrigger value="processing">
                 <AlertCircle className="w-4 h-4 mr-1" />
-                Đang xử lý
+                {t('admin.processing')}
               </TabsTrigger>
               <TabsTrigger value="completed">
                 <CheckCircle className="w-4 h-4 mr-1" />
-                Hoàn thành
+                {t('admin.completed')}
               </TabsTrigger>
               <TabsTrigger value="rejected">
                 <XCircle className="w-4 h-4 mr-1" />
-                Từ chối
+                {t('admin.rejected')}
               </TabsTrigger>
             </TabsList>
 
@@ -338,20 +340,20 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
                 {filteredRefunds.length === 0 ? (
                   <div className="text-center py-12">
                     <DollarSign className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-500">Không có yêu cầu hoàn tiền nào</p>
+                    <p className="text-gray-500">{t('admin.noRefundRequests')}</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs text-gray-600">Mã booking</th>
-                          <th className="px-4 py-3 text-left text-xs text-gray-600">Dịch vụ</th>
-                          <th className="px-4 py-3 text-left text-xs text-gray-600">Khách hàng</th>
-                          <th className="px-4 py-3 text-left text-xs text-gray-600">Số tiền hoàn</th>
-                          <th className="px-4 py-3 text-left text-xs text-gray-600">Ngày yêu cầu</th>
-                          <th className="px-4 py-3 text-left text-xs text-gray-600">Trạng thái</th>
-                          <th className="px-4 py-3 text-right text-xs text-gray-600">Thao tác</th>
+                          <th className="px-4 py-3 text-left text-xs text-gray-600">{t('admin.bookingCode')}</th>
+                          <th className="px-4 py-3 text-left text-xs text-gray-600">{t('common.service')}</th>
+                          <th className="px-4 py-3 text-left text-xs text-gray-600">{t('admin.customer')}</th>
+                          <th className="px-4 py-3 text-left text-xs text-gray-600">{t('admin.refundAmount')}</th>
+                          <th className="px-4 py-3 text-left text-xs text-gray-600">{t('admin.requestDate')}</th>
+                          <th className="px-4 py-3 text-left text-xs text-gray-600">{t('common.status')}</th>
+                          <th className="px-4 py-3 text-right text-xs text-gray-600">{t('common.actions')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
@@ -408,14 +410,14 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
                                         size="sm"
                                         onClick={() => handleApproveClick(refund)}
                                       >
-                                        Duyệt
+                                        {t('admin.approve')}
                                       </Button>
                                       <Button
                                         size="sm"
                                         variant="destructive"
                                         onClick={() => handleRejectClick(refund)}
                                       >
-                                        Từ chối
+                                        {t('admin.reject')}
                                       </Button>
                                     </>
                                   )}
@@ -438,9 +440,9 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
       <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Chi tiết yêu cầu hoàn tiền - {selectedRefund?.id}</DialogTitle>
+            <DialogTitle>{t('admin.refundRequestDetails')} - {selectedRefund?.id}</DialogTitle>
             <DialogDescription>
-              Thông tin chi tiết về yêu cầu hoàn tiền
+              {t('admin.refundRequestDetailsDesc')}
             </DialogDescription>
           </DialogHeader>
 
@@ -450,14 +452,14 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
               <Card className="p-4 bg-blue-50 border-blue-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Trạng thái</p>
+                    <p className="text-sm text-gray-600">{t('common.status')}</p>
                     <Badge className={`${STATUS_CONFIG[selectedRefund.status].color} border mt-1`}>
                       {STATUS_CONFIG[selectedRefund.status].label}
                     </Badge>
                   </div>
                   {selectedRefund.estimatedCompletionDate && (
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">Dự kiến hoàn thành</p>
+                      <p className="text-sm text-gray-600">{t('admin.estimatedCompletion')}</p>
                       <p className="text-sm">{selectedRefund.estimatedCompletionDate}</p>
                     </div>
                   )}
@@ -468,27 +470,27 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
               <Card className="p-4">
                 <h4 className="mb-3 flex items-center gap-2">
                   <FileText className="w-4 h-4 text-blue-600" />
-                  Thông tin booking
+                  {t('admin.bookingInfo')}
                 </h4>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-gray-600">Mã booking</p>
+                    <p className="text-gray-600">{t('admin.bookingCode')}</p>
                     <p>{selectedRefund.bookingCode}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Loại dịch vụ</p>
+                    <p className="text-gray-600">{t('admin.serviceType')}</p>
                     <p>{getServiceIcon(selectedRefund.serviceType)} {selectedRefund.serviceType}</p>
                   </div>
                   <div className="col-span-2">
-                    <p className="text-gray-600">Tên dịch vụ</p>
+                    <p className="text-gray-600">{t('admin.serviceName')}</p>
                     <p>{selectedRefund.serviceName}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Vendor</p>
+                    <p className="text-gray-600">{t('admin.vendor')}</p>
                     <p>{selectedRefund.vendorName}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Ngày yêu cầu</p>
+                    <p className="text-gray-600">{t('admin.requestDate')}</p>
                     <p>{selectedRefund.requestDate}</p>
                   </div>
                 </div>
@@ -498,15 +500,15 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
               <Card className="p-4">
                 <h4 className="mb-3 flex items-center gap-2">
                   <User className="w-4 h-4 text-blue-600" />
-                  Thông tin khách hàng
+                  {t('admin.customerInfo')}
                 </h4>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-gray-600">Họ tên</p>
+                    <p className="text-gray-600">{t('admin.fullName')}</p>
                     <p>{selectedRefund.userName}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Email</p>
+                    <p className="text-gray-600">{t('common.email')}</p>
                     <p>{selectedRefund.userEmail}</p>
                   </div>
                 </div>
@@ -516,31 +518,31 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
               <Card className="p-4">
                 <h4 className="mb-3 flex items-center gap-2">
                   <CreditCard className="w-4 h-4 text-blue-600" />
-                  Thông tin thanh toán & hoàn tiền
+                  {t('admin.paymentAndRefundInfo')}
                 </h4>
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <p className="text-gray-600">Phương thức thanh toán</p>
+                      <p className="text-gray-600">{t('admin.paymentMethod')}</p>
                       <p>{selectedRefund.paymentMethod}</p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Mã giao dịch</p>
+                      <p className="text-gray-600">{t('admin.transactionId')}</p>
                       <p className="text-xs">{selectedRefund.transactionId}</p>
                     </div>
                   </div>
                   
                   <div className="border-t pt-3 space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Giá trị booking gốc</span>
+                      <span className="text-gray-600">{t('admin.originalBookingValue')}</span>
                       <span>{selectedRefund.originalAmount.toLocaleString('vi-VN')}đ</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Tỷ lệ hoàn tiền</span>
+                      <span className="text-gray-600">{t('admin.refundPercentage')}</span>
                       <span>{selectedRefund.refundPercentage}%</span>
                     </div>
                     <div className="flex justify-between pt-2 border-t">
-                      <span>Số tiền hoàn</span>
+                      <span>{t('admin.refundAmount')}</span>
                       <span className="text-xl text-green-600">
                         {selectedRefund.refundAmount.toLocaleString('vi-VN')}đ
                       </span>
@@ -554,24 +556,24 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
                 <Card className="p-4">
                   <h4 className="mb-3 flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 text-blue-600" />
-                    Thông tin xử lý
+                    {t('admin.processingInfo')}
                   </h4>
                   <div className="space-y-2 text-sm">
                     {selectedRefund.processedBy && (
                       <>
                         <div>
-                          <p className="text-gray-600">Người xử lý</p>
+                          <p className="text-gray-600">{t('admin.processedBy')}</p>
                           <p>{selectedRefund.processedBy}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Thời gian xử lý</p>
+                          <p className="text-gray-600">{t('admin.processingTime')}</p>
                           <p>{selectedRefund.processedAt}</p>
                         </div>
                       </>
                     )}
                     {selectedRefund.rejectionReason && (
                       <div className="bg-red-50 border border-red-200 rounded p-3 mt-2">
-                        <p className="text-gray-600 mb-1">Lý do từ chối</p>
+                        <p className="text-gray-600 mb-1">{t('admin.rejectionReason')}</p>
                         <p className="text-red-900">{selectedRefund.rejectionReason}</p>
                       </div>
                     )}
@@ -583,13 +585,13 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
               <Card className="p-4 bg-amber-50 border-amber-200">
                 <h4 className="mb-2 flex items-center gap-2 text-amber-900">
                   <AlertCircle className="w-4 h-4" />
-                  Lưu ý quan trọng
+                  {t('admin.importantNotes')}
                 </h4>
                 <ul className="space-y-1 text-sm text-amber-900">
-                  <li>• Sau khi duyệt, hệ thống sẽ tự động gọi API cổng thanh toán để hoàn tiền</li>
-                  <li>• Số tiền {selectedRefund.refundAmount.toLocaleString('vi-VN')}đ sẽ được trừ vào kỳ quyết toán tiếp theo của Vendor</li>
-                  <li>• Email thông báo sẽ được gửi tự động cho khách hàng và Vendor</li>
-                  <li>• Thời gian hoàn tiền về tài khoản khách: 5-7 ngày làm việc</li>
+                  <li>• {t('admin.refundNote1')}</li>
+                  <li>• {t('admin.refundNote2', { amount: selectedRefund.refundAmount.toLocaleString('vi-VN') })}</li>
+                  <li>• {t('admin.refundNote3')}</li>
+                  <li>• {t('admin.refundNote4')}</li>
                 </ul>
               </Card>
             </div>
@@ -597,7 +599,7 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
-              Đóng
+              {t('common.close')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -607,28 +609,28 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
       <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xác nhận duyệt hoàn tiền</DialogTitle>
+            <DialogTitle>{t('admin.confirmApproveRefund')}</DialogTitle>
             <DialogDescription>
-              Bạn có chắc chắn muốn duyệt yêu cầu hoàn tiền này?
+              {t('admin.confirmApproveRefundDesc')}
             </DialogDescription>
           </DialogHeader>
 
           {selectedRefund && (
             <div className="space-y-4">
               <Card className="p-4 bg-blue-50 border-blue-200">
-                <p className="text-sm mb-2">Mã booking: {selectedRefund.bookingCode}</p>
-                <p className="text-sm mb-2">Khách hàng: {selectedRefund.userName}</p>
-                <p className="text-sm">Số tiền hoàn: <span className="text-lg">{selectedRefund.refundAmount.toLocaleString('vi-VN')}đ</span></p>
+                <p className="text-sm mb-2">{t('admin.bookingCode')}: {selectedRefund.bookingCode}</p>
+                <p className="text-sm mb-2">{t('admin.customer')}: {selectedRefund.userName}</p>
+                <p className="text-sm">{t('admin.refundAmount')}: <span className="text-lg">{selectedRefund.refundAmount.toLocaleString('vi-VN')}đ</span></p>
               </Card>
 
               <Card className="p-4 bg-green-50 border-green-200">
-                <p className="text-sm text-green-900 mb-2">Hệ thống sẽ tự động thực hiện:</p>
+                <p className="text-sm text-green-900 mb-2">{t('admin.systemWillAutoExecute')}:</p>
                 <ul className="text-sm text-green-900 space-y-1">
-                  <li>✓ Gọi API {selectedRefund.paymentMethod} để hoàn tiền</li>
-                  <li>✓ Gửi email thông báo cho khách hàng</li>
-                  <li>✓ Gửi thông báo cho Vendor: {selectedRefund.vendorName}</li>
-                  <li>✓ Trừ {selectedRefund.refundAmount.toLocaleString('vi-VN')}đ vào kỳ quyết toán tiếp theo</li>
-                  <li>✓ Cập nhật trạng thái sang "Đang xử lý"</li>
+                  <li>✓ {t('admin.approveAction1', { method: selectedRefund.paymentMethod })}</li>
+                  <li>✓ {t('admin.approveAction2')}</li>
+                  <li>✓ {t('admin.approveAction3', { vendor: selectedRefund.vendorName })}</li>
+                  <li>✓ {t('admin.approveAction4', { amount: selectedRefund.refundAmount.toLocaleString('vi-VN') })}</li>
+                  <li>✓ {t('admin.approveAction5')}</li>
                 </ul>
               </Card>
             </div>
@@ -636,10 +638,10 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsApproveDialogOpen(false)}>
-              Hủy
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleConfirmApprove}>
-              Xác nhận duyệt
+              {t('admin.confirmApprove')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -649,24 +651,24 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
       <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Từ chối yêu cầu hoàn tiền</DialogTitle>
+            <DialogTitle>{t('admin.rejectRefundRequest')}</DialogTitle>
             <DialogDescription>
-              Vui lòng nhập lý do từ chối để thông báo cho khách hàng
+              {t('admin.rejectRefundRequestDesc')}
             </DialogDescription>
           </DialogHeader>
 
           {selectedRefund && (
             <div className="space-y-4">
               <Card className="p-4 bg-red-50 border-red-200">
-                <p className="text-sm mb-2">Mã booking: {selectedRefund.bookingCode}</p>
-                <p className="text-sm">Khách hàng: {selectedRefund.userName}</p>
+                <p className="text-sm mb-2">{t('admin.bookingCode')}: {selectedRefund.bookingCode}</p>
+                <p className="text-sm">{t('admin.customer')}: {selectedRefund.userName}</p>
               </Card>
 
               <div>
-                <Label htmlFor="rejection-reason">Lý do từ chối *</Label>
+                <Label htmlFor="rejection-reason">{t('admin.rejectionReason')} *</Label>
                 <Textarea
                   id="rejection-reason"
-                  placeholder="Nhập lý do từ chối yêu cầu hoàn tiền..."
+                  placeholder={t('admin.enterRejectionReason')}
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
                   rows={4}
@@ -678,10 +680,10 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>
-              Hủy
+              {t('common.cancel')}
             </Button>
             <Button variant="destructive" onClick={handleConfirmReject}>
-              Xác nhận từ chối
+              {t('admin.confirmReject')}
             </Button>
           </DialogFooter>
         </DialogContent>

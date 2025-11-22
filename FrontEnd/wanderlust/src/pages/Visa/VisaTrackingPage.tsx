@@ -9,6 +9,7 @@ import {
     Phone,
     User
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -31,6 +32,7 @@ interface VisaTrackingPageProps {
 }
 
 export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrackingPageProps) {
+  const { t } = useTranslation();
   if (!trackingData) {
     return null;
   }
@@ -42,12 +44,12 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
           <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-12 h-12 text-green-600" />
           </div>
-          <h1 className="text-4xl md:text-5xl mb-4">Gửi yêu cầu thành công!</h1>
+          <h1 className="text-4xl md:text-5xl mb-4">{t('visa.requestSuccess')}</h1>
           <p className="text-xl text-green-100 mb-6">
-            Cảm ơn bạn đã tin tưởng dịch vụ tư vấn visa của chúng tôi
+            {t('visa.thankYouForTrusting')}
           </p>
           <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 inline-block">
-            <p className="text-sm text-green-100 mb-1">Mã yêu cầu của bạn</p>
+            <p className="text-sm text-green-100 mb-1">{t('visa.yourRequestCode')}</p>
             <p className="text-2xl font-mono">{trackingData.requestId}</p>
           </div>
         </div>
@@ -56,16 +58,16 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* What's Next */}
         <Card className="p-8 mb-8">
-          <h2 className="text-3xl mb-6 text-center">Bước tiếp theo</h2>
+          <h2 className="text-3xl mb-6 text-center">{t('visa.nextSteps')}</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Phone className="w-8 h-8 text-blue-600" />
               </div>
-              <h3 className="text-xl mb-2">1. Chúng tôi sẽ liên hệ</h3>
+              <h3 className="text-xl mb-2">{t('visa.step1Title')}</h3>
               <p className="text-gray-600">
-                Chuyên viên tư vấn sẽ liên hệ với bạn trong vòng <strong>24 giờ</strong>
+                {t('visa.step1Desc')}
               </p>
             </div>
 
@@ -73,9 +75,9 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MessageSquare className="w-8 h-8 text-orange-600" />
               </div>
-              <h3 className="text-xl mb-2">2. Tư vấn chi tiết</h3>
+              <h3 className="text-xl mb-2">{t('visa.step2Title')}</h3>
               <p className="text-gray-600">
-                Hướng dẫn chi tiết về hồ sơ và quy trình làm visa
+                {t('visa.step2Desc')}
               </p>
             </div>
 
@@ -83,9 +85,9 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-xl mb-2">3. Hỗ trợ làm hồ sơ</h3>
+              <h3 className="text-xl mb-2">{t('visa.step3Title')}</h3>
               <p className="text-gray-600">
-                Đồng hành cùng bạn đến khi có kết quả visa
+                {t('visa.step3Desc')}
               </p>
             </div>
           </div>
@@ -94,11 +96,9 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
             <div className="flex gap-3">
               <CheckCircle2 className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-blue-900 mb-2">Email xác nhận đã được gửi</p>
+                <p className="font-medium text-blue-900 mb-2">{t('visa.emailConfirmationSent')}</p>
                 <p className="text-sm text-blue-800">
-                  Chúng tôi đã gửi email xác nhận đến <strong>{trackingData.email}</strong> với 
-                  thông tin chi tiết về yêu cầu tư vấn của bạn. Vui lòng kiểm tra hộp thư đến 
-                  hoặc thư mục spam.
+                  {t('visa.emailConfirmationDesc', { email: trackingData.email })}
                 </p>
               </div>
             </div>
@@ -107,13 +107,13 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
 
         {/* Request Summary */}
         <Card className="p-8 mb-8">
-          <h2 className="text-2xl mb-6">Thông tin yêu cầu</h2>
+          <h2 className="text-2xl mb-6">{t('visa.requestInformation')}</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-start gap-3">
               <User className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
               <div>
-                <p className="text-sm text-gray-600">Họ và tên</p>
+                <p className="text-sm text-gray-600">{t('visa.fullName')}</p>
                 <p className="font-medium">{trackingData.fullName}</p>
               </div>
             </div>
@@ -121,7 +121,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
             <div className="flex items-start gap-3">
               <Phone className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
               <div>
-                <p className="text-sm text-gray-600">Số điện thoại</p>
+                <p className="text-sm text-gray-600">{t('visa.phoneNumber')}</p>
                 <p className="font-medium">{trackingData.phone}</p>
               </div>
             </div>
@@ -129,7 +129,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
             <div className="flex items-start gap-3">
               <Mail className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
               <div>
-                <p className="text-sm text-gray-600">Email</p>
+                <p className="text-sm text-gray-600">{t('visa.email')}</p>
                 <p className="font-medium">{trackingData.email}</p>
               </div>
             </div>
@@ -137,7 +137,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
             <div className="flex items-start gap-3">
               <MapPin className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
               <div>
-                <p className="text-sm text-gray-600">Quốc gia</p>
+                <p className="text-sm text-gray-600">{t('visa.destinationCountry')}</p>
                 <p className="font-medium">{trackingData.country}</p>
               </div>
             </div>
@@ -145,7 +145,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
             <div className="flex items-start gap-3">
               <FileText className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
               <div>
-                <p className="text-sm text-gray-600">Loại visa</p>
+                <p className="text-sm text-gray-600">{t('visa.visaType')}</p>
                 <p className="font-medium">{trackingData.visaType}</p>
               </div>
             </div>
@@ -154,8 +154,8 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
               <div className="flex items-start gap-3">
                 <User className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm text-gray-600">Số người</p>
-                  <p className="font-medium">{trackingData.numberOfPeople} người</p>
+                  <p className="text-sm text-gray-600">{t('visa.numberOfPeople')}</p>
+                  <p className="font-medium">{trackingData.numberOfPeople} {t('common.people')}</p>
                 </div>
               </div>
             )}
@@ -164,7 +164,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
               <div className="flex items-start gap-3">
                 <Calendar className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm text-gray-600">Ngày dự kiến xuất phát</p>
+                  <p className="text-sm text-gray-600">{t('visa.departureDatePlan')}</p>
                   <p className="font-medium">
                     {new Date(trackingData.expectedDate).toLocaleDateString('vi-VN')}
                   </p>
@@ -178,7 +178,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
               <div className="flex items-start gap-3">
                 <MessageSquare className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm text-gray-600 mb-1">Ghi chú</p>
+                  <p className="text-sm text-gray-600 mb-1">{t('visa.additionalNotes')}</p>
                   <p className="text-gray-700">{trackingData.note}</p>
                 </div>
               </div>
@@ -188,7 +188,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
 
         {/* Contact Info */}
         <Card className="p-8 bg-linear-to-br from-blue-50 to-blue-100">
-          <h2 className="text-2xl mb-6">Thông tin liên hệ</h2>
+          <h2 className="text-2xl mb-6">{t('common.contactInfo')}</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white rounded-lg p-6">
@@ -197,9 +197,9 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
                   <Phone className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="font-medium mb-1">Hotline</p>
+                  <p className="font-medium mb-1">{t('common.hotline')}</p>
                   <p className="text-blue-600 text-lg">1900-xxxx-xxx</p>
-                  <p className="text-sm text-gray-500">Thời gian: 8:00 - 20:00</p>
+                  <p className="text-sm text-gray-500">{t('common.workingHours')}</p>
                 </div>
               </div>
             </div>
@@ -210,16 +210,16 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
                   <Mail className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="font-medium mb-1">Email</p>
+                  <p className="font-medium mb-1">{t('common.email')}</p>
                   <p className="text-green-600 text-lg">visa@wanderlust.vn</p>
-                  <p className="text-sm text-gray-500">Phản hồi trong 24h</p>
+                  <p className="text-sm text-gray-500">{t('common.replyWithin24h')}</p>
                 </div>
               </div>
             </div>
           </div>
 
           <p className="text-center text-gray-600 mt-6">
-            Nếu có bất kỳ câu hỏi nào, đừng ngần ngại liên hệ với chúng tôi
+            {t('common.contactUsAnytime')}
           </p>
         </Card>
 
@@ -231,7 +231,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
             className="gap-2"
           >
             <ArrowLeft className="w-5 h-5" />
-            Quay lại trang Visa
+            {t('visa.backToVisaPage')}
           </Button>
           <Button 
             size="lg"
@@ -239,7 +239,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
             onClick={() => onNavigate("home")}
             className="gap-2"
           >
-            Về trang chủ
+            {t('common.backToHome')}
           </Button>
         </div>
       </div>

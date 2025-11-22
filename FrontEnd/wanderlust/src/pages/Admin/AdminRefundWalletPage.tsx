@@ -1,31 +1,32 @@
+import {
+    AlertTriangle,
+    Building,
+    Calendar,
+    CheckCircle,
+    Clock,
+    DollarSign,
+    Eye,
+    Filter,
+    Search,
+    User,
+    Wallet,
+    XCircle
+} from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AdminLayout } from "../../components/AdminLayout";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Input } from "../../components/ui/input";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "../../components/ui/dialog";
-import { 
-  Wallet,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Search,
-  Filter,
-  Eye,
-  DollarSign,
-  User,
-  Building,
-  Calendar
-} from "lucide-react";
+import { Input } from "../../components/ui/input";
 import type { PageType } from "../../MainApp";
 
 interface AdminRefundWalletPageProps {
@@ -50,6 +51,7 @@ interface RefundRequest {
 }
 
 export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletPageProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [selectedRequest, setSelectedRequest] = useState<RefundRequest | null>(null);
@@ -164,11 +166,11 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
   const getStatusBadge = (status: string) => {
     switch(status) {
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100"><Clock className="w-3 h-3 mr-1" />Chờ duyệt</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100"><Clock className="w-3 h-3 mr-1" />{t('admin.pending')}</Badge>;
       case "approved":
-        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100"><CheckCircle className="w-3 h-3 mr-1" />Đã duyệt</Badge>;
+        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100"><CheckCircle className="w-3 h-3 mr-1" />{t('admin.approved')}</Badge>;
       case "rejected":
-        return <Badge className="bg-red-100 text-red-700 hover:bg-red-100"><XCircle className="w-3 h-3 mr-1" />Đã từ chối</Badge>;
+        return <Badge className="bg-red-100 text-red-700 hover:bg-red-100"><XCircle className="w-3 h-3 mr-1" />{t('admin.rejected')}</Badge>;
       default:
         return null;
     }
@@ -180,14 +182,14 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl text-gray-900 mb-2">Hoàn tiền vào Ví</h1>
+            <h1 className="text-3xl text-gray-900 mb-2">{t('admin.refundToWallet')}</h1>
             <p className="text-gray-600">
-              Quản lý các yêu cầu hoàn tiền khẩn cấp từ vendor hủy đơn
+              {t('admin.refundToWalletDesc')}
             </p>
           </div>
           {pendingCount > 0 && (
             <Badge className="bg-red-600 text-lg px-4 py-2">
-              {pendingCount} yêu cầu chờ duyệt
+              {pendingCount} {t('admin.pendingRequests')}
             </Badge>
           )}
         </div>
@@ -200,7 +202,7 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
                 <Clock className="w-6 h-6 text-yellow-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Chờ duyệt</p>
+                <p className="text-sm text-gray-600">{t('admin.pending')}</p>
                 <p className="text-2xl text-gray-900">{refundRequests.filter(r => r.status === "pending").length}</p>
               </div>
             </div>
@@ -212,7 +214,7 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
                 <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Đã duyệt</p>
+                <p className="text-sm text-gray-600">{t('admin.approved')}</p>
                 <p className="text-2xl text-gray-900">{refundRequests.filter(r => r.status === "approved").length}</p>
               </div>
             </div>
@@ -224,7 +226,7 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
                 <XCircle className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Đã từ chối</p>
+                <p className="text-sm text-gray-600">{t('admin.rejected')}</p>
                 <p className="text-2xl text-gray-900">{refundRequests.filter(r => r.status === "rejected").length}</p>
               </div>
             </div>
@@ -236,7 +238,7 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
                 <DollarSign className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Tổng hoàn</p>
+                <p className="text-sm text-gray-600">{t('admin.totalRefunded')}</p>
                 <p className="text-2xl text-gray-900">
                   {(refundRequests.filter(r => r.status === "approved").reduce((sum, r) => sum + r.amount, 0) / 1000000).toFixed(1)}M
                 </p>
@@ -252,7 +254,7 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
-                  placeholder="Tìm theo mã đơn, khách hàng, vendor..."
+                  placeholder={t('admin.searchOrderCustomerVendor')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -265,21 +267,21 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
                 onClick={() => setFilterStatus("all")}
               >
                 <Filter className="w-4 h-4 mr-2" />
-                Tất cả
+                {t('common.all')}
               </Button>
               <Button
                 variant={filterStatus === "pending" ? "default" : "outline"}
                 onClick={() => setFilterStatus("pending")}
                 className={filterStatus === "pending" ? "bg-yellow-600 hover:bg-yellow-700" : ""}
               >
-                Chờ duyệt
+                {t('admin.pending')}
               </Button>
               <Button
                 variant={filterStatus === "approved" ? "default" : "outline"}
                 onClick={() => setFilterStatus("approved")}
                 className={filterStatus === "approved" ? "bg-green-600 hover:bg-green-700" : ""}
               >
-                Đã duyệt
+                {t('admin.approved')}
               </Button>
             </div>
           </div>
@@ -290,7 +292,7 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
           {filteredRequests.length === 0 ? (
             <Card className="p-12 text-center border-0 shadow-lg">
               <Wallet className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">Không có yêu cầu nào</p>
+              <p className="text-gray-500 text-lg">{t('admin.noRequests')}</p>
             </Card>
           ) : (
             filteredRequests.map((request) => (
@@ -308,14 +310,14 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
                       {request.status === "pending" && (
                         <Badge className="bg-red-100 text-red-700 hover:bg-red-100">
                           <AlertTriangle className="w-3 h-3 mr-1" />
-                          KHẨN CẤP
+                          {t('admin.urgent')}
                         </Badge>
                       )}
                     </div>
                     <p className="text-gray-600">{request.serviceName}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-600 mb-1">Số tiền hoàn</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('admin.refundAmount')}</p>
                     <p className="text-3xl text-blue-600">{request.amount.toLocaleString('vi-VN')}đ</p>
                   </div>
                 </div>
@@ -324,24 +326,24 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <User className="w-5 h-5 text-gray-600" />
                     <div>
-                      <p className="text-xs text-gray-600">Khách hàng</p>
+                      <p className="text-xs text-gray-600">{t('admin.customer')}</p>
                       <p className="text-gray-900">{request.customerName}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <Building className="w-5 h-5 text-gray-600" />
                     <div>
-                      <p className="text-xs text-gray-600">Vendor</p>
+                      <p className="text-xs text-gray-600">{t('admin.vendor')}</p>
                       <p className="text-gray-900">{request.vendorName}</p>
                       <Badge variant="outline" className="mt-1 text-xs">
-                        {request.vendorStrikes} vi phạm
+                        {request.vendorStrikes} {t('admin.violations')}
                       </Badge>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200 mb-4">
-                  <p className="text-sm text-gray-600 mb-1">Lý do hủy:</p>
+                  <p className="text-sm text-gray-600 mb-1">{t('admin.cancellationReason')}:</p>
                   <p className="text-gray-900">{request.reason}</p>
                 </div>
 
@@ -352,7 +354,7 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
                     {request.processedAt && (
                       <>
                         <span>•</span>
-                        <span>Duyệt: {request.processedAt}</span>
+                        <span>{t('admin.approved')}: {request.processedAt}</span>
                         <span>•</span>
                         <span>{request.processedBy}</span>
                       </>
@@ -366,7 +368,7 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
                       onClick={() => handleViewDetails(request)}
                     >
                       <Eye className="w-4 h-4 mr-2" />
-                      Chi tiết
+                      {t('common.details')}
                     </Button>
                     {request.status === "pending" && (
                       <>
@@ -377,7 +379,7 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <XCircle className="w-4 h-4 mr-2" />
-                          Từ chối
+                          {t('admin.reject')}
                         </Button>
                         <Button
                           size="sm"
@@ -385,7 +387,7 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
                           className="bg-green-600 hover:bg-green-700"
                         >
                           <CheckCircle className="w-4 h-4 mr-2" />
-                          Duyệt hoàn tiền
+                          {t('admin.approveRefund')}
                         </Button>
                       </>
                     )}
@@ -402,14 +404,14 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className={actionType === "approve" ? "text-green-600" : actionType === "reject" ? "text-red-600" : ""}>
-              {actionType === "approve" && "Xác nhận duyệt hoàn tiền vào Ví"}
-              {actionType === "reject" && "Xác nhận từ chối hoàn tiền"}
-              {!actionType && "Chi tiết yêu cầu hoàn tiền"}
+              {actionType === "approve" && t('admin.confirmWalletRefund')}
+              {actionType === "reject" && t('admin.confirmRejectRefund')}
+              {!actionType && t('admin.refundRequestDetails')}
             </DialogTitle>
             <DialogDescription>
-              {actionType === "approve" && "Tiền sẽ được hoàn vào Ví nội bộ của khách hàng (không qua cổng thanh toán)"}
-              {actionType === "reject" && "Yêu cầu sẽ bị từ chối. Vui lòng kiểm tra kỹ trước khi xác nhận."}
-              {!actionType && "Thông tin chi tiết về yêu cầu hoàn tiền"}
+              {actionType === "approve" && t('admin.walletRefundNote')}
+              {actionType === "reject" && t('admin.rejectRefundNote')}
+              {!actionType && t('admin.refundRequestDetailsDesc')}
             </DialogDescription>
           </DialogHeader>
 
@@ -417,34 +419,34 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">Mã đơn hàng</p>
+                  <p className="text-sm text-gray-600 mb-1">{t('admin.orderId')}</p>
                   <p className="text-gray-900">{selectedRequest.orderId}</p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">Dịch vụ</p>
+                  <p className="text-sm text-gray-600 mb-1">{t('common.service')}</p>
                   <p className="text-gray-900">{selectedRequest.serviceName}</p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">Khách hàng</p>
+                  <p className="text-sm text-gray-600 mb-1">{t('admin.customer')}</p>
                   <p className="text-gray-900">{selectedRequest.customerName}</p>
                   <p className="text-xs text-gray-500">ID: {selectedRequest.customerId}</p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">Vendor</p>
+                  <p className="text-sm text-gray-600 mb-1">{t('admin.vendor')}</p>
                   <p className="text-gray-900">{selectedRequest.vendorName}</p>
                   <Badge variant="outline" className="mt-1">
-                    {selectedRequest.vendorStrikes} vi phạm
+                    {selectedRequest.vendorStrikes} {t('admin.violations')}
                   </Badge>
                 </div>
               </div>
 
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-gray-600 mb-1">Số tiền hoàn vào Ví</p>
+                <p className="text-sm text-gray-600 mb-1">{t('admin.walletRefundAmount')}</p>
                 <p className="text-3xl text-blue-600">{selectedRequest.amount.toLocaleString('vi-VN')}đ</p>
               </div>
 
               <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                <p className="text-sm text-gray-600 mb-2">Lý do hủy đơn:</p>
+                <p className="text-sm text-gray-600 mb-2">{t('admin.cancellationReason')}:</p>
                 <p className="text-gray-900">{selectedRequest.reason}</p>
               </div>
 
@@ -454,14 +456,14 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
                     <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
                     <div>
                       <p className="text-green-900 mb-2">
-                        <strong>Quy trình hoàn tiền vào Ví:</strong>
+                        <strong>{t('admin.walletRefundProcess')}:</strong>
                       </p>
                       <ol className="text-sm text-green-800 space-y-1">
-                        <li>1. KHÔNG gọi API cổng thanh toán (Momo/Stripe)</li>
-                        <li>2. UPDATE Database: Cộng tiền vào ví khách hàng</li>
-                        <li>3. Tạo bản ghi giao dịch trong WalletTransactions</li>
-                        <li>4. Gửi thông báo cho khách hàng</li>
-                        <li>5. Cập nhật trạng thái đơn hàng</li>
+                        <li>{t('admin.walletStep1')}</li>
+                        <li>{t('admin.walletStep2')}</li>
+                        <li>{t('admin.walletStep3')}</li>
+                        <li>{t('admin.walletStep4')}</li>
+                        <li>{t('admin.walletStep5')}</li>
                       </ol>
                     </div>
                   </div>
@@ -472,14 +474,14 @@ export default function AdminRefundWalletPage({ onNavigate }: AdminRefundWalletP
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              {actionType ? "Hủy" : "Đóng"}
+              {actionType ? t('common.cancel') : t('common.close')}
             </Button>
             {actionType && (
               <Button 
                 onClick={confirmAction}
                 className={actionType === "approve" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
               >
-                {actionType === "approve" ? "XÁC NHẬN DUYỆT" : "XÁC NHẬN TỪ CHỐI"}
+                {actionType === "approve" ? t('admin.confirmApprove') : t('admin.confirmReject')}
               </Button>
             )}
           </DialogFooter>

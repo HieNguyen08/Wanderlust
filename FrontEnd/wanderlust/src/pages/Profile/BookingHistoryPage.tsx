@@ -1,39 +1,39 @@
 import {
-    Activity,
-    AlertCircle,
-    Ban,
-    Calendar,
-    Car,
-    CheckCircle,
-    CreditCard,
-    Download, Eye,
-    FileText,
-    Hotel,
-    Mail,
-    MapPin,
-    Phone,
-    Plane,
-    Printer,
-    QrCode,
-    Star,
-    Users,
-    XCircle
+  Activity,
+  AlertCircle,
+  Ban,
+  Calendar,
+  Car,
+  CheckCircle,
+  CreditCard,
+  Download, Eye,
+  FileText,
+  Hotel,
+  Mail,
+  MapPin,
+  Phone,
+  Plane,
+  Printer,
+  QrCode,
+  Star,
+  Users,
+  XCircle
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { ProfileLayout } from "../../components/ProfileLayout";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "../../components/ui/dialog";
 import { Label } from "../../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
@@ -102,13 +102,105 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
   const [reviewText, setReviewText] = useState("");
   const [hoverRating, setHoverRating] = useState(0);
 
+  // Transform backend booking data to UI format
+  const transformBookingData = (apiBooking: any): Booking => {
+    // Map backend status to UI status
+    const statusMap: Record<string, "upcoming" | "completed" | "cancelled"> = {
+      'PENDING': 'upcoming',
+      'CONFIRMED': 'upcoming',
+      'COMPLETED': 'completed',
+      'CANCELLED': 'cancelled'
+    };
+
+    // Map backend productType to UI type
+    const typeMap: Record<string, "flight" | "hotel" | "car" | "activity" | "visa"> = {
+      'FLIGHT': 'flight',
+      'HOTEL': 'hotel',
+      'CAR_RENTAL': 'car',
+      'ACTIVITY': 'activity',
+      'VISA': 'visa'
+    };
+
+    const bookingType = typeMap[apiBooking.productType] || 'flight';
+    
+    // Extract location and subtitle based on type
+    let location = 'N/A';
+    let subtitle = '';
+    let imageUrl = '';
+    
+    if (bookingType === 'flight') {
+      const flightMatch = apiBooking.specialRequests?.match(/Flight: (.*?) to (.*?)\./);
+      location = flightMatch?.[1] || 'N/A';
+      subtitle = flightMatch ? `${flightMatch[1]} → ${flightMatch[2]}` : '';
+      imageUrl = "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&h=300&fit=crop";
+    } else if (bookingType === 'hotel') {
+      const hotelMatch = apiBooking.specialRequests?.match(/Hotel: (.*?)\. Room: (.*?)\./);
+      location = hotelMatch?.[1] || 'N/A';
+      subtitle = hotelMatch?.[2] || 'Hotel Room';
+      imageUrl = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop";
+    } else if (bookingType === 'car') {
+      const carMatch = apiBooking.specialRequests?.match(/Car: (.*?)\. Location: (.*?)\./);
+      location = carMatch?.[2] || 'N/A';
+      subtitle = carMatch?.[1] || 'Car Rental';
+      imageUrl = "https://images.unsplash.com/photo-1590362891991-f776e747a588?w=400&h=300&fit=crop";
+    } else if (bookingType === 'activity') {
+      const activityMatch = apiBooking.specialRequests?.match(/Activity: (.*?)\./);
+      subtitle = activityMatch?.[1] || 'Activity';
+      location = 'Activity Location';
+      imageUrl = "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=400&h=300&fit=crop";
+    }
+
+    return {
+      id: apiBooking.id,
+      type: bookingType,
+      status: statusMap[apiBooking.status] || 'upcoming',
+      title: apiBooking.productName || subtitle || `${apiBooking.productType} Booking`,
+      subtitle: subtitle,
+      date: new Date(apiBooking.startDate).toLocaleDateString('vi-VN'),
+      location: location,
+      image: imageUrl,
+      price: apiBooking.totalPrice || 0,
+      bookingCode: apiBooking.bookingCode || apiBooking.id.substring(0, 8).toUpperCase(),
+      details: `${apiBooking.quantity || 1} ${bookingType === 'hotel' ? 'phòng' : bookingType === 'car' ? 'xe' : 'người'}`,
+      participants: apiBooking.guestInfo ? [
+        {
+          name: `${apiBooking.guestInfo.firstName} ${apiBooking.guestInfo.lastName}`,
+          email: apiBooking.guestInfo.email,
+          phone: apiBooking.guestInfo.phone
+        }
+      ] : [],
+      paymentDetails: {
+        method: apiBooking.paymentMethod || 'Unknown',
+        transactionId: apiBooking.id,
+        paidAt: new Date(apiBooking.bookingDate || apiBooking.createdAt).toLocaleString('vi-VN')
+      },
+      cancellationPolicy: {
+        refundPercentage: 80,
+        deadline: '48 giờ trước',
+        refundAmount: (apiBooking.totalPrice || 0) * 0.8
+      },
+      vendorInfo: {
+        name: 'Wanderlust Travel',
+        phone: '1900 xxxx',
+        email: 'support@wanderlust.vn'
+      },
+      hasReview: false
+    };
+  };
+
   // Load bookings from backend
   useEffect(() => {
     const loadBookings = async () => {
       try {
         setLoading(true);
         const bookingsData = await bookingApi.getMyBookings();
-        setBookings(bookingsData);
+        
+        // Transform API data to UI format
+        const transformedBookings = Array.isArray(bookingsData) 
+          ? bookingsData.map(transformBookingData)
+          : [];
+        
+        setBookings(transformedBookings);
       } catch (error: any) {
         console.error('Failed to load bookings:', error);
         if (error.message !== 'UNAUTHORIZED') {
@@ -147,7 +239,10 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
       
       // Reload bookings to get updated data
       const bookingsData = await bookingApi.getMyBookings();
-      setBookings(bookingsData);
+      const transformedBookings = Array.isArray(bookingsData) 
+        ? bookingsData.map(transformBookingData)
+        : [];
+      setBookings(transformedBookings);
     } catch (error: any) {
       console.error('Failed to cancel booking:', error);
       toast.error('Không thể hủy đặt chỗ. Vui lòng thử lại.');
@@ -164,7 +259,10 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
       
       // Reload bookings
       const bookingsData = await bookingApi.getMyBookings();
-      setBookings(bookingsData);
+      const transformedBookings = Array.isArray(bookingsData) 
+        ? bookingsData.map(transformBookingData)
+        : [];
+      setBookings(transformedBookings);
     } catch (error: any) {
       console.error('Failed to request refund:', error);
       toast.error('Không thể gửi yêu cầu hoàn tiền');
@@ -181,218 +279,6 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
       default: return Hotel;
     }
   };
-
-  const mockBookings: BookingItem[] = [
-    {
-      id: "1",
-      type: "flight",
-      title: "Hà Nội → Hồ Chí Minh",
-      subtitle: "Vietnam Airlines VN117",
-      date: "20/02/2025",
-      time: "14:00",
-      status: "confirmed",
-      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&h=300&fit=crop",
-      price: 2500000,
-      bookingCode: "VN117ABC",
-      details: "1 người lớn, Hạng Phổ thông",
-      participants: [
-        { name: "Nguyễn Văn A", email: "nguyenvana@email.com", phone: "+84 123 456 789" }
-      ],
-      paymentDetails: {
-        method: "Momo",
-        transactionId: "MOMO20241101001",
-        paidAt: "01/11/2025 14:30"
-      },
-      cancellationPolicy: {
-        refundPercentage: 100,
-        deadline: "48 giờ trước giờ khởi hành",
-        refundAmount: 2500000
-      },
-      vendorInfo: {
-        name: "Vietnam Airlines",
-        phone: "1900 1100",
-        email: "support@vietnamairlines.com"
-      }
-    },
-    {
-      id: "HT001",
-      type: "hotel",
-      status: "upcoming",
-      title: "JW Marriott Phu Quoc",
-      subtitle: "Deluxe Ocean View Room",
-      date: "20/11/2025 - 23/11/2025",
-      location: "Phú Quốc, Việt Nam",
-      image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&h=300&fit=crop",
-      price: 10500000,
-      bookingCode: "HTL20251120",
-      details: "3 đêm, 2 người lớn",
-      participants: [
-        { name: "Nguyễn Văn A", email: "nguyenvana@email.com", phone: "+84 123 456 789" },
-        { name: "Trần Thị B", email: "tranthib@email.com", phone: "+84 987 654 321" }
-      ],
-      paymentDetails: {
-        method: "VNPay",
-        transactionId: "VNPAY20241101002",
-        paidAt: "01/11/2025 15:20"
-      },
-      cancellationPolicy: {
-        refundPercentage: 80,
-        deadline: "7 ngày trước ngày nhận phòng",
-        refundAmount: 8400000
-      },
-      vendorInfo: {
-        name: "JW Marriott Phu Quoc",
-        phone: "+84 297 377 7999",
-        email: "reservations@jwmarriott-phuquoc.com"
-      }
-    },
-    {
-      id: "VS001",
-      type: "visa",
-      status: "upcoming",
-      title: "Visa Nhật Bản - Du lịch",
-      subtitle: "Visa 90 ngày, Một lần",
-      date: "Dự kiến: 25/11/2025",
-      location: "Đại sứ quán Nhật Bản",
-      image: "https://images.unsplash.com/photo-1480796927426-f609979314bd?w=400&h=300&fit=crop",
-      price: 1500000,
-      bookingCode: "VISA20251101",
-      details: "1 người, Hồ sơ chuẩn",
-      participants: [
-        { name: "Nguyễn Văn A", email: "nguyenvana@email.com", phone: "+84 123 456 789" }
-      ],
-      paymentDetails: {
-        method: "Chuyển khoản",
-        transactionId: "BANK20241101003",
-        paidAt: "01/11/2025 10:00"
-      },
-      cancellationPolicy: {
-        refundPercentage: 50,
-        deadline: "Trước khi nộp hồ sơ",
-        refundAmount: 750000
-      },
-      vendorInfo: {
-        name: "Wanderlust Visa Services",
-        phone: "1900 1234",
-        email: "visa@wanderlust.vn"
-      }
-    },
-    {
-      id: "CR001",
-      type: "car",
-      status: "completed",
-      title: "Toyota Camry 2024",
-      subtitle: "Sedan cao cấp",
-      date: "01/10/2025 - 03/10/2025",
-      location: "Sân bay Tân Sơn Nhất",
-      image: "https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=400&h=300&fit=crop",
-      price: 1800000,
-      bookingCode: "CAR20251001",
-      details: "2 ngày, Tự lái",
-      participants: [
-        { name: "Nguyễn Văn A", email: "nguyenvana@email.com", phone: "+84 123 456 789" }
-      ],
-      paymentDetails: {
-        method: "Momo",
-        transactionId: "MOMO20241001001",
-        paidAt: "30/09/2025 14:00"
-      },
-      vendorInfo: {
-        name: "Premium Car Rental",
-        phone: "+84 28 1234 5678",
-        email: "support@premiumcar.vn"
-      },
-      hasReview: false
-    },
-    {
-      id: "AC001",
-      type: "activity",
-      status: "completed",
-      title: "Vé VinWonders Nha Trang",
-      subtitle: "Vé cả ngày",
-      date: "15/09/2025",
-      location: "Nha Trang, Việt Nam",
-      image: "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=400&h=300&fit=crop",
-      price: 550000,
-      bookingCode: "ACT20250915",
-      details: "2 người lớn",
-      participants: [
-        { name: "Nguyễn Văn A", email: "nguyenvana@email.com", phone: "+84 123 456 789" },
-        { name: "Trần Thị B", email: "tranthib@email.com", phone: "+84 987 654 321" }
-      ],
-      paymentDetails: {
-        method: "VNPay",
-        transactionId: "VNPAY20240915001",
-        paidAt: "14/09/2025 16:00"
-      },
-      vendorInfo: {
-        name: "VinWonders Nha Trang",
-        phone: "1900 6677",
-        email: "customercare@vinwonders.com"
-      },
-      hasReview: true
-    },
-    {
-      id: "FL002",
-      type: "flight",
-      status: "completed",
-      title: "TP.HCM → Singapore",
-      subtitle: "VietJet Air VJ651",
-      date: "05/09/2025, 14:20",
-      location: "Sân bay Tân Sơn Nhất",
-      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&h=300&fit=crop",
-      price: 3200000,
-      bookingCode: "VJ651XYZ",
-      details: "2 người lớn, Hạng Phổ thông",
-      participants: [
-        { name: "Nguyễn Văn A", email: "nguyenvana@email.com", phone: "+84 123 456 789" },
-        { name: "Trần Thị B", email: "tranthib@email.com", phone: "+84 987 654 321" }
-      ],
-      paymentDetails: {
-        method: "Credit Card",
-        transactionId: "VISA20240905001",
-        paidAt: "04/09/2025 10:30"
-      },
-      vendorInfo: {
-        name: "VietJet Air",
-        phone: "1900 1886",
-        email: "customerservice@vietjetair.com"
-      },
-      hasReview: false
-    },
-    {
-      id: "HT002",
-      type: "hotel",
-      status: "cancelled",
-      title: "InterContinental Danang",
-      subtitle: "Premium Ocean View",
-      date: "10/08/2025 - 12/08/2025",
-      location: "Đà Nẵng, Việt Nam",
-      image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&h=300&fit=crop",
-      price: 8400000,
-      bookingCode: "HTL20250810",
-      details: "2 đêm, 2 người lớn",
-      participants: [
-        { name: "Nguyễn Văn A", email: "nguyenvana@email.com", phone: "+84 123 456 789" },
-        { name: "Trần Thị B", email: "tranthib@email.com", phone: "+84 987 654 321" }
-      ],
-      paymentDetails: {
-        method: "Momo",
-        transactionId: "MOMO20240801001",
-        paidAt: "01/08/2025 11:00"
-      },
-      cancellationPolicy: {
-        refundPercentage: 100,
-        deadline: "7 ngày trước ngày nhận phòng",
-        refundAmount: 8400000
-      },
-      vendorInfo: {
-        name: "InterContinental Danang",
-        phone: "+84 236 393 8888",
-        email: "reservations@icdanang.com"
-      }
-    },
-  ];
 
   const getTypeLabel = (type: string) => {
     switch (type) {

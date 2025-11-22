@@ -1,14 +1,14 @@
+import { Calendar, Info, MapPin, Users } from "lucide-react";
 import { useState } from "react";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
 import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Separator } from "../../components/ui/separator";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { MapPin, Calendar, Users, Info } from "lucide-react";
 import type { PageType } from "../../MainApp";
 
 interface HotelReviewPageProps {
@@ -106,6 +106,7 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
       type: "hotel",
       contactInfo,
       guestInfo: bookingForMyself ? contactInfo : guestInfo,
+      bookingForMyself,
       specialRequests,
       addons,
       hotelData,

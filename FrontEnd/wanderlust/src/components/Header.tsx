@@ -7,13 +7,14 @@ import avatarWoman from '../assets/images/avatarwoman.jpeg';
 import '../i18n';
 import type { PageType } from "../MainApp";
 import { tokenService, walletApi } from "../utils/api";
+import { type FrontendRole } from "../utils/roleMapper";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 
 interface HeaderProps {
   currentPage: PageType;
   onNavigate: (page: PageType, data?: any) => void;
-  userRole?: "user" | "admin" | "vendor" | null;
+  userRole?: FrontendRole | null;
   onLogout?: () => void;
 }
 
@@ -24,10 +25,11 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isChangingLanguage, setIsChangingLanguage] = useState(false);
 
   // Get user data from localStorage
-  const userData = tokenService.getUserData();
-  const displayName = userData ? `${userData.firstName}` : "User";
+  const userData = tokenService.getUserData() || {};
+  const displayName = userData?.firstName || "User";
 
   // Get avatar based on gender
   const getAvatarSrc = (userData: any): string => {
@@ -67,10 +69,22 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
   const [walletBalance, setWalletBalance] = useState(0);
 
   useEffect(() => {
-    if (isLoggedIn) {
+    // Chỉ gọi API khi đã đăng nhập VÀ có token hợp lệ
+    if (isLoggedIn && tokenService.getToken()) {
       walletApi.getWallet()
         .then(data => setWalletBalance(data.balance || 0))
-        .catch(err => console.error("Failed to fetch wallet balance", err));
+        .catch(err => {
+          // Không log lỗi UNAUTHORIZED nữa vì đó là trạng thái bình thường khi chưa đăng nhập
+          // Cũng không log lỗi kết nối khi backend chưa chạy
+          if (err.message !== 'UNAUTHORIZED' && !err.message?.includes('ERR_CONNECTION_REFUSED') && !err.message?.includes('NETWORK_ERROR')) {
+            console.error("Failed to fetch wallet balance", err);
+          }
+          // Set default balance nếu API thất bại
+          setWalletBalance(0);
+        });
+    } else {
+      // Reset wallet balance khi logout hoặc không có token
+      setWalletBalance(0);
     }
   }, [isLoggedIn]);
 
@@ -83,15 +97,16 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
   ];
 
   // Handle language change
-  const handleLanguageChange = (e: React.MouseEvent, langCode: string) => {
-    // e.preventDefault();
-    // e.stopPropagation();
+  const handleLanguageChange = (langCode: string) => {
     console.log('🌐 Changing language to:', langCode);
-    setLanguageDropdownOpen(false);
+    setIsChangingLanguage(true);
     i18n.changeLanguage(langCode).then(() => {
       localStorage.setItem('i18nextLng', langCode);
       console.log('✅ Language changed successfully to:', langCode);
       console.log('📦 Stored in localStorage:', localStorage.getItem('i18nextLng'));
+      setLanguageDropdownOpen(false);
+      // Reset flag sau khi hoàn tất
+      setTimeout(() => setIsChangingLanguage(false), 100);
     });
   };
 
@@ -105,14 +120,18 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Ensure language is synced on mount
+  // Ensure language is synced on mount only
   useEffect(() => {
+    // Chỉ sync khi mount lần đầu, không sync khi đang thay đổi ngôn ngữ
+    if (isChangingLanguage) return;
+    
     const storedLang = localStorage.getItem('i18nextLng');
     if (storedLang && storedLang !== i18n.language) {
       console.log('🔄 Syncing language from localStorage:', storedLang);
       i18n.changeLanguage(storedLang);
     }
-  }, [i18n]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Chỉ chạy một lần khi mount
 
   // Determine active page category
   const getActiveSection = (): string => {
@@ -302,27 +321,30 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                     className="fixed inset-0 z-40"
                     onClick={() => setLanguageDropdownOpen(false)}
                   />
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-                    {languages.map((lang) => (
-                      <button
-                        key={lang.code}
-                        onClick={(e) => handleLanguageChange(e, lang.code)}
-                        className={`
-                          w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors flex items-center justify-between gap-3
-                          ${i18n.language === lang.code ? 'bg-blue-50' : ''}
-                        `}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-xl">{lang.flag}</span>
-                          <span className={`${i18n.language === lang.code ? 'text-blue-600' : 'text-gray-700'}`}>
-                            {lang.name}
-                          </span>
-                        </div>
-                        {i18n.language === lang.code && (
-                          <Check className="w-4 h-4 text-blue-600" />
-                        )}
-                      </button>
-                    ))}
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                    {/* Language options */}
+                    <div className="max-h-64 overflow-y-auto">
+                      {languages.map((lang) => (
+                        <button
+                          key={lang.code}
+                          onClick={() => handleLanguageChange(lang.code)}
+                          className={`
+                            w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors flex items-center justify-between gap-3
+                            ${i18n.language === lang.code ? 'bg-blue-50' : ''}
+                          `}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl">{lang.flag}</span>
+                            <span className={`${i18n.language === lang.code ? 'text-blue-600 font-medium' : 'text-gray-700'}`}>
+                              {lang.name}
+                            </span>
+                          </div>
+                          {i18n.language === lang.code && (
+                            <Check className="w-4 h-4 text-blue-600" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </>
               )}

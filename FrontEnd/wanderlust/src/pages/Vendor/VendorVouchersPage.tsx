@@ -1,42 +1,42 @@
+import { format } from "date-fns";
+import { AlertCircle, CalendarIcon, Eye, Pause, Play, Plus, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { VendorLayout } from "../../components/VendorLayout";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
-import { Plus, Search, Eye, Trash2, AlertCircle, Pause, Play } from "lucide-react";
-import { Alert, AlertDescription } from "../../components/ui/alert";
-import { VoucherDetailDialog } from "../../components/admin/VoucherDetailDialog";
-import type { PageType } from "../../MainApp";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { VoucherDetailDialog } from "../../components/admin/VoucherDetailDialog";
+import { Alert, AlertDescription } from "../../components/ui/alert";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Calendar } from "../../components/ui/calendar";
+import { Card } from "../../components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
-import { Calendar } from "../../components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../../components/ui/select";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../../components/ui/table";
+import { VendorLayout } from "../../components/VendorLayout";
+import type { PageType } from "../../MainApp";
 
 interface CreateVendorVoucherDialogProps {
   open: boolean;
@@ -46,6 +46,7 @@ interface CreateVendorVoucherDialogProps {
 }
 
 export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVoucherCreated }: CreateVendorVoucherDialogProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     code: "",
     type: "PERCENTAGE",
@@ -110,9 +111,9 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Tạo Voucher Mới</DialogTitle>
+          <DialogTitle>{t('vendor.createVoucher')}</DialogTitle>
           <DialogDescription>
-            Tạo mã giảm giá cho các dịch vụ của bạn và gửi đến Admin để phê duyệt
+            {t('vendor.voucherApprovalInfo')}
           </DialogDescription>
         </DialogHeader>
 
@@ -127,11 +128,11 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Info */}
           <div className="space-y-4">
-            <h3 className="text-lg">Thông tin cơ bản</h3>
+            <h3 className="text-lg">{t('vendor.basicInfo')}</h3>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="code">Mã Voucher *</Label>
+                <Label htmlFor="code">{t('vendor.voucherCode')} *</Label>
                 <Input
                   id="code"
                   value={formData.code}
@@ -142,14 +143,14 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">Loại giảm giá *</Label>
+                <Label htmlFor="type">{t('vendor.discountType')} *</Label>
                 <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="PERCENTAGE">Phần trăm (%)</SelectItem>
-                    <SelectItem value="FIXED_AMOUNT">Số tiền cố định (đ)</SelectItem>
+                    <SelectItem value="PERCENTAGE">{t('vendor.percentage')} (%)</SelectItem>
+                    <SelectItem value="FIXED_AMOUNT">{t('vendor.fixedAmount')} (đ)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -158,7 +159,7 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="value">
-                  Giá trị * {formData.type === "PERCENTAGE" ? "(%)" : "(VNĐ)"}
+                  {t('vendor.value')} * {formData.type === "PERCENTAGE" ? "(%)" : "(VNĐ)"}
                 </Label>
                 <Input
                   id="value"
@@ -172,7 +173,7 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
 
               {formData.type === "PERCENTAGE" && (
                 <div className="space-y-2">
-                  <Label htmlFor="maxDiscount">Giảm tối đa (VNĐ)</Label>
+                  <Label htmlFor="maxDiscount">{t('vendor.maxDiscount')} (VNĐ)</Label>
                   <Input
                     id="maxDiscount"
                     type="number"
@@ -187,10 +188,10 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
 
           {/* Conditions */}
           <div className="space-y-4">
-            <h3 className="text-lg">Điều kiện áp dụng</h3>
+            <h3 className="text-lg">{t('vendor.applyConditions')}</h3>
 
             <div className="space-y-2">
-              <Label htmlFor="minSpend">Giá trị đơn hàng tối thiểu (VNĐ)</Label>
+              <Label htmlFor="minSpend">{t('vendor.minSpend')} (VNĐ)</Label>
               <Input
                 id="minSpend"
                 type="number"
@@ -201,49 +202,49 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Áp dụng cho danh mục (tùy chọn)</Label>
+              <Label htmlFor="category">{t('vendor.applyToCategory')} (tùy chọn)</Label>
               <Select value={formData.applyToCategory} onValueChange={(value) => setFormData({ ...formData, applyToCategory: value })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Tất cả dịch vụ của bạn" />
+                  <SelectValue placeholder={t('vendor.allServices')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả dịch vụ của bạn</SelectItem>
-                  <SelectItem value="hotels">Chỉ Khách sạn</SelectItem>
-                  <SelectItem value="activities">Chỉ Hoạt động vui chơi</SelectItem>
-                  <SelectItem value="cars">Chỉ Thuê xe</SelectItem>
-                  <SelectItem value="tours">Chỉ Tour du lịch</SelectItem>
+                  <SelectItem value="all">{t('vendor.allServices')}</SelectItem>
+                  <SelectItem value="hotels">{t('vendor.onlyHotels')}</SelectItem>
+                  <SelectItem value="activities">{t('vendor.onlyActivities')}</SelectItem>
+                  <SelectItem value="cars">{t('vendor.onlyCars')}</SelectItem>
+                  <SelectItem value="tours">{t('vendor.onlyTours')}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-gray-500">
-                Nếu không chọn, voucher sẽ áp dụng cho tất cả dịch vụ của bạn
+                {t('vendor.categoryNote')}
               </p>
             </div>
 
             <div className="p-3 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-700">
-                <strong>Điều kiện tự động:</strong> Voucher này chỉ áp dụng cho các dịch vụ do bạn cung cấp
+                <strong>{t('vendor.autoCondition')}</strong>
               </p>
             </div>
           </div>
 
           {/* Usage Limits */}
           <div className="space-y-4">
-            <h3 className="text-lg">Giới hạn sử dụng</h3>
+            <h3 className="text-lg">{t('vendor.usageLimits')}</h3>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="totalUsesLimit">Tổng số lượt sử dụng</Label>
+                <Label htmlFor="totalUsesLimit">{t('vendor.totalUsageLimit')}</Label>
                 <Input
                   id="totalUsesLimit"
                   type="number"
                   value={formData.totalUsesLimit}
                   onChange={(e) => setFormData({ ...formData, totalUsesLimit: e.target.value })}
-                  placeholder="Không giới hạn"
+                  placeholder={t('vendor.unlimited')}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="userUseLimit">Số lượt/người dùng *</Label>
+                <Label htmlFor="userUseLimit">{t('vendor.limitsPerUser')} *</Label>
                 <Input
                   id="userUseLimit"
                   type="number"
@@ -257,11 +258,11 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
 
           {/* Date Range */}
           <div className="space-y-4">
-            <h3 className="text-lg">Thời gian hiệu lực</h3>
+            <h3 className="text-lg">{t('vendor.validityPeriod')}</h3>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Ngày bắt đầu *</Label>
+                <Label>{t('vendor.startDate')} *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start">
@@ -280,7 +281,7 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
               </div>
 
               <div className="space-y-2">
-                <Label>Ngày kết thúc *</Label>
+                <Label>{t('vendor.endDate')} *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start">
@@ -302,10 +303,10 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Hủy
+              {t('common.cancel')}
             </Button>
             <Button type="submit">
-              Gửi yêu cầu
+              {t('vendor.createVoucherBtn')}
             </Button>
           </DialogFooter>
         </form>
@@ -321,6 +322,7 @@ interface VendorVouchersPageProps {
 }
 
 export default function VendorVouchersPage({ onNavigate }: VendorVouchersPageProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -386,7 +388,7 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
 
   const handleVoucherCreated = (newVoucher: any) => {
     setVouchers([newVoucher, ...vouchers]);
-    toast.success("Voucher đã được tạo và gửi đến Admin để phê duyệt!");
+    toast.success(t('vendor.voucherCreated'));
   };
 
   const handleViewDetail = (voucher: any) => {
@@ -398,19 +400,19 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
     setVouchers(vouchers.map(v => 
       v.id === voucherId ? { ...v, status: "PAUSED" } : v
     ));
-    toast.success("Đã tạm dừng voucher");
+    toast.success(t('vendor.voucherPaused'));
   };
 
   const handleActivateVoucher = (voucherId: number) => {
     setVouchers(vouchers.map(v => 
       v.id === voucherId ? { ...v, status: "ACTIVE" } : v
     ));
-    toast.success("Đã kích hoạt voucher");
+    toast.success(t('vendor.voucherActivated'));
   };
 
   const handleDeleteVoucher = (voucherId: number) => {
     setVouchers(vouchers.filter(v => v.id !== voucherId));
-    toast.success("Đã xóa voucher");
+    toast.success(t('vendor.voucherDeleted'));
   };
 
   const filteredVouchers = vouchers.filter(voucher => {
@@ -421,10 +423,10 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-      ACTIVE: { label: "Đang hoạt động", variant: "default" },
-      PENDING: { label: "Chờ duyệt", variant: "secondary" },
-      PAUSED: { label: "Tạm dừng", variant: "outline" },
-      EXPIRED: { label: "Đã hết hạn", variant: "destructive" },
+      ACTIVE: { label: t('vendor.active'), variant: "default" },
+      PENDING: { label: t('vendor.pendingApproval'), variant: "secondary" },
+      PAUSED: { label: t('vendor.paused'), variant: "outline" },
+      EXPIRED: { label: t('vendor.expired'), variant: "destructive" },
     };
     const config = statusConfig[status] || statusConfig.ACTIVE;
     return <Badge variant={config.variant}>{config.label}</Badge>;
@@ -432,11 +434,11 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
 
   const getCategoryLabel = (category: string) => {
     const categories: Record<string, string> = {
-      "hotels": "Khách sạn",
-      "activities": "Hoạt động",
-      "cars": "Thuê xe",
-      "flights": "Chuyến bay",
-      "all": "Tất cả dịch vụ"
+      "hotels": t('vendor.hotels'),
+      "activities": t('vendor.activities'),
+      "cars": t('vendor.cars'),
+      "flights": t('vendor.flights'),
+      "all": t('vendor.allServices')
     };
     return categories[category] || category;
   };
@@ -447,12 +449,12 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Quản lý Voucher</h1>
-            <p className="text-gray-600 mt-1">Tạo và quản lý voucher cho các dịch vụ của bạn</p>
+            <h1 className="text-3xl font-bold">{t('vendor.manageVouchers')}</h1>
+            <p className="text-gray-600 mt-1">{t('vendor.createPromotionsDesc')}</p>
           </div>
           <Button onClick={() => setCreateDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
-            Tạo Voucher Mới
+            {t('vendor.createVoucher')}
           </Button>
         </div>
 
@@ -460,8 +462,7 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
         <Alert className="bg-blue-50 border-blue-200">
           <AlertCircle className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-900">
-            Voucher bạn tạo sẽ được gửi đến Admin để phê duyệt. Sau khi được duyệt, 
-            voucher sẽ tự động áp dụng cho các dịch vụ do bạn cung cấp.
+            {t('vendor.voucherApprovalInfo')}
           </AlertDescription>
         </Alert>
 
@@ -472,7 +473,7 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Tìm kiếm mã voucher..."
+                  placeholder={t('vendor.searchVouchers')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -481,14 +482,14 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Trạng thái" />
+                <SelectValue placeholder={t('common.status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
-                <SelectItem value="ACTIVE">Đang hoạt động</SelectItem>
-                <SelectItem value="PENDING">Chờ duyệt</SelectItem>
-                <SelectItem value="PAUSED">Tạm dừng</SelectItem>
-                <SelectItem value="EXPIRED">Đã hết hạn</SelectItem>
+                <SelectItem value="ALL">{t('common.all')} {t('common.status')}</SelectItem>
+                <SelectItem value="ACTIVE">{t('vendor.active')}</SelectItem>
+                <SelectItem value="PENDING">{t('vendor.pendingApproval')}</SelectItem>
+                <SelectItem value="PAUSED">{t('vendor.paused')}</SelectItem>
+                <SelectItem value="EXPIRED">{t('vendor.expired')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -497,23 +498,23 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4">
           <Card className="p-4">
-            <div className="text-sm text-gray-600">Tổng voucher</div>
+            <div className="text-sm text-gray-600">{t('vendor.totalVouchers')}</div>
             <div className="text-2xl font-bold mt-1">{vouchers.length}</div>
           </Card>
           <Card className="p-4">
-            <div className="text-sm text-gray-600">Đang hoạt động</div>
+            <div className="text-sm text-gray-600">{t('vendor.active')}</div>
             <div className="text-2xl font-bold mt-1 text-green-600">
               {vouchers.filter(v => v.status === "ACTIVE").length}
             </div>
           </Card>
           <Card className="p-4">
-            <div className="text-sm text-gray-600">Chờ duyệt</div>
+            <div className="text-sm text-gray-600">{t('vendor.pendingApproval')}</div>
             <div className="text-2xl font-bold mt-1 text-yellow-600">
               {vouchers.filter(v => v.status === "PENDING").length}
             </div>
           </Card>
           <Card className="p-4">
-            <div className="text-sm text-gray-600">Tổng lượt sử dụng</div>
+            <div className="text-sm text-gray-600">{t('vendor.totalUsage')}</div>
             <div className="text-2xl font-bold mt-1">
               {vouchers.reduce((sum, v) => sum + v.totalUsed, 0)}
             </div>
@@ -525,14 +526,14 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Mã Voucher</TableHead>
-                <TableHead>Loại</TableHead>
-                <TableHead>Giá trị</TableHead>
-                <TableHead>Áp dụng cho</TableHead>
-                <TableHead>Thời hạn</TableHead>
-                <TableHead>Đã dùng</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead>Thao tác</TableHead>
+                <TableHead>{t('vendor.voucherCode')}</TableHead>
+                <TableHead>{t('vendor.type')}</TableHead>
+                <TableHead>{t('vendor.value')}</TableHead>
+                <TableHead>{t('vendor.applyToCategory')}</TableHead>
+                <TableHead>{t('vendor.duration')}</TableHead>
+                <TableHead>{t('vendor.used')}</TableHead>
+                <TableHead>{t('common.status')}</TableHead>
+                <TableHead>{t('vendor.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -543,7 +544,7 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">
-                      {voucher.type === "PERCENTAGE" ? "Phần trăm" : "Cố định"}
+                      {voucher.type === "PERCENTAGE" ? t('vendor.percentage') : t('vendor.fixedAmount')}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -552,7 +553,7 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
                       : `₫${voucher.value.toLocaleString()}`}
                     {voucher.maxDiscount && (
                       <div className="text-xs text-gray-500">
-                        Tối đa: ₫{voucher.maxDiscount.toLocaleString()}
+                        {t('vendor.max')}: ₫{voucher.maxDiscount.toLocaleString()}
                       </div>
                     )}
                   </TableCell>
@@ -563,7 +564,7 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
                     <div className="text-sm">
                       {new Date(voucher.startDate).toLocaleDateString('vi-VN')}
                       <br />
-                      đến {new Date(voucher.endDate).toLocaleDateString('vi-VN')}
+                      {t('vendor.to')} {new Date(voucher.endDate).toLocaleDateString('vi-VN')}
                     </div>
                   </TableCell>
                   <TableCell>

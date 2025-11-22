@@ -1,24 +1,24 @@
 package com.wanderlust.api.seeder;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wanderlust.api.entity.TravelGuide;
-import com.wanderlust.api.entity.Promotion;
-import com.wanderlust.api.entity.VisaArticle;
-import com.wanderlust.api.entity.Flight;
-import com.wanderlust.api.repository.TravelGuideRepository;
-import com.wanderlust.api.repository.PromotionRepository;
-import com.wanderlust.api.repository.VisaArticleRepository;
-import com.wanderlust.api.repository.FlightRepository;
+import java.io.InputStream;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
-import java.io.InputStream;
-import java.util.List;
-import java.util.Optional;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wanderlust.api.entity.Flight;
+import com.wanderlust.api.entity.Promotion;
+import com.wanderlust.api.entity.TravelGuide;
+import com.wanderlust.api.entity.VisaArticle;
+import com.wanderlust.api.repository.FlightRepository;
+import com.wanderlust.api.repository.PromotionRepository;
+import com.wanderlust.api.repository.TravelGuideRepository;
+import com.wanderlust.api.repository.VisaArticleRepository;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -29,9 +29,6 @@ public class DataSeeder implements CommandLineRunner {
     private final PromotionRepository promotionRepository;
     private final VisaArticleRepository visaArticleRepository;
     private final FlightRepository flightRepository;
-    private final HotelDataSeeder hotelDataSeeder;
-    private final CarRentalDataSeeder carRentalDataSeeder;
-    private final ActivityDataSeeder activityDataSeeder;
     private final ObjectMapper objectMapper;
 
     public DataSeeder(
@@ -39,44 +36,31 @@ public class DataSeeder implements CommandLineRunner {
             PromotionRepository promotionRepository,
             VisaArticleRepository visaArticleRepository,
             FlightRepository flightRepository,
-            HotelDataSeeder hotelDataSeeder,
-            CarRentalDataSeeder carRentalDataSeeder,
-            ActivityDataSeeder activityDataSeeder,
             ObjectMapper objectMapper) {
         this.travelGuideRepository = travelGuideRepository;
         this.promotionRepository = promotionRepository;
         this.visaArticleRepository = visaArticleRepository;
         this.flightRepository = flightRepository;
-        this.hotelDataSeeder = hotelDataSeeder;
-        this.carRentalDataSeeder = carRentalDataSeeder;
-        this.activityDataSeeder = activityDataSeeder;
         this.objectMapper = objectMapper;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        logger.info("Starting data seeding...");
+        logger.info("🌱 Starting data seeding...");
         
-        // Seed Travel Guides
+        // Seed Travel Guides (from JSON file)
         seedTravelGuides();
         
-        // Seed Promotions
+        // Seed Promotions (from JSON file)
         seedPromotions();
         
-        // Seed Visa Articles
+        // Seed Visa Articles (from JSON file)
         seedVisaArticles();
         
-        // Seed Flights
+        // Seed Flights (from JSON file)
         seedFlights();
         
-        // Seed Hotels & Rooms (locations are auto-generated from hotels)
-        hotelDataSeeder.seedHotels();
-        
-        // Seed Car Rentals
-        carRentalDataSeeder.seedCarRentals();
-
-        // Seed Activities
-        activityDataSeeder.seed();
+        logger.info("✅ Data seeding completed successfully!");
     }
 
     private void seedTravelGuides() {
@@ -115,46 +99,30 @@ public class DataSeeder implements CommandLineRunner {
         try {
             long existingCount = promotionRepository.count();
             
-            logger.info("Current promotions in database: {}", existingCount);
+            if (existingCount > 0) {
+                logger.info("Database already has {} promotions. Skipping seed.", existingCount);
+                return;
+            }
 
-            // Đọc file JSON mới với nhiều voucher đa dạng
+            logger.info("No existing promotions found. Starting seed...");
+
+            // Đọc file JSON từ resources
             ClassPathResource resource = new ClassPathResource("data/promotions-new.json");
             InputStream inputStream = resource.getInputStream();
 
             // Parse JSON thành List<Promotion>
-            List<Promotion> newPromotions = objectMapper.readValue(
+            List<Promotion> promotions = objectMapper.readValue(
                 inputStream, 
                 new TypeReference<List<Promotion>>() {}
             );
 
-            // Xóa và update những voucher có category sai (uppercase → lowercase)
-            String[] codesToUpdate = {"FLIGHT50K", "HOTEL15", "ACTIVITY20", "CARRENTAL25", 
-                                      "TOUR200K", "INTFLIGHT10", "LUXURY5STAR", "GROUPDEAL"};
-            for (String code : codesToUpdate) {
-                Optional<Promotion> existingPromotion = promotionRepository.findByCode(code);
-                if (existingPromotion.isPresent()) {
-                    promotionRepository.delete(existingPromotion.get());
-                    logger.info("Deleted old promotion with wrong category: {}", code);
-                }
-            }
+            // Lưu vào database
+            List<Promotion> savedPromotions = promotionRepository.saveAll(promotions);
 
-            // Chỉ thêm những voucher chưa tồn tại (dựa vào code)
-            int addedCount = 0;
-            for (Promotion promotion : newPromotions) {
-                if (!promotionRepository.existsByCode(promotion.getCode())) {
-                    promotionRepository.save(promotion);
-                    addedCount++;
-                    logger.info("Added new promotion: {}", promotion.getCode());
-                } else {
-                    logger.info("Promotion {} already exists, skipping.", promotion.getCode());
-                }
-            }
-
-            logger.info("Successfully added {} new promotions to database! Total: {}", 
-                addedCount, promotionRepository.count());
+            logger.info("Successfully seeded {} promotions to database!", savedPromotions.size());
 
         } catch (Exception e) {
-            logger.error("Error seeding promotions: {}", e.getMessage(), e);
+            logger.error("Error seeding promotions: {}", e.getMessage());
         }
     }
 

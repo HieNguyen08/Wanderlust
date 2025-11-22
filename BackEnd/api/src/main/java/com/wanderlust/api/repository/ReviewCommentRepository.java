@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface ReviewCommentRepository extends MongoRepository<ReviewComment, String> {
-    
+
     // Tìm review theo user
     List<ReviewComment> findAllByUserId(String userId);
 
@@ -20,11 +20,15 @@ public interface ReviewCommentRepository extends MongoRepository<ReviewComment, 
     List<ReviewComment> findAllByTargetTypeAndTargetId(ReviewTargetType targetType, String targetId);
 
     // Tìm review theo đối tượng và trạng thái (dùng để public)
-    List<ReviewComment> findAllByTargetTypeAndTargetIdAndStatus(ReviewTargetType targetType, String targetId, ReviewStatus status);
-    
+    List<ReviewComment> findAllByTargetTypeAndTargetIdAndStatus(ReviewTargetType targetType, String targetId,
+            ReviewStatus status);
+
     // Tìm review theo trạng thái (dùng cho admin duyệt)
     List<ReviewComment> findAllByStatus(ReviewStatus status);
-    
+
     // Kiểm tra xem user đã review cho booking này chưa
     Optional<ReviewComment> findByBookingId(String bookingId);
+
+    // Tìm review theo danh sách targetId (cho vendor filter)
+    List<ReviewComment> findByTargetIdIn(List<String> targetIds);
 }

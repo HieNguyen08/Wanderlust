@@ -11,6 +11,7 @@ import {
     XCircle
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
 import { AdminLayout } from "../../components/AdminLayout";
@@ -41,6 +42,7 @@ interface Review {
 }
 
 export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("pending");
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
@@ -78,7 +80,7 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
       setReviews(mappedReviews);
     } catch (error) {
       console.error('Error loading reviews:', error);
-      toast.error('Không thể tải danh sách review');
+      toast.error(t('admin.cannotLoadReviews'));
     } finally {
       setLoading(false);
     }
@@ -95,11 +97,11 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
         status: 'APPROVED',
         moderatorNotes: 'Approved by admin'
       });
-      toast.success(`Đã duyệt đánh giá ${review.id}`);
+      toast.success(t('admin.reviewApproved', { id: review.id }));
       loadReviews(); // Reload data
     } catch (error) {
       console.error('Error approving review:', error);
-      toast.error('Không thể duyệt đánh giá');
+      toast.error(t('admin.cannotApproveReview'));
     }
   };
 
@@ -109,24 +111,24 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
         status: 'REJECTED',
         moderatorNotes: 'Rejected by admin'
       });
-      toast.error(`Đã từ chối đánh giá ${review.id}`);
+      toast.error(t('admin.reviewRejected', { id: review.id }));
       loadReviews(); // Reload data
     } catch (error) {
       console.error('Error rejecting review:', error);
-      toast.error('Không thể từ chối đánh giá');
+      toast.error(t('admin.cannotRejectReview'));
     }
   };
 
   const handleDelete = async (review: Review) => {
-    if (!confirm(`Bạn có chắc muốn xóa đánh giá này?`)) return;
+    if (!confirm(t('admin.confirmDeleteReview'))) return;
     
     try {
       await reviewApi.deleteReviewByAdmin(review.id);
-      toast.success(`Đã xóa đánh giá ${review.id}`);
+      toast.success(t('admin.reviewDeleted', { id: review.id }));
       loadReviews(); // Reload data
     } catch (error) {
       console.error('Error deleting review:', error);
-      toast.error('Không thể xóa đánh giá');
+      toast.error(t('admin.cannotDeleteReview'));
     }
   };
 
@@ -199,10 +201,10 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
   ];
 
   const stats = [
-    { label: "Chờ duyệt", value: "15", color: "yellow", icon: AlertCircle },
-    { label: "Đã duyệt", value: "1,234", color: "green", icon: CheckCircle },
-    { label: "Từ chối", value: "45", color: "red", icon: XCircle },
-    { label: "Đánh giá TB", value: "4.6★", color: "yellow", icon: Star },
+    { label: t('admin.pendingReviews'), value: "15", color: "yellow", icon: AlertCircle },
+    { label: t('admin.approvedReviews'), value: "1,234", color: "green", icon: CheckCircle },
+    { label: t('admin.rejectedReviews'), value: "45", color: "red", icon: XCircle },
+    { label: t('admin.averageRating'), value: "4.6★", color: "yellow", icon: Star },
   ];
 
   const getServiceTypeIcon = (type: string) => {
@@ -221,11 +223,11 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-700">Chờ duyệt</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700">{t('admin.pending')}</Badge>;
       case "approved":
-        return <Badge className="bg-green-100 text-green-700">Đã duyệt</Badge>;
+        return <Badge className="bg-green-100 text-green-700">{t('admin.approved')}</Badge>;
       case "rejected":
-        return <Badge className="bg-red-100 text-red-700">Từ chối</Badge>;
+        return <Badge className="bg-red-100 text-red-700">{t('admin.rejected')}</Badge>;
       default:
         return null;
     }
@@ -244,8 +246,8 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">Quản lý Đánh giá</h1>
-          <p className="text-gray-600">Duyệt và quản lý đánh giá từ khách hàng</p>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('admin.manageReviews')}</h1>
+          <p className="text-gray-600">{t('admin.manageReviewsDesc')}</p>
         </div>
 
         {/* Stats */}
@@ -269,7 +271,7 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
           <div className="relative mb-6">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="Tìm kiếm đánh giá..."
+              placeholder={t('admin.searchReviews')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -279,15 +281,15 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
               <TabsTrigger value="pending">
-                Chờ duyệt ({reviews.filter(r => r.status === 'pending').length})
+                {t('admin.pending')} ({reviews.filter(r => r.status === 'pending').length})
               </TabsTrigger>
               <TabsTrigger value="approved">
-                Đã duyệt ({reviews.filter(r => r.status === 'approved').length})
+                {t('admin.approved')} ({reviews.filter(r => r.status === 'approved').length})
               </TabsTrigger>
               <TabsTrigger value="rejected">
-                Từ chối ({reviews.filter(r => r.status === 'rejected').length})
+                {t('admin.rejected')} ({reviews.filter(r => r.status === 'rejected').length})
               </TabsTrigger>
-              <TabsTrigger value="all">Tất cả ({reviews.length})</TabsTrigger>
+              <TabsTrigger value="all">{t('common.all')} ({reviews.length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">
@@ -302,7 +304,7 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-semibold text-gray-900">{review.user}</h4>
-                            <span className="text-sm text-gray-500">đánh giá</span>
+                            <span className="text-sm text-gray-500">{t('admin.reviewed')}</span>
                             <div className="flex items-center gap-1">
                               {getServiceTypeIcon(review.serviceType)}
                               <span className="text-sm font-medium text-gray-700">
@@ -356,7 +358,7 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
                           onClick={() => handleViewDetail(review)}
                         >
                           <Eye className="w-4 h-4" />
-                          Chi tiết
+                          {t('common.details')}
                         </Button>
                         {review.status === "pending" && (
                           <>
@@ -367,7 +369,7 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
                               onClick={() => handleReject(review)}
                             >
                               <XCircle className="w-4 h-4" />
-                              Từ chối
+                              {t('admin.reject')}
                             </Button>
                             <Button 
                               size="sm" 
@@ -375,7 +377,7 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
                               onClick={() => handleApprove(review)}
                             >
                               <CheckCircle className="w-4 h-4" />
-                              Duyệt
+                              {t('admin.approve')}
                             </Button>
                           </>
                         )}
@@ -387,7 +389,7 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
                             onClick={() => handleReject(review)}
                           >
                             <XCircle className="w-4 h-4" />
-                            Gỡ bỏ
+                            {t('admin.remove')}
                           </Button>
                         )}
                         <Button 
@@ -397,7 +399,7 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
                           onClick={() => handleDelete(review)}
                         >
                           <Trash2 className="w-4 h-4" />
-                          Xóa
+                          {t('common.delete')}
                         </Button>
                       </div>
                     </div>

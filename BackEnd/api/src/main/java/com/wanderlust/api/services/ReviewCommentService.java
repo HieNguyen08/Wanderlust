@@ -12,6 +12,8 @@ import com.wanderlust.api.mapper.ReviewCommentMapper;
 import com.wanderlust.api.repository.BookingRepository;
 import com.wanderlust.api.repository.ReviewCommentRepository;
 import com.wanderlust.api.repository.UserRepository;
+import com.wanderlust.api.repository.HotelRepository;
+import com.wanderlust.api.repository.ActivityRepository;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -26,11 +31,10 @@ public class ReviewCommentService {
 
     private final ReviewCommentRepository reviewCommentRepository;
     private final ReviewCommentMapper reviewCommentMapper;
-    
-    // === ĐÃ HOÀN THIỆN INJECT REPO ===
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
-    // =================================
+    private final HotelRepository hotelRepository;
+    private final ActivityRepository activityRepository;
 
     // ==========================================
     // COMMON/PUBLIC METHODS
@@ -69,36 +73,32 @@ public class ReviewCommentService {
      * [USER] Tạo một review mới
      */
     public ReviewCommentDTO create(ReviewCommentCreateDTO createDTO, String userId) {
-        
-        // === Logic kiểm tra nghiệp vụ (Quan trọng) ===
         // 1. Kiểm tra xem user đã review cho booking này chưa
         if (reviewCommentRepository.findByBookingId(createDTO.getBookingId()).isPresent()) {
             throw new IllegalArgumentException("Bạn đã đánh giá cho booking này rồi.");
         }
 
-        // 2. TODO: Kiểm tra xem booking có tồn tại, có thuộc về user này, và đã hoàn thành chưa
-        // === BẮT ĐẦU PHẦN HOÀN THIỆN ===
+        // 2. Kiểm tra xem booking có tồn tại, có thuộc về user này, và đã hoàn thành
+        // chưa
         Booking booking = bookingRepository.findById(createDTO.getBookingId())
-                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy Booking với ID: " + createDTO.getBookingId()));
-        
+                .orElseThrow(
+                        () -> new NoSuchElementException("Không tìm thấy Booking với ID: " + createDTO.getBookingId()));
+
         if (!booking.getUserId().equals(userId)) {
             throw new SecurityException("Bạn không có quyền đánh giá cho booking này.");
         }
-        
-        // Kiểm tra trạng thái booking đã hoàn thành (Dựa trên Booking.java và BookingStatus)
+
         if (booking.getStatus() != BookingStatus.COMPLETED) {
             throw new IllegalArgumentException("Chuyến đi chưa hoàn thành, không thể đánh giá.");
         }
-        // === KẾT THÚC PHẦN HOÀN THIỆN ===
-        // =============================================
 
         ReviewComment review = reviewCommentMapper.toEntity(createDTO);
         review.setUserId(userId);
-        review.setStatus(ReviewStatus.PENDING); // Mặc định chờ duyệt
-        review.setVerified(true); // Đã qua bước check booking
+        review.setStatus(ReviewStatus.PENDING);
+        review.setVerified(true);
         review.setHelpfulCount(0);
         review.setNotHelpfulCount(0);
-        
+
         ReviewComment savedReview = reviewCommentRepository.save(review);
         return reviewCommentMapper.toDTO(savedReview);
     }
@@ -109,15 +109,14 @@ public class ReviewCommentService {
     public ReviewCommentDTO updateUserReview(String id, ReviewCommentUpdateDTO updateDTO, String userId) {
         ReviewComment review = findByIdOrThrow(id);
 
-        // Kiểm tra quyền sở hữu
         if (!review.getUserId().equals(userId)) {
             throw new SecurityException("Không có quyền chỉnh sửa review này.");
         }
 
         reviewCommentMapper.updateEntityFromUserDTO(updateDTO, review);
-        review.setStatus(ReviewStatus.PENDING); // Sau khi sửa -> phải duyệt lại
+        review.setStatus(ReviewStatus.PENDING);
         review.setUpdatedAt(LocalDateTime.now());
-        
+
         ReviewComment updatedReview = reviewCommentRepository.save(review);
         return reviewCommentMapper.toDTO(updatedReview);
     }
@@ -127,12 +126,11 @@ public class ReviewCommentService {
      */
     public void deleteUserReview(String id, String userId) {
         ReviewComment review = findByIdOrThrow(id);
-        
-        // Kiểm tra quyền sở hữu
+
         if (!review.getUserId().equals(userId)) {
             throw new SecurityException("Không có quyền xóa review này.");
         }
-        
+
         reviewCommentRepository.delete(review);
     }
 
@@ -161,7 +159,7 @@ public class ReviewCommentService {
      */
     public ReviewCommentDTO moderateReview(String id, ReviewCommentAdminUpdateDTO adminUpdateDTO, String adminId) {
         ReviewComment review = findByIdOrThrow(id);
-        
+
         reviewCommentMapper.updateEntityFromAdminDTO(adminUpdateDTO, review);
         review.setModeratedBy(adminId);
         review.setModeratedAt(LocalDateTime.now());
@@ -180,14 +178,13 @@ public class ReviewCommentService {
         }
         reviewCommentRepository.deleteById(id);
     }
-    
+
     /**
      * [ADMIN] Xóa tất cả review
      */
     public void deleteAll() {
         reviewCommentRepository.deleteAll();
     }
-
 
     // ==========================================
     // PARTNER METHODS (VENDOR)
@@ -199,35 +196,22 @@ public class ReviewCommentService {
     public ReviewCommentDTO addVendorResponse(String id, ReviewCommentVendorResponseDTO responseDTO, String partnerId) {
         ReviewComment review = findByIdOrThrow(id);
 
-        // === Logic kiểm tra nghiệp vụ (Quan trọng) ===
-        // TODO: Kiểm tra xem partnerId (vendor) này có phải là chủ sở hữu
-        // của targetId (hotel, activity...) trong review hay không.
-        
-        // === BẮT ĐẦU PHẦN HOÀN THIỆN ===
-        
-        // 1. Kiểm tra xem partnerId có phải là PARTNER không (Dựa trên User.java và UserRepository.java)
         User partner = userRepository.findByUserId(partnerId)
                 .orElseThrow(() -> new NoSuchElementException("Không tìm thấy Partner (User) với ID: " + partnerId));
-        
-        // (Dựa trên User.java -> role và yêu cầu "vendor là user có role là partner")
+
         if (partner.getRole() != Role.PARTNER) {
-             throw new SecurityException("User này không phải là Partner và không có quyền phản hồi.");
+            throw new SecurityException("User này không phải là Partner và không có quyền phản hồi.");
         }
 
-        // 2. Kiểm tra xem partner này có phải là chủ của booking không
-        // (Cách làm này đúng cho cả Hotel, Flight, Activity... miễn là Booking.vendorId được gán đúng)
-        // (Dựa trên ReviewComment.java -> bookingId và Booking.java -> vendorId)
         Booking booking = bookingRepository.findById(review.getBookingId())
-                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy Booking của review này: " + review.getBookingId()));
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Không tìm thấy Booking của review này: " + review.getBookingId()));
 
         if (booking.getVendorId() == null || !booking.getVendorId().equals(partnerId)) {
-            throw new SecurityException("Bạn không phải là chủ sở hữu (vendor) của booking này nên không có quyền phản hồi.");
+            throw new SecurityException(
+                    "Bạn không phải là chủ sở hữu (vendor) của booking này nên không có quyền phản hồi.");
         }
-        
-        // === KẾT THÚC PHẦN HOÀN THIỆN ===
-        // =============================================
 
-        // Chỉ cho phép phản hồi review đã được duyệt
         if (review.getStatus() != ReviewStatus.APPROVED) {
             throw new IllegalArgumentException("Chỉ có thể phản hồi các review đã được duyệt (APPROVED).");
         }
@@ -240,6 +224,28 @@ public class ReviewCommentService {
         return reviewCommentMapper.toDTO(updatedReview);
     }
 
+    /**
+     * [PARTNER] Lấy tất cả review cho các dịch vụ của Vendor
+     */
+    public List<ReviewCommentDTO> getReviewsByVendor(String vendorId) {
+        List<String> targetIds = new ArrayList<>();
+
+        // Get Hotel IDs
+        List<com.wanderlust.api.entity.Hotel> hotels = hotelRepository.findByVendorId(vendorId);
+        targetIds.addAll(hotels.stream().map(com.wanderlust.api.entity.Hotel::getHotelID).collect(Collectors.toList()));
+
+        // Get Activity IDs
+        List<com.wanderlust.api.entity.Activity> activities = activityRepository.findByVendorId(vendorId);
+        targetIds.addAll(
+                activities.stream().map(com.wanderlust.api.entity.Activity::getId).collect(Collectors.toList()));
+
+        if (targetIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<ReviewComment> reviews = reviewCommentRepository.findByTargetIdIn(targetIds);
+        return reviewCommentMapper.toDTOs(reviews);
+    }
 
     // ==========================================
     // PRIVATE HELPER

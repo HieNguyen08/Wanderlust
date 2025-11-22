@@ -16,12 +16,14 @@ public interface TransactionMapper {
      * Map từ Entity sang DTO cho danh sách (List Response)
      * (orderId được map tự động vì tên booking_Id trong entity)
      */
+    @Mapping(source = "bookingId", target = "booking_Id")
+    @Mapping(target = "vendorName", ignore = true)
     TransactionResponseDTO toTransactionResponseDTO(WalletTransaction transaction);
 
     /**
      * Map từ Entity sang DTO cho chi tiết (Detail Response)
      */
     @Mapping(target = "serviceName", ignore = true) // Sẽ được điền bởi Service
-    @Mapping(target = "vendorName", ignore = true)  // Sẽ được điền bởi Service
+    @Mapping(target = "vendorName", ignore = true) // Sẽ được điền bởi Service
     TransactionDetailDTO toTransactionDetailDTO(WalletTransaction transaction);
 }

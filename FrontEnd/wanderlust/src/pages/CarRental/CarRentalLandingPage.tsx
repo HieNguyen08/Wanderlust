@@ -7,14 +7,12 @@ import type { PageType } from "../../MainApp";
 import { Footer } from "../../components/Footer";
 import { Card } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
-import { Button } from "../../components/ui/button";
 import { Calendar } from "../../components/ui/calendar";
-import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
-import { Checkbox } from "../../components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Label } from "../../components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -49,7 +47,6 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
   // Cars from backend
   const [popularCars, setPopularCars] = useState<any[]>([]);
   const [recommendedCars, setRecommendedCars] = useState<any[]>([]);
-  const [loadingCars, setLoadingCars] = useState(true);
 
   // Search form state
   const [pickupLocation, setPickupLocation] = useState<LocationItem | null>(null);
@@ -105,11 +102,13 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
         }
       } catch (error) {
         console.error("Failed to fetch locations:", error);
-        // Use fallback on error
+        // Use fallback data on error
         const fallbackLocations: LocationItem[] = [
           { code: "SGN", name: "TP. Hồ Chí Minh", airport: "Sân bay Tân Sơn Nhất" },
           { code: "HAN", name: "Hà Nội", airport: "Sân bay Nội Bài" },
           { code: "DAD", name: "Đà Nẵng", airport: "Sân bay Đà Nẵng" },
+          { code: "CXR", name: "Nha Trang", airport: "Sân bay Cam Ranh" },
+          { code: "PQC", name: "Phú Quốc", airport: "Sân bay Phú Quốc" },
         ];
         setLocations(fallbackLocations);
       } finally {
@@ -124,46 +123,15 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
   useEffect(() => {
     const fetchCars = async () => {
       try {
-        setLoadingCars(true);
-        // Use getAllCars to ensure consistency across all pages
-        const response = await carRentalApi.getAllCars();
+        // Fetch popular cars (top rated)
+        const popularResponse = await carRentalApi.getAllCars({ page: 0, size: 4, sort: "rating,desc" });
+        setPopularCars(popularResponse.content || []);
 
-        // Map backend data to frontend format
-        const mappedCars = (Array.isArray(response) ? response : []).map((car: any) => ({
-          id: car.id,
-          name: `${car.brand} ${car.model}`,
-          brand: car.brand,
-          model: car.model,
-          type: car.type || "SUV",
-          image: car.images?.[0]?.url || "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800&h=600&fit=crop",
-          gasoline: car.fuelType || "Gasoline",
-          transmission: car.transmission || "Automatic",
-          capacity: `${car.seats || 5} People`,
-          seats: car.seats,
-          price: car.pricePerDay ? Math.round(car.pricePerDay / 24000) : 0,
-          originalPrice: undefined,
-          liked: false,
-          rating: car.averageRating || (4.5 + Math.random() * 0.5),
-          totalTrips: car.totalTrips || 0,
-        }));
-
-        // Sort by totalTrips descending to get most popular cars
-        const sortedByPopularity = [...mappedCars].sort((a, b) => b.totalTrips - a.totalTrips);
-
-        // Popular: Top 4 most booked cars
-        setPopularCars(sortedByPopularity.slice(0, 4));
-
-        // Recommended: Remaining cars, shuffled for variety
-        const remaining = mappedCars.filter(car =>
-          !sortedByPopularity.slice(0, 4).some(popular => popular.id === car.id)
-        );
-        const shuffled = remaining.sort(() => Math.random() - 0.5);
-        setRecommendedCars(shuffled.slice(0, 8));
+        // Fetch recommended cars (random or specific criteria)
+        const recommendedResponse = await carRentalApi.getAllCars({ page: 0, size: 4 });
+        setRecommendedCars(recommendedResponse.content || []);
       } catch (error) {
         console.error("Failed to fetch cars:", error);
-        toast.error("Không thể tải danh sách xe");
-      } finally {
-        setLoadingCars(false);
       }
     };
 
@@ -441,7 +409,6 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
                             setPickupDateOpen(false);
                           }}
                           disabled={(date) => date < new Date()}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -614,7 +581,6 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
                             setDropoffDateOpen(false);
                           }}
                           disabled={(date) => date < (pickupDate || new Date())}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -750,8 +716,8 @@ function CarCard({ car, onNavigate }: { car: any; onNavigate: (page: PageType, d
           >
             <Heart
               className={`w-6 h-6 transition-all duration-300 ${isLiked
-                  ? 'fill-red-500 text-red-500 scale-110'
-                  : 'text-gray-300 hover:text-red-500'
+                ? 'fill-red-500 text-red-500 scale-110'
+                : 'text-gray-300 hover:text-red-500'
                 }`}
             />
           </button>

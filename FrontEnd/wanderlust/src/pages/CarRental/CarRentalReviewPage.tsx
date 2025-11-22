@@ -1,15 +1,16 @@
+import { AlertTriangle, Calendar, Car, MapPin, Settings } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
 import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
-import { Textarea } from "../../components/ui/textarea";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Separator } from "../../components/ui/separator";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { Car, MapPin, Calendar, AlertTriangle, Settings } from "lucide-react";
+import { Textarea } from "../../components/ui/textarea";
 import type { PageType } from "../../MainApp";
 
 interface CarRentalReviewPageProps {
@@ -18,6 +19,7 @@ interface CarRentalReviewPageProps {
 }
 
 export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalReviewPageProps) {
+  const { t } = useTranslation();
   const [contactInfo, setContactInfo] = useState({
     fullName: "Nguyễn Văn A",
     email: "nguyenvana@example.com",
@@ -68,22 +70,22 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
 
   const handleContinueToPayment = () => {
     if (!contactInfo.fullName || !contactInfo.email || !contactInfo.phone) {
-      alert("Vui lòng điền đầy đủ thông tin liên hệ");
+      alert(t('carRentalReview.fillContactInfo'));
       return;
     }
 
     if (!driverInfo.title || !driverInfo.fullName || !driverInfo.phone) {
-      alert("Vui lòng điền đầy đủ thông tin người lái");
+      alert(t('carRentalReview.fillDriverInfo'));
       return;
     }
 
     if (!pickupDropoffInfo.pickupLocation || !pickupDropoffInfo.dropoffLocation) {
-      alert("Vui lòng điền địa điểm đón và trả xe");
+      alert(t('carRentalReview.fillPickupDropoff'));
       return;
     }
 
     if (!agreeToTerms) {
-      alert("Vui lòng đồng ý với điều khoản và điều kiện");
+      alert(t('carRentalReview.agreeToTerms'));
       return;
     }
 
@@ -103,14 +105,14 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
         <div className="mb-6">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <button onClick={() => onNavigate("car-rental")} className="hover:text-blue-600">
-              Thuê xe
+              {t('carRentalReview.carRental')}
             </button>
             <span>/</span>
             <button onClick={() => onNavigate("car-list")} className="hover:text-blue-600">
-              Danh sách
+              {t('carRentalReview.list')}
             </button>
             <span>/</span>
-            <span className="text-gray-900">Xem lại & Điền thông tin</span>
+            <span className="text-gray-900">{t('carRentalReview.reviewAndFill')}</span>
           </div>
         </div>
 
@@ -121,9 +123,9 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl text-gray-900 mb-1">Thông tin Liên hệ</h2>
+                  <h2 className="text-2xl text-gray-900 mb-1">{t('carRentalReview.contactInfo')}</h2>
                   <p className="text-sm text-gray-600">
-                    Voucher thuê xe sẽ được gửi đến đây
+                    {t('carRentalReview.voucherSentHere')}
                   </p>
                 </div>
                 {!isEditingContact && (
@@ -132,7 +134,7 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
                     size="sm"
                     onClick={() => setIsEditingContact(true)}
                   >
-                    Chỉnh sửa
+                    {t('carRentalReview.edit')}
                   </Button>
                 )}
               </div>
@@ -140,7 +142,7 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="contactName">
-                    Tên đầy đủ <span className="text-red-600">*</span>
+                    {t('carRentalReview.fullName')} <span className="text-red-600">*</span>
                   </Label>
                   <Input
                     id="contactName"
@@ -167,7 +169,7 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
 
                 <div className="md:col-span-2">
                   <Label htmlFor="contactPhone">
-                    Số điện thoại di động <span className="text-red-600">*</span>
+                    {t('carRentalReview.mobilePhone')} <span className="text-red-600">*</span>
                   </Label>
                   <div className="flex gap-2 mt-1">
                     <Select
@@ -200,13 +202,13 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
               {isEditingContact && (
                 <div className="mt-4 flex gap-2">
                   <Button onClick={() => setIsEditingContact(false)}>
-                    Lưu
+                    {t('carRentalReview.save')}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setIsEditingContact(false)}
                   >
-                    Hủy
+                    {t('carRentalReview.cancel')}
                   </Button>
                 </div>
               )}
@@ -234,19 +236,19 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="driverTitle">
-                    Quý danh <span className="text-red-600">*</span>
+                    {t('carRentalReview.title')} <span className="text-red-600">*</span>
                   </Label>
                   <Select
                     value={driverInfo.title}
                     onValueChange={(v) => setDriverInfo({ ...driverInfo, title: v })}
                   >
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Chọn" />
+                      <SelectValue placeholder={t('carRentalReview.select')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="mr">Ông (Mr.)</SelectItem>
-                      <SelectItem value="mrs">Bà (Mrs.)</SelectItem>
-                      <SelectItem value="ms">Cô (Ms.)</SelectItem>
+                      <SelectItem value="mr">{t('carRentalReview.mr')}</SelectItem>
+                      <SelectItem value="mrs">{t('carRentalReview.mrs')}</SelectItem>
+                      <SelectItem value="ms">{t('carRentalReview.ms')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -337,7 +339,7 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
 
                 <div>
                   <Label htmlFor="flightNumber">
-                    Số hiệu chuyến bay (Nếu đón tại sân bay)
+                    {t('carRentalReview.flightNumber')}
                   </Label>
                   <Input
                     id="flightNumber"
@@ -347,20 +349,20 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
                     placeholder="VN210"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Giúp tài xế theo dõi trạng thái chuyến bay
+                    {t('carRentalReview.flightTracking')}
                   </p>
                 </div>
 
                 <div>
                   <Label htmlFor="notes">
-                    Ghi chú cho tài xế
+                    {t('carRentalReview.notesForDriver')}
                   </Label>
                   <Textarea
                     id="notes"
                     value={pickupDropoffInfo.notesForDriver}
                     onChange={(e) => setPickupDropoffInfo({ ...pickupDropoffInfo, notesForDriver: e.target.value })}
                     className="mt-1"
-                    placeholder="Ví dụ: Vui lòng đến trước 15 phút..."
+                    placeholder={t('carRentalReview.notesPlaceholder')}
                     rows={3}
                   />
                 </div>
@@ -369,23 +371,23 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
 
             {/* Important Information */}
             <Card className="p-6 bg-blue-50 border-blue-200">
-              <h3 className="text-lg text-gray-900 mb-4">Thông tin quan trọng</h3>
+              <h3 className="text-lg text-gray-900 mb-4">{t('carRentalReview.importantInfo')}</h3>
               <ul className="space-y-2 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-1">•</span>
-                  <span>Người lái phải xuất trình bằng lái xe hợp lệ khi nhận xe</span>
+                  <span>{t('carRentalReview.mustShowLicense')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-1">•</span>
-                  <span>Tiền cọc {pricing.deposit.toLocaleString('vi-VN')}đ sẽ được hoàn trả sau khi trả xe</span>
+                  <span>{t('carRentalReview.depositRefund', { amount: pricing.deposit.toLocaleString('vi-VN') })}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-1">•</span>
-                  <span>Kiểm tra kỹ xe trước khi nhận và chụp ảnh làm bằng chứng</span>
+                  <span>{t('carRentalReview.inspectCar')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-1">•</span>
-                  <span>Đổ đầy bình xăng trước khi trả xe (trừ khi có thỏa thuận khác)</span>
+                  <span>{t('carRentalReview.fillGas')}</span>
                 </li>
               </ul>
             </Card>
@@ -528,3 +530,5 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
     </div>
   );
 }
+
+

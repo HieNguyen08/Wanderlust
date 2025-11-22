@@ -1,26 +1,23 @@
-import { useState, useEffect, useRef } from "react";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { Fuel, Users, Settings, ArrowLeft, Heart, Star, Filter, SlidersHorizontal, ArrowUpDown, Calendar as CalendarIcon, ChevronDown, Check } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
-import { Checkbox } from "../../components/ui/checkbox";
-import { Input } from "../../components/ui/input";
-import { Slider } from "../../components/ui/slider";
-import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Input } from "../../components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
-import { Calendar } from "../../components/ui/calendar";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
-import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
-import { Label } from "../../components/ui/label";
-import type { PageType } from "../../MainApp";
-import { Header } from "../../components/Header";
-import { Footer } from "../../components/Footer";
-import { carRentalApi, locationApi } from "../../utils/api";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { Calendar as CalendarIcon, Check, ChevronDown, Fuel, Heart, Settings, Star, Users } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Footer } from "../../components/Footer";
+import { Header } from "../../components/Header";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Calendar } from "../../components/ui/calendar";
+import { Card } from "../../components/ui/card";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
+import { Label } from "../../components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
+import { Slider } from "../../components/ui/slider";
+import type { PageType } from "../../MainApp";
+import { carRentalApi, locationApi } from "../../utils/api";
 
 interface CarRentalListPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -46,7 +43,6 @@ export default function CarRentalListPage({ onNavigate }: CarRentalListPageProps
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedCapacities, setSelectedCapacities] = useState<string[]>([]);
   const [maxPrice, setMaxPrice] = useState(100);
-  const [showFilters, setShowFilters] = useState(false);
   const [visibleCars, setVisibleCars] = useState(9);
 
   // Location and search states

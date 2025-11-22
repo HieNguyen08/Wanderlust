@@ -1,5 +1,6 @@
 import { MessageSquare, Search, Star } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
 import { VendorLayout } from "../../components/VendorLayout";
@@ -8,6 +9,7 @@ import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { ReplyReviewDialog } from "../../components/vendor/ReplyReviewDialog";
+import { vendorApi } from "../../utils/api";
 
 interface VendorReviewsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -30,6 +32,7 @@ export default function VendorReviewsPage({
   onNavigate,
   vendorType = "hotel"
 }: VendorReviewsPageProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
@@ -45,10 +48,10 @@ export default function VendorReviewsPage({
   }, []);
 
   const stats = [
-    { label: "Tổng reviews", value: "234", color: "blue" },
-    { label: "Chưa phản hồi", value: "3", color: "yellow" },
-    { label: "Đánh giá TB", value: "4.9★", color: "yellow" },
-    { label: "Tháng này", value: "+23", color: "green" },
+    { label: t('vendor.totalReviews'), value: "234", color: "blue" },
+    { label: t('vendor.unanswered'), value: "3", color: "yellow" },
+    { label: t('vendor.averageRating'), value: "4.9★", color: "yellow" },
+    { label: t('vendor.thisMonth'), value: "+23", color: "green" },
   ];
 
   const ratingDistribution = [
@@ -77,10 +80,10 @@ export default function VendorReviewsPage({
   const handleSendReply = async (reviewId: string, reply: string) => {
     try {
       await vendorApi.respondToReview(reviewId, reply);
-      toast.success(`Đã gửi phản hồi cho review ${reviewId}`);
+      toast.success(`${t('vendor.replySent')} ${reviewId}`);
       // Note: Could reload reviews here if needed
     } catch (error) {
-      toast.error('Không thể gửi phản hồi');
+      toast.error(t('vendor.cannotSendReply'));
     }
   };
 
@@ -94,8 +97,8 @@ export default function VendorReviewsPage({
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">Quản lý Đánh giá</h1>
-          <p className="text-gray-600">Xem và phản hồi đánh giá từ khách hàng</p>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('vendor.manageReviews')}</h1>
+          <p className="text-gray-600">{t('vendor.manageReviewsDesc')}</p>
         </div>
 
         {/* Stats */}
@@ -111,7 +114,7 @@ export default function VendorReviewsPage({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Rating Distribution */}
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Phân bố đánh giá</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('vendor.ratingDistribution')}</h3>
             <div className="space-y-3">
               {ratingDistribution.map((item) => (
                 <div key={item.stars} className="flex items-center gap-3">
@@ -137,7 +140,7 @@ export default function VendorReviewsPage({
               <div className="relative mb-6">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  placeholder="Tìm kiếm đánh giá..."
+                  placeholder={t('vendor.searchReviews')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -146,12 +149,12 @@ export default function VendorReviewsPage({
 
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList>
-                  <TabsTrigger value="all">Tất cả ({reviews.length})</TabsTrigger>
+                  <TabsTrigger value="all">{t('common.all')} ({reviews.length})</TabsTrigger>
                   <TabsTrigger value="pending">
-                    Chưa phản hồi ({reviews.filter(r => !r.hasResponse).length})
+                    {t('vendor.unanswered')} ({reviews.filter(r => !r.hasResponse).length})
                   </TabsTrigger>
                   <TabsTrigger value="responded">
-                    Đã phản hồi ({reviews.filter(r => r.hasResponse).length})
+                    {t('vendor.responded')} ({reviews.filter(r => r.hasResponse).length})
                   </TabsTrigger>
                 </TabsList>
 
@@ -185,7 +188,7 @@ export default function VendorReviewsPage({
                           <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600">
                             <div className="flex items-center gap-2 mb-2">
                               <MessageSquare className="w-4 h-4 text-blue-600" />
-                              <span className="font-medium text-blue-900">Phản hồi của bạn</span>
+                              <span className="font-medium text-blue-900">{t('common.yourReply')}</span>
                             </div>
                             <p className="text-gray-700 mb-2">{review.response}</p>
                             <p className="text-xs text-gray-500">{review.responseDate}</p>
@@ -193,7 +196,7 @@ export default function VendorReviewsPage({
                         ) : (
                           <Button size="sm" onClick={() => handleReply(review)} className="gap-2">
                             <MessageSquare className="w-4 h-4" />
-                            Phản hồi
+                            {t('common.reply')}
                           </Button>
                         )}
                       </Card>

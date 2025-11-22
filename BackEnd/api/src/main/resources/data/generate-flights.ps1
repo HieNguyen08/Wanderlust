@@ -1,5 +1,7 @@
 # PowerShell script to generate flights.json
+# Updated: Generate data for the next 30 days from NOW
 
+# 1. Define Data Sources
 $airports = @{
     "SGN" = @{ name = "Tan Son Nhat Airport"; city = "Ho Chi Minh City"; terminal = "T1" }
     "HAN" = @{ name = "Noi Bai Airport"; city = "Ha Noi"; terminal = "T1" }
@@ -56,14 +58,24 @@ $times = @("06:00", "07:30", "09:00", "10:30", "12:00", "13:30", "15:00", "16:30
 $flights = @()
 $counter = 200
 
-for ($i = 0; $i -lt 100; $i++) {
+# 2. Configuration for 30 Days
+$currentDate = Get-Date
+$totalDaysToGenerate = 30
+# Tăng số lượng chuyến bay lên để đảm bảo ngày nào cũng có dữ liệu
+# 1000 chuyến / 30 ngày = khoảng 33 chuyến/ngày
+$totalFlightsToGenerate = 1000 
+
+Write-Host "Generating $totalFlightsToGenerate flights starting from $($currentDate.ToString('yyyy-MM-dd')) for next 30 days..." -ForegroundColor Yellow
+
+for ($i = 0; $i -lt $totalFlightsToGenerate; $i++) {
     $route = $routes | Get-Random
     $airlineCode = @("VN", "VJ", "BL", "QH") | Get-Random
     $airline = $airlines[$airlineCode]
     $ac = $aircraft | Get-Random
     
-    $daysAhead = Get-Random -Minimum 0 -Maximum 7
-    $date = (Get-Date "2025-11-14").AddDays($daysAhead)
+    # LOGIC THAY ĐỔI Ở ĐÂY: Random từ 0 đến 30 ngày
+    $daysAhead = Get-Random -Minimum 0 -Maximum $totalDaysToGenerate
+    $date = $currentDate.AddDays($daysAhead)
     
     $time = $times | Get-Random
     $hour, $min = $time -split ":"
@@ -94,6 +106,7 @@ for ($i = 0; $i -lt 100; $i++) {
         departureAirportName = $airports[$route.from].name
         departureCity = $airports[$route.from].city
         departureTerminal = $airports[$route.from].terminal
+        # Format ngày tháng chuẩn ISO 8601 để Java dễ đọc
         departureTime = $depTime.ToString("yyyy-MM-ddTHH:mm:ss")
         arrivalAirportCode = $route.to
         arrivalAirportName = $airports[$route.to].name
@@ -187,6 +200,4 @@ for ($i = 0; $i -lt 100; $i++) {
 $json = $flights | ConvertTo-Json -Depth 20
 $json | Out-File -FilePath "flights.json" -Encoding UTF8
 
-Write-Host "Generated $($flights.Count) flights successfully!" -ForegroundColor Green
-Write-Host "Domestic: $(($flights | Where-Object { -not $_.isInternational }).Count)" -ForegroundColor Cyan
-Write-Host "International: $(($flights | Where-Object { $_.isInternational }).Count)" -ForegroundColor Cyan
+Write-Host "Success! Generated $($flights.Count) flights in flights.json" -ForegroundColor Green

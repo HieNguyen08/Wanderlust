@@ -1,15 +1,25 @@
-import { ReactNode } from "react";
-import { 
-  LayoutDashboard, Package, BookOpen, Star, 
-  BarChart3, Settings, LogOut, Menu, X,
-  Bell, Search, Hotel, Activity, Car, Plane, Home, Ticket
+import {
+    Activity,
+    BarChart3,
+    BookOpen,
+    Car,
+    Home,
+    Hotel,
+    LayoutDashboard,
+    LogOut, Menu,
+    Package,
+    Plane,
+    Settings,
+    Star,
+    Ticket,
+    X
 } from "lucide-react";
+import { ReactNode, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { PageType } from "../MainApp";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Badge } from "./ui/badge";
-import { useState } from "react";
 import { NotificationDropdown } from "./NotificationDropdown";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 
 interface VendorLayoutProps {
   children: ReactNode;
@@ -26,24 +36,25 @@ export function VendorLayout({
   activePage = "vendor-dashboard",
   vendorType = "hotel"
 }: VendorLayoutProps) {
+  const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const vendorInfo = {
     hotel: {
       name: "JW Marriott Phu Quoc",
-      type: "Khách sạn",
+      type: t('vendor.hotel'),
       icon: Hotel,
       color: "blue",
     },
     activity: {
       name: "VinWonders Entertainment",
-      type: "Hoạt động vui chơi",
+      type: t('vendor.activity'),
       icon: Activity,
       color: "green",
     },
     car: {
       name: "Premium Car Rental",
-      type: "Thuê xe",
+      type: t('vendor.carRental'),
       icon: Car,
       color: "purple",
     },
@@ -61,49 +72,49 @@ export function VendorLayout({
   const menuItems = [
     {
       id: "vendor-dashboard",
-      label: "Dashboard",
+      label: t('vendor.dashboard'),
       icon: LayoutDashboard,
       page: "vendor-dashboard" as PageType,
       badge: null,
     },
     {
       id: "vendor-services",
-      label: vendorType === "hotel" ? "Khách sạn & Phòng" : vendorType === "activity" ? "Hoạt động" : vendorType === "car" ? "Xe" : "Chuyến bay",
+      label: vendorType === "hotel" ? t('vendor.hotelRooms') : vendorType === "activity" ? t('vendor.activities') : vendorType === "car" ? t('vendor.cars') : t('vendor.flights'),
       icon: Package,
       page: "vendor-services" as PageType,
       badge: null,
     },
     {
       id: "vendor-bookings",
-      label: "Đơn đặt chỗ",
+      label: t('vendor.bookings'),
       icon: BookOpen,
       page: "vendor-bookings" as PageType,
       badge: "12",
     },
     {
       id: "vendor-reviews",
-      label: "Đánh giá",
+      label: t('vendor.reviews'),
       icon: Star,
       page: "vendor-reviews" as PageType,
       badge: "3",
     },
     {
       id: "vendor-vouchers",
-      label: "Vouchers",
+      label: t('vendor.vouchers'),
       icon: Ticket,
       page: "vendor-vouchers" as PageType,
       badge: null,
     },
     {
       id: "vendor-reports",
-      label: "Báo cáo",
+      label: t('admin.reports'),
       icon: BarChart3,
       page: "vendor-reports" as PageType,
       badge: null,
     },
     {
       id: "vendor-settings",
-      label: "Cài đặt",
+      label: t('common.settings'),
       icon: Settings,
       page: "vendor-settings" as PageType,
       badge: null,

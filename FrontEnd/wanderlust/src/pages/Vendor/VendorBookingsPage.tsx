@@ -11,6 +11,7 @@ import {
     X
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
 import { VendorCancelOrderDialog } from "../../components/VendorCancelOrderDialog";
@@ -61,6 +62,7 @@ export default function VendorBookingsPage({
   onNavigate,
   vendorType = "hotel"
 }: VendorBookingsPageProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -80,29 +82,29 @@ export default function VendorBookingsPage({
       const data = await vendorApi.getVendorBookings();
       setBookings(data);
     } catch (error) {
-      toast.error('Không thể tải danh sách booking');
+      toast.error(t('vendor.cannotLoadBookings'));
     } finally {
       setLoading(false);
     }
   };
 
   const stats = [
-    { label: "Tổng bookings", value: "186", color: "blue" },
-    { label: "Chờ xác nhận", value: "12", color: "yellow" },
-    { label: "Đã hủy", value: "8", color: "red" },
-    { label: "Doanh thu", value: "₫523M", color: "green" },
+    { label: t('vendor.totalBookings'), value: "186", color: "blue" },
+    { label: t('vendor.pendingApproval'), value: "12", color: "yellow" },
+    { label: t('vendor.cancelled'), value: "8", color: "red" },
+    { label: t('vendor.revenue'), value: "₫523M", color: "green" },
   ];
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "confirmed":
-        return <Badge className="bg-green-100 text-green-700">Đã xác nhận</Badge>;
+        return <Badge className="bg-green-100 text-green-700">{t('common.confirmed')}</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-700">Chờ xử lý</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700">{t('common.pending')}</Badge>;
       case "cancelled":
-        return <Badge className="bg-red-100 text-red-700">Đã hủy</Badge>;
+        return <Badge className="bg-red-100 text-red-700">{t('common.cancelled')}</Badge>;
       case "completed":
-        return <Badge className="bg-blue-100 text-blue-700">Hoàn thành</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700">{t('common.completed')}</Badge>;
       default:
         return null;
     }
@@ -111,9 +113,9 @@ export default function VendorBookingsPage({
   const getPaymentBadge = (payment: string) => {
     switch (payment) {
       case "paid":
-        return <Badge className="bg-green-100 text-green-700">Đã thanh toán</Badge>;
+        return <Badge className="bg-green-100 text-green-700">{t('common.paid')}</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-700">Chờ thanh toán</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700">{t('common.pendingPayment')}</Badge>;
       default:
         return null;
     }
@@ -135,10 +137,10 @@ export default function VendorBookingsPage({
   const handleConfirmBooking = async (bookingId: string) => {
     try {
       await vendorApi.confirmBooking(bookingId);
-      toast.success(`Đã xác nhận booking ${bookingId}`);
+      toast.success(`${t('vendor.bookingConfirmed')} ${bookingId}`);
       loadBookings(); // Reload data
     } catch (error) {
-      toast.error('Không thể xác nhận booking');
+      toast.error(t('vendor.cannotConfirmBooking'));
     }
   };
 
@@ -151,12 +153,12 @@ export default function VendorBookingsPage({
     if (bookingToCancel) {
       try {
         await vendorApi.rejectBooking(bookingToCancel.id, reason);
-        toast.error(`Đã hủy booking ${bookingToCancel.id}`);
+        toast.error(`${t('vendor.bookingCancelled')} ${bookingToCancel.id}`);
         setIsCancelDialogOpen(false);
         setBookingToCancel(null);
         loadBookings(); // Reload data
       } catch (error) {
-        toast.error('Không thể hủy booking');
+        toast.error(t('vendor.cannotCancelBooking'));
       }
     }
   };
@@ -171,8 +173,8 @@ export default function VendorBookingsPage({
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">Quản lý Đơn đặt chỗ</h1>
-          <p className="text-gray-600">Quản lý tất cả đơn đặt phòng</p>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('vendor.manageBookings')}</h1>
+          <p className="text-gray-600">{t('vendor.manageBookingsDesc')}</p>
         </div>
 
         {/* Stats */}
@@ -191,7 +193,7 @@ export default function VendorBookingsPage({
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="Tìm kiếm mã booking, khách hàng..."
+                placeholder={t('vendor.searchBookings')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -199,17 +201,17 @@ export default function VendorBookingsPage({
             </div>
             <Button variant="outline" className="gap-2">
               <Download className="w-4 h-4" />
-              Export
+              {t('vendor.export')}
             </Button>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
-              <TabsTrigger value="all">Tất cả ({bookings.length})</TabsTrigger>
-              <TabsTrigger value="pending">Chờ xử lý</TabsTrigger>
-              <TabsTrigger value="confirmed">Đã xác nhận</TabsTrigger>
-              <TabsTrigger value="completed">Hoàn thành</TabsTrigger>
-              <TabsTrigger value="cancelled">Đã hủy</TabsTrigger>
+              <TabsTrigger value="all">{t('common.all')} ({bookings.length})</TabsTrigger>
+              <TabsTrigger value="pending">{t('vendor.pendingProcessing')}</TabsTrigger>
+              <TabsTrigger value="confirmed">{t('common.confirmed')}</TabsTrigger>
+              <TabsTrigger value="completed">{t('common.completed')}</TabsTrigger>
+              <TabsTrigger value="cancelled">{t('common.cancelled')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">
@@ -217,16 +219,16 @@ export default function VendorBookingsPage({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Mã booking</TableHead>
-                      <TableHead>Khách hàng</TableHead>
-                      <TableHead>Dịch vụ</TableHead>
-                      <TableHead>Check-in</TableHead>
-                      <TableHead>Check-out</TableHead>
-                      <TableHead>Khách</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead>Thanh toán</TableHead>
-                      <TableHead>Số tiền</TableHead>
-                      <TableHead className="text-right">Hành động</TableHead>
+                      <TableHead>{t('vendor.bookingCode')}</TableHead>
+                      <TableHead>{t('vendor.customer')}</TableHead>
+                      <TableHead>{t('vendor.service')}</TableHead>
+                      <TableHead>{t('vendor.checkIn')}</TableHead>
+                      <TableHead>{t('vendor.checkOut')}</TableHead>
+                      <TableHead>{t('vendor.guests')}</TableHead>
+                      <TableHead>{t('common.status')}</TableHead>
+                      <TableHead>{t('vendor.paymentStatus')}</TableHead>
+                      <TableHead>{t('vendor.amount')}</TableHead>
+                      <TableHead className="text-right">{t('vendor.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -285,7 +287,7 @@ export default function VendorBookingsPage({
                                 onClick={() => handleViewDetail(booking)}
                               >
                                 <Eye className="w-4 h-4" />
-                                Xem chi tiết
+                                {t('vendor.viewDetails')}
                               </DropdownMenuItem>
                               {booking.status === "pending" && (
                                 <DropdownMenuItem 
@@ -293,7 +295,7 @@ export default function VendorBookingsPage({
                                   onClick={() => handleConfirmBooking(booking.id)}
                                 >
                                   <CheckCircle className="w-4 h-4" />
-                                  Xác nhận
+                                  {t('vendor.confirm')}
                                 </DropdownMenuItem>
                               )}
                               {booking.status !== "cancelled" && booking.status !== "completed" && (
@@ -302,12 +304,12 @@ export default function VendorBookingsPage({
                                   onClick={() => handleOpenCancelDialog(booking)}
                                 >
                                   <X className="w-4 h-4" />
-                                  Hủy booking
+                                  {t('vendor.cancelBooking')}
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuItem className="gap-2">
                                 <Download className="w-4 h-4" />
-                                Tải hóa đơn
+                                {t('vendor.downloadInvoice')}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

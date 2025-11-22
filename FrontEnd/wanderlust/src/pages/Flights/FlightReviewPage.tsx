@@ -1,5 +1,7 @@
 import { AlertCircle, Clock, Plane } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -9,6 +11,7 @@ import { Label } from "../../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Separator } from "../../components/ui/separator";
 import type { PageType } from "../../MainApp";
+import { profileApi, tokenService } from "../../utils/api";
 
 interface FlightReviewPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -28,12 +31,15 @@ interface PassengerForm {
 }
 
 export default function FlightReviewPage({ onNavigate, flightData }: FlightReviewPageProps) {
+  const { t } = useTranslation();
   const [contactInfo, setContactInfo] = useState({
-    fullName: "Nguyễn Văn A",
-    email: "nguyenvana@example.com",
-    phone: "+84901234567",
+    fullName: "",
+    email: "",
+    phone: "",
     countryCode: "+84"
   });
+  
+  const [isLoadingUserData, setIsLoadingUserData] = useState(true);
 
   const [passengers, setPassengers] = useState<PassengerForm[]>([
     {
@@ -51,6 +57,39 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
 
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isEditingContact, setIsEditingContact] = useState(false);
+
+  // Load user info when component mounts
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (tokenService.isAuthenticated()) {
+        try {
+          const userProfile = await profileApi.getCurrentUser();
+          
+          // Auto-fill contact info from user profile
+          setContactInfo({
+            fullName: `${userProfile.firstName} ${userProfile.lastName}`.trim(),
+            email: userProfile.email || "",
+            phone: userProfile.mobile || "",
+            countryCode: "+84"
+          });
+          
+          toast.success(t('flights.userInfoLoaded') || 'Đã tải thông tin người dùng');
+        } catch (error: any) {
+          console.error('Error loading user profile:', error);
+          // If error but not auth issue, just use empty form
+          if (error.message !== 'UNAUTHORIZED') {
+            toast.info(t('flights.fillContactInfo') || 'Vui lòng điền thông tin liên hệ');
+          }
+        } finally {
+          setIsLoadingUserData(false);
+        }
+      } else {
+        setIsLoadingUserData(false);
+      }
+    };
+
+    loadUserData();
+  }, [t]);
 
   // Mock data - in real app, this comes from previous page
   const isInternational = flightData?.isInternational || false;
@@ -86,27 +125,27 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
   const handleContinueToPayment = () => {
     // Validation
     if (!contactInfo.fullName || !contactInfo.email || !contactInfo.phone) {
-      alert("Vui lòng điền đầy đủ thông tin liên hệ");
+      alert(t('flights.pleaseFillContactInfo'));
       return;
     }
 
     for (let i = 0; i < numPassengers; i++) {
       const p = passengers[i];
       if (!p.title || !p.firstName || !p.lastName || !p.dateOfBirth) {
-        alert(`Vui lòng điền đầy đủ thông tin hành khách ${i + 1}`);
+        alert(t('flights.pleaseFillPassengerInfo', { number: i + 1 }));
         return;
       }
 
       if (isInternational) {
         if (!p.nationality || !p.passportNumber || !p.passportIssuingCountry || !p.passportExpiry) {
-          alert(`Vui lòng điền đầy đủ thông tin hộ chiếu cho hành khách ${i + 1}`);
+          alert(t('flights.pleaseFillPassportInfo', { number: i + 1 }));
           return;
         }
       }
     }
 
     if (!agreeToTerms) {
-      alert("Vui lòng đồng ý với điều khoản và điều kiện");
+      alert(t('flights.pleaseAgreeToTerms'));
       return;
     }
 
@@ -126,14 +165,14 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
         <div className="mb-6">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <button onClick={() => onNavigate("flights")} className="hover:text-blue-600">
-              Vé máy bay
+              {t('flights.flightTickets')}
             </button>
             <span>/</span>
             <button onClick={() => onNavigate("search")} className="hover:text-blue-600">
-              Tìm kiếm
+              {t('common.search')}
             </button>
             <span>/</span>
-            <span className="text-gray-900">Xem lại & Điền thông tin</span>
+            <span className="text-gray-900">{t('flights.reviewAndFillInfo')}</span>
           </div>
         </div>
 
@@ -146,9 +185,9 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                 <AlertCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900">
                   <p className="mb-1">
-                    <strong>Lưu ý quan trọng:</strong> Thông tin hành khách phải khớp chính xác 100% với giấy tờ tùy thân (CCCD/Hộ chiếu).
+                    <strong>{t('flights.importantNote')}:</strong> {t('flights.passengerInfoMustMatch')}
                   </p>
-                  <p>Vé máy bay không thể hoàn lại sau khi đã xuất.</p>
+                  <p>{t('flights.ticketNonRefundable')}</p>
                 </div>
               </div>
             </Card>
@@ -157,94 +196,103 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl text-gray-900 mb-1">Thông tin Liên hệ</h2>
+                  <h2 className="text-2xl text-gray-900 mb-1">{t('flights.contactInfo')}</h2>
                   <p className="text-sm text-gray-600">
-                    Vé điện tử và thông báo sẽ được gửi đến đây
+                    {t('flights.eTicketWillBeSent')}
                   </p>
                 </div>
-                {!isEditingContact && (
+                {!isEditingContact && !isLoadingUserData && (
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setIsEditingContact(true)}
                   >
-                    Chỉnh sửa
+                    {t('common.edit')}
                   </Button>
                 )}
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="contactName">
-                    Tên đầy đủ <span className="text-red-600">*</span>
-                  </Label>
-                  <Input
-                    id="contactName"
-                    value={contactInfo.fullName}
-                    onChange={(e) => setContactInfo({ ...contactInfo, fullName: e.target.value })}
-                    disabled={!isEditingContact}
-                    className="mt-1"
-                  />
+              {isLoadingUserData ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-3 text-gray-600">{t('common.loading') || 'Đang tải...'}</span>
                 </div>
+              ) : (
+                <>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="contactName">
+                        {t('flights.fullName')} <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="contactName"
+                        value={contactInfo.fullName}
+                        onChange={(e) => setContactInfo({ ...contactInfo, fullName: e.target.value })}
+                        disabled={!isEditingContact}
+                        className="mt-1"
+                      />
+                    </div>
 
-                <div>
-                  <Label htmlFor="contactEmail">
-                    Email <span className="text-red-600">*</span>
-                  </Label>
-                  <Input
-                    id="contactEmail"
-                    type="email"
-                    value={contactInfo.email}
-                    onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
-                    disabled={!isEditingContact}
-                    className="mt-1"
-                  />
-                </div>
+                    <div>
+                      <Label htmlFor="contactEmail">
+                        Email <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="contactEmail"
+                        type="email"
+                        value={contactInfo.email}
+                        onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
+                        disabled={!isEditingContact}
+                        className="mt-1"
+                      />
+                    </div>
 
-                <div className="md:col-span-2">
-                  <Label htmlFor="contactPhone">
-                    Số điện thoại di động <span className="text-red-600">*</span>
-                  </Label>
-                  <div className="flex gap-2 mt-1">
-                    <Select
-                      value={contactInfo.countryCode}
-                      onValueChange={(v) => setContactInfo({ ...contactInfo, countryCode: v })}
-                      disabled={!isEditingContact}
-                    >
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="+84">🇻🇳 +84</SelectItem>
-                        <SelectItem value="+1">🇺🇸 +1</SelectItem>
-                        <SelectItem value="+44">🇬🇧 +44</SelectItem>
-                        <SelectItem value="+86">🇨🇳 +86</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      id="contactPhone"
-                      value={contactInfo.phone.replace(contactInfo.countryCode, "")}
-                      onChange={(e) => setContactInfo({ ...contactInfo, phone: contactInfo.countryCode + e.target.value })}
-                      disabled={!isEditingContact}
-                      className="flex-1"
-                      placeholder="901234567"
-                    />
+                    <div className="md:col-span-2">
+                      <Label htmlFor="contactPhone">
+                        {t('flights.mobilePhone')} <span className="text-red-600">*</span>
+                      </Label>
+                      <div className="flex gap-2 mt-1">
+                        <Select
+                          value={contactInfo.countryCode}
+                          onValueChange={(v) => setContactInfo({ ...contactInfo, countryCode: v })}
+                          disabled={!isEditingContact}
+                        >
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="+84">🇻🇳 +84</SelectItem>
+                            <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                            <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                            <SelectItem value="+86">🇨🇳 +86</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          id="contactPhone"
+                          value={contactInfo.phone.replace(contactInfo.countryCode, "")}
+                          onChange={(e) => setContactInfo({ ...contactInfo, phone: contactInfo.countryCode + e.target.value })}
+                          disabled={!isEditingContact}
+                          className="flex-1"
+                          placeholder="901234567"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              {isEditingContact && (
-                <div className="mt-4 flex gap-2">
-                  <Button onClick={() => setIsEditingContact(false)}>
-                    Lưu
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsEditingContact(false)}
-                  >
-                    Hủy
-                  </Button>
-                </div>
+                  {isEditingContact && (
+                    <div className="mt-4 flex gap-2">
+                      <Button onClick={() => setIsEditingContact(false)}>
+                        {t('common.save')}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsEditingContact(false)}
+                      >
+                        {t('common.cancel')}
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </Card>
 
@@ -252,26 +300,26 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
             {[...Array(numPassengers)].map((_, index) => (
               <Card key={index} className="p-6">
                 <h2 className="text-2xl text-gray-900 mb-6">
-                  Hành khách {index + 1}: Người lớn
+                  {t('flights.passenger')} {index + 1}: {t('flights.adult')}
                 </h2>
 
                 <div className="space-y-4">
                   {/* Title */}
                   <div>
                     <Label htmlFor={`title-${index}`}>
-                      Quý danh <span className="text-red-600">*</span>
+                      {t('flights.title')} <span className="text-red-600">*</span>
                     </Label>
                     <Select
                       value={passengers[index]?.title || ""}
                       onValueChange={(v) => handleUpdatePassenger(index, "title", v)}
                     >
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Chọn" />
+                        <SelectValue placeholder={t('common.select')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="mr">Ông (Mr.)</SelectItem>
-                        <SelectItem value="mrs">Bà (Mrs.)</SelectItem>
-                        <SelectItem value="ms">Cô (Ms.)</SelectItem>
+                        <SelectItem value="mr">{t('flights.mr')}</SelectItem>
+                        <SelectItem value="mrs">{t('flights.mrs')}</SelectItem>
+                        <SelectItem value="ms">{t('flights.ms')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -280,7 +328,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                   <div className="grid md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor={`lastName-${index}`}>
-                        Họ <span className="text-red-600">*</span>
+                        {t('flights.lastName')} <span className="text-red-600">*</span>
                       </Label>
                       <Input
                         id={`lastName-${index}`}
@@ -289,12 +337,12 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                         placeholder="NGUYEN"
                         className="mt-1 uppercase"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Như trên CCCD/Hộ chiếu</p>
+                      <p className="text-xs text-gray-500 mt-1">{t('flights.asOnIdPassport')}</p>
                     </div>
 
                     <div>
                       <Label htmlFor={`middleName-${index}`}>
-                        Tên đệm
+                        {t('flights.middleName')}
                       </Label>
                       <Input
                         id={`middleName-${index}`}
@@ -307,7 +355,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
 
                     <div>
                       <Label htmlFor={`firstName-${index}`}>
-                        Tên <span className="text-red-600">*</span>
+                        {t('flights.firstName')} <span className="text-red-600">*</span>
                       </Label>
                       <Input
                         id={`firstName-${index}`}
@@ -322,7 +370,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                   {/* Date of Birth */}
                   <div>
                     <Label htmlFor={`dob-${index}`}>
-                      Ngày sinh <span className="text-red-600">*</span>
+                      {t('flights.dateOfBirth')} <span className="text-red-600">*</span>
                     </Label>
                     <Input
                       id={`dob-${index}`}
@@ -337,19 +385,19 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                   {isInternational && (
                     <>
                       <Separator />
-                      <h3 className="text-gray-900">Thông tin Hộ chiếu</h3>
+                      <h3 className="text-gray-900">{t('flights.passportInfo')}</h3>
 
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor={`nationality-${index}`}>
-                            Quốc tịch <span className="text-red-600">*</span>
+                            {t('flights.nationality')} <span className="text-red-600">*</span>
                           </Label>
                           <Select
                             value={passengers[index]?.nationality || ""}
                             onValueChange={(v) => handleUpdatePassenger(index, "nationality", v)}
                           >
                             <SelectTrigger className="mt-1">
-                              <SelectValue placeholder="Chọn quốc tịch" />
+                              <SelectValue placeholder={t('flights.selectNationality')} />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="VN">Việt Nam</SelectItem>
@@ -362,7 +410,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
 
                         <div>
                           <Label htmlFor={`passportNumber-${index}`}>
-                            Số hộ chiếu <span className="text-red-600">*</span>
+                            {t('flights.passportNumber')} <span className="text-red-600">*</span>
                           </Label>
                           <Input
                             id={`passportNumber-${index}`}
@@ -375,14 +423,14 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
 
                         <div>
                           <Label htmlFor={`passportCountry-${index}`}>
-                            Quốc gia cấp Hộ chiếu <span className="text-red-600">*</span>
+                            {t('flights.passportIssuingCountry')} <span className="text-red-600">*</span>
                           </Label>
                           <Select
                             value={passengers[index]?.passportIssuingCountry || ""}
                             onValueChange={(v) => handleUpdatePassenger(index, "passportIssuingCountry", v)}
                           >
                             <SelectTrigger className="mt-1">
-                              <SelectValue placeholder="Chọn quốc gia" />
+                              <SelectValue placeholder={t('flights.selectCountry')} />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="VN">Việt Nam</SelectItem>
@@ -395,7 +443,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
 
                         <div>
                           <Label htmlFor={`passportExpiry-${index}`}>
-                            Ngày hết hạn Hộ chiếu <span className="text-red-600">*</span>
+                            {t('flights.passportExpiry')} <span className="text-red-600">*</span>
                           </Label>
                           <Input
                             id={`passportExpiry-${index}`}
@@ -422,10 +470,10 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                   className="mt-1"
                 />
                 <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer">
-                  Tôi đã đọc và đồng ý với{" "}
-                  <button className="text-blue-600 hover:underline">Điều khoản & Điều kiện</button>,{" "}
-                  <button className="text-blue-600 hover:underline">Chính sách Hủy vé</button> và{" "}
-                  <button className="text-blue-600 hover:underline">Chính sách Bảo mật</button> của Wanderlust
+                  {t('flights.iAgreeWith')}{" "}
+                  <button className="text-blue-600 hover:underline">{t('flights.termsAndConditions')}</button>,{" "}
+                  <button className="text-blue-600 hover:underline">{t('flights.cancellationPolicy')}</button> {t('common.and')}{" "}
+                  <button className="text-blue-600 hover:underline">{t('flights.privacyPolicy')}</button> {t('flights.ofWanderlust')}
                 </label>
               </div>
             </Card>
@@ -437,7 +485,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
               onClick={handleContinueToPayment}
               disabled={!agreeToTerms}
             >
-              TIẾP TỤC THANH TOÁN
+              {t('flights.continueToPayment')}
             </Button>
           </div>
 
@@ -445,13 +493,13 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <Card className="p-6">
-                <h2 className="text-xl text-gray-900 mb-6">Chuyến bay của bạn</h2>
+                <h2 className="text-xl text-gray-900 mb-6">{t('flights.yourFlight')}</h2>
 
                 {/* Outbound Flight */}
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
                     <Plane className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm text-gray-600">Chiều đi</span>
+                    <span className="text-sm text-gray-600">{t('flights.outbound')}</span>
                   </div>
 
                   <div className="bg-gray-50 rounded-lg p-4">
@@ -491,7 +539,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                   <div className="mb-6">
                     <div className="flex items-center gap-2 mb-3">
                       <Plane className="w-4 h-4 text-blue-600 rotate-180" />
-                      <span className="text-sm text-gray-600">Chiều về</span>
+                      <span className="text-sm text-gray-600">{t('flights.return')}</span>
                     </div>
 
                     <div className="bg-gray-50 rounded-lg p-4">
@@ -531,11 +579,11 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
 
                 {/* Price Details */}
                 <div className="space-y-3">
-                  <h3 className="text-gray-900 mb-3">Chi tiết Giá</h3>
+                  <h3 className="text-gray-900 mb-3">{t('flights.priceDetails')}</h3>
                   
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">
-                      Giá vé ({numPassengers} Người lớn)
+                      {t('flights.ticketPrice')} ({numPassengers} {t('flights.adult')})
                     </span>
                     <span className="text-gray-900">
                       {(basePrice * numPassengers).toLocaleString('vi-VN')}đ
@@ -543,7 +591,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Thuế và Phí</span>
+                    <span className="text-gray-600">{t('flights.taxesAndFees')}</span>
                     <span className="text-gray-900">
                       {(taxAndFees * numPassengers).toLocaleString('vi-VN')}đ
                     </span>
@@ -552,7 +600,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                   <Separator />
 
                   <div className="flex justify-between">
-                    <span className="text-gray-900">Tổng cộng</span>
+                    <span className="text-gray-900">{t('flights.totalPrice')}</span>
                     <span className="text-2xl text-blue-600">
                       {totalPrice.toLocaleString('vi-VN')}đ
                     </span>
@@ -564,7 +612,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
         </div>
       </div>
 
-      <Footer onNavigate={onNavigate} />
+      <Footer />
     </div>
   );
 }

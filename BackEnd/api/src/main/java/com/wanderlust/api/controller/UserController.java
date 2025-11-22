@@ -13,7 +13,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
-@PreAuthorize("hasRole('ADMIN')")
 public class UserController {
 
     private final UserService userService;
@@ -25,6 +24,7 @@ public class UserController {
 
     // Get all users
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> allUsers = userService.findAll();
         return new ResponseEntity<>(allUsers, HttpStatus.OK);
@@ -32,18 +32,20 @@ public class UserController {
 
     // Add a user
     @PostMapping
-    public ResponseEntity<User> addUser (@RequestBody User user) {
-        User newUser  = userService.create(user);
-        return new ResponseEntity<>(newUser , HttpStatus.CREATED);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<User> addUser(@RequestBody User user) {
+        User newUser = userService.create(user);
+        return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 
     // Update an existing user
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser (@PathVariable String id, @RequestBody User updatedUser ) {
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.userID")
+    public ResponseEntity<?> updateUser(@PathVariable String id, @RequestBody User updatedUser) {
         updatedUser.setUserId(id); // Ensure the ID in the entity matches the path variable
         try {
-            User resultUser  = userService.update(updatedUser );
-            return new ResponseEntity<>(resultUser , HttpStatus.OK);
+            User resultUser = userService.update(updatedUser);
+            return new ResponseEntity<>(resultUser, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
@@ -51,7 +53,8 @@ public class UserController {
 
     // Delete a user by ID
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser (@PathVariable String id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> deleteUser(@PathVariable String id) {
         try {
             userService.delete(id);
             return new ResponseEntity<>("User  has been deleted successfully!", HttpStatus.OK);
@@ -62,6 +65,7 @@ public class UserController {
 
     // Delete all users
     @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAllUsers() {
         userService.deleteAll();
         return new ResponseEntity<>("All users have been deleted successfully!", HttpStatus.OK);
@@ -69,6 +73,7 @@ public class UserController {
 
     // Get a specific user by id
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.userID")
     public ResponseEntity<?> getUserById(@PathVariable String id) {
         try {
             User user = userService.findByID(id);

@@ -1,5 +1,6 @@
 import { AlertCircle, ArrowLeft, CheckCircle2, FileText, Upload, X } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import type { PageType } from "../../MainApp";
@@ -17,73 +18,74 @@ interface DocumentFile {
   file: File | null;
 }
 
-const REQUIRED_DOCUMENTS = [
-  {
-    id: "passport",
-    name: "Bản scan hộ chiếu",
-    description: "Trang có ảnh và thông tin cá nhân, còn hạn ít nhất 6 tháng",
-    required: true
-  },
-  {
-    id: "photo",
-    name: "Ảnh 4x6 cm",
-    description: "Ảnh màu, nền trắng, chụp trong 6 tháng gần đây",
-    required: true
-  },
-  {
-    id: "id-card",
-    name: "CMND/CCCD",
-    description: "Bản scan 2 mặt",
-    required: true
-  },
-  {
-    id: "bank-statement",
-    name: "Sao kê ngân hàng",
-    description: "3-6 tháng gần nhất, thể hiện khả năng tài chính",
-    required: true
-  },
-  {
-    id: "employment-letter",
-    name: "Giấy xác nhận công việc",
-    description: "Từ công ty/tổ chức đang làm việc",
-    required: false
-  },
-  {
-    id: "hotel-booking",
-    name: "Xác nhận đặt phòng khách sạn",
-    description: "Hoặc thư mời từ người thân/bạn bè",
-    required: false
-  },
-  {
-    id: "flight-ticket",
-    name: "Vé máy bay",
-    description: "Booking vé khứ hồi",
-    required: false
-  },
-  {
-    id: "insurance",
-    name: "Bảo hiểm du lịch",
-    description: "Bảo hiểm y tế du lịch quốc tế",
-    required: false
-  }
-];
-
 export default function VisaDocumentsPage({ country, formData, onNavigate }: VisaDocumentsPageProps) {
+  const { t } = useTranslation();
   const [uploadedDocs, setUploadedDocs] = useState<Record<string, DocumentFile>>({});
+
+  const REQUIRED_DOCUMENTS = [
+    {
+      id: "passport",
+      name: t('visa.passportScan'),
+      description: t('visa.passportScanDesc'),
+      required: true
+    },
+    {
+      id: "photo",
+      name: t('visa.photo4x6'),
+      description: t('visa.photoDesc'),
+      required: true
+    },
+    {
+      id: "id-card",
+      name: t('visa.idCard'),
+      description: t('visa.idCardDesc'),
+      required: true
+    },
+    {
+      id: "bank-statement",
+      name: t('visa.bankStatement'),
+      description: t('visa.bankStatementDesc'),
+      required: true
+    },
+    {
+      id: "employment-letter",
+      name: t('visa.employmentLetter'),
+      description: t('visa.employmentLetterDesc'),
+      required: false
+    },
+    {
+      id: "hotel-booking",
+      name: t('visa.hotelBooking'),
+      description: t('visa.hotelBookingDesc'),
+      required: false
+    },
+    {
+      id: "flight-ticket",
+      name: t('visa.flightTicket'),
+      description: t('visa.flightTicketDesc'),
+      required: false
+    },
+    {
+      id: "insurance",
+      name: t('visa.insurance'),
+      description: t('visa.insuranceDesc'),
+      required: false
+    }
+  ];
 
   const handleFileUpload = (docId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert("Kích thước file không được vượt quá 5MB");
+        alert(t('visa.fileSizeExceeded'));
         return;
       }
 
       // Validate file type
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
       if (!allowedTypes.includes(file.type)) {
-        alert("Chỉ chấp nhận file JPG, PNG hoặc PDF");
+        alert(t('visa.onlyJpgPngPdfAllowed'));
         return;
       }
 
@@ -113,7 +115,7 @@ export default function VisaDocumentsPage({ country, formData, onNavigate }: Vis
     const missingDocs = requiredDocs.filter(doc => !uploadedDocs[doc.id]);
 
     if (missingDocs.length > 0) {
-      alert(`Vui lòng upload đầy đủ các giấy tờ bắt buộc:\n${missingDocs.map(d => `- ${d.name}`).join('\n')}`);
+      alert(`${t('visa.uploadRequiredDocs')}:\n${missingDocs.map(d => `- ${d.name}`).join('\n')}`);
       return;
     }
 
@@ -141,7 +143,7 @@ export default function VisaDocumentsPage({ country, formData, onNavigate }: Vis
           className="flex items-center text-blue-600 hover:text-blue-700 mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Quay lại form đăng ký
+          {t('visa.backToForm')}
         </button>
 
         {/* Country Info */}
@@ -150,10 +152,10 @@ export default function VisaDocumentsPage({ country, formData, onNavigate }: Vis
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold mb-2">
-                  Upload Hồ Sơ Visa {country.name}
+                  {t('visa.uploadDocuments')} {country.name}
                 </h1>
                 <p className="text-blue-100">
-                  Bước 2/3: Chuẩn bị và upload các giấy tờ cần thiết
+                  {t('visa.step2Of3')}
                 </p>
               </div>
               <div className="text-6xl">{country.flag}</div>
@@ -166,12 +168,12 @@ export default function VisaDocumentsPage({ country, formData, onNavigate }: Vis
           <div className="flex items-start">
             <AlertCircle className="w-6 h-6 text-blue-600 mt-0.5 mr-3 shrink-0" />
             <div>
-              <h3 className="font-bold text-blue-900 mb-2">Hướng dẫn upload hồ sơ</h3>
+              <h3 className="font-bold text-blue-900 mb-2">{t('visa.uploadInstructions')}</h3>
               <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                <li>Chỉ chấp nhận file định dạng JPG, PNG hoặc PDF</li>
-                <li>Kích thước tối đa mỗi file: 5MB</li>
-                <li>Ảnh scan phải rõ nét, đầy đủ thông tin</li>
-                <li>Các giấy tờ có dấu <span className="text-red-600 font-bold">*</span> là bắt buộc</li>
+                <li>{t('visa.onlyJpgPngPdf')}</li>
+                <li>{t('visa.maxFileSize5mb')}</li>
+                <li>{t('visa.clearScans')}</li>
+                <li>{t('visa.requiredFieldsMarked')}</li>
               </ul>
             </div>
           </div>
@@ -181,17 +183,17 @@ export default function VisaDocumentsPage({ country, formData, onNavigate }: Vis
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-700">
-              Tiến độ upload: {Object.keys(uploadedDocs).length}/{REQUIRED_DOCUMENTS.length}
+              {t('visa.uploadProgress')}: {Object.keys(uploadedDocs).length}/{REQUIRED_DOCUMENTS.length}
             </span>
             <span className="text-sm text-gray-600">
               {requiredDocsUploaded ? (
                 <span className="text-green-600 flex items-center">
                   <CheckCircle2 className="w-4 h-4 mr-1" />
-                  Đã đủ hồ sơ bắt buộc
+                  {t('visa.allRequiredDocsUploaded')}
                 </span>
               ) : (
                 <span className="text-orange-600">
-                  Còn thiếu {REQUIRED_DOCUMENTS.filter(d => d.required && !uploadedDocs[d.id]).length} hồ sơ bắt buộc
+                  {t('visa.missingRequiredDocs', { count: REQUIRED_DOCUMENTS.filter(d => d.required && !uploadedDocs[d.id]).length })}
                 </span>
               )}
             </span>
@@ -257,10 +259,10 @@ export default function VisaDocumentsPage({ country, formData, onNavigate }: Vis
                     >
                       <Upload className="w-12 h-12 text-gray-400 mb-2" />
                       <span className="text-sm font-medium text-gray-700 mb-1">
-                        Click để upload file
+                        {t('visa.clickToUpload')}
                       </span>
                       <span className="text-xs text-gray-500">
-                        JPG, PNG hoặc PDF (tối đa 5MB)
+                        {t('visa.onlyJpgPngPdf')}
                       </span>
                     </label>
                   </div>
@@ -277,14 +279,14 @@ export default function VisaDocumentsPage({ country, formData, onNavigate }: Vis
             onClick={() => onNavigate("visa-application", { country })}
             className="px-8"
           >
-            Quay lại
+            {t('visa.back')}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!requiredDocsUploaded}
             className="bg-blue-600 hover:bg-blue-700 px-8"
           >
-            Tiếp tục thanh toán
+            {t('visa.continueToPayment')}
           </Button>
         </div>
       </div>

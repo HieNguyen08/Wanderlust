@@ -1,20 +1,29 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.dto.BookingDTO;
-import com.wanderlust.api.services.BookingService;
-// Import 2 class principal
-import com.wanderlust.api.services.CustomUserDetails;
-import com.wanderlust.api.services.CustomOAuth2User;
+import java.util.List;
+import java.util.Map;
 
-import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Map;
+import com.wanderlust.api.dto.BookingDTO;
+import com.wanderlust.api.entity.types.BookingStatus;
+import com.wanderlust.api.entity.types.BookingType;
+import com.wanderlust.api.services.BookingService;
+import com.wanderlust.api.services.CustomOAuth2User;
+import com.wanderlust.api.services.CustomUserDetails;
+
+import lombok.AllArgsConstructor;
 
 @CrossOrigin
 @RestController
@@ -57,11 +66,70 @@ public class BookingController {
     }
 
     @PostMapping
-    public ResponseEntity<BookingDTO> createBooking(@RequestBody BookingDTO bookingDTO, Authentication authentication) {
+    public ResponseEntity<BookingDTO> createBooking(@RequestBody Map<String, Object> payload, Authentication authentication) {
         String userId = getUserIdFromAuthentication(authentication);
-        bookingDTO.setUserId(userId); 
         
-        BookingDTO newBooking = (BookingDTO) bookingService.create(bookingDTO);
+        // Parse payload từ frontend
+        BookingDTO bookingDTO = new BookingDTO();
+        bookingDTO.setUserId(userId);
+        
+        // Map productType -> bookingType
+        String productType = (String) payload.get("productType");
+        if (productType != null) {
+            bookingDTO.setBookingType(BookingType.valueOf(productType));
+        }
+        
+        // Map productId -> specific ID field
+        String productId = (String) payload.get("productId");
+        if (productType != null && productId != null) {
+            switch (productType) {
+                case "FLIGHT":
+                    bookingDTO.setFlightId(productId);
+                    break;
+                case "HOTEL":
+                    bookingDTO.setHotelId(productId);
+                    break;
+                case "CAR_RENTAL":
+                    bookingDTO.setCarRentalId(productId);
+                    break;
+                case "ACTIVITY":
+                    bookingDTO.setActivityId(productId);
+                    break;
+            }
+        }
+        
+        // Parse dates
+        String startDateStr = (String) payload.get("startDate");
+        if (startDateStr != null) {
+            bookingDTO.setStartDate(java.time.LocalDate.parse(startDateStr.substring(0, 10)));
+        }
+        
+        String endDateStr = (String) payload.get("endDate");
+        if (endDateStr != null) {
+            bookingDTO.setEndDate(java.time.LocalDate.parse(endDateStr.substring(0, 10)));
+        }
+        
+        // Parse guestInfo
+        @SuppressWarnings("unchecked")
+        Map<String, String> guestInfo = (Map<String, String>) payload.get("guestInfo");
+        if (guestInfo != null) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> guestInfoObj = (Map<String, Object>) (Map<?, ?>) guestInfo;
+            bookingDTO.setGuestInfo(guestInfoObj);
+        }
+        
+        // Parse specialRequests
+        String specialRequests = (String) payload.get("specialRequests");
+        if (specialRequests != null) {
+            bookingDTO.setSpecialRequests(specialRequests);
+        }
+        
+        // Set default values
+        bookingDTO.setStatus(BookingStatus.PENDING);
+        bookingDTO.setPaymentStatus(com.wanderlust.api.entity.types.PaymentStatus.PENDING);
+        bookingDTO.setCurrency("VND");
+        
+        BookingDTO newBooking = bookingService.create(bookingDTO);
         return new ResponseEntity<>(newBooking, HttpStatus.CREATED);
     }
 

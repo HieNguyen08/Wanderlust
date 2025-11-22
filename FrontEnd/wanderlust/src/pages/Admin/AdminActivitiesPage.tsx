@@ -1,43 +1,59 @@
+import {
+    Activity,
+    Edit,
+    Eye,
+    MapPin,
+    MoreVertical,
+    Plus,
+    Star,
+    Trash2,
+    TrendingUp,
+    Users
+} from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
+import { toast } from "sonner";
 import { AdminLayout } from "../../components/AdminLayout";
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "../../components/ui/alert-dialog";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "../../components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../../components/ui/alert-dialog";
-import { Label } from "../../components/ui/label";
-import { Input } from "../../components/ui/input";
-import { Textarea } from "../../components/ui/textarea";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import {
-  Plus, MoreVertical, Edit, Trash2, Eye,
-  Star, MapPin, Users, TrendingUp, Activity
-} from "lucide-react";
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../../components/ui/select";
+import { Textarea } from "../../components/ui/textarea";
 import type { PageType } from "../../MainApp";
-import { toast } from "sonner";
 
 interface AdminActivitiesPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -60,6 +76,7 @@ interface ActivityItem {
 }
 
 export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageProps) {
+  const { t } = useTranslation();
   const [isAddActivityOpen, setIsAddActivityOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<ActivityItem | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -181,10 +198,10 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
   ];
 
   const stats = [
-    { label: "Tổng hoạt động", value: "285", icon: Activity },
-    { label: "Đang hoạt động", value: "267", icon: Activity },
-    { label: "Bookings tháng này", value: "1,347", icon: TrendingUp },
-    { label: "Doanh thu", value: "₫808M", icon: TrendingUp },
+    { label: t('admin.totalActivities'), value: "285", icon: Activity },
+    { label: t('admin.active'), value: "267", icon: Activity },
+    { label: t('admin.bookingsThisMonth'), value: "1,347", icon: TrendingUp },
+    { label: t('admin.revenue'), value: "₫808M", icon: TrendingUp },
   ];
 
   const handleViewDetail = (activity: ActivityItem) => {
@@ -213,7 +230,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
   const handleSaveEdit = () => {
     if (editingActivity) {
       // TODO: Call API to update activity
-      toast.success(`Đã cập nhật hoạt động: ${formData.name}`);
+      toast.success(t('admin.activityUpdated', { name: formData.name }));
       setIsEditDialogOpen(false);
       setEditingActivity(null);
       resetForm();
@@ -228,7 +245,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
   const confirmDelete = () => {
     if (activityToDelete) {
       // TODO: Call API to delete activity
-      toast.error(`Đã xóa hoạt động: ${activityToDelete.name}`);
+      toast.error(t('admin.activityDeleted', { name: activityToDelete.name }));
       setIsDeleteDialogOpen(false);
       setActivityToDelete(null);
     }
@@ -236,7 +253,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
   
   const handleAddActivity = () => {
     // TODO: Call API to create activity
-    toast.success(`Đã thêm hoạt động: ${formData.name}`);
+    toast.success(t('admin.activityAdded', { name: formData.name }));
     setIsAddActivityOpen(false);
     resetForm();
   };
@@ -258,31 +275,31 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
   };
   
   const categories = [
-    { value: "attractions", label: "Điểm tham quan" },
-    { value: "tours", label: "Tours" },
-    { value: "spa", label: "Spa" },
-    { value: "food", label: "Ẩm thực" },
-    { value: "music", label: "Nhạc hội" },
-    { value: "water-sports", label: "Thể thao nước" },
-    { value: "adventure", label: "Mạo hiểm" },
-    { value: "relax", label: "Thư giãn" },
+    { value: "attractions", label: t('admin.attractions') },
+    { value: "tours", label: t('admin.tours') },
+    { value: "spa", label: t('admin.spa') },
+    { value: "food", label: t('admin.food') },
+    { value: "music", label: t('admin.music') },
+    { value: "water-sports", label: t('admin.waterSports') },
+    { value: "adventure", label: t('admin.adventure') },
+    { value: "relax", label: t('admin.relax') },
   ];
   
   const ActivityFormFields = () => (
     <div className="grid grid-cols-2 gap-4 py-4">
       <div className="col-span-2">
-        <Label htmlFor="name">Tên hoạt động *</Label>
+        <Label htmlFor="name">{t('admin.activityName')} *</Label>
         <Input
           id="name"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="Lặn biển ngắm san hô..."
+          placeholder={t('admin.activityNamePlaceholder')}
           className="mt-1"
           required
         />
       </div>
       <div>
-        <Label htmlFor="location">Địa điểm *</Label>
+        <Label htmlFor="location">{t('admin.location')} *</Label>
         <Input
           id="location"
           value={formData.location}
@@ -293,7 +310,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
         />
       </div>
       <div>
-        <Label htmlFor="category">Danh mục *</Label>
+        <Label htmlFor="category">{t('admin.category')} *</Label>
         <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
           <SelectTrigger className="mt-1">
             <SelectValue />
@@ -308,7 +325,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
         </Select>
       </div>
       <div>
-        <Label htmlFor="duration">Thời lượng *</Label>
+        <Label htmlFor="duration">{t('admin.duration')} *</Label>
         <Input
           id="duration"
           value={formData.duration}
@@ -319,7 +336,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
         />
       </div>
       <div>
-        <Label htmlFor="participants">Số người *</Label>
+        <Label htmlFor="participants">{t('admin.participants')} *</Label>
         <Input
           id="participants"
           type="number"
@@ -331,7 +348,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
         />
       </div>
       <div>
-        <Label htmlFor="price">Giá (VND) *</Label>
+        <Label htmlFor="price">{t('admin.price')} (VND) *</Label>
         <Input
           id="price"
           type="number"
@@ -343,7 +360,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
         />
       </div>
       <div>
-        <Label htmlFor="rating">Đánh giá *</Label>
+        <Label htmlFor="rating">{t('admin.rating')} *</Label>
         <Input
           id="rating"
           type="number"
@@ -358,19 +375,19 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
         />
       </div>
       <div className="col-span-2">
-        <Label htmlFor="description">Mô tả *</Label>
+        <Label htmlFor="description">{t('admin.description')} *</Label>
         <Textarea
           id="description"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Mô tả chi tiết về hoạt động..."
+          placeholder={t('admin.activityDescriptionPlaceholder')}
           className="mt-1"
           rows={3}
           required
         />
       </div>
       <div className="col-span-2">
-        <Label htmlFor="image">URL hình ảnh *</Label>
+        <Label htmlFor="image">{t('admin.imageUrl')} *</Label>
         <Input
           id="image"
           value={formData.image}
@@ -381,14 +398,14 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
         />
       </div>
       <div>
-        <Label htmlFor="status">Trạng thái *</Label>
+        <Label htmlFor="status">{t('admin.status')} *</Label>
         <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
           <SelectTrigger className="mt-1">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="active">Hoạt động</SelectItem>
-            <SelectItem value="inactive">Tạm ngưng</SelectItem>
+            <SelectItem value="active">{t('admin.active')}</SelectItem>
+            <SelectItem value="inactive">{t('admin.suspended')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -401,26 +418,26 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl text-gray-900 mb-2">Quản lý Hoạt động vui chơi</h1>
-            <p className="text-gray-600">Quản lý thông tin hoạt động và dịch vụ vui chơi</p>
+            <h1 className="text-3xl text-gray-900 mb-2">{t('admin.manageActivities')}</h1>
+            <p className="text-gray-600">{t('admin.manageActivitiesDesc')}</p>
           </div>
           <Dialog open={isAddActivityOpen} onOpenChange={setIsAddActivityOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="w-4 h-4" />
-                Thêm hoạt động
+                {t('admin.addActivity')}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Thêm hoạt động mới</DialogTitle>
+                <DialogTitle>{t('admin.addNewActivity')}</DialogTitle>
                 <DialogDescription>
-                  Nhập thông tin hoạt động vui chơi mới vào hệ thống
+                  {t('admin.addActivityDesc')}
                 </DialogDescription>
               </DialogHeader>
               <ActivityFormFields />
               <DialogFooter>
-                <Button onClick={handleAddActivity}>Thêm hoạt động</Button>
+                <Button onClick={handleAddActivity}>{t('admin.addActivity')}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -460,7 +477,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
                         : "bg-gray-100 text-gray-700"
                     }`}
                   >
-                    {activity.status === "active" ? "Hoạt động" : "Tạm ngưng"}
+                    {activity.status === "active" ? t('admin.active') : t('admin.suspended')}
                   </Badge>
                   <Badge className="absolute top-3 left-3 bg-white text-gray-900">
                     {activity.category}
@@ -480,24 +497,24 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
                   <div className="flex items-center gap-2 mb-3">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                     <span className="font-semibold">{activity.rating}</span>
-                    <span className="text-sm text-gray-600">({activity.reviews} đánh giá)</span>
+                    <span className="text-sm text-gray-600">({activity.reviews} {t('admin.reviews')})</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 mb-4 pt-4 border-t">
                     <div>
-                      <p className="text-xs text-gray-600">Thời lượng</p>
+                      <p className="text-xs text-gray-600">{t('admin.duration')}</p>
                       <p className="font-semibold text-gray-900">{activity.duration}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Số người</p>
+                      <p className="text-xs text-gray-600">{t('admin.participants')}</p>
                       <p className="font-semibold text-gray-900">{activity.participants}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Bookings</p>
+                      <p className="text-xs text-gray-600">{t('admin.bookings')}</p>
                       <p className="font-semibold text-gray-900">{activity.bookings}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Doanh thu</p>
+                      <p className="text-xs text-gray-600">{t('admin.revenue')}</p>
                       <p className="font-semibold text-green-600">
                         {(activity.revenue / 1000000).toFixed(0)}M
                       </p>
@@ -506,7 +523,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
 
                   <div className="flex items-center justify-between pt-4 border-t">
                     <div>
-                      <p className="text-xs text-gray-600">Giá</p>
+                      <p className="text-xs text-gray-600">{t('admin.price')}</p>
                       <p className="text-xl font-bold text-blue-600">
                         {(activity.price / 1000).toFixed(0)}K
                       </p>
@@ -532,14 +549,14 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
                             onClick={() => handleEdit(activity)}
                           >
                             <Edit className="w-4 h-4" />
-                            Chỉnh sửa
+                            {t('common.edit')}
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="gap-2 text-red-600"
                             onClick={() => handleDelete(activity)}
                           >
                             <Trash2 className="w-4 h-4" />
-                            Xóa
+                            {t('common.delete')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -556,8 +573,8 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl">{selectedActivity?.name || "Chi tiết hoạt động"}</DialogTitle>
-            <DialogDescription>Mã hoạt động: {selectedActivity?.id || "N/A"}</DialogDescription>
+            <DialogTitle className="text-2xl">{selectedActivity?.name || t('admin.activityDetails')}</DialogTitle>
+            <DialogDescription>{t('admin.activityCode')}: {selectedActivity?.id || "N/A"}</DialogDescription>
           </DialogHeader>
           {selectedActivity && (
             <>
@@ -578,7 +595,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
                         : "bg-gray-100 text-gray-700"
                     }`}
                   >
-                    {selectedActivity.status === "active" ? "Hoạt động" : "Tạm ngưng"}
+                    {selectedActivity.status === "active" ? t('admin.active') : t('admin.suspended')}
                   </Badge>
                   <Badge className="absolute top-3 left-3 bg-white text-gray-900">
                     {selectedActivity.category}
@@ -597,7 +614,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
                     <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                     <span className="text-xl font-bold text-gray-900">{selectedActivity.rating}</span>
                   </div>
-                  <span className="text-gray-600">({selectedActivity.reviews} đánh giá)</span>
+                  <span className="text-gray-600">({selectedActivity.reviews} {t('admin.reviews')})</span>
                 </div>
 
                 <div className="border-t border-gray-200 my-4"></div>
@@ -606,22 +623,22 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <Users className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">Số người</p>
+                    <p className="text-sm text-gray-600">{t('admin.participants')}</p>
                     <p className="text-2xl font-bold text-gray-900">{selectedActivity.participants}</p>
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <Activity className="w-6 h-6 text-green-600 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">Thời lượng</p>
+                    <p className="text-sm text-gray-600">{t('admin.duration')}</p>
                     <p className="text-2xl font-bold text-gray-900">{selectedActivity.duration}</p>
                   </div>
                   <div className="text-center p-4 bg-purple-50 rounded-lg">
                     <TrendingUp className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">Bookings</p>
+                    <p className="text-sm text-gray-600">{t('admin.bookings')}</p>
                     <p className="text-2xl font-bold text-gray-900">{selectedActivity.bookings}</p>
                   </div>
                   <div className="text-center p-4 bg-orange-50 rounded-lg">
                     <TrendingUp className="w-6 h-6 text-orange-600 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">Doanh thu</p>
+                    <p className="text-sm text-gray-600">{t('admin.revenue')}</p>
                     <p className="text-2xl font-bold text-green-600">
                       {(selectedActivity.revenue / 1000000).toFixed(0)}M
                     </p>
@@ -631,7 +648,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
                 {/* Actions */}
                 <div className="flex gap-3 pt-4">
                   <Button variant="outline" onClick={() => setIsDetailOpen(false)} className="flex-1">
-                    Đóng
+                    {t('common.close')}
                   </Button>
                   <Button 
                     onClick={() => {
@@ -641,7 +658,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
                     className="flex-1 gap-2"
                   >
                     <Edit className="w-4 h-4" />
-                    Chỉnh sửa
+                    {t('common.edit')}
                   </Button>
                   <Button 
                     onClick={() => {
@@ -652,7 +669,7 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
                     className="gap-2"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Xóa
+                    {t('common.delete')}
                   </Button>
                 </div>
               </div>
@@ -665,14 +682,14 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Chỉnh sửa hoạt động</DialogTitle>
+            <DialogTitle>{t('admin.editActivity')}</DialogTitle>
             <DialogDescription>
-              Cập nhật thông tin hoạt động vui chơi
+              {t('admin.editActivityDesc')}
             </DialogDescription>
           </DialogHeader>
           <ActivityFormFields />
           <DialogFooter>
-            <Button onClick={handleSaveEdit}>Lưu thay đổi</Button>
+            <Button onClick={handleSaveEdit}>{t('common.save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -681,14 +698,14 @@ export default function AdminActivitiesPage({ onNavigate }: AdminActivitiesPageP
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xóa hoạt động</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.deleteActivity')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa hoạt động này không? Hành động này không thể hoàn tác.
+              {t('admin.deleteActivityConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy bỏ</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Xóa</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

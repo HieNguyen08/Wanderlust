@@ -1,12 +1,19 @@
-import { VendorLayout } from "../../components/VendorLayout";
-import { Card } from "../../components/ui/card";
+import {
+    ArrowDown,
+    ArrowUp,
+    BookOpen,
+    Calendar,
+    DollarSign,
+    Eye,
+    Package,
+    Star, TrendingUp,
+    Users
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
-import {
-  DollarSign, BookOpen, Star, TrendingUp,
-  ArrowUp, ArrowDown, Calendar, Users,
-  Package, Eye
-} from "lucide-react";
+import { Card } from "../../components/ui/card";
+import { VendorLayout } from "../../components/VendorLayout";
 import type { PageType } from "../../MainApp";
 
 interface VendorDashboardProps {
@@ -15,9 +22,10 @@ interface VendorDashboardProps {
 }
 
 export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: VendorDashboardProps) {
+  const { t } = useTranslation();
   const stats = [
     {
-      title: "Doanh thu tháng này",
+      title: t('vendor.monthlyRevenue'),
       value: "₫157.5M",
       change: "+18.2%",
       trend: "up",
@@ -25,7 +33,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
       color: "green",
     },
     {
-      title: "Đơn đặt mới",
+      title: t('vendor.newBookings'),
       value: "45",
       change: "+12.5%",
       trend: "up",
@@ -33,7 +41,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
       color: "blue",
     },
     {
-      title: "Đánh giá trung bình",
+      title: t('vendor.averageRating'),
       value: "4.9",
       change: "+0.2",
       trend: "up",
@@ -41,7 +49,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
       color: "yellow",
     },
     {
-      title: "Tỷ lệ lấp đầy",
+      title: t('vendor.occupancyRate'),
       value: "87%",
       change: "+5.3%",
       trend: "up",
@@ -116,11 +124,11 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "confirmed":
-        return <Badge className="bg-green-100 text-green-700">Đã xác nhận</Badge>;
+        return <Badge className="bg-green-100 text-green-700">{t('common.confirmed')}</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-700">Chờ xử lý</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700">{t('common.pending')}</Badge>;
       case "completed":
-        return <Badge className="bg-blue-100 text-blue-700">Hoàn thành</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700">{t('common.completed')}</Badge>;
       default:
         return null;
     }
@@ -136,8 +144,8 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">Dashboard</h1>
-          <p className="text-gray-600">Tổng quan hoạt động kinh doanh</p>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('vendor.dashboard')}</h1>
+          <p className="text-gray-600">{t('vendor.dashboardOverview')}</p>
         </div>
 
         {/* Stats Cards */}
@@ -159,7 +167,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
                   <span className={`text-sm font-medium ${stat.trend === "up" ? "text-green-600" : "text-red-600"}`}>
                     {stat.change}
                   </span>
-                  <span className="text-sm text-gray-500">so với tháng trước</span>
+                  <span className="text-sm text-gray-500">{t('vendor.comparedToLastMonth')}</span>
                 </div>
               </Card>
             );
@@ -170,9 +178,9 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
           {/* Recent Bookings */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Đơn đặt gần đây</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('vendor.recentBookings')}</h2>
               <Button variant="ghost" size="sm" onClick={() => onNavigate("vendor-bookings")}>
-                Xem tất cả
+                {t('common.viewAll')}
               </Button>
             </div>
             <div className="space-y-4">
@@ -200,7 +208,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
                     </span>
                     <Button variant="ghost" size="sm" className="gap-2">
                       <Eye className="w-4 h-4" />
-                      Chi tiết
+                      {t('common.details')}
                     </Button>
                   </div>
                 </div>
@@ -211,9 +219,9 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
           {/* Pending Reviews */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Đánh giá mới</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('vendor.newReviews')}</h2>
               <Button variant="ghost" size="sm" onClick={() => onNavigate("vendor-reviews")}>
-                Xem tất cả
+                {t('common.viewAll')}
               </Button>
             </div>
             <div className="space-y-4">
@@ -239,7 +247,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">{review.date}</span>
                     <Button size="sm" variant="outline">
-                      Phản hồi
+                      {t('vendor.reply')}
                     </Button>
                   </div>
                 </div>
@@ -254,7 +262,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
             <div className="flex items-center gap-3">
               <Package className="w-8 h-8 text-blue-600" />
               <div>
-                <p className="text-sm text-gray-600">Tổng phòng</p>
+                <p className="text-sm text-gray-600">{t('vendor.totalRooms')}</p>
                 <p className="text-2xl font-bold text-gray-900">120</p>
               </div>
             </div>
@@ -263,7 +271,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
             <div className="flex items-center gap-3">
               <Users className="w-8 h-8 text-green-600" />
               <div>
-                <p className="text-sm text-gray-600">Khách hàng</p>
+                <p className="text-sm text-gray-600">{t('vendor.customers')}</p>
                 <p className="text-2xl font-bold text-gray-900">2,345</p>
               </div>
             </div>
@@ -272,7 +280,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
             <div className="flex items-center gap-3">
               <Star className="w-8 h-8 text-yellow-600" />
               <div>
-                <p className="text-sm text-gray-600">Reviews</p>
+                <p className="text-sm text-gray-600">{t('vendor.reviews')}</p>
                 <p className="text-2xl font-bold text-gray-900">234</p>
               </div>
             </div>
@@ -281,7 +289,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
             <div className="flex items-center gap-3">
               <TrendingUp className="w-8 h-8 text-purple-600" />
               <div>
-                <p className="text-sm text-gray-600">Tăng trưởng</p>
+                <p className="text-sm text-gray-600">{t('vendor.growth')}</p>
                 <p className="text-2xl font-bold text-gray-900">+23%</p>
               </div>
             </div>
@@ -290,7 +298,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
 
         {/* Quick Actions */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Thao tác nhanh</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('vendor.quickActions')}</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Button
               variant="outline"
@@ -298,7 +306,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
               onClick={() => onNavigate("vendor-services")}
             >
               <Package className="w-6 h-6" />
-              <span>Thêm phòng mới</span>
+              <span>{t('vendor.addNewRoom')}</span>
             </Button>
             <Button
               variant="outline"
@@ -306,7 +314,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
               onClick={() => onNavigate("vendor-bookings")}
             >
               <BookOpen className="w-6 h-6" />
-              <span>Xem bookings</span>
+              <span>{t('vendor.viewBookings')}</span>
             </Button>
             <Button
               variant="outline"
@@ -314,7 +322,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
               onClick={() => onNavigate("vendor-reviews")}
             >
               <Star className="w-6 h-6" />
-              <span>Quản lý reviews</span>
+              <span>{t('vendor.manageReviews')}</span>
             </Button>
             <Button
               variant="outline"
@@ -322,7 +330,7 @@ export default function VendorDashboard({ onNavigate, vendorType = "hotel" }: Ve
               onClick={() => onNavigate("vendor-reports")}
             >
               <TrendingUp className="w-6 h-6" />
-              <span>Báo cáo</span>
+              <span>{t('admin.reports')}</span>
             </Button>
           </div>
         </Card>

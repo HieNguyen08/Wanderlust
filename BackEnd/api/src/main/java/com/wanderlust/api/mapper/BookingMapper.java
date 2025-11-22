@@ -10,8 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired; // Thêm import
 import java.util.List;
 import java.util.Map; // Thêm import
 
-@Mapper(componentModel = "spring", 
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public abstract class BookingMapper { // <-- THAY ĐỔI: Chuyển thành abstract class
 
     // Tiêm ObjectMapper để xử lý chuyển đổi Map <-> Object
@@ -39,6 +38,9 @@ public abstract class BookingMapper { // <-- THAY ĐỔI: Chuyển thành abstra
     @Mapping(target = "bookingCode", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "voucherCode", ignore = true)
+    @Mapping(target = "voucherDiscount", ignore = true)
+    @Mapping(target = "metadata", ignore = true)
     @Mapping(target = "guestInfo", source = "guestInfo", qualifiedByName = "mapToGuestInfo")
     @Mapping(target = "numberOfGuests", source = "numberOfGuests", qualifiedByName = "mapToGuestCount")
     public abstract Booking toEntity(BookingDTO dto);
@@ -51,6 +53,9 @@ public abstract class BookingMapper { // <-- THAY ĐỔI: Chuyển thành abstra
     @Mapping(target = "bookingCode", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "voucherCode", ignore = true)
+    @Mapping(target = "voucherDiscount", ignore = true)
+    @Mapping(target = "metadata", ignore = true)
     @Mapping(target = "guestInfo", source = "guestInfo", qualifiedByName = "mapToGuestInfo")
     @Mapping(target = "numberOfGuests", source = "numberOfGuests", qualifiedByName = "mapToGuestCount")
     public abstract void updateEntityFromDTO(BookingDTO dto, @MappingTarget Booking booking);
@@ -92,7 +97,8 @@ public abstract class BookingMapper { // <-- THAY ĐỔI: Chuyển thành abstra
             return null;
         }
         // Dùng ObjectMapper chuyển object GuestInfo thành Map<String, Object>
-        return objectMapper.convertValue(guestInfo, new TypeReference<Map<String, Object>>() {});
+        return objectMapper.convertValue(guestInfo, new TypeReference<Map<String, Object>>() {
+        });
     }
 
     /**
@@ -104,6 +110,7 @@ public abstract class BookingMapper { // <-- THAY ĐỔI: Chuyển thành abstra
             return null;
         }
         // Dùng ObjectMapper chuyển object GuestCount thành Map<String, Integer>
-        return objectMapper.convertValue(guestCount, new TypeReference<Map<String, Integer>>() {});
+        return objectMapper.convertValue(guestCount, new TypeReference<Map<String, Integer>>() {
+        });
     }
 }

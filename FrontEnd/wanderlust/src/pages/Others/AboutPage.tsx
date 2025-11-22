@@ -1,42 +1,44 @@
+import { ArrowLeft, Award, Globe, Target, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { ArrowLeft, Target, Users, Award, Globe } from "lucide-react";
+import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import type { PageType } from "../../MainApp";
-import { Footer } from "../../components/Footer";
 interface AboutPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
 export default function AboutPage({ onNavigate }: AboutPageProps) {
+  const { t } = useTranslation();
   const values = [
     {
       icon: Target,
-      title: "Sứ mệnh",
-      description: "Mang đến trải nghiệm du lịch tuyệt vời và dễ dàng cho mọi người, kết nối bạn với thế giới.",
+      title: t('about.missionTitle'),
+      description: t('about.missionDesc'),
     },
     {
       icon: Users,
-      title: "Đội ngũ",
-      description: "Đội ngũ chuyên nghiệp với nhiều năm kinh nghiệm trong ngành du lịch và công nghệ.",
+      title: t('about.teamTitle'),
+      description: t('about.teamDesc'),
     },
     {
       icon: Award,
-      title: "Chất lượng",
-      description: "Cam kết chất lượng dịch vụ hàng đầu với giá cả cạnh tranh nhất thị trường.",
+      title: t('about.qualityTitle'),
+      description: t('about.qualityDesc'),
     },
     {
       icon: Globe,
-      title: "Toàn cầu",
-      description: "Kết nối hơn 10,000 điểm đến trên toàn thế giới, từ Đông Nam Á đến châu Âu, Mỹ.",
+      title: t('about.globalTitle'),
+      description: t('about.globalDesc'),
     },
   ];
 
   const stats = [
-    { number: "1M+", label: "Khách hàng hài lòng" },
-    { number: "10K+", label: "Điểm đến" },
-    { number: "500+", label: "Đối tác" },
-    { number: "24/7", label: "Hỗ trợ" },
+    { number: "1M+", label: t('about.satisfiedCustomers') },
+    { number: "10K+", label: t('about.destinations') },
+    { number: "500+", label: t('about.partners') },
+    { number: "24/7", label: t('about.support') },
   ];
 
   const team = [
@@ -75,10 +77,10 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-white">
             <h2 className="text-5xl md:text-6xl font-bold mb-4">
-              Về Wanderlust
+              {t('about.aboutWanderlust')}
             </h2>
             <p className="text-xl md:text-2xl">
-              Từ Đông Nam Á đến thế giới, trong tầm tay bạn
+              {t('about.heroSubtitle')}
             </p>
           </div>
         </div>
@@ -92,7 +94,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
           className="gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          Quay lại trang chủ
+          {t('about.backToHome')}
         </Button>
       </div>
 
@@ -103,13 +105,13 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                Câu chuyện của chúng tôi
+                {t('about.ourStory')}
               </h2>
               <p className="text-gray-700 text-lg leading-relaxed mb-4">
-                Wanderlust được thành lập với sứ mệnh đơn giản: Làm cho việc du lịch trở nên dễ dàng và phải chăng cho mọi người. Chúng tôi tin rằng mỗi người đều xứng đáng được khám phá thế giới.
+                {t('about.storyPara1')}
               </p>
               <p className="text-gray-700 text-lg leading-relaxed">
-                Với hơn 10 năm kinh nghiệm trong ngành du lịch, chúng tôi đã phục vụ hơn 1 triệu khách hàng, giúp họ tạo ra những kỷ niệm đáng nhớ trên khắp thế giới.
+                {t('about.storyPara2')}
               </p>
             </div>
             <div className="rounded-2xl overflow-hidden">
@@ -141,7 +143,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
         {/* Values Section */}
         <section className="mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-12 text-center">
-            Giá trị cốt lõi
+            {t('about.coreValues')}
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value, index) => {
@@ -168,7 +170,7 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
         {/* Team Section */}
         <section>
           <h2 className="text-4xl font-bold text-gray-900 mb-12 text-center">
-            Đội ngũ của chúng tôi
+            {t('about.ourTeam')}
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {team.map((member, index) => (

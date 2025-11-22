@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { Search, MapPin, Calendar, Users, Star, ChevronDown } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import type { PageType } from "../../MainApp";
-import { Footer } from "../../components/Footer";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
-import { Calendar as CalendarComponent } from "../../components/ui/calendar";
-import { Header } from "../../components/Header";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { Calendar, ChevronDown, MapPin, Search, Star, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Footer } from "../../components/Footer";
+import { Header } from "../../components/Header";
+import { Button } from "../../components/ui/button";
+import { Calendar as CalendarComponent } from "../../components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
+import type { PageType } from "../../MainApp";
 import { activityApi } from "../../utils/api";
 
 // Activity Category Icons (using Lucide icons instead of imported images)
@@ -41,6 +42,7 @@ interface ActivitiesPageProps {
 }
 
 export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: ActivitiesPageProps) {
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState("");
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -173,7 +175,7 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
           {/* Hero Title */}
           <div className="pt-12 md:pt-20 max-w-4xl">
             <h2 className="text-white text-3xl md:text-5xl lg:text-5xl leading-tight drop-shadow-2xl">
-              Trải nghiệm vui vẻ cho chuyến đi khó quên
+              {t('activitiesPage.heroTitle')}
             </h2>
           </div>
         </div>
@@ -193,9 +195,9 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
                     <div className="flex items-center gap-3 w-full">
                       <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500">Địa điểm</p>
+                        <p className="text-xs text-gray-500">{t('activitiesPage.location')}</p>
                         <p className="text-sm font-medium truncate">
-                          {selectedLocation || "Chọn địa điểm"}
+                          {selectedLocation || t('activitiesPage.selectLocation')}
                         </p>
                       </div>
                       <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -204,7 +206,7 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
                 </PopoverTrigger>
                 <PopoverContent className="w-80 p-0" align="start">
                   <div className="p-4">
-                    <h4 className="font-medium mb-3">Điểm đến phổ biến</h4>
+                    <h4 className="font-medium mb-3">{t('activitiesPage.popularDestinations')}</h4>
                     <div className="space-y-1">
                       {destinations.map((dest) => (
                         <button
@@ -219,7 +221,7 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
                             <MapPin className="w-4 h-4 text-gray-400" />
                             <span className="text-sm">{dest.name}</span>
                           </div>
-                          <span className="text-xs text-gray-500">{dest.count} hoạt động</span>
+                          <span className="text-xs text-gray-500">{dest.count} {t('activitiesPage.activities')}</span>
                         </button>
                       ))}
                     </div>
@@ -232,7 +234,7 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
                           setOpenLocation(false);
                         }}
                       >
-                        Xóa bộ lọc
+                        {t('activitiesPage.clearFilter')}
                       </Button>
                     )}
                   </div>
@@ -249,9 +251,9 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
                     <div className="flex items-center gap-3 w-full">
                       <Calendar className="w-5 h-5 text-blue-600 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500">Ngày tham gia</p>
+                        <p className="text-xs text-gray-500">{t('activitiesPage.participationDate')}</p>
                         <p className="text-sm font-medium truncate">
-                          {selectedDate ? format(selectedDate, "dd/MM/yyyy", { locale: vi }) : "Chọn ngày"}
+                          {selectedDate ? format(selectedDate, "dd/MM/yyyy", { locale: vi }) : t('activitiesPage.selectDate')}
                         </p>
                       </div>
                       <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -266,8 +268,6 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
                       setSelectedDate(date);
                       setOpenDate(false);
                     }}
-                    initialFocus
-                    locale={vi}
                   />
                 </PopoverContent>
               </Popover>
@@ -282,9 +282,9 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
                     <div className="flex items-center gap-3 w-full">
                       <Users className="w-5 h-5 text-blue-600 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-500">Số người</p>
+                        <p className="text-xs text-gray-500">{t('activitiesPage.numberOfPeople')}</p>
                         <p className="text-sm font-medium truncate">
-                          {totalGuests} người
+                          {totalGuests} {t('activitiesPage.people')}
                         </p>
                       </div>
                       <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -295,8 +295,8 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">Người lớn</p>
-                        <p className="text-sm text-gray-500">Từ 12 tuổi</p>
+                        <p className="font-medium">{t('activitiesPage.adults')}</p>
+                        <p className="text-sm text-gray-500">{t('activitiesPage.from12YearsOld')}</p>
                       </div>
                       <div className="flex items-center gap-3">
                         <Button
@@ -319,8 +319,8 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">Trẻ em</p>
-                        <p className="text-sm text-gray-500">2-11 tuổi</p>
+                        <p className="font-medium">{t('activitiesPage.children')}</p>
+                        <p className="text-sm text-gray-500">{t('activitiesPage.from2To11YearsOld')}</p>
                       </div>
                       <div className="flex items-center gap-3">
                         <Button
@@ -348,7 +348,7 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
               {/* Search Button */}
               <Button className="bg-blue-600 hover:bg-blue-700 text-white h-14">
                 <Search className="w-5 h-5 mr-2" />
-                Tìm kiếm
+                {t('activitiesPage.search')}
               </Button>
             </div>
           </div>
@@ -364,8 +364,8 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${selectedCategory === cat.id
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
               >
                 <span>{cat.name}</span>
@@ -382,10 +382,10 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
         <div className="mb-6">
           <h3 className="text-2xl md:text-3xl text-gray-800 mb-2">
-            {categories.find(c => c.id === selectedCategory)?.name || "Tất cả hoạt động"}
+            {categories.find(c => c.id === selectedCategory)?.name || t('activitiesPage.allActivities')}
           </h3>
           <p className="text-gray-600">
-            Tìm thấy {filteredActivities.length} hoạt động
+            {t('activitiesPage.found')} {filteredActivities.length} {t('activitiesPage.activities')}
           </p>
         </div>
 
@@ -397,7 +397,7 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
           <div className="text-center py-12 text-red-500">
             <p>{error}</p>
             <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-              Thử lại
+              {t('activitiesPage.retry')}
             </Button>
           </div>
         ) : (
@@ -443,7 +443,7 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                       <span className="font-semibold text-gray-800">{activity.rating}</span>
                     </div>
-                    <span className="text-sm text-gray-600">({activity.reviews} đánh giá)</span>
+                    <span className="text-sm text-gray-600">({activity.reviews} {t('activitiesPage.reviews')})</span>
                   </div>
 
                   <div className="flex items-end justify-between">
@@ -458,7 +458,7 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
                       </p>
                     </div>
                     <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                      Xem chi tiết
+                      {t('activitiesPage.viewDetails')}
                     </Button>
                   </div>
                 </div>
@@ -470,7 +470,7 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
         {!loading && !error && filteredActivities.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
-              Không tìm thấy hoạt động phù hợp
+              {t('activitiesPage.noActivitiesFound')}
             </p>
           </div>
         )}

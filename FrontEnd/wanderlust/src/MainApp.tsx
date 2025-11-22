@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { I18nextProvider } from "react-i18next";
 import { Header } from "./components/Header";
-import i18n from "./i18n";
 import { tokenService } from "./utils/api";
+import { type FrontendRole } from "./utils/roleMapper";
 
 // ===== PAGE IMPORTS (Organized by Feature) =====
 // Home
@@ -25,14 +24,14 @@ import { ActivitiesPage, ActivityDetailPage, ActivityReviewPage } from "./pages/
 
 // Visa
 import {
-  VisaApplicationPage,
-  VisaArticleDetailPage,
-  VisaConfirmationPage,
-  VisaConsultationPage,
-  VisaDocumentsPage,
-  VisaLandingPage,
-  VisaPaymentPage,
-  VisaTrackingPage
+    VisaApplicationPage,
+    VisaArticleDetailPage,
+    VisaConfirmationPage,
+    VisaConsultationPage,
+    VisaDocumentsPage,
+    VisaLandingPage,
+    VisaPaymentPage,
+    VisaTrackingPage
 } from "./pages/Visa";
 
 // Travel Guide
@@ -43,36 +42,23 @@ import { BookingDetailsPage, ConfirmationPage, SearchPage } from "./pages/Bookin
 
 // Profile (User)
 import {
-  BookingHistoryPage,
-  PaymentMethodsPage,
-  ProfilePage,
-  SavedItemsPage,
-  SavedPaymentMethodsPage,
-  SettingsPage,
-  TopUpWalletPage,
-  UserVouchersPage,
-  UserWalletPage
+    BookingHistoryPage,
+    PaymentMethodsPage,
+    ProfilePage,
+    SavedItemsPage,
+    SavedPaymentMethodsPage,
+    SettingsPage,
+    TopUpWalletPage,
+    UserVouchersPage,
+    UserWalletPage
 } from "./pages/Profile";
 
 // Admin
 import {
-  AdminDashboard,
-  AdminUsersPage,
-  AdminBookingsPage,
-  AdminFlightsPage,
-  AdminActivitiesPage,
-  AdminReviewsPage,
-  AdminReportsPage,
-  AdminSettingsPage,
-  AdminRefundsPage,
-  AdminRefundWalletPage,
-  AdminPendingServicesPage,
-  AdminVouchersPage 
-import {
     AdminActivitiesPage,
     AdminBookingsPage,
     AdminDashboard,
-    AdminHotelsPage,
+    AdminFlightsPage,
     AdminPendingServicesPage,
     AdminRefundsPage,
     AdminRefundWalletPage,
@@ -81,17 +67,17 @@ import {
     AdminSettingsPage,
     AdminUsersPage,
     AdminVouchersPage
-  } from "./pages/Admin";
+} from "./pages/Admin";
 
 // Vendor
 import {
-  VendorBookingsPage,
-  VendorDashboard,
-  VendorReportsPage,
-  VendorReviewsPage,
-  VendorServicesPage,
-  VendorSettingsPage,
-  VendorVouchersPage
+    VendorBookingsPage,
+    VendorDashboard,
+    VendorReportsPage,
+    VendorReviewsPage,
+    VendorServicesPage,
+    VendorSettingsPage,
+    VendorVouchersPage
 } from "./pages/Vendor";
 
 // Others
@@ -102,8 +88,8 @@ export type PageType = "home" | "flights" | "search" | "booking" | "confirmation
 export default function MainApp() {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
   const [pageData, setPageData] = useState<any>(null);
-  const [userRole, setUserRole] = useState<"user" | "admin" | "vendor" | null>(null);
-
+  const [userRole, setUserRole] = useState<FrontendRole | null>(null);
+  
   // DEBUG: Log current page to console
   useEffect(() => {
     console.log("📍 Current page:", currentPage);
@@ -115,10 +101,20 @@ export default function MainApp() {
 
   // Restore user session from localStorage on mount
   useEffect(() => {
+    const token = tokenService.getToken();
     const userData = tokenService.getUserData();
-    if (userData && userData.role) {
-      setUserRole(userData.role as "user" | "admin" | "vendor");
-      console.log("Restored session for:", userData.role);
+    
+    // Chỉ restore session nếu CÓ token hợp lệ
+    if (token && userData && userData.role) {
+      setUserRole(userData.role as FrontendRole);
+      console.log("✅ Restored session for:", userData.role);
+    } else {
+      // Nếu không có token hoặc userData không hợp lệ, xóa session
+      if (!token || !userData) {
+        console.log("⚠️ Invalid session detected, clearing...");
+        tokenService.clearAuth();
+        setUserRole(null);
+      }
     }
   }, []);
 
@@ -126,7 +122,7 @@ export default function MainApp() {
   useEffect(() => {
     const path = window.location.pathname;
     console.log("🛣️ Detected URL path:", path);
-
+    
     if (path === '/login-success' && window.location.search.includes('token')) {
       console.log("🚀 Auto-navigating to login-success page!");
       setCurrentPage('login-success');
@@ -139,7 +135,7 @@ export default function MainApp() {
     setPageData(data);
   };
 
-  const handleLogin = (role: "user" | "admin" | "vendor") => {
+  const handleLogin = (role: FrontendRole) => {
     setUserRole(role);
     console.log("Logged in as:", role);
   };
@@ -209,7 +205,7 @@ export default function MainApp() {
       {currentPage === "admin-dashboard" && <AdminDashboard onNavigate={handleNavigate} />}
       {currentPage === "admin-users" && <AdminUsersPage onNavigate={handleNavigate} />}
       {currentPage === "admin-bookings" && <AdminBookingsPage onNavigate={handleNavigate} />}
-       {currentPage === "admin-flights" && <AdminFlightsPage onNavigate={handleNavigate} />}
+      {currentPage === "admin-flights" && <AdminFlightsPage onNavigate={handleNavigate} />}
       {currentPage === "admin-activities" && <AdminActivitiesPage onNavigate={handleNavigate} />}
       {currentPage === "admin-reviews" && <AdminReviewsPage onNavigate={handleNavigate} />}
       {currentPage === "admin-reports" && <AdminReportsPage onNavigate={handleNavigate} />}
@@ -225,83 +221,8 @@ export default function MainApp() {
       {currentPage === "vendor-reports" && <VendorReportsPage onNavigate={handleNavigate} />}
       {currentPage === "vendor-settings" && <VendorSettingsPage onNavigate={handleNavigate} />}
       {currentPage === "vendor-vouchers" && <VendorVouchersPage onNavigate={handleNavigate} />}
-      {currentPage === "login" && <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} />}
+      {currentPage === "login" && <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} initialMode={pageData?.mode} />}
       {currentPage === "login-success" && <LoginSuccessPage onNavigate={handleNavigate} onLogin={handleLogin} />}
     </div>
-    <I18nextProvider i18n={i18n}>
-      <div>
-        {/* Header - shown on all pages except login */}
-        {shouldShowHeader && (
-          <Header
-            currentPage={currentPage}
-            onNavigate={handleNavigate}
-            userRole={userRole}
-            onLogout={handleLogout}
-          />
-        )}
-        {currentPage === "home" && <HomePage onNavigate={handleNavigate} />}
-        {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} />}
-        {currentPage === "search" && <SearchPage onNavigate={handleNavigate} searchData={pageData} />}
-        {currentPage === "booking" && <BookingDetailsPage onNavigate={handleNavigate} />}
-        {currentPage === "confirmation" && <ConfirmationPage onNavigate={handleNavigate} />}
-        {currentPage === "offers" && <OffersPage onNavigate={handleNavigate} />}
-        {currentPage === "hotel" && <HotelLandingPage onNavigate={handleNavigate} />}
-        {currentPage === "hotel-list" && <HotelListPage searchParams={pageData} onNavigate={handleNavigate} />}
-        {currentPage === "hotel-detail" && pageData && <HotelDetailPage hotel={pageData} onNavigate={handleNavigate} />}
-        {currentPage === "visa" && <VisaLandingPage onNavigate={handleNavigate} />}
-        {currentPage === "visa-article" && pageData && <VisaArticleDetailPage article={pageData} onNavigate={handleNavigate} />}
-        {currentPage === "visa-consultation" && <VisaConsultationPage requestData={pageData} onNavigate={handleNavigate} />}
-        {currentPage === "visa-tracking" && <VisaTrackingPage trackingData={pageData} onNavigate={handleNavigate} />}
-        {currentPage === "visa-application" && <VisaApplicationPage country={pageData?.country} onNavigate={handleNavigate} />}
-        {currentPage === "visa-documents" && <VisaDocumentsPage country={pageData?.country} formData={pageData?.formData} onNavigate={handleNavigate} />}
-        {currentPage === "visa-payment" && <VisaPaymentPage country={pageData?.country} formData={pageData?.formData} documents={pageData?.documents} onNavigate={handleNavigate} />}
-        {currentPage === "visa-confirmation" && <VisaConfirmationPage {...pageData} onNavigate={handleNavigate} />}
-        {currentPage === "activities" && <ActivitiesPage initialCategory={pageData?.category} onNavigate={handleNavigate} />}
-        {currentPage === "activity-detail" && pageData && <ActivityDetailPage activity={pageData} onNavigate={handleNavigate} />}
-        {currentPage === "travel-guide" && <TravelGuidePage onNavigate={handleNavigate} />}
-        {currentPage === "guide-detail" && pageData && <GuideDetailPage guide={pageData.guide} onNavigate={handleNavigate} />}
-        {currentPage === "travel-article" && pageData && <TravelArticlePage article={pageData.article} onNavigate={handleNavigate} />}
-        {currentPage === "about" && <AboutPage onNavigate={handleNavigate} />}
-        {currentPage === "promotions" && <PromotionsPage onNavigate={handleNavigate} />}
-        {currentPage === "tour-detail" && pageData && <TourDetailPage tour={pageData} onNavigate={handleNavigate} />}
-        {currentPage === "car-rental" && <CarRentalLandingPage onNavigate={handleNavigate} />}
-        {currentPage === "car-list" && <CarRentalListPage onNavigate={handleNavigate} />}
-        {currentPage === "car-detail" && pageData && <CarDetailPage car={pageData} onNavigate={handleNavigate} />}
-        {currentPage === "profile" && <ProfilePage onNavigate={handleNavigate} />}
-        {currentPage === "booking-history" && <BookingHistoryPage onNavigate={handleNavigate} />}
-        {currentPage === "saved-items" && <SavedItemsPage onNavigate={handleNavigate} />}
-        {currentPage === "vouchers" && <UserVouchersPage onNavigate={handleNavigate} />}
-        {currentPage === "wallet" && <UserWalletPage onNavigate={handleNavigate} />}
-        {currentPage === "topup-wallet" && <TopUpWalletPage onNavigate={handleNavigate} />}
-        {currentPage === "settings" && <SettingsPage onNavigate={handleNavigate} />}
-        {currentPage === "saved-payment-methods" && <SavedPaymentMethodsPage onNavigate={handleNavigate} />}
-        {currentPage === "payment-methods" && <PaymentMethodsPage onNavigate={handleNavigate} bookingData={pageData} />}
-        {currentPage === "flight-review" && <FlightReviewPage onNavigate={handleNavigate} flightData={pageData} />}
-        {currentPage === "hotel-review" && <HotelReviewPage onNavigate={handleNavigate} hotelData={pageData} />}
-        {currentPage === "car-review" && <CarRentalReviewPage onNavigate={handleNavigate} carData={pageData} />}
-        {currentPage === "activity-review" && <ActivityReviewPage onNavigate={handleNavigate} activityData={pageData} />}
-        {currentPage === "admin-dashboard" && <AdminDashboard onNavigate={handleNavigate} />}
-        {currentPage === "admin-users" && <AdminUsersPage onNavigate={handleNavigate} />}
-        {currentPage === "admin-bookings" && <AdminBookingsPage onNavigate={handleNavigate} />}
-        {currentPage === "admin-hotels" && <AdminHotelsPage onNavigate={handleNavigate} />}
-        {currentPage === "admin-activities" && <AdminActivitiesPage onNavigate={handleNavigate} />}
-        {currentPage === "admin-reviews" && <AdminReviewsPage onNavigate={handleNavigate} />}
-        {currentPage === "admin-reports" && <AdminReportsPage onNavigate={handleNavigate} />}
-        {currentPage === "admin-settings" && <AdminSettingsPage onNavigate={handleNavigate} />}
-        {currentPage === "admin-refunds" && <AdminRefundsPage onNavigate={handleNavigate} />}
-        {currentPage === "admin-refund-wallet" && <AdminRefundWalletPage onNavigate={handleNavigate} />}
-        {currentPage === "admin-pending-services" && <AdminPendingServicesPage onNavigate={handleNavigate} />}
-        {currentPage === "admin-vouchers" && <AdminVouchersPage onNavigate={handleNavigate} />}
-        {currentPage === "vendor-dashboard" && <VendorDashboard onNavigate={handleNavigate} />}
-        {currentPage === "vendor-services" && <VendorServicesPage onNavigate={handleNavigate} />}
-        {currentPage === "vendor-bookings" && <VendorBookingsPage onNavigate={handleNavigate} />}
-        {currentPage === "vendor-reviews" && <VendorReviewsPage onNavigate={handleNavigate} />}
-        {currentPage === "vendor-reports" && <VendorReportsPage onNavigate={handleNavigate} />}
-        {currentPage === "vendor-settings" && <VendorSettingsPage onNavigate={handleNavigate} />}
-        {currentPage === "vendor-vouchers" && <VendorVouchersPage onNavigate={handleNavigate} />}
-        {currentPage === "login" && <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} initialMode={pageData?.mode} />}
-        {currentPage === "login-success" && <LoginSuccessPage onNavigate={handleNavigate} onLogin={handleLogin} />}
-      </div>
-    </I18nextProvider>
   );
 }

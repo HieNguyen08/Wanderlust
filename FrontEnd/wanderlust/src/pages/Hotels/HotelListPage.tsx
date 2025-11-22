@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
-import { toast } from "sonner@2.0.3";
+import { useTranslation } from "react-i18next";
 import { Footer } from "../../components/Footer";
 import { HotelCardGrid } from "../../components/HotelCardGrid";
 import { HotelCardList } from "../../components/HotelCardList";
 import { HotelFilterSidebar } from "../../components/HotelFilterSidebar";
 import { HotelTopBar } from "../../components/HotelTopBar";
 import { Button } from "../../components/ui/button";
-import { Footer } from "../../components/Footer";
-import type { PageType } from "../../MainApp";
-import { hotelApi } from "../../utils/api";
-import { toast } from "sonner";
+
 import { format, parse } from "date-fns";
+import { toast } from "sonner";
+import { hotelApi } from "../../utils/api";
 
 interface Hotel {
   id: string;
@@ -47,6 +46,7 @@ export default function HotelListPage({
   searchParams,
   onNavigate,
 }: HotelListPageProps) {
+  const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("popular");
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -116,7 +116,7 @@ export default function HotelListPage({
         setFilteredHotels(mappedHotels);
       } catch (error: any) {
         console.error("❌ Error fetching hotels:", error);
-        toast.error("Không thể tải danh sách khách sạn. Vui lòng thử lại.");
+        toast.error(t('hotels.errorLoadingHotels'));
         setHotels([]);
         setFilteredHotels([]);
       } finally {
@@ -211,12 +211,12 @@ export default function HotelListPage({
         {/* Search Bar */}
         <div className="relative z-20 max-w-6xl mx-auto px-4 pb-8 pt-8">
           <div className="bg-white rounded-xl p-6 shadow-2xl">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Tìm kiếm khách sạn</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('hotels.searchHotels')}</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Location */}
               <div className="relative">
-                <label className="text-sm text-gray-600 mb-1 block">Địa điểm</label>
+                <label className="text-sm text-gray-600 mb-1 block">{t('hotels.destination')}</label>
                 <input
                   type="text"
                   placeholder={searchParams?.destination || "Đà Nẵng, Việt Nam"}
@@ -226,7 +226,7 @@ export default function HotelListPage({
 
               {/* Check-in */}
               <div className="relative">
-                <label className="text-sm text-gray-600 mb-1 block">Ngày nhận phòng</label>
+                <label className="text-sm text-gray-600 mb-1 block">{t('hotels.checkIn')}</label>
                 <input
                   type="text"
                   placeholder="15/9 Chủ nhật"
@@ -236,7 +236,7 @@ export default function HotelListPage({
 
               {/* Check-out */}
               <div className="relative">
-                <label className="text-sm text-gray-600 mb-1 block">Ngày trả phòng</label>
+                <label className="text-sm text-gray-600 mb-1 block">{t('hotels.checkOut')}</label>
                 <input
                   type="text"
                   placeholder="21/9 Thứ 7"
@@ -246,7 +246,7 @@ export default function HotelListPage({
 
               {/* Guests */}
               <div className="relative">
-                <label className="text-sm text-gray-600 mb-1 block">Khách & Phòng</label>
+                <label className="text-sm text-gray-600 mb-1 block">{t('hotels.guests')}</label>
                 <input
                   type="text"
                   placeholder="2 người lớn, 1 phòng"
@@ -259,7 +259,7 @@ export default function HotelListPage({
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              Tìm kiếm
+              {t('common.search')}
             </Button>
           </div>
         </div>
@@ -289,12 +289,12 @@ export default function HotelListPage({
             {isLoading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <p className="text-gray-500 mt-4">Đang tải danh sách khách sạn...</p>
+                <p className="text-gray-500 mt-4">{t('hotels.loadingHotels')}</p>
               </div>
             ) : filteredHotels.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">
-                  Không tìm thấy khách sạn phù hợp với bộ lọc của bạn
+                  {t('hotels.noHotelsFound')}
                 </p>
               </div>
             ) : viewMode === "grid" ? (

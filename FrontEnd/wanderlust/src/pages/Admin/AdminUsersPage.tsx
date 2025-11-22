@@ -1,6 +1,32 @@
-import React, { useState, useEffect } from "react";
+import {
+    Ban,
+    Calendar,
+    Edit,
+    Eye,
+    Mail,
+    MoreVertical,
+    Phone,
+    Plus,
+    Search,
+    Trash2
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import type { PageType } from "../../MainApp";
+import { AdminUser, adminUserApi } from "../../api/adminUserApi";
 import { AdminLayout } from "../../components/AdminLayout";
 import { UserDetailDialog } from "../../components/admin/UserDetailDialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "../../components/ui/alert-dialog";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -13,15 +39,12 @@ import {
     DialogTrigger,
 } from "../../components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../../components/ui/alert-dialog";
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import {
     Select,
@@ -38,26 +61,14 @@ import {
     TableHeader,
     TableRow,
 } from "../../components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
-import {
-  Search, Plus, MoreVertical, Edit, Trash2, Ban,
-  Mail, Phone, Calendar, Eye
-} from "lucide-react";
-import type { PageType } from "../../MainApp";
-import { UserDetailDialog } from "../../components/admin/UserDetailDialog";
-import { toast } from "sonner";
-import { adminUserApi, AdminUser } from "../../api/adminUserApi";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 
 interface AdminUsersPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
 export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -101,7 +112,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
       setUsers(data);
     } catch (error) {
       console.error("Failed to fetch users:", error);
-      toast.error("Không thể tải danh sách người dùng");
+      toast.error(t('admin.cannotLoadUsers'));
     } finally {
       setLoading(false);
     }
@@ -117,7 +128,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
         ...addFormData,
         status: "active"
       });
-      toast.success(`Đã thêm user: ${addFormData.name}`);
+      toast.success(t('admin.userAdded', { name: addFormData.name }));
       setIsAddUserOpen(false);
       setAddFormData({
         name: "",
@@ -129,7 +140,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
       fetchUsers();
     } catch (error) {
       console.error("Failed to create user:", error);
-      toast.error("Không thể tạo người dùng");
+      toast.error(t('admin.cannotCreateUser'));
     }
   };
 
@@ -154,13 +165,13 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
     if (!editingUser) return;
     try {
       await adminUserApi.updateUser(editingUser.id, editFormData);
-      toast.success(`Đã cập nhật thông tin user: ${editFormData.name}`);
+      toast.success(t('admin.userUpdated', { name: editFormData.name }));
       setIsEditDialogOpen(false);
       setEditingUser(null);
       fetchUsers();
     } catch (error) {
       console.error("Failed to update user:", error);
-      toast.error("Không thể cập nhật người dùng");
+      toast.error(t('admin.cannotUpdateUser'));
     }
   };
 
@@ -173,13 +184,13 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
     if (userToBan) {
       try {
         await adminUserApi.banUser(userToBan.id);
-        toast.success(`Đã chặn user: ${userToBan.name}`);
+        toast.success(t('admin.userBanned', { name: userToBan.name }));
         setIsBanDialogOpen(false);
         setUserToBan(null);
         fetchUsers();
       } catch (error) {
         console.error("Failed to ban user:", error);
-        toast.error("Không thể chặn người dùng");
+        toast.error(t('admin.cannotBanUser'));
       }
     }
   };
@@ -193,22 +204,22 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
     if (userToDelete) {
       try {
         await adminUserApi.deleteUser(userToDelete.id);
-        toast.success(`Đã xóa user: ${userToDelete.name}`);
+        toast.success(t('admin.userDeleted', { name: userToDelete.name }));
         setIsDeleteDialogOpen(false);
         setUserToDelete(null);
         fetchUsers();
       } catch (error) {
         console.error("Failed to delete user:", error);
-        toast.error("Không thể xóa người dùng");
+        toast.error(t('admin.cannotDeleteUser'));
       }
     }
   };
 
   const stats = [
-    { label: "Tổng users", value: users.length.toLocaleString(), color: "blue" },
-    { label: "Active", value: users.filter((u: AdminUser) => u.status === "active").length.toLocaleString(), color: "green" },
-    { label: "Suspended", value: users.filter((u: AdminUser) => u.status === "suspended").length.toLocaleString(), color: "yellow" },
-    { label: "Banned", value: users.filter((u: AdminUser) => u.status === "banned").length.toLocaleString(), color: "red" },
+    { label: t('admin.totalUsers'), value: users.length.toLocaleString(), color: "blue" },
+    { label: t('admin.active'), value: users.filter((u: AdminUser) => u.status === "active").length.toLocaleString(), color: "green" },
+    { label: t('admin.suspended'), value: users.filter((u: AdminUser) => u.status === "suspended").length.toLocaleString(), color: "yellow" },
+    { label: t('admin.banned'), value: users.filter((u: AdminUser) => u.status === "banned").length.toLocaleString(), color: "red" },
   ];
 
   const getRoleBadge = (role: string) => {
@@ -250,26 +261,26 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl text-gray-900 mb-2">Quản lý Users</h1>
-            <p className="text-gray-600">Quản lý tài khoản người dùng và phân quyền</p>
+            <h1 className="text-3xl text-gray-900 mb-2">{t('admin.manageUsers')}</h1>
+            <p className="text-gray-600">{t('admin.manageUsersDesc')}</p>
           </div>
           <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="w-4 h-4" />
-                Thêm User
+                {t('admin.addUser')}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Thêm User mới</DialogTitle>
+                <DialogTitle>{t('admin.addNewUser')}</DialogTitle>
                 <DialogDescription>
-                  Tạo tài khoản người dùng mới
+                  {t('admin.createUserAccount')}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div>
-                  <Label htmlFor="name">Họ và tên</Label>
+                  <Label htmlFor="name">{t('admin.fullName')}</Label>
                   <Input
                     id="name"
                     placeholder="Nguyễn Văn A"
@@ -290,7 +301,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="phone">Số điện thoại</Label>
+                  <Label htmlFor="phone">{t('admin.phone')}</Label>
                   <Input
                     id="phone"
                     placeholder="+84 123 456 789"
@@ -300,7 +311,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="role">Quyền</Label>
+                  <Label htmlFor="role">{t('admin.role')}</Label>
                   <Select
                     value={addFormData.role}
                     onValueChange={(value: string) => setAddFormData({ ...addFormData, role: value })}
@@ -316,7 +327,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="password">Mật khẩu</Label>
+                  <Label htmlFor="password">{t('admin.password')}</Label>
                   <Input
                     id="password"
                     type="password"
@@ -326,7 +337,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddFormData({ ...addFormData, password: e.target.value })}
                   />
                 </div>
-                <Button className="w-full" onClick={handleAddUser}>Tạo tài khoản</Button>
+                <Button className="w-full" onClick={handleAddUser}>{t('admin.createAccount')}</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -348,7 +359,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="Tìm kiếm theo tên, email..."
+                placeholder={t('admin.searchUsers')}
                 value={searchQuery}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -356,10 +367,10 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
             </div>
             <Select defaultValue="all">
               <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Quyền" />
+                <SelectValue placeholder={t('admin.role')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả quyền</SelectItem>
+                <SelectItem value="all">{t('admin.allRoles')}</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="moderator">Moderator</SelectItem>
                 <SelectItem value="user">User</SelectItem>
@@ -370,10 +381,10 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
-              <TabsTrigger value="all">Tất cả ({users.length})</TabsTrigger>
-              <TabsTrigger value="active">Active ({users.filter((u: AdminUser) => u.status === 'active').length})</TabsTrigger>
-              <TabsTrigger value="suspended">Suspended ({users.filter((u: AdminUser) => u.status === 'suspended').length})</TabsTrigger>
-              <TabsTrigger value="banned">Banned ({users.filter((u: AdminUser) => u.status === 'banned').length})</TabsTrigger>
+              <TabsTrigger value="all">{t('common.all')} ({users.length})</TabsTrigger>
+              <TabsTrigger value="active">{t('admin.active')} ({users.filter((u: AdminUser) => u.status === 'active').length})</TabsTrigger>
+              <TabsTrigger value="suspended">{t('admin.suspended')} ({users.filter((u: AdminUser) => u.status === 'suspended').length})</TabsTrigger>
+              <TabsTrigger value="banned">{t('admin.banned')} ({users.filter((u: AdminUser) => u.status === 'banned').length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">
@@ -383,26 +394,26 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>User</TableHead>
-                      <TableHead>Liên hệ</TableHead>
-                      <TableHead>Quyền</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead>Bookings</TableHead>
-                      <TableHead>Tổng chi tiêu</TableHead>
-                      <TableHead>Ngày tham gia</TableHead>
-                      <TableHead className="text-right">Hành động</TableHead>
+                      <TableHead>{t('admin.contact')}</TableHead>
+                      <TableHead>{t('admin.role')}</TableHead>
+                      <TableHead>{t('admin.status')}</TableHead>
+                      <TableHead>{t('admin.bookings')}</TableHead>
+                      <TableHead>{t('admin.totalSpent')}</TableHead>
+                      <TableHead>{t('admin.joinDate')}</TableHead>
+                      <TableHead className="text-right">{t('admin.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {loading ? (
                       <TableRow>
                         <TableCell colSpan={8} className="text-center py-8">
-                          Đang tải dữ liệu...
+                          {t('common.loading')}
                         </TableCell>
                       </TableRow>
                     ) : filteredUsers.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={8} className="text-center py-8">
-                          Không tìm thấy user nào
+                          {t('admin.noUsersFound')}
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -465,7 +476,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                                     onClick={() => handleEdit(user)}
                                   >
                                     <Edit className="w-4 h-4" />
-                                    Chỉnh sửa
+                                    {t('common.edit')}
                                   </DropdownMenuItem>
                                   {user.status !== "banned" && (
                                     <DropdownMenuItem
@@ -473,7 +484,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                                       onClick={() => handleBan(user)}
                                     >
                                       <Ban className="w-4 h-4" />
-                                      Chặn
+                                      {t('admin.ban')}
                                     </DropdownMenuItem>
                                   )}
                                   <DropdownMenuItem
@@ -481,7 +492,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                                     onClick={() => handleDelete(user)}
                                   >
                                     <Trash2 className="w-4 h-4" />
-                                    Xóa
+                                    {t('common.delete')}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -512,14 +523,14 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Chỉnh sửa User</DialogTitle>
+            <DialogTitle>{t('admin.editUser')}</DialogTitle>
             <DialogDescription>
-              Cập nhật thông tin người dùng
+              {t('admin.updateUserInfo')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="name">Họ và tên</Label>
+              <Label htmlFor="name">{t('admin.fullName')}</Label>
               <Input
                 id="name"
                 placeholder="Nguyễn Văn A"
@@ -540,7 +551,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
               />
             </div>
             <div>
-              <Label htmlFor="phone">Số điện thoại</Label>
+              <Label htmlFor="phone">{t('admin.phone')}</Label>
               <Input
                 id="phone"
                 placeholder="+84 123 456 789"
@@ -550,7 +561,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
               />
             </div>
             <div>
-              <Label htmlFor="role">Quyền</Label>
+              <Label htmlFor="role">{t('admin.role')}</Label>
               <Select
                 value={editFormData.role}
                 onValueChange={(value: string) => setEditFormData({ ...editFormData, role: value })}
@@ -566,7 +577,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
               </Select>
             </div>
             <div>
-              <Label htmlFor="status">Trạng thái</Label>
+              <Label htmlFor="status">{t('admin.status')}</Label>
               <Select
                 value={editFormData.status}
                 onValueChange={(value: string) => setEditFormData({ ...editFormData, status: value })}
@@ -575,13 +586,13 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="suspended">Suspended</SelectItem>
-                  <SelectItem value="banned">Banned</SelectItem>
+                  <SelectItem value="active">{t('admin.active')}</SelectItem>
+                  <SelectItem value="suspended">{t('admin.suspended')}</SelectItem>
+                  <SelectItem value="banned">{t('admin.banned')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <Button className="w-full" onClick={handleSaveEdit}>Lưu thay đổi</Button>
+            <Button className="w-full" onClick={handleSaveEdit}>{t('admin.saveChanges')}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -590,14 +601,14 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
       <AlertDialog open={isBanDialogOpen} onOpenChange={setIsBanDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Bạn chắc chắn muốn chặn user này?</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.confirmBanUser')}</AlertDialogTitle>
             <AlertDialogDescription>
-              User này sẽ bị chặn và không thể truy cập vào hệ thống.
+              {t('admin.banUserDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmBan}>Chặn</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmBan}>{t('admin.ban')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -606,14 +617,14 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Bạn chắc chắn muốn xóa user này?</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.confirmDeleteUser')}</AlertDialogTitle>
             <AlertDialogDescription>
-              User này sẽ bị xóa khỏi hệ thống.
+              {t('admin.deleteUserDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Xóa</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

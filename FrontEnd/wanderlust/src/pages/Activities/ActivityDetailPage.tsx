@@ -12,15 +12,13 @@ import {
     Users
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import type { PageType } from "../../MainApp";
-import { useState } from "react";
-import { Footer } from "../../components/Footer";
-import { Header } from "../../components/Header";
 
 interface ActivityDetailPageProps {
   activity: {
@@ -40,6 +38,7 @@ interface ActivityDetailPageProps {
 }
 
 export default function ActivityDetailPage({ activity, onNavigate }: ActivityDetailPageProps) {
+  const { t } = useTranslation();
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [guestCount, setGuestCount] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
@@ -103,9 +102,9 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
       <div className="bg-white border-b pt-[60px]">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
           <div className="flex items-center gap-2 text-sm text-gray-600">
-            <button onClick={() => onNavigate("home")} className="hover:text-blue-600">Trang chủ</button>
+            <button onClick={() => onNavigate("home")} className="hover:text-blue-600">{t('activitiesPage.home')}</button>
             <span>/</span>
-            <button onClick={() => onNavigate("activities")} className="hover:text-blue-600">Hoạt động vui chơi</button>
+            <button onClick={() => onNavigate("activities")} className="hover:text-blue-600">{t('activitiesPage.activitiesMenu')}</button>
             <span>/</span>
             <span className="text-gray-900">{activity.name}</span>
           </div>
@@ -143,7 +142,7 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
                   <Badge className="bg-blue-600">{activity.category}</Badge>
                   {activity.originalPrice && (
                     <Badge variant="destructive">
-                      Giảm {Math.round((1 - activity.price / activity.originalPrice) * 100)}%
+                      {t('activitiesPage.discount')} {Math.round((1 - activity.price / activity.originalPrice) * 100)}%
                     </Badge>
                   )}
                 </div>
@@ -154,7 +153,7 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
                   <div className="flex items-center gap-1">
                     <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                     <span className="font-semibold">{activity.rating}</span>
-                    <span className="text-sm">({activity.reviews} đánh giá)</span>
+                    <span className="text-sm">({activity.reviews} {t('activitiesPage.reviews')})</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <MapPin className="w-5 h-5" />
@@ -186,20 +185,18 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
 
             {/* Description */}
             <Card className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Về hoạt động này</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('activitiesPage.aboutThisActivity')}</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
                 {activity.description}
               </p>
               <p className="text-gray-700 leading-relaxed">
-                Trải nghiệm độc đáo này sẽ mang đến cho bạn những khoảnh khắc đáng nhớ. 
-                Được thiết kế phù hợp cho mọi lứa tuổi, hoạt động này đảm bảo sự an toàn 
-                và chất lượng dịch vụ hàng đầu.
+                {t('activitiesPage.activityDescription')}
               </p>
             </Card>
 
             {/* Highlights */}
             <Card className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Điểm nổi bật</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('activitiesPage.highlights')}</h2>
               <div className="grid md:grid-cols-2 gap-3">
                 {highlights.map((highlight, index) => (
                   <div key={index} className="flex items-start gap-2">
@@ -212,7 +209,7 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
 
             {/* Included */}
             <Card className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Bao gồm</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('activitiesPage.included')}</h2>
               <div className="space-y-2">
                 {included.map((item, index) => (
                   <div key={index} className="flex items-center gap-2">
@@ -228,10 +225,9 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
               <div className="flex items-start gap-3">
                 <RefreshCw className="w-6 h-6 text-green-600 mt-1" />
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Chính sách hủy linh hoạt</h3>
+                  <h3 className="font-semibold text-gray-900 mb-1">{t('activitiesPage.flexibleCancellation')}</h3>
                   <p className="text-gray-700">
-                    Hủy miễn phí trước 24 giờ để nhận hoàn tiền đầy đủ. 
-                    Áp dụng điều khoản và điều kiện.
+                    {t('activitiesPage.cancellationPolicy')}
                   </p>
                 </div>
               </div>
@@ -252,7 +248,7 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
                 <div className="text-4xl font-bold text-red-600">
                   {activity.price.toLocaleString('vi-VN')}đ
                 </div>
-                <p className="text-sm text-gray-600 mt-1">/ người</p>
+                <p className="text-sm text-gray-600 mt-1">/ {t('activitiesPage.perPerson')}</p>
               </div>
 
               <div className="space-y-4 mb-6">
@@ -260,7 +256,7 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Calendar className="w-4 h-4 inline mr-1" />
-                    Chọn ngày
+                    {t('activitiesPage.selectDate')}
                   </label>
                   <input
                     type="date"
@@ -275,7 +271,7 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Users className="w-4 h-4 inline mr-1" />
-                    Số khách
+                    {t('activitiesPage.numberOfGuests')}
                   </label>
                   <div className="flex items-center gap-3">
                     <Button
@@ -301,14 +297,14 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
               <div className="border-t border-gray-200 pt-4 mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-600">
-                    {activity.price.toLocaleString('vi-VN')}đ x {guestCount} khách
+                    {activity.price.toLocaleString('vi-VN')}đ x {guestCount} {t('activitiesPage.guests')}
                   </span>
                   <span className="font-semibold">
                     {(activity.price * guestCount).toLocaleString('vi-VN')}đ
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-lg font-bold">
-                  <span>Tổng cộng</span>
+                  <span>{t('activitiesPage.total')}</span>
                   <span className="text-red-600">
                     {(activity.price * guestCount).toLocaleString('vi-VN')}đ
                   </span>
@@ -320,13 +316,13 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
                 onClick={handleBooking}
                 disabled={!selectedDate}
               >
-                Đặt ngay
+                {t('activitiesPage.bookNow')}
               </Button>
 
               <div className="mt-4 flex items-start gap-2 text-sm text-gray-600">
                 <Shield className="w-5 h-5 text-green-600 mt-0.5" />
                 <p>
-                  Thanh toán an toàn và bảo mật. Bạn sẽ không bị tính phí cho đến khi xác nhận.
+                  {t('activitiesPage.securePayment')}
                 </p>
               </div>
             </Card>

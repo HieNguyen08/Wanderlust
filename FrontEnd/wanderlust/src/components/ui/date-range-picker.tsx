@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import * as React from "react";
 import { cn } from "./utils";
 
 interface DateRangePickerProps {
@@ -37,6 +37,8 @@ export function DateRangePicker({
 }: DateRangePickerProps) {
   const [currentMonth, setCurrentMonth] = React.useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = React.useState(new Date().getFullYear());
+  const [showMonthPicker, setShowMonthPicker] = React.useState(false);
+  const [showYearPicker, setShowYearPicker] = React.useState(false);
 
   const handlePrevMonth = () => {
     if (currentMonth === 0) {
@@ -55,6 +57,20 @@ export function DateRangePicker({
       setCurrentMonth(currentMonth + 1);
     }
   };
+
+  const handleMonthSelect = (month: number) => {
+    setCurrentMonth(month);
+    setShowMonthPicker(false);
+  };
+
+  const handleYearSelect = (year: number) => {
+    setCurrentYear(year);
+    setShowYearPicker(false);
+  };
+
+  // Generate year range (current year - 100 to current year + 10)
+  const currentYearNow = new Date().getFullYear();
+  const yearRange = Array.from({ length: 111 }, (_, i) => currentYearNow - 100 + i);
 
   const handleDateClick = (date: Date) => {
     if (disabled && disabled(date)) return;
@@ -137,40 +153,116 @@ export function DateRangePicker({
     return (
       <div className="flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4 px-2">
+        <div className="flex items-center justify-between mb-2 px-1">
           {monthOffset === 0 && (
             <button
               onClick={handlePrevMonth}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-1 hover:bg-gray-100 rounded-md transition-colors"
               type="button"
             >
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
+              <ChevronLeft className="w-4 h-4 text-gray-600" />
             </button>
           )}
           {monthOffset > 0 && <div className="w-9" />}
           
-          <div className="font-semibold text-base">
-            {MONTHS[month]} {year}
+          <div className="flex items-center gap-2 relative">
+            {/* Month Picker */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowMonthPicker(!showMonthPicker);
+                  setShowYearPicker(false);
+                }}
+                className="font-semibold text-sm hover:bg-gray-100 px-2 py-0.5 rounded-md transition-colors"
+                type="button"
+              >
+                {MONTHS[month]}
+              </button>
+              
+              {showMonthPicker && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setShowMonthPicker(false)}
+                  />
+                  <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded-md shadow-lg z-20 p-1.5 grid grid-cols-3 gap-1 w-56">
+                    {MONTHS.map((monthName, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleMonthSelect(idx)}
+                        className={cn(
+                          "px-2 py-1.5 text-xs rounded-md hover:bg-blue-50 transition-colors",
+                          idx === month && "bg-blue-600 text-white hover:bg-blue-700"
+                        )}
+                        type="button"
+                      >
+                        {monthName.substring(0, 3)}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Year Picker */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowYearPicker(!showYearPicker);
+                  setShowMonthPicker(false);
+                }}
+                className="font-semibold text-sm hover:bg-gray-100 px-2 py-0.5 rounded-md transition-colors"
+                type="button"
+              >
+                {year}
+              </button>
+              
+              {showYearPicker && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setShowYearPicker(false)}
+                  />
+                  <div className="absolute top-full mt-1 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-20 p-1.5 max-h-56 overflow-y-auto w-40">
+                    <div className="grid grid-cols-3 gap-1">
+                      {yearRange.map((yearOption) => (
+                        <button
+                          key={yearOption}
+                          onClick={() => handleYearSelect(yearOption)}
+                          className={cn(
+                            "px-2 py-1.5 text-xs rounded-md hover:bg-blue-50 transition-colors",
+                            yearOption === year && "bg-blue-600 text-white hover:bg-blue-700"
+                          )}
+                          type="button"
+                        >
+                          {yearOption}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           
           {monthOffset === numberOfMonths - 1 && (
             <button
               onClick={handleNextMonth}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-1 hover:bg-gray-100 rounded-md transition-colors"
               type="button"
             >
-              <ChevronRight className="w-5 h-5 text-gray-600" />
+              <ChevronRight className="w-4 h-4 text-gray-600" />
             </button>
           )}
           {monthOffset < numberOfMonths - 1 && <div className="w-9" />}
         </div>
 
         {/* Day headers */}
-        <div className="grid grid-cols-7 gap-2 mb-1">
+        <div className="grid grid-cols-7 gap-1 mb-0.5">
           {DAYS.map((day) => (
             <div
               key={day}
-              className="h-12 min-w-[44px] flex items-center justify-center text-sm font-semibold text-gray-600"
+              className="h-8 min-w-[36px] flex items-center justify-center text-xs font-semibold text-gray-600"
             >
               {day}
             </div>
@@ -197,7 +289,7 @@ export function DateRangePicker({
                 disabled={isDisabled}
                 type="button"
                 className={cn(
-                  "h-12 min-w-[44px] w-full flex items-center justify-center text-sm rounded-lg transition-colors relative font-medium px-2",
+                  "h-8 min-w-[36px] w-full flex items-center justify-center text-xs rounded-md transition-colors relative font-medium px-1",
                   isOutside && "text-gray-400",
                   !isOutside && !isDisabled && !isSelected && "hover:bg-blue-50 hover:text-blue-700",
                   isDisabled && "text-gray-300 cursor-not-allowed opacity-40",
@@ -218,9 +310,9 @@ export function DateRangePicker({
   };
 
   return (
-    <div className={cn("bg-white p-6 rounded-lg", className)}>
+    <div className={cn("bg-white p-3 rounded-lg", className)}>
       <div className={cn(
-        "grid gap-8",
+        "grid gap-4",
         numberOfMonths === 2 && "grid-cols-1 sm:grid-cols-2"
       )}>
         {Array.from({ length: numberOfMonths }).map((_, i) => (

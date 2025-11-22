@@ -1,63 +1,71 @@
-import React, { useState, useEffect } from "react";
-import { AdminLayout } from "../../components/AdminLayout";
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
+    Calendar, DollarSign,
+    Edit,
+    MoreVertical,
+    Plane,
+    Plus,
+    Search,
+    Trash2,
+    TrendingUp
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
+import { toast } from "sonner";
+import { AdminFlight, adminFlightApi } from "../../api/adminFlightApi";
+import { AdminLayout } from "../../components/AdminLayout";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "../../components/ui/alert-dialog";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "../../components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../../components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "../../components/ui/select";
 import {
-  Plus, MoreVertical, Edit, Trash2, Plane,
-  TrendingUp, Calendar, DollarSign, Search
-} from "lucide-react";
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../../components/ui/table";
 import type { PageType } from "../../MainApp";
-import { toast } from "sonner";
-import { adminFlightApi, AdminFlight } from "../../api/adminFlightApi";
 
 interface AdminFlightsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
 export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) {
+  const { t } = useTranslation();
   const [flights, setFlights] = useState<AdminFlight[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -96,7 +104,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
       setFlights(data);
     } catch (error) {
       console.error("Failed to fetch flights:", error);
-      toast.error("Không thể tải danh sách chuyến bay");
+      toast.error(t('admin.cannotLoadFlights'));
     } finally {
       setLoading(false);
     }
@@ -107,10 +115,10 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
   }, []);
 
   const stats = [
-    { label: "Tổng chuyến bay", value: flights.length.toLocaleString(), icon: Plane, color: "blue" },
-    { label: "Đang hoạt động", value: flights.filter((f: AdminFlight) => f.status === "active").length.toLocaleString(), icon: TrendingUp, color: "green" },
-    { label: "Đã đặt hôm nay", value: "0", icon: Calendar, color: "purple" }, // Placeholder
-    { label: "Doanh thu tháng này", value: "0", icon: DollarSign, color: "orange" }, // Placeholder
+    { label: t('admin.totalFlights'), value: flights.length.toLocaleString(), icon: Plane, color: "blue" },
+    { label: t('admin.active'), value: flights.filter((f: AdminFlight) => f.status === "active").length.toLocaleString(), icon: TrendingUp, color: "green" },
+    { label: t('admin.bookedToday'), value: "0", icon: Calendar, color: "purple" }, // Placeholder
+    { label: t('admin.revenueThisMonth'), value: "0", icon: DollarSign, color: "orange" }, // Placeholder
   ];
 
   const airports = [
@@ -166,14 +174,14 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
     if (editingFlight) {
       try {
         await adminFlightApi.updateFlight(editingFlight.id, formData);
-        toast.success(`Đã cập nhật chuyến bay: ${formData.flightNumber}`);
+        toast.success(t('admin.flightUpdated', { number: formData.flightNumber }));
         setIsEditDialogOpen(false);
         setEditingFlight(null);
         resetForm();
         fetchFlights();
       } catch (error) {
         console.error("Failed to update flight:", error);
-        toast.error("Không thể cập nhật chuyến bay");
+        toast.error(t('admin.cannotUpdateFlight'));
       }
     }
   };
@@ -187,13 +195,13 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
     if (flightToDelete) {
       try {
         await adminFlightApi.deleteFlight(flightToDelete.id);
-        toast.success(`Đã xóa chuyến bay: ${flightToDelete.flightNumber}`);
+        toast.success(t('admin.flightDeleted', { number: flightToDelete.flightNumber }));
         setIsDeleteDialogOpen(false);
         setFlightToDelete(null);
         fetchFlights();
       } catch (error) {
         console.error("Failed to delete flight:", error);
-        toast.error("Không thể xóa chuyến bay");
+        toast.error(t('admin.cannotDeleteFlight'));
       }
     }
   };
@@ -201,13 +209,13 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
   const handleAddFlight = async () => {
     try {
       await adminFlightApi.createFlight(formData);
-      toast.success(`Đã thêm chuyến bay: ${formData.flightNumber}`);
+      toast.success(t('admin.flightAdded', { number: formData.flightNumber }));
       setIsAddFlightOpen(false);
       resetForm();
       fetchFlights();
     } catch (error) {
       console.error("Failed to create flight:", error);
-      toast.error("Không thể thêm chuyến bay");
+      toast.error(t('admin.cannotAddFlight'));
     }
   };
 
@@ -265,11 +273,11 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
-        return <Badge className="bg-green-100 text-green-700">Hoạt động</Badge>;
+        return <Badge className="bg-green-100 text-green-700">{t('admin.active')}</Badge>;
       case "inactive":
-        return <Badge className="bg-gray-100 text-gray-700">Tạm dừng</Badge>;
+        return <Badge className="bg-gray-100 text-gray-700">{t('admin.paused')}</Badge>;
       case "cancelled":
-        return <Badge className="bg-red-100 text-red-700">Đã hủy</Badge>;
+        return <Badge className="bg-red-100 text-red-700">{t('admin.cancelled')}</Badge>;
       default:
         return null;
     }
@@ -287,7 +295,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
       {/* Flight Number & Date */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="flightNumber">Số hiệu chuyến bay *</Label>
+          <Label htmlFor="flightNumber">{t('admin.flightNumber')} *</Label>
           <Input
             id="flightNumber"
             value={formData.flightNumber}
@@ -297,7 +305,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="date">Ngày bay *</Label>
+          <Label htmlFor="date">{t('admin.flightDate')} *</Label>
           <Input
             id="date"
             type="date"
@@ -311,7 +319,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
       {/* Airline & Aircraft */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="airline">Hãng hàng không *</Label>
+          <Label htmlFor="airline">{t('admin.airline')} *</Label>
           <Select value={formData.airline} onValueChange={handleAirlineChange}>
             <SelectTrigger>
               <SelectValue />
@@ -326,7 +334,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="aircraft">Máy bay *</Label>
+          <Label htmlFor="aircraft">{t('admin.aircraft')} *</Label>
           <Select value={formData.aircraft} onValueChange={(value) => setFormData({ ...formData, aircraft: value })}>
             <SelectTrigger>
               <SelectValue />
@@ -345,7 +353,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
       {/* Route */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="from">Điểm đi *</Label>
+          <Label htmlFor="from">{t('admin.departure')} *</Label>
           <Select value={formData.from} onValueChange={handleFromChange}>
             <SelectTrigger>
               <SelectValue />
@@ -360,7 +368,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="to">Điểm đến *</Label>
+          <Label htmlFor="to">{t('admin.destination')} *</Label>
           <Select value={formData.to} onValueChange={handleToChange}>
             <SelectTrigger>
               <SelectValue />
@@ -379,7 +387,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
       {/* Time */}
       <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="departTime">Giờ khởi hành *</Label>
+          <Label htmlFor="departTime">{t('admin.departureTime')} *</Label>
           <Input
             id="departTime"
             type="time"
@@ -389,7 +397,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="arriveTime">Giờ đến *</Label>
+          <Label htmlFor="arriveTime">{t('admin.arrivalTime')} *</Label>
           <Input
             id="arriveTime"
             type="time"
@@ -399,7 +407,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="duration">Thời gian bay *</Label>
+          <Label htmlFor="duration">{t('admin.flightDuration')} *</Label>
           <Input
             id="duration"
             value={formData.duration}
@@ -413,16 +421,16 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
       {/* Terminal & Flight Type */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="terminal">Nhà ga</Label>
+          <Label htmlFor="terminal">{t('admin.terminal')}</Label>
           <Input
             id="terminal"
             value={formData.terminal}
             onChange={(e) => setFormData({ ...formData, terminal: e.target.value })}
-            placeholder="Nhà ga 3"
+            placeholder={t('admin.terminalPlaceholder')}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="isDirect">Loại chuyến bay *</Label>
+          <Label htmlFor="isDirect">{t('admin.flightType')} *</Label>
           <Select
             value={formData.isDirect ? "direct" : "transit"}
             onValueChange={(value) => setFormData({ ...formData, isDirect: value === "direct" })}
@@ -431,8 +439,8 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="direct">Bay thẳng</SelectItem>
-              <SelectItem value="transit">Có điểm dừng</SelectItem>
+              <SelectItem value="direct">{t('admin.directFlight')}</SelectItem>
+              <SelectItem value="transit">{t('admin.transitFlight')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -441,7 +449,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
       {/* Prices */}
       <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="economyPrice">Giá Phổ thông (VNĐ) *</Label>
+          <Label htmlFor="economyPrice">{t('admin.economyPrice')} (VNĐ) *</Label>
           <Input
             id="economyPrice"
             type="number"
@@ -451,7 +459,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="premiumEconomyPrice">Giá Phổ thông Đặc biệt (VNĐ) *</Label>
+          <Label htmlFor="premiumEconomyPrice">{t('admin.premiumEconomyPrice')} (VNĐ) *</Label>
           <Input
             id="premiumEconomyPrice"
             type="number"
@@ -461,7 +469,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="businessPrice">Giá Thương gia (VNĐ) *</Label>
+          <Label htmlFor="businessPrice">{t('admin.businessPrice')} (VNĐ) *</Label>
           <Input
             id="businessPrice"
             type="number"
@@ -475,7 +483,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
       {/* Available Seats & Status */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="availableSeats">Số ghế còn trống *</Label>
+          <Label htmlFor="availableSeats">{t('admin.availableSeats')} *</Label>
           <Input
             id="availableSeats"
             type="number"
@@ -485,15 +493,15 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="status">Trạng thái *</Label>
+          <Label htmlFor="status">{t('admin.status')} *</Label>
           <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="active">Hoạt động</SelectItem>
-              <SelectItem value="inactive">Tạm dừng</SelectItem>
-              <SelectItem value="cancelled">Đã hủy</SelectItem>
+              <SelectItem value="active">{t('admin.active')}</SelectItem>
+              <SelectItem value="inactive">{t('admin.paused')}</SelectItem>
+              <SelectItem value="cancelled">{t('admin.cancelled')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -507,29 +515,29 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl text-gray-900 mb-2">Quản lý Chuyến bay</h1>
-            <p className="text-gray-600">Quản lý thông tin các chuyến bay trong hệ thống</p>
+            <h1 className="text-3xl text-gray-900 mb-2">{t('admin.manageFlights')}</h1>
+            <p className="text-gray-600">{t('admin.manageFlightsDesc')}</p>
           </div>
           <Dialog open={isAddFlightOpen} onOpenChange={setIsAddFlightOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="w-4 h-4" />
-                Thêm chuyến bay
+                {t('admin.addFlight')}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Thêm chuyến bay mới</DialogTitle>
+                <DialogTitle>{t('admin.addNewFlight')}</DialogTitle>
                 <DialogDescription>
-                  Nhập thông tin chi tiết về chuyến bay
+                  {t('admin.addFlightDesc')}
                 </DialogDescription>
               </DialogHeader>
               <FlightFormFields />
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsAddFlightOpen(false)}>
-                  Hủy
+                  {t('common.cancel')}
                 </Button>
-                <Button onClick={handleAddFlight}>Thêm chuyến bay</Button>
+                <Button onClick={handleAddFlight}>{t('admin.addFlight')}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -560,7 +568,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
           <div className="mb-6 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="Tìm kiếm theo số hiệu, hãng bay, tuyến đường..."
+              placeholder={t('admin.searchFlights')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -571,27 +579,27 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Chuyến bay</TableHead>
-                  <TableHead>Tuyến bay</TableHead>
-                  <TableHead>Thời gian</TableHead>
-                  <TableHead>Giá từ</TableHead>
-                  <TableHead>Đã đặt</TableHead>
-                  <TableHead>Còn trống</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead className="text-right">Hành động</TableHead>
+                  <TableHead>{t('admin.flight')}</TableHead>
+                  <TableHead>{t('admin.route')}</TableHead>
+                  <TableHead>{t('admin.time')}</TableHead>
+                  <TableHead>{t('admin.priceFrom')}</TableHead>
+                  <TableHead>{t('admin.booked')}</TableHead>
+                  <TableHead>{t('admin.available')}</TableHead>
+                  <TableHead>{t('admin.status')}</TableHead>
+                  <TableHead className="text-right">{t('admin.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8">
-                      Đang tải dữ liệu...
+                      {t('common.loading')}
                     </TableCell>
                   </TableRow>
                 ) : filteredFlights.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8">
-                      Không tìm thấy chuyến bay nào
+                      {t('admin.noFlightsFound')}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -613,7 +621,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
                             {flight.fromCity} - {flight.toCity}
                           </p>
                           <Badge variant="outline" className="mt-1">
-                            {flight.isDirect ? "Bay thẳng" : "Có điểm dừng"}
+                            {flight.isDirect ? t('admin.directFlight') : t('admin.transitFlight')}
                           </Badge>
                         </div>
                       </TableCell>
@@ -646,11 +654,11 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem className="gap-2" onClick={() => handleEdit(flight)}>
                               <Edit className="w-4 h-4" />
-                              Chỉnh sửa
+                              {t('common.edit')}
                             </DropdownMenuItem>
                             <DropdownMenuItem className="gap-2 text-red-600" onClick={() => handleDelete(flight)}>
                               <Trash2 className="w-4 h-4" />
-                              Xóa
+                              {t('common.delete')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -668,17 +676,17 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Chỉnh sửa chuyến bay</DialogTitle>
+            <DialogTitle>{t('admin.editFlight')}</DialogTitle>
             <DialogDescription>
-              Cập nhật thông tin chuyến bay {editingFlight?.flightNumber}
+              {t('admin.editFlightDesc', { number: editingFlight?.flightNumber })}
             </DialogDescription>
           </DialogHeader>
           <FlightFormFields />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Hủy
+              {t('common.cancel')}
             </Button>
-            <Button onClick={handleSaveEdit}>Lưu thay đổi</Button>
+            <Button onClick={handleSaveEdit}>{t('common.save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -687,16 +695,19 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Bạn chắc chắn muốn xóa chuyến bay này?</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.confirmDeleteFlight')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này sẽ xóa vĩnh viễn chuyến bay <strong>{flightToDelete?.flightNumber}</strong> ({flightToDelete?.fromCity} → {flightToDelete?.toCity}).
-              Tất cả các booking liên quan sẽ bị ảnh hưởng. Hành động này không thể hoàn tác.
+              {t('admin.deleteFlight Description', { 
+                number: flightToDelete?.flightNumber, 
+                from: flightToDelete?.fromCity, 
+                to: flightToDelete?.toCity 
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-              Xóa
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

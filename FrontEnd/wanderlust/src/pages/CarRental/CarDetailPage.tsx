@@ -1,17 +1,31 @@
-import { useState, useEffect } from "react";
+﻿import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import {
+    ArrowLeft,
+    Calendar,
+    CheckCircle,
+    Fuel,
+    Heart,
+    MapPin,
+    Settings,
+    Shield,
+    Star,
+    ThumbsUp,
+    Users
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
+import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
+import { Header } from "../../components/Header";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Separator } from "../../components/ui/separator";
 import type { PageType } from "../../MainApp";
-import { Footer } from "../../components/Footer";
 import { carRentalApi } from "../../utils/api";
-import { toast } from "sonner";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
 
 interface CarDetailPageProps {
   car: {
@@ -30,6 +44,7 @@ interface CarDetailPageProps {
 }
 
 export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
+  const { t } = useTranslation();
   const [isLiked, setIsLiked] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [recommendedCars, setRecommendedCars] = useState<any[]>([]);
@@ -100,15 +115,15 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
   const handleBooking = () => {
     // Validate required fields
     if (!pickupDate) {
-      toast.error("Vui lòng chọn ngày nhận xe");
+      toast.error(t('carDetail.selectPickupDate'));
       return;
     }
     if (!dropoffDate) {
-      toast.error("Vui lòng chọn ngày trả xe");
+      toast.error(t('carDetail.selectDropoffDate'));
       return;
     }
     if (!pickupLocation) {
-      toast.error("Vui lòng nhập địa điểm nhận xe");
+      toast.error(t('carDetail.enterPickupLocation'));
       return;
     }
 
@@ -117,7 +132,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
     const dropoff = new Date(dropoffDate);
 
     if (pickup >= dropoff) {
-      toast.error("Ngày trả xe phải sau ngày nhận xe");
+      toast.error(t('carDetail.dropoffAfterPickup'));
       return;
     }
 
@@ -159,19 +174,19 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
   ];
 
   const features = [
-    { icon: Shield, label: "Bảo hiểm toàn diện", desc: "Được bảo hiểm đầy đủ" },
-    { icon: MapPin, label: "Giao xe tận nơi", desc: "Miễn phí trong thành phố" },
-    { icon: Calendar, label: "Đặt xe linh hoạt", desc: "Hủy miễn phí trong 24h" },
-    { icon: CheckCircle, label: "Xe đã kiểm tra", desc: "Đảm bảo an toàn" },
+    { icon: Shield, label: t('carDetail.comprehensiveInsurance'), desc: t('carDetail.fullyInsured') },
+    { icon: MapPin, label: t('carDetail.homeDelivery'), desc: t('carDetail.freeCityDelivery') },
+    { icon: Calendar, label: t('carDetail.flexibleBooking'), desc: t('carDetail.freeCancellation24hShort') },
+    { icon: CheckCircle, label: t('carDetail.verifiedCar'), desc: t('carDetail.safetyGuaranteed') },
   ];
 
   const specifications = [
-    { label: "Loại xe", value: car.type },
-    { label: "Sức chứa", value: car.capacity },
-    { label: "Hộp số", value: car.transmission },
-    { label: "Nhiên liệu", value: car.gasoline },
-    { label: "Năm sản xuất", value: "2023" },
-    { label: "Màu sắc", value: "Đen" },
+    { label: t('carDetail.carType'), value: car.type },
+    { label: t('carDetail.capacity'), value: car.capacity },
+    { label: t('carDetail.transmission'), value: car.transmission },
+    { label: t('carDetail.fuel'), value: car.gasoline },
+    { label: t('carDetail.year'), value: "2023" },
+    { label: t('carDetail.color'), value: "Đen" },
   ];
 
   const reviews = [
@@ -206,7 +221,9 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
 
   return (
     <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
-      {/* Header */}      {/* Main Content */}
+      <Header currentPage="car-rental" onNavigate={onNavigate} />
+
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 pt-[calc(60px+2rem)]">
         <Button
           variant="ghost"
@@ -214,7 +231,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
           className="gap-2 mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
-          Quay lại danh sách
+          {t('carDetail.backToList')}
         </Button>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -272,7 +289,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                           />
                         ))}
                       </div>
-                      <span className="text-sm text-gray-600">{car.rating}/5 • 440+ Đánh giá</span>
+                      <span className="text-sm text-gray-600">{car.rating}/5 • 440+ {t('carDetail.reviews')}</span>
                     </div>
                   )}
                 </div>
@@ -282,11 +299,9 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
 
               {/* Description */}
               <div className="mb-6">
-                <h3 className="text-lg mb-3 text-gray-900">Mô tả</h3>
+                <h3 className="text-lg mb-3 text-gray-900">{t('carDetail.description')}</h3>
                 <p className="text-gray-700 leading-relaxed">
-                  {car.name} là một chiếc xe {car.type?.toLowerCase() || 'cao cấp'}, mang đến sự kết hợp hoàn hảo
-                  giữa hiệu suất mạnh mẽ và sự thoải mái tuyệt đối. Với thiết kế hiện đại và trang bị
-                  tiện nghi đầy đủ, xe phù hợp cho cả chuyến đi công tác lẫn du lịch gia đình.
+                  {t('carDetail.carDescription', { name: car.name, type: car.type?.toLowerCase() || t('carDetail.premium') })}
                 </p>
               </div>
 
@@ -294,7 +309,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
 
               {/* Specifications */}
               <div className="mb-6">
-                <h3 className="text-lg mb-4 text-gray-900">Thông số kỹ thuật</h3>
+                <h3 className="text-lg mb-4 text-gray-900">{t('carDetail.specifications')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   {specifications.map((spec, idx) => (
                     <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -309,7 +324,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
 
               {/* Features */}
               <div>
-                <h3 className="text-lg mb-4 text-gray-900">Tiện ích</h3>
+                <h3 className="text-lg mb-4 text-gray-900">{t('carDetail.features')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   {features.map((feature, idx) => (
                     <div key={idx} className="flex gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
@@ -327,9 +342,9 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
             {/* Reviews */}
             <Card className="p-6 border-0 shadow-lg">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl text-gray-900">Đánh giá</h2>
+                <h2 className="text-xl text-gray-900">{t('carDetail.reviews')}</h2>
                 <Badge className="bg-linear-to-r from-blue-600 to-indigo-600">
-                  {reviews.length} đánh giá
+                  {reviews.length} {t('carDetail.reviews')}
                 </Badge>
               </div>
 
@@ -362,7 +377,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                         <p className="text-gray-700 leading-relaxed mb-3">{review.content}</p>
                         <button className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
                           <ThumbsUp className="w-4 h-4" />
-                          <span className="text-sm">Hữu ích</span>
+                          <span className="text-sm">{t('carDetail.helpful')}</span>
                         </button>
                       </div>
                     </div>
@@ -373,17 +388,17 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
 
             {/* Recommended Cars */}
             <div>
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-end justify-between mb-8">
                 <div>
-                  <h2 className="text-2xl text-gray-900 mb-1">Xe đề xuất</h2>
-                  <p className="text-gray-600">Xe tương tự bạn có thể thích</p>
+                  <h2 className="text-2xl text-gray-900 mb-1">{t('carDetail.recommendedCars')}</h2>
+                  <p className="text-gray-600">Các lựa chọn tuyệt vời khác cho bạn</p>
                 </div>
                 <Button
                   variant="ghost"
                   onClick={() => onNavigate("car-list")}
                   className="text-blue-600 hover:text-blue-700"
                 >
-                  Xem tất cả →
+                  {t('carDetail.viewAll')} →
                 </Button>
               </div>
               <div className="grid md:grid-cols-3 gap-6">
@@ -462,7 +477,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                           size="sm"
                           className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                         >
-                          Thuê ngay
+                          {t('carDetail.rentNow')}
                         </Button>
                       </div>
                     </div>
@@ -484,7 +499,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                   <div className="flex items-center gap-2">
                     <p className="text-lg text-gray-400 line-through">${car.originalPrice}</p>
                     <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-                      Tiết kiệm ${car.originalPrice - car.price}
+                      {t('carDetail.save')} ${car.originalPrice - car.price}
                     </Badge>
                   </div>
                 )}
@@ -494,7 +509,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
 
               <div className="space-y-4 mb-6">
                 <div>
-                  <label className="text-sm text-gray-700 mb-2 block">Ngày nhận xe</label>
+                  <label className="text-sm text-gray-700 mb-2 block">{t('carDetail.pickupDate')}</label>
                   <Input
                     type="date"
                     value={pickupDate}
@@ -503,7 +518,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700 mb-2 block">Ngày trả xe</label>
+                  <label className="text-sm text-gray-700 mb-2 block">{t('carDetail.dropoffDate')}</label>
                   <Input
                     type="date"
                     value={dropoffDate}
@@ -512,9 +527,9 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700 mb-2 block">Địa điểm nhận xe</label>
+                  <label className="text-sm text-gray-700 mb-2 block">{t('carDetail.pickupLocation')}</label>
                   <Input
-                    placeholder="Nhập địa điểm"
+                    placeholder={t('carDetail.enterLocation')}
                     value={pickupLocation}
                     onChange={(e) => setPickupLocation(e.target.value)}
                   />
@@ -526,21 +541,21 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 mb-4"
                 size="lg"
               >
-                Đặt xe ngay
+                {t('carDetail.bookNow')}
               </Button>
 
               <div className="space-y-2 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span>Miễn phí hủy trong 24h</span>
+                  <span>{t('carDetail.freeCancellation24h')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span>Bảo hiểm toàn diện</span>
+                  <span>{t('carDetail.comprehensiveInsurance')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span>Hỗ trợ 24/7</span>
+                  <span>{t('carDetail.support247')}</span>
                 </div>
               </div>
             </Card>
@@ -553,3 +568,13 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+

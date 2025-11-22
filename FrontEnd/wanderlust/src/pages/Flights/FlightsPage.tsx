@@ -18,6 +18,7 @@ import {
     Users
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { toast } from "sonner@2.0.3";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
@@ -53,6 +54,7 @@ const airports = [
 ];
 
 export default function FlightsPage({ onNavigate }: FlightsPageProps) {
+  const { t } = useTranslation();
   const heroSearchRef = useRef<HTMLDivElement>(null);
   
   // Search form state
@@ -212,24 +214,24 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
     
     // Scroll to hero search
     heroSearchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    toast.success(`Đã chọn tuyến ${from} → ${to}`);
+    toast.success(t('flights.routeSelected', { from, to }));
   };
 
   const handleCopyCode = async (code: string) => {
     try {
       await navigator.clipboard.writeText(code);
       setCopiedCode(code);
-      toast.success("Đã sao chép mã voucher!");
+      toast.success(t('flights.voucherCopied'));
       setTimeout(() => setCopiedCode(null), 2000);
     } catch (err) {
-      toast.error("Không thể sao chép mã");
+      toast.error(t('flights.cannotCopyCode'));
     }
   };
 
   const cabinClassLabels = {
-    economy: "Phổ thông",
-    business: "Thương gia",
-    first: "Hạng nhất"
+    economy: t('flights.economy'),
+    business: t('flights.business'),
+    first: t('flights.firstClass')
   };
 
   const totalPassengers = adults + children + infants;
@@ -240,7 +242,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       <SearchLoadingOverlay 
         isLoading={isSearching}
         searchType="flight"
-        message="Đang tìm kiếm chuyến bay..."
+        message={t('flights.searchingFlights')}
       />      {/* Hero Search Section */}
       <div ref={heroSearchRef} className="relative h-[700px] w-full">
         <ImageWithFallback
@@ -252,26 +254,26 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
 
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 md:px-8">
           <h1 className="text-white text-4xl md:text-5xl text-center mb-8 drop-shadow-2xl max-w-4xl">
-            Từ Đông Nam Á Đến Thế Giới, Trong Tầm Tay Bạn
+            {t('flights.heroTitle')}
           </h1>
 
           {/* Search Box */}
           <div className="bg-white rounded-2xl p-6 md:p-8 w-full max-w-5xl shadow-2xl">
-            <h2 className="text-2xl mb-6">Tìm kiếm chuyến bay</h2>
+            <h2 className="text-2xl mb-6">{t('flights.searchFlights')}</h2>
 
             {/* Trip Type */}
             <RadioGroup value={tripType} onValueChange={(value: any) => setTripType(value)} className="flex gap-6 mb-6">
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="one-way" id="one-way" />
-                <Label htmlFor="one-way" className="cursor-pointer">Một chiều</Label>
+                <Label htmlFor="one-way" className="cursor-pointer">{t('flights.oneWay')}</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="round-trip" id="round-trip" />
-                <Label htmlFor="round-trip" className="cursor-pointer">Khứ hồi</Label>
+                <Label htmlFor="round-trip" className="cursor-pointer">{t('flights.roundTrip')}</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="multi-city" id="multi-city" />
-                <Label htmlFor="multi-city" className="cursor-pointer">Nhiều chặng</Label>
+                <Label htmlFor="multi-city" className="cursor-pointer">{t('flights.multiCity')}</Label>
               </div>
             </RadioGroup>
 
@@ -291,11 +293,11 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                       <div className="flex flex-col items-start flex-1 min-w-0">
                         {fromAirport ? (
                           <>
-                            <span className="text-xs text-gray-500">Từ</span>
+                            <span className="text-xs text-gray-500">{t('flights.from')}</span>
                             <span className="truncate w-full text-left">{fromAirport.city}</span>
                           </>
                         ) : (
-                          <span className="text-gray-500">Từ</span>
+                          <span className="text-gray-500">{t('flights.from')}</span>
                         )}
                       </div>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -303,9 +305,9 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                   </PopoverTrigger>
                   <PopoverContent className="w-[300px] p-0">
                     <Command>
-                      <CommandInput placeholder="Tìm sân bay..." />
+                      <CommandInput placeholder={t('flights.searchAirport')} />
                       <CommandList>
-                        <CommandEmpty>Không tìm thấy sân bay.</CommandEmpty>
+                        <CommandEmpty>{t('flights.noAirportFound')}</CommandEmpty>
                         <CommandGroup>
                           {airports.map((airport) => (
                             <CommandItem
@@ -360,11 +362,11 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                       <div className="flex flex-col items-start flex-1 min-w-0">
                         {toAirport ? (
                           <>
-                            <span className="text-xs text-gray-500">Đến</span>
+                            <span className="text-xs text-gray-500">{t('flights.to')}</span>
                             <span className="truncate w-full text-left">{toAirport.city}</span>
                           </>
                         ) : (
-                          <span className="text-gray-500">Đến</span>
+                          <span className="text-gray-500">{t('flights.to')}</span>
                         )}
                       </div>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -372,9 +374,9 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                   </PopoverTrigger>
                   <PopoverContent className="w-[300px] p-0">
                     <Command>
-                      <CommandInput placeholder="Tìm sân bay..." />
+                      <CommandInput placeholder={t('flights.searchAirport')} />
                       <CommandList>
-                        <CommandEmpty>Không tìm thấy sân bay.</CommandEmpty>
+                        <CommandEmpty>{t('flights.noAirportFound')}</CommandEmpty>
                         <CommandGroup>
                           {airports.map((airport) => (
                             <CommandItem
@@ -413,9 +415,9 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                     >
                       <CalendarIcon className="w-5 h-5 text-blue-600 mr-2 shrink-0" />
                       <div className="flex flex-col items-start flex-1 min-w-0">
-                        <span className="text-xs text-gray-500">Ngày đi</span>
+                        <span className="text-xs text-gray-500">{t('flights.departDate')}</span>
                         <span className="truncate w-full text-left">
-                          {departDate ? format(departDate, "dd/MM/yyyy", { locale: vi }) : "Chọn ngày"}
+                          {departDate ? format(departDate, "dd/MM/yyyy", { locale: vi }) : t('flights.selectDate')}
                         </span>
                       </div>
                     </Button>
@@ -442,9 +444,9 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                       >
                         <CalendarIcon className="w-5 h-5 text-blue-600 mr-2 shrink-0" />
                         <div className="flex flex-col items-start flex-1 min-w-0">
-                          <span className="text-xs text-gray-500">Ngày về</span>
+                          <span className="text-xs text-gray-500">{t('flights.returnDate')}</span>
                           <span className="truncate w-full text-left">
-                            {returnDate ? format(returnDate, "dd/MM/yyyy", { locale: vi }) : "Chọn ngày"}
+                            {returnDate ? format(returnDate, "dd/MM/yyyy", { locale: vi }) : t('flights.selectDate')}
                           </span>
                         </div>
                       </Button>
@@ -474,9 +476,9 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                     >
                       <Users className="w-5 h-5 text-blue-600 mr-2 shrink-0" />
                       <div className="flex flex-col items-start flex-1 min-w-0">
-                        <span className="text-xs text-gray-500">Hành khách & Hạng</span>
+                        <span className="text-xs text-gray-500">{t('flights.passengersAndClass')}</span>
                         <span className="truncate w-full text-left">
-                          {totalPassengers} người, {cabinClassLabels[cabinClass]}
+                          {t('flights.passengers', { count: totalPassengers })}, {cabinClassLabels[cabinClass]}
                         </span>
                       </div>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -487,8 +489,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                       {/* Adults */}
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium">Người lớn</div>
-                          <div className="text-sm text-gray-500">Từ 12 tuổi</div>
+                          <div className="font-medium">{t('flights.adults')}</div>
+                          <div className="text-sm text-gray-500">{t('flights.adultsAge')}</div>
                         </div>
                         <div className="flex items-center gap-3">
                           <Button
@@ -516,8 +518,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                       {/* Children */}
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium">Trẻ em</div>
-                          <div className="text-sm text-gray-500">2-11 tuổi</div>
+                          <div className="font-medium">{t('flights.children')}</div>
+                          <div className="text-sm text-gray-500">{t('flights.childrenAge')}</div>
                         </div>
                         <div className="flex items-center gap-3">
                           <Button
@@ -545,8 +547,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                       {/* Infants */}
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium">Em bé</div>
-                          <div className="text-sm text-gray-500">Dưới 2 tuổi</div>
+                          <div className="font-medium">{t('flights.infants')}</div>
+                          <div className="text-sm text-gray-500">{t('flights.infantsAge')}</div>
                         </div>
                         <div className="flex items-center gap-3">
                           <Button
@@ -572,19 +574,19 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                       </div>
 
                       <div className="border-t pt-4">
-                        <Label className="mb-2 block">Hạng vé</Label>
+                        <Label className="mb-2 block">{t('flights.cabinClass')}</Label>
                         <RadioGroup value={cabinClass} onValueChange={(value: any) => setCabinClass(value)}>
                           <div className="flex items-center space-x-2 mb-2">
                             <RadioGroupItem value="economy" id="economy" />
-                            <Label htmlFor="economy" className="cursor-pointer">Phổ thông</Label>
+                            <Label htmlFor="economy" className="cursor-pointer">{t('flights.economy')}</Label>
                           </div>
                           <div className="flex items-center space-x-2 mb-2">
                             <RadioGroupItem value="business" id="business" />
-                            <Label htmlFor="business" className="cursor-pointer">Thương gia</Label>
+                            <Label htmlFor="business" className="cursor-pointer">{t('flights.business')}</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="first" id="first" />
-                            <Label htmlFor="first" className="cursor-pointer">Hạng nhất</Label>
+                            <Label htmlFor="first" className="cursor-pointer">{t('flights.firstClass')}</Label>
                           </div>
                         </RadioGroup>
                       </div>
@@ -593,7 +595,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                         onClick={() => setOpenPassengers(false)} 
                         className="w-full bg-blue-600 hover:bg-blue-700"
                       >
-                        Xong
+                        {t('common.done')}
                       </Button>
                     </div>
                   </PopoverContent>
@@ -607,7 +609,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                   className="w-full h-14 bg-[#0194f3] hover:bg-[#0180d6] text-white"
                 >
                   <Search className="w-5 h-5 md:mr-0 lg:mr-2" />
-                  <span className="hidden lg:inline">Tìm</span>
+                  <span className="hidden lg:inline">{t('flights.searchButton')}</span>
                 </Button>
               </div>
             </div>
@@ -615,7 +617,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
             {/* Multi-city notice */}
             {tripType === "multi-city" && (
               <div className="mt-4 p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
-                Tính năng đặt vé nhiều chặng đang được phát triển. Vui lòng chọn "Một chiều" hoặc "Khứ hồi".
+                {t('flights.multiCityNotice')}
               </div>
             )}
           </div>
@@ -625,17 +627,17 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       {/* Features Section */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl mb-4">Tại sao chọn Wanderlust?</h2>
-          <p className="text-gray-600">Trải nghiệm đặt vé máy bay tuyệt vời nhất</p>
+          <h2 className="text-3xl mb-4">{t('flights.whyChooseUs')}</h2>
+          <p className="text-gray-600">{t('flights.bestFlightExperience')}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <div className="text-center p-6">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="w-8 h-8 text-blue-600" />
             </div>
-            <h3 className="text-lg mb-3">Tìm kiếm thông minh</h3>
+            <h3 className="text-lg mb-3">{t('flights.smartSearch')}</h3>
             <p className="text-sm text-gray-600">
-              So sánh hàng nghìn chuyến bay từ nhiều hãng hàng không với giá tốt nhất.
+              {t('flights.smartSearchDesc')}
             </p>
           </div>
 
@@ -643,9 +645,9 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Sparkles className="w-8 h-8 text-green-600" />
             </div>
-            <h3 className="text-lg mb-3">Gợi ý cá nhân hóa</h3>
+            <h3 className="text-lg mb-3">{t('flights.personalizedSuggestions')}</h3>
             <p className="text-sm text-gray-600">
-              Nhận đề xuất phù hợp dựa trên lịch sử tìm kiếm và sở thích của bạn.
+              {t('flights.personalizedSuggestionsDesc')}
             </p>
           </div>
 
@@ -653,9 +655,9 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Tag className="w-8 h-8 text-purple-600" />
             </div>
-            <h3 className="text-lg mb-3">Giá tốt nhất</h3>
+            <h3 className="text-lg mb-3">{t('flights.bestPrice')}</h3>
             <p className="text-sm text-gray-600">
-              Cập nhật giá theo thời gian thực, đảm bảo giá tốt nhất cho bạn.
+              {t('flights.bestPriceDesc')}
             </p>
           </div>
 
@@ -663,9 +665,9 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
             <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Headphones className="w-8 h-8 text-orange-600" />
             </div>
-            <h3 className="text-lg mb-3">Hỗ trợ 24/7</h3>
+            <h3 className="text-lg mb-3">{t('flights.support247')}</h3>
             <p className="text-sm text-gray-600">
-              Đội ngũ hỗ trợ khách hàng luôn sẵn sàng giúp bạn mọi lúc, mọi nơi.
+              {t('flights.support247Desc')}
             </p>
           </div>
 
@@ -673,9 +675,9 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
             <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Globe className="w-8 h-8 text-pink-600" />
             </div>
-            <h3 className="text-lg mb-3">Đa nền tảng</h3>
+            <h3 className="text-lg mb-3">{t('flights.multiPlatform')}</h3>
             <p className="text-sm text-gray-600">
-              Sử dụng trên mọi thiết bị, trải nghiệm nhất quán và tiện lợi.
+              {t('flights.multiPlatformDesc')}
             </p>
           </div>
 
@@ -683,9 +685,9 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
             <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Shield className="w-8 h-8 text-yellow-600" />
             </div>
-            <h3 className="text-lg mb-3">An toàn & Tin cậy</h3>
+            <h3 className="text-lg mb-3">{t('flights.safeAndReliable')}</h3>
             <p className="text-sm text-gray-600">
-              Thanh toán bảo mật, thông tin được mã hóa và bảo vệ tuyệt đối.
+              {t('flights.safeAndReliableDesc')}
             </p>
           </div>
         </div>
@@ -694,8 +696,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       {/* Popular Flights */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-20 bg-gray-50">
         <div className="mb-8">
-          <h2 className="text-3xl mb-2">Các chuyến bay phổ biến</h2>
-          <p className="text-gray-600">Những tuyến bay được ưa chuộng nhất</p>
+          <h2 className="text-3xl mb-2">{t('flights.popularFlights')}</h2>
+          <p className="text-gray-600">{t('flights.mostFavoriteRoutes')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -727,7 +729,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
               </div>
               <div className="p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Từ</span>
+                  <span className="text-sm text-gray-600">{t('flights.from')}</span>
                   <span className="text-xl text-blue-600">{flight.price}</span>
                 </div>
               </div>
@@ -740,15 +742,15 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-20">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-3xl mb-2">Ưu đãi dành cho bạn</h2>
-            <p className="text-gray-600">Khuyến mãi hot nhất trong tháng</p>
+            <h2 className="text-3xl mb-2">{t('common.dealsForYou')}</h2>
+            <p className="text-gray-600">{t('common.hottestPromotions')}</p>
           </div>
           <Button 
             variant="outline" 
             onClick={() => onNavigate("promotions")}
             className="border-blue-600 text-blue-600 hover:bg-blue-50"
           >
-            Xem tất cả
+            {t('common.viewAll')}
           </Button>
         </div>
 
@@ -758,7 +760,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
           </div>
         ) : promotions.length === 0 ? (
           <div className="text-center py-20 text-gray-500">
-            <p>Hiện chưa có ưu đãi nào cho vé máy bay</p>
+            <p>{t('flights.noFlightDeals')}</p>
           </div>
         ) : (
           <Carousel className="w-full">
@@ -788,7 +790,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                           {promo.code}
                         </code>
                         <Button variant="link" className="text-blue-600 p-0">
-                          Xem chi tiết →
+                          {t('common.viewDetails')} →
                         </Button>
                       </div>
                     </div>
@@ -805,8 +807,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       {/* FAQ Section */}
       <section className="max-w-4xl mx-auto px-4 md:px-8 py-20">
         <div className="mb-8">
-          <h2 className="text-3xl mb-2">Câu hỏi thường gặp</h2>
-          <p className="text-gray-600">FAQ</p>
+          <h2 className="text-3xl mb-2">{t('flights.faq')}</h2>
+          <p className="text-gray-600">{t('flights.faqSubtitle')}</p>
         </div>
 
         <Accordion type="single" collapsible className="w-full">
@@ -853,9 +855,9 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
         <Dialog open={!!selectedVoucher} onOpenChange={() => setSelectedVoucher(null)}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Chi tiết ưu đãi</DialogTitle>
+              <DialogTitle>{t('flights.voucherDetails')}</DialogTitle>
               <DialogDescription>
-                Thông tin chi tiết về chương trình khuyến mãi
+                {t('flights.promotionInfo')}
               </DialogDescription>
             </DialogHeader>
 
@@ -879,7 +881,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
               </div>
 
               <div className="bg-linear-to-r from-blue-50 to-purple-50 p-6 rounded-lg">
-                <p className="text-sm text-gray-600 mb-2">Mã voucher</p>
+                <p className="text-sm text-gray-600 mb-2">{t('flights.voucherCode')}</p>
                 <div className="flex items-center gap-3">
                   <code className="text-2xl font-mono flex-1">{selectedVoucher.code}</code>
                   <Button
@@ -890,12 +892,12 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                     {copiedCode === selectedVoucher.code ? (
                       <>
                         <Check className="w-4 h-4" />
-                        Đã sao chép
+                        {t('flights.copied')}
                       </>
                     ) : (
                       <>
                         <Copy className="w-4 h-4" />
-                        Sao chép
+                        {t('flights.copyCode')}
                       </>
                     )}
                   </Button>
@@ -903,7 +905,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
               </div>
 
               <div className="border-t pt-4">
-                <h4 className="mb-3">Điều kiện áp dụng</h4>
+                <h4 className="mb-3">{t('flights.conditions')}</h4>
                 <ul className="space-y-2 text-sm text-gray-600">
                   {selectedVoucher.conditions && Array.isArray(selectedVoucher.conditions) && selectedVoucher.conditions.length > 0 ? (
                     selectedVoucher.conditions.map((condition: string, index: number) => (

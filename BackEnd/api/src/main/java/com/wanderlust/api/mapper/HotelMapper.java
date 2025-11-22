@@ -27,19 +27,32 @@ public interface HotelMapper {
      * Bỏ qua ID và các trường Audit khi tạo mới
      * Map ngược lại các trường tên khác nhau
      */
-    @Mapping(target = "hotelID", ignore = true) 
+    @Mapping(target = "hotelID", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(source = "hotelType", target = "hotel_Type")
+    @Mapping(target = "latitude", ignore = true)
+    @Mapping(target = "longitude", ignore = true)
+    @Mapping(target = "shortDescription", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "verified", ignore = true)
+    @Mapping(target = "totalRooms", ignore = true)
     Hotel toEntity(HotelDTO dto);
 
     /**
      * Update Entity từ DTO (Dùng cho Update)
-     * Chỉ update các trường có dữ liệu (nhờ nullValuePropertyMappingStrategy = IGNORE)
+     * Chỉ update các trường có dữ liệu (nhờ nullValuePropertyMappingStrategy =
+     * IGNORE)
      */
     @Mapping(target = "hotelID", ignore = true) // Không cho phép update ID
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(source = "hotelType", target = "hotel_Type")
+    @Mapping(target = "latitude", ignore = true)
+    @Mapping(target = "longitude", ignore = true)
+    @Mapping(target = "shortDescription", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "verified", ignore = true)
+    @Mapping(target = "totalRooms", ignore = true)
     void updateEntityFromDTO(HotelDTO dto, @MappingTarget Hotel hotel);
 }

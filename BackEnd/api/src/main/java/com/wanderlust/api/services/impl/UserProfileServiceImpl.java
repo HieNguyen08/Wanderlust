@@ -51,13 +51,11 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Transactional
     public UserProfileResponseDTO updateUserProfile(String userId, UserProfileUpdateDTO dto) {
         User user = findUserById(userId);
-        
-        // Logic cập nhật (đã có)
         if (dto.getFirstName() != null) user.setFirstName(dto.getFirstName());
         if (dto.getLastName() != null) user.setLastName(dto.getLastName());
         if (dto.getMobile() != null) user.setMobile(dto.getMobile());
         if (dto.getAddress() != null) user.setAddress(dto.getAddress());
-        if (user.getAvatar() != null) user .setAvatar(user.getAvatar());
+        if (dto.getAvatar() != null) user.setAvatar(dto.getAvatar());
         if (dto.getDateOfBirth() != null) user.setDateOfBirth(dto.getDateOfBirth());
         if (dto.getCity() != null) user.setCity(dto.getCity());
         if (dto.getCountry() != null) user.setCountry(dto.getCountry());

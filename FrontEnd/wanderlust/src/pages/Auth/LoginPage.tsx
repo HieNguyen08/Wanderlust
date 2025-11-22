@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Calendar as CalendarIcon, Facebook, Mail, Plane } from "lucide-react";
+import { Calendar as CalendarIcon, Eye, EyeOff, Facebook, Mail, Plane } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
@@ -12,10 +12,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/pop
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { PageType } from "../../MainApp"; // Import PageType
 import { authApi, tokenService } from "../../utils/api";
+import { mapBackendRoleToFrontend, type FrontendRole } from "../../utils/roleMapper";
 
 interface LoginPageProps {
   onNavigate: (page: PageType, data?: any) => void; // Use PageType
-  onLogin?: (role: "user" | "admin" | "vendor") => void;
+  onLogin?: (role: FrontendRole) => void;
   initialMode?: "login" | "register";
 }
 
@@ -27,7 +28,6 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
   const [loading, setLoading] = useState(false);
 
   console.log("🎨 LoginPage rendered - isSignUp:", isSignUp, "email:", email, "password:", password ? "***" : "empty");
-
 
   useEffect(() => {
     console.log("🔧 LoginPage MOUNTED");
@@ -50,6 +50,11 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  
+  // Password visibility states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleGoogleLogin = () => {
     console.log("🔐 Redirecting to Google OAuth...");
@@ -67,9 +72,7 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
     e.preventDefault();
     if (!email || !password) return;
 
-
     console.log("🔐 handleSignIn called with:", { email, password: "***" });
-
 
     setLoading(true);
     try {
@@ -77,26 +80,29 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
       const response = await authApi.login(email, password);
       console.log("✅ Login response:", response);
 
-
       // Lưu token và thông tin user
       tokenService.setToken(response.token);
+      
+      // Map backend role to frontend role
+      const mappedRole = mapBackendRoleToFrontend(response.role);
+      
       tokenService.setUserData({
         firstName: response.firstName,
         lastName: response.lastName,
         email: response.email,
         avatar: response.avatar,
-        role: response.role,
+        role: mappedRole, // Save mapped role
         gender: response.gender
       });
 
-
       console.log("💾 Saved to localStorage:", {
         token: response.token.substring(0, 20) + "...",
-        userData: tokenService.getUserData()
+        userData: tokenService.getUserData(),
+        backendRole: response.role,
+        mappedRole: mappedRole
       });
 
-
-      if (onLogin) onLogin(response.role || "user");
+      if (onLogin) onLogin(mappedRole);
       onNavigate("home");
     } catch (error: any) {
       console.error("❌ Login error:", error);
@@ -109,17 +115,9 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Manual validation for Select fields
-    if (!gender) {
-      alert(t('auth.pleaseSelectGender') || 'Vui lòng chọn giới tính');
-      return;
-    }
-    if (!country) {
-      alert(t('auth.pleaseSelectCountry') || 'Vui lòng chọn quốc gia');
-      return;
-    }
-    if (!dateOfBirth) {
-      alert(t('auth.pleaseSelectDOB') || 'Vui lòng chọn ngày sinh');
+    // Kiểm tra mật khẩu khớp nhau
+    if (password !== confirmPassword) {
+      alert("Mật khẩu không khớp! Vui lòng kiểm tra lại.");
       return;
     }
 
@@ -129,7 +127,7 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
         firstName,
         lastName,
         email,
-        password,
+        password, // Chỉ gửi password, không gửi confirmPassword
         mobile,
         gender: gender || undefined,
         dateOfBirth: dateOfBirth?.toISOString(),
@@ -138,10 +136,11 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
         country
       };
 
-
       // Register endpoint giờ trả về AuthResponseDTO với token luôn
       const response = await authApi.register(userData);
 
+      // Map backend role to frontend role
+      const mappedRole = mapBackendRoleToFrontend(response.role);
 
       // Lưu token và user data
       tokenService.setToken(response.token);
@@ -150,12 +149,11 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
         lastName: response.lastName,
         email: response.email,
         avatar: response.avatar,
-        role: response.role,
+        role: mappedRole, // Save mapped role
         gender: response.gender
       });
 
-
-      if (onLogin) onLogin(response.role || "user");
+      if (onLogin) onLogin(mappedRole);
       onNavigate("home");
     } catch (error: any) {
       alert(error.message || "Đăng ký thất bại. Email có thể đã tồn tại.");
@@ -168,6 +166,7 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
     setIsSignUp(true);
     setEmail("");
     setPassword("");
+    setConfirmPassword("");
     setFirstName("");
     setLastName("");
     setGender("");
@@ -182,19 +181,6 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
     setIsSignUp(false);
     setEmail("");
     setPassword("");
-  };
-
-  const handleQuickFill = (role: "user" | "admin" | "vendor") => {
-    if (role === "admin") {
-      setEmail("admin@gmail.com");
-      setPassword("123456");
-    } else if (role === "vendor") {
-      setEmail("vendor@gmail.com");
-      setPassword("123456");
-    } else {
-      setEmail("user@gmail.com");
-      setPassword("123456");
-    }
   };
 
   return (
@@ -213,9 +199,8 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
       <div className="relative z-10 w-full max-w-6xl">
         <div className="relative w-full min-h-[650px] bg-white rounded-3xl shadow-2xl overflow-hidden">
 
-
           {/* Sliding Panel */}
-          <div className={`absolute top-0 left-0 w-full md:w-1/2 h-full bg-linear-to-br from-blue-600 via-blue-700 to-purple-700 transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-10 ${isSignUp ? 'md:translate-x-full md:rounded-l-3xl' : 'md:translate-x-0 md:rounded-r-3xl'
+          <div className={`absolute top-0 left-0 w-full md:w-1/2 h-full bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] z-10 ${isSignUp ? 'md:translate-x-full md:rounded-l-3xl' : 'md:translate-x-0 md:rounded-r-3xl'
             } hidden md:block`}>
             <div className="flex flex-col items-center justify-center h-full text-white p-12">
               {!isSignUp ? (
@@ -257,8 +242,6 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
           </div>
 
           {/* Sign In Form */}
-          <div className={`absolute top-0 w-full md:w-1/2 h-full transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] ${isSignUp ? 'md:translate-x-0 md:opacity-0 md:pointer-events-none' : 'md:translate-x-full md:opacity-100'
-            } ${isSignUp ? 'hidden' : 'block'}`}>
           <div className={`absolute top-0 w-full md:w-1/2 h-full transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] ${isSignUp ? 'md:translate-x-0 md:opacity-0 md:pointer-events-none' : 'md:translate-x-full md:opacity-100'
             } ${isSignUp ? 'hidden' : 'block'}`}>
             <div className="flex items-center justify-center h-full">
@@ -319,9 +302,9 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
                         className="w-full px-4 py-3 bg-slate-100 border-0 rounded-lg focus:ring-2 focus:ring-blue-600"
                       />
                     </div>
-                    <div>
+                    <div className="relative">
                       <Input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         placeholder={t('auth.passwordPlaceholder')}
                         value={password}
                         onChange={(e) => {
@@ -329,8 +312,15 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
                           setPassword(e.target.value);
                         }}
                         required
-                        className="w-full px-4 py-3 bg-slate-100 border-0 rounded-lg focus:ring-2 focus:ring-blue-600"
+                        className="w-full px-4 py-3 bg-slate-100 border-0 rounded-lg focus:ring-2 focus:ring-blue-600 pr-12"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
                     </div>
                     <div className="text-center">
                       <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors">
@@ -362,8 +352,6 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
           </div>
 
           {/* Sign Up Form */}
-          <div className={`absolute top-0 w-full md:w-1/2 h-full transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] overflow-y-auto ${!isSignUp ? 'md:-translate-x-full md:opacity-0 md:pointer-events-none' : 'md:translate-x-0 md:opacity-100'
-            } ${!isSignUp ? 'hidden' : 'block'}`}>
           <div className={`absolute top-0 w-full md:w-1/2 h-full transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] overflow-y-auto ${!isSignUp ? 'md:-translate-x-full md:opacity-0 md:pointer-events-none' : 'md:translate-x-0 md:opacity-100'
             } ${!isSignUp ? 'hidden' : 'block'}`}>
             <div className="flex items-start md:items-center justify-center min-h-full py-8">
@@ -482,16 +470,55 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
                     {/* Password */}
                     <div>
                       <Label htmlFor="password" className="text-gray-700 text-sm">{t('auth.password')} {t('auth.required')}</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder={t('auth.passwordMinLength')}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={6}
-                        className="mt-1 px-3 py-2 bg-slate-100 border-0 rounded-lg focus:ring-2 focus:ring-blue-600"
-                      />
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder={t('auth.passwordMinLength')}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          minLength={6}
+                          className="mt-1 px-3 py-2 bg-slate-100 border-0 rounded-lg focus:ring-2 focus:ring-blue-600 pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Confirm Password */}
+                    <div>
+                      <Label htmlFor="confirmPassword" className="text-gray-700 text-sm">{t('auth.confirmPassword')} {t('auth.required')}</Label>
+                      <div className="relative">
+                        <Input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder={t('auth.confirmPasswordPlaceholder')}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                          minLength={6}
+                          className="mt-1 px-3 py-2 bg-slate-100 border-0 rounded-lg focus:ring-2 focus:ring-blue-600 pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                        >
+                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      {/* Password match indicator */}
+                      {confirmPassword && (
+                        <p className={`text-xs mt-1 ${password === confirmPassword ? 'text-green-600' : 'text-red-600'}`}>
+                          {password === confirmPassword ? '✓ Mật khẩu khớp' : '✗ Mật khẩu không khớp'}
+                        </p>
+                      )}
                     </div>
 
                     {/* Address */}
@@ -531,16 +558,54 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
                           <SelectTrigger className="mt-1 bg-slate-100 border-0 rounded-lg focus:ring-2 focus:ring-blue-600">
                             <SelectValue placeholder={t('auth.selectCountry')} />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="VN">Việt Nam</SelectItem>
-                            <SelectItem value="US">Hoa Kỳ</SelectItem>
-                            <SelectItem value="JP">Nhật Bản</SelectItem>
-                            <SelectItem value="KR">Hàn Quốc</SelectItem>
-                            <SelectItem value="SG">Singapore</SelectItem>
-                            <SelectItem value="TH">Thái Lan</SelectItem>
-                            <SelectItem value="MY">Malaysia</SelectItem>
-                            <SelectItem value="CN">Trung Quốc</SelectItem>
-                            <SelectItem value="OTHER">Khác</SelectItem>
+                          <SelectContent className="max-h-[300px] overflow-y-auto">
+                            <SelectItem value="VN">🇻🇳 Việt Nam</SelectItem>
+                            <SelectItem value="US">🇺🇸 Hoa Kỳ</SelectItem>
+                            <SelectItem value="GB">🇬🇧 Vương Quốc Anh</SelectItem>
+                            <SelectItem value="JP">🇯🇵 Nhật Bản</SelectItem>
+                            <SelectItem value="KR">🇰🇷 Hàn Quốc</SelectItem>
+                            <SelectItem value="CN">🇨🇳 Trung Quốc</SelectItem>
+                            <SelectItem value="SG">🇸🇬 Singapore</SelectItem>
+                            <SelectItem value="TH">🇹🇭 Thái Lan</SelectItem>
+                            <SelectItem value="MY">🇲🇾 Malaysia</SelectItem>
+                            <SelectItem value="ID">🇮🇩 Indonesia</SelectItem>
+                            <SelectItem value="PH">🇵🇭 Philippines</SelectItem>
+                            <SelectItem value="AU">🇦🇺 Úc</SelectItem>
+                            <SelectItem value="NZ">🇳🇿 New Zealand</SelectItem>
+                            <SelectItem value="CA">🇨🇦 Canada</SelectItem>
+                            <SelectItem value="FR">🇫🇷 Pháp</SelectItem>
+                            <SelectItem value="DE">🇩🇪 Đức</SelectItem>
+                            <SelectItem value="IT">🇮🇹 Ý</SelectItem>
+                            <SelectItem value="ES">🇪🇸 Tây Ban Nha</SelectItem>
+                            <SelectItem value="NL">🇳🇱 Hà Lan</SelectItem>
+                            <SelectItem value="SE">🇸🇪 Thụy Điển</SelectItem>
+                            <SelectItem value="NO">🇳🇴 Na Uy</SelectItem>
+                            <SelectItem value="DK">🇩🇰 Đan Mạch</SelectItem>
+                            <SelectItem value="FI">🇫🇮 Phần Lan</SelectItem>
+                            <SelectItem value="CH">🇨🇭 Thụy Sĩ</SelectItem>
+                            <SelectItem value="AT">🇦🇹 Áo</SelectItem>
+                            <SelectItem value="BE">🇧🇪 Bỉ</SelectItem>
+                            <SelectItem value="IE">🇮🇪 Ireland</SelectItem>
+                            <SelectItem value="PT">🇵🇹 Bồ Đào Nha</SelectItem>
+                            <SelectItem value="GR">🇬🇷 Hy Lạp</SelectItem>
+                            <SelectItem value="RU">🇷🇺 Nga</SelectItem>
+                            <SelectItem value="IN">🇮🇳 Ấn Độ</SelectItem>
+                            <SelectItem value="BR">🇧🇷 Brazil</SelectItem>
+                            <SelectItem value="AR">🇦🇷 Argentina</SelectItem>
+                            <SelectItem value="MX">🇲🇽 Mexico</SelectItem>
+                            <SelectItem value="CL">🇨🇱 Chile</SelectItem>
+                            <SelectItem value="ZA">🇿🇦 Nam Phi</SelectItem>
+                            <SelectItem value="EG">🇪🇬 Ai Cập</SelectItem>
+                            <SelectItem value="AE">🇦🇪 UAE</SelectItem>
+                            <SelectItem value="SA">🇸🇦 Ả Rập Saudi</SelectItem>
+                            <SelectItem value="IL">🇮🇱 Israel</SelectItem>
+                            <SelectItem value="TR">🇹🇷 Thổ Nhĩ Kỳ</SelectItem>
+                            <SelectItem value="PL">🇵🇱 Ba Lan</SelectItem>
+                            <SelectItem value="CZ">🇨🇿 Séc</SelectItem>
+                            <SelectItem value="HU">🇭🇺 Hungary</SelectItem>
+                            <SelectItem value="RO">🇷🇴 Romania</SelectItem>
+                            <SelectItem value="UA">🇺🇦 Ukraine</SelectItem>
+                            <SelectItem value="OTHER">🌍 Khác</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -579,32 +644,6 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
           >
             ← {t('auth.backToHome')}
           </button>
-        </div>
-
-        {/* Mock Login Buttons for Testing */}
-        <div className="text-center mt-4">
-          <p className="text-white/80 mb-3">{t('auth.demoLogin')}</p>
-          <div className="flex gap-3 justify-center flex-wrap">
-            <Button
-              onClick={() => handleQuickFill("user")}
-              variant="outline"
-              className="bg-white/90 hover:bg-white border-none text-blue-600 px-5 h-10"
-            >
-              👤 User
-            </Button>
-            <Button
-              onClick={() => handleQuickFill("admin")}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-5 h-10"
-            >
-              🛡️ Admin
-            </Button>
-            <Button
-              onClick={() => handleQuickFill("vendor")}
-              className="bg-green-600 hover:bg-green-700 text-white px-5 h-10"
-            >
-              🏪 Vendor
-            </Button>
-          </div>
         </div>
       </div>
     </div>

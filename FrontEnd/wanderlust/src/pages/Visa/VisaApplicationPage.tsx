@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { AlertCircle, ArrowLeft, Calendar as CalendarIcon, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../../components/ui/button";
 import { Calendar } from "../../components/ui/calendar";
 import { Card } from "../../components/ui/card";
@@ -19,6 +20,7 @@ interface VisaApplicationPageProps {
 }
 
 export default function VisaApplicationPage({ country, onNavigate }: VisaApplicationPageProps) {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     // Personal Information
@@ -90,13 +92,13 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
       case 1:
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Thông Tin Cá Nhân</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('visa.personalInfo')}</h2>
             
             <div>
-              <Label htmlFor="fullName">Họ và tên đầy đủ *</Label>
+              <Label htmlFor="fullName">{t('visa.fullName')} *</Label>
               <Input
                 id="fullName"
-                placeholder="Nguyễn Văn A"
+                placeholder={t('visa.fullNamePlaceholder')}
                 value={formData.fullName}
                 onChange={(e) => handleInputChange("fullName", e.target.value)}
                 className="mt-1"
@@ -105,7 +107,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Ngày sinh *</Label>
+                <Label>{t('visa.dateOfBirth')} *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -113,7 +115,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
                       className="w-full justify-start text-left font-normal mt-1"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.dateOfBirth ? format(formData.dateOfBirth, "dd/MM/yyyy") : "Chọn ngày"}
+                      {formData.dateOfBirth ? format(formData.dateOfBirth, "dd/MM/yyyy") : t('visa.selectDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -127,10 +129,10 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
               </div>
 
               <div>
-                <Label htmlFor="placeOfBirth">Nơi sinh *</Label>
+                <Label htmlFor="placeOfBirth">{t('visa.placeOfBirth')} *</Label>
                 <Input
                   id="placeOfBirth"
-                  placeholder="Hà Nội, Việt Nam"
+                  placeholder={t('visa.placeOfBirthPlaceholder')}
                   value={formData.placeOfBirth}
                   onChange={(e) => handleInputChange("placeOfBirth", e.target.value)}
                   className="mt-1"
@@ -140,7 +142,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Giới tính *</Label>
+                <Label>{t('visa.gender')} *</Label>
                 <RadioGroup
                   value={formData.gender}
                   onValueChange={(value) => handleInputChange("gender", value)}
@@ -148,21 +150,21 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="male" id="male" />
-                    <Label htmlFor="male" className="cursor-pointer">Nam</Label>
+                    <Label htmlFor="male" className="cursor-pointer">{t('visa.male')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="female" id="female" />
-                    <Label htmlFor="female" className="cursor-pointer">Nữ</Label>
+                    <Label htmlFor="female" className="cursor-pointer">{t('visa.female')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="other" id="other" />
-                    <Label htmlFor="other" className="cursor-pointer">Khác</Label>
+                    <Label htmlFor="other" className="cursor-pointer">{t('visa.other')}</Label>
                   </div>
                 </RadioGroup>
               </div>
 
               <div>
-                <Label htmlFor="maritalStatus">Tình trạng hôn nhân *</Label>
+                <Label htmlFor="maritalStatus">{t('visa.maritalStatus')} *</Label>
                 <Select
                   value={formData.maritalStatus}
                   onValueChange={(value) => handleInputChange("maritalStatus", value)}
@@ -171,10 +173,10 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="single">Độc thân</SelectItem>
-                    <SelectItem value="married">Đã kết hôn</SelectItem>
-                    <SelectItem value="divorced">Ly hôn</SelectItem>
-                    <SelectItem value="widowed">Góa</SelectItem>
+                    <SelectItem value="single">{t('visa.single')}</SelectItem>
+                    <SelectItem value="married">{t('visa.married')}</SelectItem>
+                    <SelectItem value="divorced">{t('visa.divorced')}</SelectItem>
+                    <SelectItem value="widowed">{t('visa.widowed')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -195,11 +197,11 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
       case 2:
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Thông Tin Liên Hệ</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('visa.contactInfo')}</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">{t('common.email')} *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -211,7 +213,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
               </div>
 
               <div>
-                <Label htmlFor="phone">Số điện thoại *</Label>
+                <Label htmlFor="phone">{t('common.phone')} *</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -224,10 +226,10 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
             </div>
 
             <div>
-              <Label htmlFor="address">Địa chỉ hiện tại *</Label>
+              <Label htmlFor="address">{t('visa.currentAddress')} *</Label>
               <Textarea
                 id="address"
-                placeholder="Số nhà, tên đường"
+                placeholder={t('visa.streetAddress')}
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
                 className="mt-1"
@@ -236,20 +238,20 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
             </div>
 
             <div>
-              <Label htmlFor="city">Thành phố/Tỉnh *</Label>
+              <Label htmlFor="city">{t('visa.city')}/Tỉnh *</Label>
               <Input
                 id="city"
-                placeholder="Hà Nội"
+                placeholder={t('visa.cityPlaceholder')}
                 value={formData.city}
                 onChange={(e) => handleInputChange("city", e.target.value)}
                 className="mt-1"
               />
             </div>
 
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">Thông Tin Hộ Chiếu</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">{t('visa.passportInfo')}</h2>
             
             <div>
-              <Label htmlFor="passportNumber">Số hộ chiếu *</Label>
+              <Label htmlFor="passportNumber">{t('visa.passportNumber')} *</Label>
               <Input
                 id="passportNumber"
                 placeholder="B1234567"
@@ -261,7 +263,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Ngày cấp *</Label>
+                <Label>{t('visa.issueDate')} *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -269,7 +271,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
                       className="w-full justify-start text-left font-normal mt-1"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.passportIssueDate ? format(formData.passportIssueDate, "dd/MM/yyyy") : "Chọn ngày"}
+                      {formData.passportIssueDate ? format(formData.passportIssueDate, "dd/MM/yyyy") : t('visa.selectDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -283,7 +285,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
               </div>
 
               <div>
-                <Label>Ngày hết hạn *</Label>
+                <Label>{t('visa.expiryDate')} *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -291,7 +293,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
                       className="w-full justify-start text-left font-normal mt-1"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.passportExpiryDate ? format(formData.passportExpiryDate, "dd/MM/yyyy") : "Chọn ngày"}
+                      {formData.passportExpiryDate ? format(formData.passportExpiryDate, "dd/MM/yyyy") : t('visa.selectDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -306,10 +308,10 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
             </div>
 
             <div>
-              <Label htmlFor="passportIssuePlace">Nơi cấp *</Label>
+              <Label htmlFor="passportIssuePlace">{t('visa.issuePlace')} *</Label>
               <Input
                 id="passportIssuePlace"
-                placeholder="Cục Quản lý xuất nhập cảnh"
+                placeholder={t('visa.issuePlacePlaceholder')}
                 value={formData.passportIssuePlace}
                 onChange={(e) => handleInputChange("passportIssuePlace", e.target.value)}
                 className="mt-1"
@@ -321,10 +323,10 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
       case 3:
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Thông Tin Chuyến Đi</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('visa.travelInfo')}</h2>
             
             <div>
-              <Label htmlFor="purposeOfTravel">Mục đích chuyến đi *</Label>
+              <Label htmlFor="purposeOfTravel">{t('visa.purposeOfTravel')} *</Label>
               <Select
                 value={formData.purposeOfTravel}
                 onValueChange={(value) => handleInputChange("purposeOfTravel", value)}
@@ -333,19 +335,19 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="tourism">Du lịch</SelectItem>
-                  <SelectItem value="business">Công tác</SelectItem>
-                  <SelectItem value="family">Thăm thân</SelectItem>
-                  <SelectItem value="study">Học tập</SelectItem>
-                  <SelectItem value="medical">Y tế</SelectItem>
-                  <SelectItem value="other">Khác</SelectItem>
+                  <SelectItem value="tourism">{t('visa.tourism')}</SelectItem>
+                  <SelectItem value="business">{t('visa.business')}</SelectItem>
+                  <SelectItem value="family">{t('visa.family')}</SelectItem>
+                  <SelectItem value="study">{t('visa.study')}</SelectItem>
+                  <SelectItem value="medical">{t('visa.medical')}</SelectItem>
+                  <SelectItem value="other">{t('common.other')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Ngày khởi hành dự kiến *</Label>
+                <Label>{t('visa.departureDate')} *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -353,7 +355,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
                       className="w-full justify-start text-left font-normal mt-1"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.departureDate ? format(formData.departureDate, "dd/MM/yyyy") : "Chọn ngày"}
+                      {formData.departureDate ? format(formData.departureDate, "dd/MM/yyyy") : t('visa.selectDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -367,7 +369,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
               </div>
 
               <div>
-                <Label>Ngày trở về dự kiến *</Label>
+                <Label>{t('visa.returnDate')} *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -375,7 +377,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
                       className="w-full justify-start text-left font-normal mt-1"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.returnDate ? format(formData.returnDate, "dd/MM/yyyy") : "Chọn ngày"}
+                      {formData.returnDate ? format(formData.returnDate, "dd/MM/yyyy") : t('visa.selectDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -390,10 +392,10 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
             </div>
 
             <div>
-              <Label htmlFor="accommodationAddress">Địa chỉ lưu trú tại {country?.name || "nước ngoài"} *</Label>
+              <Label htmlFor="accommodationAddress">{t('visa.accommodationAddress')} {country?.name || t('visa.abroad')} *</Label>
               <Textarea
                 id="accommodationAddress"
-                placeholder="Tên khách sạn, địa chỉ chi tiết"
+                placeholder={t('visa.accommodationPlaceholder')}
                 value={formData.accommodationAddress}
                 onChange={(e) => handleInputChange("accommodationAddress", e.target.value)}
                 className="mt-1"
@@ -401,13 +403,13 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
               />
             </div>
 
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">Thông Tin Nghề Nghiệp</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 mt-8">{t('visa.employmentInfo')}</h2>
             
             <div>
-              <Label htmlFor="occupation">Nghề nghiệp *</Label>
+              <Label htmlFor="occupation">{t('visa.occupation')} *</Label>
               <Input
                 id="occupation"
-                placeholder="Kỹ sư phần mềm"
+                placeholder={t('visa.occupationPlaceholder')}
                 value={formData.occupation}
                 onChange={(e) => handleInputChange("occupation", e.target.value)}
                 className="mt-1"
@@ -416,7 +418,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="companyName">Tên công ty/Tổ chức</Label>
+                <Label htmlFor="companyName">{t('visa.companyName')}</Label>
                 <Input
                   id="companyName"
                   placeholder="ABC Company"
@@ -427,10 +429,10 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
               </div>
 
               <div>
-                <Label htmlFor="monthlyIncome">Thu nhập hàng tháng (VNĐ)</Label>
+                <Label htmlFor="monthlyIncome">{t('visa.monthlyIncome')} (VNĐ)</Label>
                 <Input
                   id="monthlyIncome"
-                  placeholder="15,000,000"
+                  placeholder={t('visa.incomePlaceholder')}
                   value={formData.monthlyIncome}
                   onChange={(e) => handleInputChange("monthlyIncome", e.target.value)}
                   className="mt-1"
@@ -439,10 +441,10 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
             </div>
 
             <div>
-              <Label htmlFor="companyAddress">Địa chỉ công ty</Label>
+              <Label htmlFor="companyAddress">{t('visa.companyAddress')}</Label>
               <Textarea
                 id="companyAddress"
-                placeholder="Số nhà, tên đường, quận/huyện, thành phố"
+                placeholder={t('visa.companyAddressPlaceholder')}
                 value={formData.companyAddress}
                 onChange={(e) => handleInputChange("companyAddress", e.target.value)}
                 className="mt-1"
@@ -455,7 +457,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
       case 4:
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Thông Tin Bổ Sung</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('visa.additionalInfo')}</h2>
             
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
@@ -466,7 +468,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
                 />
                 <div>
                   <Label htmlFor="previousVisits" className="cursor-pointer">
-                    Bạn đã từng đến {country?.name || "quốc gia này"} trước đây chưa?
+                    {t('visa.previousVisitQuestion', { country: country?.name || t('visa.thisCountry') })}
                   </Label>
                 </div>
               </div>
@@ -479,7 +481,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
                 />
                 <div>
                   <Label htmlFor="criminalRecord" className="cursor-pointer">
-                    Bạn có tiền án tiền sự không?
+                    {t('visa.criminalRecordQuestion')}
                   </Label>
                 </div>
               </div>
@@ -492,17 +494,17 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
                 />
                 <div>
                   <Label htmlFor="healthIssues" className="cursor-pointer">
-                    Bạn có vấn đề sức khỏe nghiêm trọng cần khai báo không?
+                    {t('visa.healthIssuesQuestion')}
                   </Label>
                 </div>
               </div>
             </div>
 
             <div>
-              <Label htmlFor="additionalNotes">Thông tin bổ sung (nếu có)</Label>
+              <Label htmlFor="additionalNotes">{t('visa.additionalNotes')}</Label>
               <Textarea
                 id="additionalNotes"
-                placeholder="Các thông tin khác bạn muốn chia sẻ..."
+                placeholder={t('visa.additionalNotesPlaceholder')}
                 value={formData.additionalNotes}
                 onChange={(e) => handleInputChange("additionalNotes", e.target.value)}
                 className="mt-1"
@@ -514,12 +516,12 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
               <div className="flex items-start">
                 <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 mr-3 shrink-0" />
                 <div className="text-sm text-blue-800">
-                  <p className="font-semibold mb-2">Lưu ý quan trọng:</p>
+                  <p className="font-semibold mb-2">{t('visa.importantNote')}</p>
                   <ul className="list-disc list-inside space-y-1">
-                    <li>Vui lòng kiểm tra kỹ tất cả thông tin trước khi gửi</li>
-                    <li>Thông tin sai lệch có thể dẫn đến việc từ chối visa</li>
-                    <li>Hộ chiếu phải còn hạn ít nhất 6 tháng</li>
-                    <li>Bước tiếp theo bạn sẽ cần upload các giấy tờ cần thiết</li>
+                    <li>{t('visa.checkInfoBeforeSubmit')}</li>
+                    <li>{t('visa.incorrectInfoMayReject')}</li>
+                    <li>{t('visa.passportValiditySixMonths')}</li>
+                    <li>{t('visa.nextStepUploadDocs')}</li>
                   </ul>
                 </div>
               </div>
@@ -542,7 +544,7 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
           className="flex items-center text-blue-600 hover:text-blue-700 mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Quay lại danh sách quốc gia
+          {t('visa.backToCountryList')}
         </button>
 
         {/* Country Info */}
@@ -551,10 +553,10 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold mb-2">
-                  Đơn xin Visa {country.name}
+                  {t('visa.visaApplicationFor')} {country.name}
                 </h1>
                 <p className="text-blue-100">
-                  Thời gian xử lý: {country.processingTime} | Phí dịch vụ: {country.price}
+                  {t('visa.processingTimeFee', { time: country.processingTime, fee: country.price })}
                 </p>
               </div>
               <div className="text-6xl">{country.flag}</div>
@@ -580,10 +582,10 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
             ))}
           </div>
           <div className="flex justify-between text-sm text-gray-600">
-            <span>Thông tin cá nhân</span>
-            <span>Liên hệ & Hộ chiếu</span>
-            <span>Chuyến đi</span>
-            <span>Hoàn tất</span>
+            <span>{t('visa.stepPersonalInfo')}</span>
+            <span>{t('visa.stepContactPassport')}</span>
+            <span>{t('visa.stepTravel')}</span>
+            <span>{t('visa.stepComplete')}</span>
           </div>
         </div>
 
@@ -599,13 +601,13 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
             onClick={handleBack}
             className="px-8"
           >
-            {currentStep === 1 ? "Hủy" : "Quay lại"}
+            {currentStep === 1 ? t('visa.cancel') : t('visa.back')}
           </Button>
           <Button
             onClick={handleNext}
             className="bg-blue-600 hover:bg-blue-700 px-8"
           >
-            {currentStep === totalSteps ? "Tiếp tục nộp hồ sơ" : "Tiếp theo"}
+            {currentStep === totalSteps ? t('visa.continueSubmit') : t('visa.next')}
           </Button>
         </div>
       </div>

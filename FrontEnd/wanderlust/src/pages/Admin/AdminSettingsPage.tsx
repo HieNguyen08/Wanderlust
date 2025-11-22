@@ -1,16 +1,20 @@
+import {
+    Bell,
+    CreditCard, Database,
+    Globe,
+    Save,
+    Shield
+} from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AdminLayout } from "../../components/AdminLayout";
-import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
-import { Switch } from "../../components/ui/switch";
 import { Separator } from "../../components/ui/separator";
-import {
-  Globe, DollarSign, Mail, Shield, Bell,
-  CreditCard, Database, Save
-} from "lucide-react";
+import { Switch } from "../../components/ui/switch";
+import { Textarea } from "../../components/ui/textarea";
 import type { PageType } from "../../MainApp";
 
 interface AdminSettingsPageProps {
@@ -18,6 +22,7 @@ interface AdminSettingsPageProps {
 }
 
 export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps) {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState({
     siteName: "Wanderlust",
     siteDescription: "Nền tảng du lịch hàng đầu Việt Nam",
@@ -47,8 +52,8 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">Cài đặt hệ thống</h1>
-          <p className="text-gray-600">Quản lý cấu hình và thiết lập website</p>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('admin.systemSettings')}</h1>
+          <p className="text-gray-600">{t('admin.systemSettingsDesc')}</p>
         </div>
 
         {/* General Settings */}
@@ -58,8 +63,8 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
               <Globe className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Cài đặt chung</h2>
-              <p className="text-sm text-gray-600">Thông tin cơ bản về website</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('admin.generalSettings')}</h2>
+              <p className="text-sm text-gray-600">{t('admin.generalSettingsDesc')}</p>
             </div>
           </div>
 
@@ -67,7 +72,7 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
 
           <div className="space-y-4 max-w-2xl">
             <div>
-              <Label htmlFor="siteName">Tên website</Label>
+              <Label htmlFor="siteName">{t('admin.websiteName')}</Label>
               <Input
                 id="siteName"
                 value={settings.siteName}
@@ -77,7 +82,7 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
             </div>
 
             <div>
-              <Label htmlFor="siteDescription">Mô tả website</Label>
+              <Label htmlFor="siteDescription">{t('admin.websiteDescription')}</Label>
               <Textarea
                 id="siteDescription"
                 value={settings.siteDescription}
@@ -89,7 +94,7 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="contactEmail">Email liên hệ</Label>
+                <Label htmlFor="contactEmail">{t('admin.contactEmail')}</Label>
                 <Input
                   id="contactEmail"
                   type="email"
@@ -99,7 +104,7 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
                 />
               </div>
               <div>
-                <Label htmlFor="contactPhone">Số điện thoại</Label>
+                <Label htmlFor="contactPhone">{t('admin.contactPhone')}</Label>
                 <Input
                   id="contactPhone"
                   value={settings.contactPhone}
@@ -111,7 +116,7 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="currency">Tiền tệ</Label>
+                <Label htmlFor="currency">{t('admin.currency')}</Label>
                 <select
                   id="currency"
                   value={settings.currency}
@@ -124,7 +129,7 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
                 </select>
               </div>
               <div>
-                <Label htmlFor="language">Ngôn ngữ</Label>
+                <Label htmlFor="language">{t('admin.language')}</Label>
                 <select
                   id="language"
                   value={settings.language}
@@ -137,7 +142,7 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
                 </select>
               </div>
               <div>
-                <Label htmlFor="timezone">Múi giờ</Label>
+                <Label htmlFor="timezone">{t('admin.timezone')}</Label>
                 <select
                   id="timezone"
                   value={settings.timezone}
@@ -153,7 +158,7 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
 
             <Button className="gap-2">
               <Save className="w-4 h-4" />
-              Lưu thay đổi
+              {t('admin.saveChanges')}
             </Button>
           </div>
         </Card>
@@ -165,8 +170,8 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
               <Bell className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Thông báo</h2>
-              <p className="text-sm text-gray-600">Cấu hình hệ thống thông báo</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('admin.notifications')}</h2>
+              <p className="text-sm text-gray-600">{t('admin.notificationsDesc')}</p>
             </div>
           </div>
 
@@ -175,8 +180,8 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
           <div className="space-y-4 max-w-2xl">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-900">Email thông báo</p>
-                <p className="text-sm text-gray-600">Gửi thông báo qua email</p>
+                <p className="font-medium text-gray-900">{t('admin.emailNotifications')}</p>
+                <p className="text-sm text-gray-600">{t('admin.emailNotificationsDesc')}</p>
               </div>
               <Switch
                 checked={settings.emailNotifications}
@@ -188,8 +193,8 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
 
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-900">SMS thông báo</p>
-                <p className="text-sm text-gray-600">Gửi thông báo qua SMS</p>
+                <p className="font-medium text-gray-900">{t('admin.smsNotifications')}</p>
+                <p className="text-sm text-gray-600">{t('admin.smsNotificationsDesc')}</p>
               </div>
               <Switch
                 checked={settings.smsNotifications}
@@ -201,8 +206,8 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
 
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-900">Push notification</p>
-                <p className="text-sm text-gray-600">Gửi thông báo đẩy đến app/browser</p>
+                <p className="font-medium text-gray-900">{t('admin.pushNotifications')}</p>
+                <p className="text-sm text-gray-600">{t('admin.pushNotificationsDesc')}</p>
               </div>
               <Switch
                 checked={settings.pushNotifications}
@@ -221,8 +226,8 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
               <Shield className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Bảo mật</h2>
-              <p className="text-sm text-gray-600">Cài đặt bảo mật hệ thống</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('admin.security')}</h2>
+              <p className="text-sm text-gray-600">{t('admin.securityDesc')}</p>
             </div>
           </div>
 
@@ -231,8 +236,8 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
           <div className="space-y-4 max-w-2xl">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-900">Chế độ bảo trì</p>
-                <p className="text-sm text-gray-600">Tạm khóa website cho người dùng thường</p>
+                <p className="font-medium text-gray-900">{t('admin.maintenanceMode')}</p>
+                <p className="text-sm text-gray-600">{t('admin.maintenanceModeDesc')}</p>
               </div>
               <Switch
                 checked={settings.maintenanceMode}
@@ -244,8 +249,8 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
 
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-900">Cho phép đăng ký</p>
-                <p className="text-sm text-gray-600">Người dùng mới có thể tạo tài khoản</p>
+                <p className="font-medium text-gray-900">{t('admin.allowRegistration')}</p>
+                <p className="text-sm text-gray-600">{t('admin.allowRegistrationDesc')}</p>
               </div>
               <Switch
                 checked={settings.allowRegistration}
@@ -257,8 +262,8 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
 
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-900">Yêu cầu xác thực email</p>
-                <p className="text-sm text-gray-600">Users phải xác thực email khi đăng ký</p>
+                <p className="font-medium text-gray-900">{t('admin.requireEmailVerification')}</p>
+                <p className="text-sm text-gray-600">{t('admin.requireEmailVerificationDesc')}</p>
               </div>
               <Switch
                 checked={settings.requireEmailVerification}
@@ -277,8 +282,8 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
               <CreditCard className="w-6 h-6 text-yellow-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Cổng thanh toán</h2>
-              <p className="text-sm text-gray-600">Cấu hình các phương thức thanh toán</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('admin.paymentGateway')}</h2>
+              <p className="text-sm text-gray-600">{t('admin.paymentGatewayDesc')}</p>
             </div>
           </div>
 
@@ -374,7 +379,7 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
 
             <Button className="gap-2">
               <Save className="w-4 h-4" />
-              Lưu cấu hình thanh toán
+              {t('admin.savePaymentConfig')}
             </Button>
           </div>
         </Card>
@@ -386,8 +391,8 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
               <Database className="w-6 h-6 text-red-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Sao lưu dữ liệu</h2>
-              <p className="text-sm text-gray-600">Backup và restore database</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('admin.dataBackup')}</h2>
+              <p className="text-sm text-gray-600">{t('admin.dataBackupDesc')}</p>
             </div>
           </div>
 
@@ -396,20 +401,20 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
           <div className="space-y-4 max-w-2xl">
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
-                <p className="font-medium text-gray-900">Backup gần nhất</p>
+                <p className="font-medium text-gray-900">{t('admin.latestBackup')}</p>
                 <p className="text-sm text-gray-600">15/01/2025 10:30 AM</p>
               </div>
-              <Button variant="outline">Download</Button>
+              <Button variant="outline">{t('common.download')}</Button>
             </div>
 
             <div className="flex gap-3">
               <Button className="gap-2">
                 <Database className="w-4 h-4" />
-                Backup ngay
+                {t('admin.backupNow')}
               </Button>
               <Button variant="outline" className="gap-2">
                 <Database className="w-4 h-4" />
-                Restore
+                {t('admin.restore')}
               </Button>
             </div>
           </div>

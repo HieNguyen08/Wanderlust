@@ -77,8 +77,17 @@ export const tokenService = {
   removeToken: () => localStorage.removeItem('auth_token'),
 
   getUserData: () => {
-    const userData = localStorage.getItem('user_data');
-    return userData ? JSON.parse(userData) : null;
+    try {
+      const userData = localStorage.getItem('user_data');
+      if (!userData || userData === 'undefined') {
+        return null;
+      }
+      return JSON.parse(userData);
+    } catch (error) {
+      console.error('Failed to parse user data:', error);
+      localStorage.removeItem('user_data');
+      return null;
+    }
   },
 
   setUserData: (userData: any) => {
@@ -588,6 +597,104 @@ export const visaArticleApi = {
   },
 };
 
+// Promotion API endpoints
+export const promotionApi = {
+  getAll: async () => {
+    const response = await fetch(`${API_BASE_URL}/api/promotions`);
+    if (!response.ok) throw new Error('Failed to fetch promotions');
+    return response.json();
+  },
+  getById: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/promotions/${id}`);
+    if (!response.ok) throw new Error('Failed to fetch promotion');
+    return response.json();
+  },
+  getByCode: async (code: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/promotions/code/${code}`);
+    if (!response.ok) throw new Error('Failed to fetch promotion');
+    return response.json();
+  },
+  getByCategory: async (category: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/promotions/category/${category}`);
+    if (!response.ok) throw new Error('Failed to fetch promotions by category');
+    return response.json();
+  },
+  getByDestination: async (destination: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/promotions/destination/${destination}`);
+    if (!response.ok) throw new Error('Failed to fetch promotions by destination');
+    return response.json();
+  },
+  getFeatured: async () => {
+    const response = await fetch(`${API_BASE_URL}/api/promotions/featured`);
+    if (!response.ok) throw new Error('Failed to fetch featured promotions');
+    return response.json();
+  },
+  getActive: async () => {
+    const response = await fetch(`${API_BASE_URL}/api/promotions/active`);
+    if (!response.ok) throw new Error('Failed to fetch active promotions');
+    return response.json();
+  },
+  getActiveByCategory: async (category: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/promotions/active/category/${category}`);
+    if (!response.ok) throw new Error('Failed to fetch active promotions by category');
+    return response.json();
+  },
+  getExpiring: async (days: number = 7) => {
+    const response = await fetch(`${API_BASE_URL}/api/promotions/expiring?days=${days}`);
+    if (!response.ok) throw new Error('Failed to fetch expiring promotions');
+    return response.json();
+  },
+  getNewest: async () => {
+    const response = await fetch(`${API_BASE_URL}/api/promotions/newest`);
+    if (!response.ok) throw new Error('Failed to fetch newest promotions');
+    return response.json();
+  },
+  // Admin methods
+  create: async (data: any) => {
+    const response = await authenticatedFetch('/api/promotions', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to create promotion');
+    return response.json();
+  },
+  update: async (id: string, data: any) => {
+    const response = await authenticatedFetch(`/api/promotions/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to update promotion');
+    return response.json();
+  },
+  delete: async (id: string) => {
+    const response = await authenticatedFetch(`/api/promotions/${id}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) throw new Error('Failed to delete promotion');
+    return response.json();
+  },
+  // Validation methods
+  validate: async (code: string, category: string, orderAmount: number) => {
+    const response = await authenticatedFetch(`/api/promotions/validate?code=${code}&category=${category}&orderAmount=${orderAmount}`, {
+      method: 'POST'
+    });
+    if (!response.ok) throw new Error('Failed to validate promotion');
+    return response.json();
+  },
+  apply: async (code: string) => {
+    const response = await authenticatedFetch(`/api/promotions/apply/${code}`, {
+      method: 'POST'
+    });
+    if (!response.ok) throw new Error('Failed to apply promotion');
+    return response.json();
+  },
+  calculateDiscount: async (code: string, orderAmount: number) => {
+    const response = await authenticatedFetch(`/api/promotions/calculate-discount?code=${code}&orderAmount=${orderAmount}`);
+    if (!response.ok) throw new Error('Failed to calculate discount');
+    return response.json();
+  }
+};
+
 // User Voucher Wallet API
 export const userVoucherApi = {
   // Lưu voucher vào ví
@@ -1045,4 +1152,804 @@ export const activityApi = {
     }
     return response.json();
   }
+};
+
+// Booking API endpoints
+export const bookingApi = {
+  // Get all bookings for current user
+  getMyBookings: async (params?: {
+    page?: number;
+    size?: number;
+    status?: string; // "PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    if (params?.status) queryParams.append('status', params.status);
+
+    const url = `/api/bookings${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch bookings');
+    }
+    return response.json();
+  },
+
+  // Get booking details by ID
+  getBookingById: async (id: string) => {
+    const response = await authenticatedFetch(`/api/bookings/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch booking details');
+    }
+    return response.json();
+  },
+
+  // Create a new booking
+  createBooking: async (bookingData: {
+    productType: string; // "HOTEL", "CAR_RENTAL", "ACTIVITY", "FLIGHT"
+    productId: string;
+    startDate: string;
+    endDate?: string;
+    quantity?: number;
+    guestInfo: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone: string;
+    };
+    specialRequests?: string;
+  }) => {
+    const response = await authenticatedFetch('/api/bookings', {
+      method: 'POST',
+      body: JSON.stringify(bookingData),
+    });
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || 'Failed to create booking');
+    }
+    return response.json();
+  },
+
+  // Update booking (cancel, modify, etc.)
+  updateBooking: async (id: string, updates: {
+    status?: string;
+    specialRequests?: string;
+  }) => {
+    const response = await authenticatedFetch(`/api/bookings/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update booking');
+    }
+    return response.json();
+  },
+
+  // Cancel booking
+  cancelBooking: async (id: string, reason?: string) => {
+    const response = await authenticatedFetch(`/api/bookings/${id}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to cancel booking');
+    }
+    return response.json();
+  },
+
+  // Confirm booking (for vendors)
+  confirmBooking: async (id: string) => {
+    const response = await authenticatedFetch(`/api/bookings/${id}/confirm`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to confirm booking');
+    }
+    return response.json();
+  },
+
+  // Reject booking (for vendors)
+  rejectBooking: async (id: string, reason?: string) => {
+    const response = await authenticatedFetch(`/api/bookings/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to reject booking');
+    }
+    return response.json();
+  },
+
+  // Alias for cancelBooking - used by BookingHistoryPage
+  cancel: async (id: string, reason?: string) => {
+    return bookingApi.cancelBooking(id, reason);
+  },
+
+  // Request refund for a cancelled booking
+  requestRefund: async (bookingId: string) => {
+    const response = await authenticatedFetch(`/api/bookings/${bookingId}/refund`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to request refund');
+    }
+    return response.json();
+  },
+};
+
+// Admin API endpoints
+export const adminApi = {
+  // ============ USERS MANAGEMENT ============
+  // Get all users (admin only)
+  getAllUsers: async (params?: {
+    page?: number;
+    size?: number;
+    search?: string;
+    role?: string;
+    status?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.role) queryParams.append('role', params.role);
+    if (params?.status) queryParams.append('status', params.status);
+
+    const url = `/api/admin/users${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch users');
+    }
+    return response.json();
+  },
+
+  // Get user details
+  getUserById: async (userId: string) => {
+    const response = await authenticatedFetch(`/api/admin/users/${userId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch user details');
+    }
+    return response.json();
+  },
+
+  // Block/Unblock user
+  toggleUserStatus: async (userId: string, isBlocked: boolean) => {
+    const response = await authenticatedFetch(`/api/admin/users/${userId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ isBlocked }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update user status');
+    }
+    return response.json();
+  },
+
+  // Delete user
+  deleteUser: async (userId: string) => {
+    const response = await authenticatedFetch(`/api/admin/users/${userId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete user');
+    }
+    return response.text();
+  },
+
+  // ============ BOOKINGS MANAGEMENT ============
+  // Get all bookings
+  getAllBookings: async (params?: {
+    page?: number;
+    size?: number;
+    status?: string;
+    userId?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.userId) queryParams.append('userId', params.userId);
+
+    const url = `/api/admin/bookings${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch bookings');
+    }
+    return response.json();
+  },
+
+  // Get booking statistics
+  getBookingStatistics: async () => {
+    const response = await authenticatedFetch('/api/admin/bookings/statistics');
+    if (!response.ok) {
+      throw new Error('Failed to fetch booking statistics');
+    }
+    return response.json();
+  },
+
+  // Update booking
+  updateBooking: async (bookingId: string, updates: any) => {
+    const response = await authenticatedFetch(`/api/admin/bookings/${bookingId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update booking');
+    }
+    return response.json();
+  },
+
+  // Delete booking
+  deleteBooking: async (bookingId: string) => {
+    const response = await authenticatedFetch(`/api/admin/bookings/${bookingId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete booking');
+    }
+    return response.text();
+  },
+
+  // ============ WALLETS MANAGEMENT ============
+  // Get all wallets
+  getAllWallets: async (params?: {
+    page?: number;
+    size?: number;
+    search?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    if (params?.search) queryParams.append('search', params.search);
+
+    const url = `/api/v1/admin/wallets${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch wallets');
+    }
+    return response.json();
+  },
+
+  // Get wallet details
+  getWalletDetail: async (userId: string) => {
+    const response = await authenticatedFetch(`/api/v1/admin/wallets/${userId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch wallet details');
+    }
+    return response.json();
+  },
+
+  // Approve refund
+  approveRefund: async (transactionId: string, notes?: string) => {
+    const response = await authenticatedFetch(`/api/v1/admin/wallets/refunds/${transactionId}/approve`, {
+      method: 'PUT',
+      body: JSON.stringify({ notes }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to approve refund');
+    }
+    return response.text();
+  },
+
+  // Reject refund
+  rejectRefund: async (transactionId: string, reason?: string) => {
+    const response = await authenticatedFetch(`/api/v1/admin/wallets/refunds/${transactionId}/reject`, {
+      method: 'PUT',
+      body: JSON.stringify({ reason }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to reject refund');
+    }
+    return response.text();
+  },
+
+  // ============ PAYMENTS MANAGEMENT ============
+  // Get all payments
+  getAllPayments: async (params?: {
+    page?: number;
+    size?: number;
+    status?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    if (params?.status) queryParams.append('status', params.status);
+
+    const url = `/api/payments${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch payments');
+    }
+    return response.json();
+  },
+
+  // Update payment
+  updatePayment: async (paymentId: string, updates: any) => {
+    const response = await authenticatedFetch(`/api/payments/${paymentId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update payment');
+    }
+    return response.json();
+  },
+
+  // Delete payment
+  deletePayment: async (paymentId: string) => {
+    const response = await authenticatedFetch(`/api/payments/${paymentId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete payment');
+    }
+    return response.text();
+  },
+
+  // ============ REVIEWS MANAGEMENT ============
+  // Get all reviews (admin)
+  getAllReviews: async (params?: {
+    page?: number;
+    size?: number;
+    status?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    if (params?.status) queryParams.append('status', params.status);
+
+    const url = `/api/reviews/admin/all${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch reviews');
+    }
+    return response.json();
+  },
+
+  // Get pending reviews
+  getPendingReviews: async () => {
+    const response = await authenticatedFetch('/api/reviews/admin/pending');
+    if (!response.ok) {
+      throw new Error('Failed to fetch pending reviews');
+    }
+    return response.json();
+  },
+
+  // Moderate review
+  moderateReview: async (reviewId: string, status: 'APPROVED' | 'REJECTED' | 'HIDDEN', reason?: string) => {
+    const response = await authenticatedFetch(`/api/reviews/admin/${reviewId}/moderate`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, reason }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to moderate review');
+    }
+    return response.json();
+  },
+};
+
+// Preview/Review API endpoints
+export const previewApi = {
+  // Get reviews by target (hotel, activity, etc.)
+  getReviewsByTarget: async (targetType: string, targetId: string) => {
+    const response = await fetch(
+      `${API_BASE_URL}/api/reviews?targetType=${encodeURIComponent(targetType)}&targetId=${encodeURIComponent(targetId)}`
+    );
+    if (!response.ok) {
+      throw new Error('Failed to fetch reviews');
+    }
+    return response.json();
+  },
+
+  // Get review by ID
+  getReviewById: async (reviewId: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/reviews/${reviewId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch review');
+    }
+    return response.json();
+  },
+
+  // Create review (authenticated users only)
+  createReview: async (reviewData: {
+    targetType: string; // "HOTEL", "ACTIVITY", "CAR_RENTAL", etc.
+    targetId: string;
+    rating: number; // 1-5
+    content: string;
+    images?: string[];
+  }) => {
+    const response = await authenticatedFetch('/api/reviews', {
+      method: 'POST',
+      body: JSON.stringify(reviewData),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create review');
+    }
+    return response.json();
+  },
+
+  // Update review
+  updateReview: async (reviewId: string, updates: {
+    rating?: number;
+    content?: string;
+    images?: string[];
+  }) => {
+    const response = await authenticatedFetch(`/api/reviews/${reviewId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update review');
+    }
+    return response.json();
+  },
+
+  // Delete review
+  deleteReview: async (reviewId: string) => {
+    const response = await authenticatedFetch(`/api/reviews/${reviewId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete review');
+    }
+    return response.text();
+  },
+
+  // Get user's reviews
+  getMyReviews: async () => {
+    const response = await authenticatedFetch('/api/reviews/my-reviews');
+    if (!response.ok) {
+      throw new Error('Failed to fetch your reviews');
+    }
+    return response.json();
+  },
+
+  // Respond to review (vendor/partner only)
+  respondToReview: async (reviewId: string, responseContent: string) => {
+    const response = await authenticatedFetch(`/api/reviews/${reviewId}/respond`, {
+      method: 'POST',
+      body: JSON.stringify({ responseContent }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to respond to review');
+    }
+    return response.json();
+  },
+};
+
+// Review API endpoints (alias for admin usage)
+export const reviewApi = {
+  // Get reviews by target (hotel, activity, etc.)
+  getReviewsByTarget: async (targetType: string, targetId: string) => {
+    return previewApi.getReviewsByTarget(targetType, targetId);
+  },
+
+  // Get review by ID
+  getReviewById: async (reviewId: string) => {
+    return previewApi.getReviewById(reviewId);
+  },
+
+  // Create review
+  createReview: async (reviewData: any) => {
+    return previewApi.createReview(reviewData);
+  },
+
+  // Update review
+  updateReview: async (reviewId: string, updates: any) => {
+    return previewApi.updateReview(reviewId, updates);
+  },
+
+  // Delete review
+  deleteReview: async (reviewId: string) => {
+    return previewApi.deleteReview(reviewId);
+  },
+
+  // Delete review by admin
+  deleteReviewByAdmin: async (reviewId: string) => {
+    return previewApi.deleteReview(reviewId);
+  },
+
+  // Get user's reviews
+  getMyReviews: async () => {
+    return previewApi.getMyReviews();
+  },
+
+  // Get all reviews (admin)
+  getAllReviewsForAdmin: async () => {
+    const response = await authenticatedFetch('/api/reviews/admin/all');
+    if (!response.ok) {
+      throw new Error('Failed to fetch all reviews');
+    }
+    return response.json();
+  },
+
+  // Get pending reviews (admin)
+  getPendingReviews: async () => {
+    const response = await authenticatedFetch('/api/reviews/admin/pending');
+    if (!response.ok) {
+      throw new Error('Failed to fetch pending reviews');
+    }
+    return response.json();
+  },
+
+  // Moderate review (admin)
+  moderateReview: async (reviewId: string, data: {
+    status?: 'APPROVED' | 'REJECTED' | 'HIDDEN';
+    reason?: string;
+    moderatorNotes?: string;
+  }) => {
+    const response = await authenticatedFetch(`/api/reviews/admin/${reviewId}/moderate`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to moderate review');
+    }
+    return response.json();
+  },
+
+  // Respond to review (vendor/partner)
+  respondToReview: async (reviewId: string, responseContent: string) => {
+    return previewApi.respondToReview(reviewId, responseContent);
+  },
+};
+
+// Admin Wallet API endpoints
+export const adminWalletApi = {
+  // Get all wallets
+  getAllWallets: async (params?: {
+    page?: number;
+    size?: number;
+    search?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    if (params?.search) queryParams.append('search', params.search);
+
+    const url = `/api/v1/admin/wallets${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch wallets');
+    }
+    return response.json();
+  },
+
+  // Get wallet detail by user ID
+  getWalletDetail: async (userId: string) => {
+    const response = await authenticatedFetch(`/api/v1/admin/wallets/${userId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch wallet details');
+    }
+    return response.json();
+  },
+
+  // Get pending refunds
+  getPendingRefunds: async (params?: {
+    page?: number;
+    size?: number;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+
+    const url = `/api/v1/admin/wallets/refunds/pending${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch pending refunds');
+    }
+    return response.json();
+  },
+
+  // Approve refund
+  approveRefund: async (transactionId: string, notes?: string) => {
+    const response = await authenticatedFetch(`/api/v1/admin/wallets/refunds/${transactionId}/approve`, {
+      method: 'PUT',
+      body: JSON.stringify({ notes }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to approve refund');
+    }
+    return response.json();
+  },
+
+  // Reject refund
+  rejectRefund: async (transactionId: string, reason?: string) => {
+    const response = await authenticatedFetch(`/api/v1/admin/wallets/refunds/${transactionId}/reject`, {
+      method: 'PUT',
+      body: JSON.stringify({ reason }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to reject refund');
+    }
+    return response.json();
+  },
+
+  // Create manual refund
+  createManualRefund: async (data: {
+    userId: string;
+    amount: number;
+    reason: string;
+  }) => {
+    const response = await authenticatedFetch('/api/v1/admin/wallets/refunds', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create manual refund');
+    }
+    return response.json();
+  },
+
+  // Update wallet status
+  updateWalletStatus: async (userId: string, data: {
+    isBlocked?: boolean;
+    reason?: string;
+  }) => {
+    const response = await authenticatedFetch(`/api/v1/admin/wallets/${userId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update wallet status');
+    }
+    return response.json();
+  },
+
+  // Get user transactions
+  getUserTransactions: async (userId: string, params?: {
+    page?: number;
+    size?: number;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+
+    const url = `/api/v1/admin/wallets/${userId}/transactions${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch user transactions');
+    }
+    return response.json();
+  },
+};
+
+// Vendor/Partner API endpoints
+export const vendorApi = {
+  // Get vendor's bookings
+  getVendorBookings: async (params?: {
+    page?: number;
+    size?: number;
+    status?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    if (params?.status) queryParams.append('status', params.status);
+
+    const url = `/api/vendor/bookings${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch vendor bookings');
+    }
+    return response.json();
+  },
+
+  // Confirm booking (vendor)
+  confirmBooking: async (bookingId: string) => {
+    const response = await authenticatedFetch(`/api/vendor/bookings/${bookingId}/confirm`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to confirm booking');
+    }
+    return response.json();
+  },
+
+  // Reject booking (vendor)
+  rejectBooking: async (bookingId: string, reason?: string) => {
+    const response = await authenticatedFetch(`/api/vendor/bookings/${bookingId}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to reject booking');
+    }
+    return response.json();
+  },
+
+  // Get vendor dashboard stats
+  getDashboardStats: async () => {
+    const response = await authenticatedFetch('/api/vendor/dashboard/stats');
+    if (!response.ok) {
+      throw new Error('Failed to fetch dashboard stats');
+    }
+    return response.json();
+  },
+
+  // Get vendor revenue
+  getRevenue: async (params?: {
+    startDate?: string;
+    endDate?: string;
+    period?: 'daily' | 'weekly' | 'monthly';
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.startDate) queryParams.append('startDate', params.startDate);
+    if (params?.endDate) queryParams.append('endDate', params.endDate);
+    if (params?.period) queryParams.append('period', params.period);
+
+    const url = `/api/vendor/revenue${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch revenue');
+    }
+    return response.json();
+  },
+
+  // Update vendor profile
+  updateProfile: async (profileData: {
+    businessName?: string;
+    businessDescription?: string;
+    businessImage?: string;
+    bankAccount?: string;
+    bankName?: string;
+    accountName?: string;
+  }) => {
+    const response = await authenticatedFetch('/api/vendor/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update vendor profile');
+    }
+    return response.json();
+  },
+
+  // Get vendor profile
+  getProfile: async () => {
+    const response = await authenticatedFetch('/api/vendor/profile');
+    if (!response.ok) {
+      throw new Error('Failed to fetch vendor profile');
+    }
+    return response.json();
+  },
+
+  // Create/update service (hotel, car, activity)
+  updateService: async (serviceType: string, serviceId: string, serviceData: any) => {
+    const response = await authenticatedFetch(`/api/vendor/${serviceType}/${serviceId}`, {
+      method: 'PUT',
+      body: JSON.stringify(serviceData),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to update ${serviceType}`);
+    }
+    return response.json();
+  },
+
+  // Delete service
+  deleteService: async (serviceType: string, serviceId: string) => {
+    const response = await authenticatedFetch(`/api/vendor/${serviceType}/${serviceId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to delete ${serviceType}`);
+    }
+    return response.text();
+  },
+
+  // Get vendor services (hotels, cars, activities)
+  getServices: async (serviceType: string, params?: {
+    page?: number;
+    size?: number;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+
+    const url = `/api/vendor/${serviceType}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await authenticatedFetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${serviceType}`);
+    }
+    return response.json();
+  },
 };

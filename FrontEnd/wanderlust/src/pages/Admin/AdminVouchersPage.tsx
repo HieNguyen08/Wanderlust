@@ -1,5 +1,6 @@
 import { Copy, Eye, Pause, Play, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner@2.0.3";
 import { CreateVoucherDialog } from "../../components/admin/CreateVoucherDialog";
 import { VoucherDetailDialog } from "../../components/admin/VoucherDetailDialog";
@@ -31,6 +32,7 @@ interface AdminVouchersPageProps {
 }
 
 export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [typeFilter, setTypeFilter] = useState("ALL");
@@ -69,7 +71,7 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
       setVouchers(mappedVouchers);
     } catch (error) {
       console.error('Error loading vouchers:', error);
-      toast.error('Không thể tải danh sách voucher');
+      toast.error(t('admin.cannotLoadVouchers'));
       // Keep using mock data if API fails
     } finally {
       setLoading(false);
@@ -94,11 +96,11 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
         isActive: newStatus === "ACTIVE",
         status: newStatus
       });
-      toast.success(`Voucher ${voucher.code} đã ${newStatus === "ACTIVE" ? "kích hoạt" : "tạm dừng"}`);
+      toast.success(t(newStatus === "ACTIVE" ? 'admin.voucherActivated' : 'admin.voucherPaused', { code: voucher.code }));
       loadVouchers(); // Reload data
     } catch (error) {
       console.error('Error toggling voucher status:', error);
-      toast.error('Không thể cập nhật trạng thái voucher');
+      toast.error(t('admin.cannotUpdateVoucherStatus'));
     }
   };
 
@@ -111,21 +113,21 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
       status: "PAUSED"
     };
     setVouchers([...vouchers, newVoucher]);
-    toast.success(`Đã nhân bản voucher ${voucher.code}`);
+    toast.success(t('admin.voucherDuplicated', { code: voucher.code }));
   };
 
   const handleDeleteVoucher = async (voucherId: number) => {
     const voucher = vouchers.find(v => v.id === voucherId);
     if (!voucher) return;
     
-    if (confirm(`Bạn có chắc muốn xóa voucher ${voucher.code}?`)) {
+    if (confirm(t('admin.confirmDeleteVoucher', { code: voucher.code }))) {
       try {
         await promotionApi.deletePromotion(voucher.id);
-        toast.success("Đã xóa voucher");
+        toast.success(t('admin.voucherDeleted'));
         loadVouchers(); // Reload data
       } catch (error) {
         console.error('Error deleting voucher:', error);
-        toast.error('Không thể xóa voucher');
+        toast.error(t('admin.cannotDeleteVoucher'));
       }
     }
   };
@@ -138,11 +140,11 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "ACTIVE":
-        return <Badge className="bg-green-500">Đang hoạt động</Badge>;
+        return <Badge className="bg-green-500">{t('admin.active')}</Badge>;
       case "PAUSED":
-        return <Badge className="bg-yellow-500">Tạm dừng</Badge>;
+        return <Badge className="bg-yellow-500">{t('admin.paused')}</Badge>;
       case "EXPIRED":
-        return <Badge variant="secondary">Hết hạn</Badge>;
+        return <Badge variant="secondary">{t('admin.expired')}</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -150,8 +152,8 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
 
   const getTypeBadge = (type: string) => {
     return type === "PERCENTAGE" 
-      ? <Badge variant="outline">Phần trăm</Badge>
-      : <Badge variant="outline">Số tiền cố định</Badge>;
+      ? <Badge variant="outline">{t('admin.percentage')}</Badge>
+      : <Badge variant="outline">{t('admin.fixedAmount')}</Badge>;
   };
 
   const formatValue = (type: string, value: number) => {
@@ -162,22 +164,22 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
 
   const stats = [
     {
-      label: "Tổng vouchers",
+      label: t('admin.totalVouchers'),
       value: vouchers.length,
       color: "text-blue-600"
     },
     {
-      label: "Đang hoạt động",
+      label: t('admin.active'),
       value: vouchers.filter(v => v.status === "ACTIVE").length,
       color: "text-green-600"
     },
     {
-      label: "Tổng lượt sử dụng",
+      label: t('admin.totalUsage'),
       value: vouchers.reduce((sum, v) => sum + v.totalUsed, 0).toLocaleString('vi-VN'),
       color: "text-purple-600"
     },
     {
-      label: "Hết hạn",
+      label: t('admin.expired'),
       value: vouchers.filter(v => v.status === "EXPIRED").length,
       color: "text-gray-600"
     },
@@ -189,14 +191,14 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl text-gray-900">Quản lý Vouchers</h1>
+            <h1 className="text-3xl text-gray-900">{t('admin.manageVouchers')}</h1>
             <p className="text-gray-600 mt-1">
-              Tạo và quản lý mã giảm giá cho toàn hệ thống
+              {t('admin.manageVouchersDesc')}
             </p>
           </div>
           <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
             <Plus className="w-4 h-4" />
-            Tạo Voucher Mới
+            {t('admin.createNewVoucher')}
           </Button>
         </div>
 
@@ -216,7 +218,7 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="Tìm theo mã voucher..."
+                placeholder={t('admin.searchByVoucherCode')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -224,23 +226,23 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Trạng thái" />
+                <SelectValue placeholder={t('common.status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
-                <SelectItem value="ACTIVE">Đang hoạt động</SelectItem>
-                <SelectItem value="PAUSED">Tạm dừng</SelectItem>
-                <SelectItem value="EXPIRED">Hết hạn</SelectItem>
+                <SelectItem value="ALL">{t('admin.allStatuses')}</SelectItem>
+                <SelectItem value="ACTIVE">{t('admin.active')}</SelectItem>
+                <SelectItem value="PAUSED">{t('admin.paused')}</SelectItem>
+                <SelectItem value="EXPIRED">{t('admin.expired')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Loại voucher" />
+                <SelectValue placeholder={t('admin.voucherType')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Tất cả loại</SelectItem>
-                <SelectItem value="PERCENTAGE">Phần trăm</SelectItem>
-                <SelectItem value="FIXED_AMOUNT">Số tiền cố định</SelectItem>
+                <SelectItem value="ALL">{t('admin.allTypes')}</SelectItem>
+                <SelectItem value="PERCENTAGE">{t('admin.percentage')}</SelectItem>
+                <SelectItem value="FIXED_AMOUNT">{t('admin.fixedAmount')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -251,22 +253,22 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Mã Voucher</TableHead>
-                <TableHead>Loại</TableHead>
-                <TableHead>Giá trị</TableHead>
-                <TableHead>Điều kiện</TableHead>
-                <TableHead>Sử dụng</TableHead>
-                <TableHead>Thời hạn</TableHead>
-                <TableHead>Người tạo</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead className="text-right">Thao tác</TableHead>
+                <TableHead>{t('admin.voucherCode')}</TableHead>
+                <TableHead>{t('common.type')}</TableHead>
+                <TableHead>{t('admin.value')}</TableHead>
+                <TableHead>{t('admin.conditions')}</TableHead>
+                <TableHead>{t('admin.usage')}</TableHead>
+                <TableHead>{t('admin.validity')}</TableHead>
+                <TableHead>{t('admin.createdBy')}</TableHead>
+                <TableHead>{t('common.status')}</TableHead>
+                <TableHead className="text-right">{t('common.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredVouchers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-                    Không tìm thấy voucher nào
+                    {t('admin.noVouchersFound')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -287,7 +289,7 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
                         </div>
                         {voucher.maxDiscount && (
                           <div className="text-xs text-gray-500">
-                            Tối đa {voucher.maxDiscount.toLocaleString('vi-VN')}đ
+                            {t('admin.maxDiscount')} {voucher.maxDiscount.toLocaleString('vi-VN')}đ
                           </div>
                         )}
                       </div>
@@ -296,12 +298,12 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
                       <div className="text-sm">
                         {voucher.minSpend > 0 && (
                           <div className="text-gray-600">
-                            Đơn từ {voucher.minSpend.toLocaleString('vi-VN')}đ
+                            {t('admin.minOrder')} {voucher.minSpend.toLocaleString('vi-VN')}đ
                           </div>
                         )}
                         {voucher.conditions.length > 0 && (
                           <div className="text-blue-600">
-                            {voucher.conditions.length} điều kiện
+                            {voucher.conditions.length} {t('admin.conditions')}
                           </div>
                         )}
                       </div>
@@ -313,14 +315,14 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
                           {voucher.totalUsesLimit && ` / ${voucher.totalUsesLimit.toLocaleString('vi-VN')}`}
                         </div>
                         <div className="text-xs text-gray-500">
-                          lượt sử dụng
+                          {t('admin.usages')}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
                         <div className="text-gray-600">{voucher.startDate}</div>
-                        <div className="text-gray-600">đến {voucher.endDate}</div>
+                        <div className="text-gray-600">{t('admin.to')} {voucher.endDate}</div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -382,7 +384,7 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
         onOpenChange={setCreateDialogOpen}
         onVoucherCreated={(newVoucher) => {
           setVouchers([...vouchers, { ...newVoucher, id: Math.max(...vouchers.map(v => v.id)) + 1 }]);
-          toast.success("Đã tạo voucher mới thành công!");
+          toast.success(t('admin.voucherCreatedSuccess'));
         }}
       />
 

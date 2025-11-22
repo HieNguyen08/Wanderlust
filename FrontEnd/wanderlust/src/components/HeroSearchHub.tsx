@@ -1,21 +1,22 @@
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import {
-    ArrowRightLeft,
-    Calendar as CalendarIcon,
-    Car,
-    Check,
-    Clock,
-    Hotel,
-    MapPin,
-    Minus,
-    PartyPopper,
-    Plane,
-    PlaneLanding,
-    PlaneTakeoff,
-    Plus,
-    Search,
-    Users
+  ArrowRightLeft,
+  Calendar as CalendarIcon,
+  Car,
+  Check,
+  ChevronsUpDown,
+  Clock,
+  Hotel,
+  MapPin,
+  Minus,
+  PartyPopper,
+  Plane,
+  PlaneLanding,
+  PlaneTakeoff,
+  Plus,
+  Search,
+  Users
 } from "lucide-react";
 import { useState } from "react";
 import type { PageType } from "../MainApp";
@@ -55,7 +56,7 @@ const timeSlots = [
 export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
   // Active service tab
   const [activeService, setActiveService] = useState<ServiceType>("hotels");
-  
+
   // Flight states
   const [tripType, setTripType] = useState<TripType>("round-trip");
   const [fromAirport, setFromAirport] = useState<typeof airports[0] | null>(null);
@@ -70,7 +71,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
   const [openTo, setOpenTo] = useState(false);
   const [openPassengers, setOpenPassengers] = useState(false);
   const [openFlightDates, setOpenFlightDates] = useState(false);
-  
+
   // Hotel states
   const [hotelType, setHotelType] = useState<HotelType>("all");
   const [hotelLocation, setHotelLocation] = useState("");
@@ -81,7 +82,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
   const [hotelRooms, setHotelRooms] = useState(1);
   const [openHotelGuests, setOpenHotelGuests] = useState(false);
   const [openHotelLocation, setOpenHotelLocation] = useState(false);
-  
+
   // Car Rental states
   const [carDriverType, setCarDriverType] = useState<CarDriverType>("without");
   const [carLocation, setCarLocation] = useState("");
@@ -91,7 +92,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
   const [carEndTime, setCarEndTime] = useState("18:00");
   const [openCarStartTime, setOpenCarStartTime] = useState(false);
   const [openCarEndTime, setOpenCarEndTime] = useState(false);
-  
+
   // Activities states
   const [activityLocation, setActivityLocation] = useState("");
   const [activityDate, setActivityDate] = useState<Date>();
@@ -139,7 +140,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
         {/* Decorative Corner Elements */}
         <div className="absolute top-0 left-0 w-20 h-20 bg-linear-to-br from-yellow-400/20 to-transparent rounded-br-full"></div>
         <div className="absolute bottom-0 right-0 w-20 h-20 bg-linear-to-tl from-yellow-400/20 to-transparent rounded-tl-full"></div>
-        
+
         {/* Service Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 relative z-10">
           {serviceTabs.map((tab) => {
@@ -314,8 +315,8 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                           flightDepartDate && flightReturnDate
                             ? `${format(flightDepartDate, "dd/MM", { locale: vi })} - ${format(flightReturnDate, "dd/MM/yyyy", { locale: vi })}`
                             : flightDepartDate
-                            ? format(flightDepartDate, "dd/MM/yyyy", { locale: vi })
-                            : "Chọn ngày"
+                              ? format(flightDepartDate, "dd/MM/yyyy", { locale: vi })
+                              : "Chọn ngày"
                         )}
                       </div>
                     </div>
@@ -323,9 +324,9 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   {tripType === "one-way" ? (
-                    <Calendar 
-                      mode="single" 
-                      selected={flightDepartDate} 
+                    <Calendar
+                      mode="single"
+                      selected={flightDepartDate}
                       onSelect={setFlightDepartDate}
                       disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                     />

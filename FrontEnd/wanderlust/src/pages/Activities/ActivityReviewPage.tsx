@@ -1,8 +1,8 @@
 import { Calendar, Info, MapPin, Users } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
-import { Header } from "../../components/Header";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
@@ -18,6 +18,7 @@ interface ActivityReviewPageProps {
 }
 
 export default function ActivityReviewPage({ onNavigate, activityData }: ActivityReviewPageProps) {
+  const { t } = useTranslation();
   const [contactInfo, setContactInfo] = useState({
     fullName: "Nguyễn Văn A",
     email: "nguyenvana@example.com",
@@ -47,8 +48,8 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
   if (!activity || !booking || !pricing) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-        <p>Không tìm thấy thông tin đặt chỗ.</p>
-        <Button onClick={() => onNavigate("activities")}>Quay lại danh sách</Button>
+        <p>{t('activitiesPage.noBookingInfo')}</p>
+        <Button onClick={() => onNavigate("activities")}>{t('activitiesPage.backToList')}</Button>
       </div>
     );
   }
@@ -60,22 +61,22 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
 
   const handleContinueToPayment = () => {
     if (!contactInfo.fullName || !contactInfo.email || !contactInfo.phone) {
-      alert("Vui lòng điền đầy đủ thông tin liên hệ");
+      alert(t('activitiesPage.fillContactInfo'));
       return;
     }
 
     if (!participantInfo.fullName || !participantInfo.phone) {
-      alert("Vui lòng điền thông tin người đại diện nhóm");
+      alert(t('activitiesPage.fillParticipantInfo'));
       return;
     }
 
     if (booking.hasPickup && (!pickupInfo.hotelName || !pickupInfo.hotelAddress)) {
-      alert("Vui lòng điền thông tin khách sạn để đưa đón");
+      alert(t('activitiesPage.fillPickupInfo'));
       return;
     }
 
     if (!agreeToTerms) {
-      alert("Vui lòng đồng ý với điều khoản và điều kiện");
+      alert(t('activitiesPage.agreeToTerms'));
       return;
     }
 
@@ -96,14 +97,14 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
         <div className="mb-6">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <button onClick={() => onNavigate("activities")} className="hover:text-blue-600">
-              Hoạt động vui chơi
+              {t('activitiesPage.activitiesMenu')}
             </button>
             <span>/</span>
             <button onClick={() => onNavigate("activity-detail")} className="hover:text-blue-600">
-              Chi tiết
+              {t('activitiesPage.details')}
             </button>
             <span>/</span>
-            <span className="text-gray-900">Xem lại & Điền thông tin</span>
+            <span className="text-gray-900">{t('activitiesPage.reviewAndFill')}</span>
           </div>
         </div>
 
@@ -116,7 +117,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                 <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900">
                   <p>
-                    Voucher và thông tin tour sẽ được gửi qua email. Vui lòng mang theo voucher (in hoặc trên điện thoại) khi tham gia tour.
+                    {t('activitiesPage.voucherAlert')}
                   </p>
                 </div>
               </div>
@@ -126,9 +127,9 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl text-gray-900 mb-1">Thông tin Liên hệ</h2>
+                  <h2 className="text-2xl text-gray-900 mb-1">{t('activitiesPage.contactInfo')}</h2>
                   <p className="text-sm text-gray-600">
-                    Voucher và thông tin tour sẽ được gửi đến đây
+                    {t('activitiesPage.voucherSentHere')}
                   </p>
                 </div>
                 {!isEditingContact && (
@@ -137,7 +138,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                     size="sm"
                     onClick={() => setIsEditingContact(true)}
                   >
-                    Chỉnh sửa
+                    {t('activitiesPage.edit')}
                   </Button>
                 )}
               </div>
@@ -145,7 +146,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="contactName">
-                    Tên đầy đủ <span className="text-red-600">*</span>
+                    {t('activitiesPage.fullName')} <span className="text-red-600">*</span>
                   </Label>
                   <Input
                     id="contactName"
@@ -172,7 +173,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
 
                 <div className="md:col-span-2">
                   <Label htmlFor="contactPhone">
-                    Số điện thoại di động <span className="text-red-600">*</span>
+                    {t('activitiesPage.mobilePhone')} <span className="text-red-600">*</span>
                   </Label>
                   <div className="flex gap-2 mt-1">
                     <Select
@@ -205,13 +206,13 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
               {isEditingContact && (
                 <div className="mt-4 flex gap-2">
                   <Button onClick={() => setIsEditingContact(false)}>
-                    Lưu
+                    {t('activitiesPage.save')}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setIsEditingContact(false)}
                   >
-                    Hủy
+                    {t('activitiesPage.cancel')}
                   </Button>
                 </div>
               )}
@@ -220,32 +221,32 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
             {/* Participant Information */}
             <Card className="p-6">
               <div className="mb-6">
-                <h2 className="text-2xl text-gray-900 mb-1">Thông tin Người tham gia</h2>
+                <h2 className="text-2xl text-gray-900 mb-1">{t('activitiesPage.participantInfo')}</h2>
                 <p className="text-sm text-gray-600">
-                  Thông tin người đại diện nhóm (để hướng dẫn viên liên lạc)
+                  {t('activitiesPage.groupRepresentativeInfo')}
                 </p>
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="participantName">
-                    Tên đầy đủ <span className="text-red-600">*</span>
+                    {t('activitiesPage.fullName')} <span className="text-red-600">*</span>
                   </Label>
                   <Input
                     id="participantName"
                     value={participantInfo.fullName}
                     onChange={(e) => setParticipantInfo({ ...participantInfo, fullName: e.target.value })}
                     className="mt-1"
-                    placeholder="Tên người đại diện nhóm"
+                    placeholder={t('activitiesPage.groupRepresentativeName')}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Hướng dẫn viên sẽ gọi tên này khi tập trung
+                    {t('activitiesPage.guideWillCallName')}
                   </p>
                 </div>
 
                 <div>
                   <Label htmlFor="participantPhone">
-                    Số điện thoại di động <span className="text-red-600">*</span>
+                    {t('activitiesPage.mobilePhone')} <span className="text-red-600">*</span>
                   </Label>
                   <div className="flex gap-2 mt-1">
                     <Select
@@ -271,7 +272,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Để hướng dẫn viên liên lạc trong trường hợp khẩn cấp
+                    {t('activitiesPage.emergencyContact')}
                   </p>
                 </div>
               </div>
@@ -281,60 +282,59 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
             {booking.hasPickup && (
               <Card className="p-6">
                 <div className="mb-6">
-                  <h2 className="text-2xl text-gray-900 mb-1">Thông tin Đón</h2>
+                  <h2 className="text-2xl text-gray-900 mb-1">{t('activitiesPage.pickupInfo')}</h2>
                   <p className="text-sm text-gray-600">
-                    Tour này bao gồm dịch vụ đưa đón tại khách sạn
+                    {t('activitiesPage.tourIncludesPickup')}
                   </p>
                 </div>
 
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="hotelName">
-                      Tên Khách sạn <span className="text-red-600">*</span>
+                      {t('activitiesPage.hotelName')} <span className="text-red-600">*</span>
                     </Label>
                     <Input
                       id="hotelName"
                       value={pickupInfo.hotelName}
                       onChange={(e) => setPickupInfo({ ...pickupInfo, hotelName: e.target.value })}
                       className="mt-1"
-                      placeholder="Ví dụ: Grand Saigon Hotel"
+                      placeholder={t('activitiesPage.hotelNamePlaceholder')}
                     />
                   </div>
 
                   <div>
                     <Label htmlFor="hotelAddress">
-                      Địa chỉ Khách sạn <span className="text-red-600">*</span>
+                      {t('activitiesPage.hotelAddress')} <span className="text-red-600">*</span>
                     </Label>
                     <Input
                       id="hotelAddress"
                       value={pickupInfo.hotelAddress}
                       onChange={(e) => setPickupInfo({ ...pickupInfo, hotelAddress: e.target.value })}
                       className="mt-1"
-                      placeholder="Ví dụ: 8 Đồng Khởi, Quận 1, TP.HCM"
+                      placeholder={t('activitiesPage.hotelAddressPlaceholder')}
                     />
                   </div>
 
                   <div>
                     <Label htmlFor="roomNumber">
-                      Số phòng
+                      {t('activitiesPage.roomNumber')}
                     </Label>
                     <Input
                       id="roomNumber"
                       value={pickupInfo.roomNumber}
                       onChange={(e) => setPickupInfo({ ...pickupInfo, roomNumber: e.target.value })}
                       className="mt-1"
-                      placeholder="Ví dụ: 501"
+                      placeholder={t('activitiesPage.roomNumberPlaceholder')}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Không bắt buộc - Giúp tài xế dễ dàng liên hệ
+                      {t('activitiesPage.roomNumberOptional')}
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-900">
-                    <strong>Lưu ý:</strong> Thời gian đón chính xác sẽ được xác nhận qua email/SMS trước 1 ngày. 
-                    Vui lòng có mặt tại sảnh khách sạn đúng giờ.
+                    <strong>{t('activitiesPage.note')}:</strong> {t('activitiesPage.pickupTimeConfirmation')}
                   </p>
                 </div>
               </Card>
@@ -342,10 +342,10 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
 
             {/* Tour Information */}
             <Card className="p-6 bg-linear-to-br from-green-50 to-blue-50 border-green-200">
-              <h3 className="text-lg text-gray-900 mb-4">Điều cần biết trước khi tham gia</h3>
+              <h3 className="text-lg text-gray-900 mb-4">{t('activitiesPage.knowBeforeJoining')}</h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-sm text-gray-900 mb-2">✅ Bao gồm:</h4>
+                  <h4 className="text-sm text-gray-900 mb-2">✅ {t('activitiesPage.included')}:</h4>
                   <ul className="space-y-1 text-sm text-gray-700">
                     {activityIncludes.map((item: string, index: number) => (
                       <li key={index}>• {item}</li>
@@ -353,12 +353,12 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                   </ul>
                 </div>
                 <div>
-                  <h4 className="text-sm text-gray-900 mb-2">📋 Cần mang theo:</h4>
+                  <h4 className="text-sm text-gray-900 mb-2">📋 {t('activitiesPage.bringAlong')}:</h4>
                   <ul className="space-y-1 text-sm text-gray-700">
-                    <li>• CCCD/Hộ chiếu</li>
-                    <li>• Kem chống nắng</li>
-                    <li>• Đồ bơi, khăn tắm</li>
-                    <li>• Thuốc cá nhân (nếu có)</li>
+                    <li>• {t('activitiesPage.idPassport')}</li>
+                    <li>• {t('activitiesPage.sunscreen')}</li>
+                    <li>• {t('activitiesPage.swimwear')}</li>
+                    <li>• {t('activitiesPage.personalMedicine')}</li>
                   </ul>
                 </div>
               </div>
@@ -374,10 +374,10 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                   className="mt-1"
                 />
                 <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer">
-                  Tôi đã đọc và đồng ý với{" "}
-                  <button className="text-blue-600 hover:underline">Điều khoản Tour</button>,{" "}
-                  <button className="text-blue-600 hover:underline">Chính sách Hủy</button> và{" "}
-                  <button className="text-blue-600 hover:underline">Quy định An toàn</button> của nhà cung cấp
+                  {t('activitiesPage.agreeWith')}{" "}
+                  <button className="text-blue-600 hover:underline">{t('activitiesPage.tourTerms')}</button>,{" "}
+                  <button className="text-blue-600 hover:underline">{t('activitiesPage.cancellationPolicy')}</button> {t('activitiesPage.and')}{" "}
+                  <button className="text-blue-600 hover:underline">{t('activitiesPage.safetyRegulations')}</button> {t('activitiesPage.ofProvider')}
                 </label>
               </div>
             </Card>
@@ -389,7 +389,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
               onClick={handleContinueToPayment}
               disabled={!agreeToTerms}
             >
-              TIẾP TỤC THANH TOÁN
+              {t('activitiesPage.continueToPayment')}
             </Button>
           </div>
 
@@ -397,7 +397,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <Card className="p-6">
-                <h2 className="text-xl text-gray-900 mb-6">Chi tiết Đặt chỗ</h2>
+                <h2 className="text-xl text-gray-900 mb-6">{t('activitiesPage.bookingDetails')}</h2>
 
                 {/* Activity Info */}
                 <div className="mb-6">
@@ -410,10 +410,10 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                   </div>
                   <h3 className="text-lg text-gray-900 mb-2">{activity.name}</h3>
                   <p className="text-sm text-gray-600 mb-2">
-                    Nhà cung cấp: {activity.vendor}
+                    {t('activitiesPage.provider')}: {activity.vendor}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Thời gian: {activity.duration}
+                    {t('activitiesPage.duration')}: {activity.duration}
                   </p>
                 </div>
 
@@ -424,7 +424,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                   <div className="flex items-start gap-3">
                     <Calendar className="w-5 h-5 text-gray-600 shrink-0" />
                     <div>
-                      <p className="text-sm text-gray-600">Ngày tham gia</p>
+                      <p className="text-sm text-gray-600">{t('activitiesPage.participationDate')}</p>
                       <p className="text-gray-900">{booking.date}</p>
                     </div>
                   </div>
@@ -432,9 +432,9 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                   <div className="flex items-start gap-3">
                     <Users className="w-5 h-5 text-gray-600 shrink-0" />
                     <div>
-                      <p className="text-sm text-gray-600">Số lượng</p>
+                      <p className="text-sm text-gray-600">{t('activitiesPage.quantity')}</p>
                       <p className="text-gray-900">
-                        {booking.adults} Người lớn, {booking.children} Trẻ em
+                        {booking.adults} {t('activitiesPage.adults')}, {booking.children} {t('activitiesPage.children')}
                       </p>
                     </div>
                   </div>
@@ -443,8 +443,8 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                     <div className="flex items-start gap-3">
                       <MapPin className="w-5 h-5 text-gray-600 shrink-0" />
                       <div>
-                        <p className="text-sm text-gray-600">Đưa đón</p>
-                        <p className="text-green-600">Có bao gồm</p>
+                        <p className="text-sm text-gray-600">{t('activitiesPage.pickup')}</p>
+                        <p className="text-green-600">{t('activitiesPage.included')}</p>
                       </div>
                     </div>
                   )}
@@ -454,11 +454,11 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
 
                 {/* Price Details */}
                 <div className="space-y-3">
-                  <h3 className="text-gray-900 mb-3">Chi tiết Giá</h3>
+                  <h3 className="text-gray-900 mb-3">{t('activitiesPage.priceDetails')}</h3>
                   
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">
-                      Vé tham quan ({booking.participants} x {pricing.unitPrice.toLocaleString('vi-VN')}đ)
+                      {t('activitiesPage.admissionTicket')} ({booking.participants} x {pricing.unitPrice.toLocaleString('vi-VN')}đ)
                     </span>
                     <span className="text-gray-900">
                       {pricing.totalPrice.toLocaleString('vi-VN')}đ
@@ -467,7 +467,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
 
                   {pricing.insurance > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Bảo hiểm</span>
+                      <span className="text-gray-600">{t('activitiesPage.insurance')}</span>
                       <span className="text-gray-900">
                         {pricing.insurance.toLocaleString('vi-VN')}đ
                       </span>
@@ -477,7 +477,7 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
                   <Separator />
 
                   <div className="flex justify-between">
-                    <span className="text-gray-900">Tổng cộng</span>
+                    <span className="text-gray-900">{t('activitiesPage.total')}</span>
                     <span className="text-2xl text-blue-600">
                       {finalTotal.toLocaleString('vi-VN')}đ
                     </span>
@@ -486,11 +486,11 @@ export default function ActivityReviewPage({ onNavigate, activityData }: Activit
 
                 {/* Cancellation Policy */}
                 <div className="mt-6 p-4 bg-yellow-50 rounded-lg">
-                  <h4 className="text-sm text-gray-900 mb-2">Chính sách hủy</h4>
+                  <h4 className="text-sm text-gray-900 mb-2">{t('activitiesPage.cancellationPolicy')}</h4>
                   <ul className="space-y-1 text-xs text-gray-700">
-                    <li>• Hủy trước 48h: Hoàn 100%</li>
-                    <li>• Hủy trong 24-48h: Hoàn 50%</li>
-                    <li>• Hủy trong 24h: Không hoàn tiền</li>
+                    <li>• {t('activitiesPage.cancel48h')}</li>
+                    <li>• {t('activitiesPage.cancel24to48h')}</li>
+                    <li>• {t('activitiesPage.cancelWithin24h')}</li>
                   </ul>
                 </div>
               </Card>

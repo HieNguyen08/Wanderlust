@@ -1,17 +1,24 @@
-import { useState } from "react";
-import { AdminLayout } from "../../components/AdminLayout";
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import {
-  Clock, CheckCircle2, Edit, XCircle, Eye, Search, Filter
+    CheckCircle2,
+    Clock,
+    Edit,
+    Eye,
+    Filter,
+    Search,
+    XCircle
 } from "lucide-react";
-import type { PageType } from "../../MainApp";
-import { AdminServiceReviewDialog } from "../../components/admin/AdminServiceReviewDialog";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import type { PageType } from "../../MainApp";
+import { AdminLayout } from "../../components/AdminLayout";
+import { AdminServiceReviewDialog } from "../../components/admin/AdminServiceReviewDialog";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 
 interface AdminPendingServicesPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -38,6 +45,7 @@ interface PendingService {
 }
 
 export default function AdminPendingServicesPage({ onNavigate }: AdminPendingServicesPageProps) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<ServiceStatus | "all">("pending");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedService, setSelectedService] = useState<PendingService | null>(null);
@@ -183,29 +191,29 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
   const getStatusConfig = (status: ServiceStatus) => {
     switch (status) {
       case "pending":
-        return { label: "Chờ duyệt", className: "bg-yellow-100 text-yellow-700", icon: Clock };
+        return { label: t('admin.pending'), className: "bg-yellow-100 text-yellow-700", icon: Clock };
       case "approved":
-        return { label: "Đã duyệt", className: "bg-green-100 text-green-700", icon: CheckCircle2 };
+        return { label: t('admin.approved'), className: "bg-green-100 text-green-700", icon: CheckCircle2 };
       case "needs_revision":
-        return { label: "Cần sửa", className: "bg-orange-100 text-orange-700", icon: Edit };
+        return { label: t('admin.needsRevision'), className: "bg-orange-100 text-orange-700", icon: Edit };
       case "rejected":
-        return { label: "Từ chối", className: "bg-red-100 text-red-700", icon: XCircle };
+        return { label: t('admin.rejected'), className: "bg-red-100 text-red-700", icon: XCircle };
     }
   };
 
   const getTypeLabel = (type: ServiceType) => {
     switch (type) {
-      case "hotel": return "Khách sạn";
-      case "activity": return "Hoạt động";
-      case "car": return "Thuê xe";
+      case "hotel": return t('common.hotels');
+      case "activity": return t('common.activities');
+      case "car": return t('admin.carRental');
     }
   };
 
   const stats = [
-    { label: "Chờ duyệt", value: services.filter(s => s.status === "pending").length, color: "yellow" },
-    { label: "Đã duyệt", value: services.filter(s => s.status === "approved").length, color: "green" },
-    { label: "Cần sửa", value: services.filter(s => s.status === "needs_revision").length, color: "orange" },
-    { label: "Từ chối", value: services.filter(s => s.status === "rejected").length, color: "red" },
+    { label: t('admin.pending'), value: services.filter(s => s.status === "pending").length, color: "yellow" },
+    { label: t('admin.approved'), value: services.filter(s => s.status === "approved").length, color: "green" },
+    { label: t('admin.needsRevision'), value: services.filter(s => s.status === "needs_revision").length, color: "orange" },
+    { label: t('admin.rejected'), value: services.filter(s => s.status === "rejected").length, color: "red" },
   ];
 
   const handleReview = (service: PendingService) => {
@@ -215,21 +223,21 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
 
   const handleApprove = (serviceId: string, editedData?: any) => {
     console.log("Approve service:", serviceId, editedData);
-    toast.success("Đã duyệt và đăng dịch vụ");
+    toast.success(t('admin.serviceApproved'));
     setIsReviewDialogOpen(false);
     // TODO: Call API
   };
 
   const handleReject = (serviceId: string, reason: string) => {
     console.log("Reject service:", serviceId, reason);
-    toast.error("Đã từ chối và gửi lại cho Vendor");
+    toast.error(t('admin.serviceRejected'));
     setIsReviewDialogOpen(false);
     // TODO: Call API
   };
 
   const handleRequestRevision = (serviceId: string, note: string) => {
     console.log("Request revision:", serviceId, note);
-    toast.info("Đã yêu cầu Vendor chỉnh sửa");
+    toast.info(t('admin.revisionRequested'));
     setIsReviewDialogOpen(false);
     // TODO: Call API
   };
@@ -239,9 +247,9 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">Duyệt Dịch vụ</h1>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('admin.approveServices')}</h1>
           <p className="text-gray-600">
-            Xem xét và phê duyệt các yêu cầu thêm dịch v�� từ Vendor
+            {t('admin.approveServicesDesc')}
           </p>
         </div>
 
@@ -263,7 +271,7 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="Tìm kiếm theo tên dịch vụ hoặc vendor..."
+                placeholder={t('admin.searchServiceOrVendor')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -271,7 +279,7 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
             </div>
             <Button variant="outline" className="gap-2">
               <Filter className="w-4 h-4" />
-              Lọc
+              {t('common.filter')}
             </Button>
           </div>
 
@@ -279,22 +287,22 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
             <TabsList>
               <TabsTrigger value="pending" className="gap-2">
                 <Clock className="w-4 h-4" />
-                Chờ duyệt ({services.filter(s => s.status === "pending").length})
+                {t('admin.pending')} ({services.filter(s => s.status === "pending").length})
               </TabsTrigger>
               <TabsTrigger value="needs_revision" className="gap-2">
                 <Edit className="w-4 h-4" />
-                Cần sửa
+                {t('admin.needsRevision')}
               </TabsTrigger>
               <TabsTrigger value="approved" className="gap-2">
                 <CheckCircle2 className="w-4 h-4" />
-                Đã duyệt
+                {t('admin.approved')}
               </TabsTrigger>
               <TabsTrigger value="rejected" className="gap-2">
                 <XCircle className="w-4 h-4" />
-                Từ chối
+                {t('admin.rejected')}
               </TabsTrigger>
               <TabsTrigger value="all">
-                Tất cả ({services.length})
+                {t('common.all')} ({services.length})
               </TabsTrigger>
             </TabsList>
 
@@ -326,7 +334,7 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
                           {service.name}
                         </h3>
                         <p className="text-sm text-gray-600 mb-3">
-                          Vendor: {service.vendorName}
+                          {t('admin.vendor')}: {service.vendorName}
                         </p>
                         <p className="text-sm text-gray-600 mb-4 line-clamp-2">
                           {service.description}
@@ -334,13 +342,13 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
 
                         <div className="flex items-center justify-between pt-4 border-t mb-4">
                           <div>
-                            <p className="text-xs text-gray-600">Giá</p>
+                            <p className="text-xs text-gray-600">{t('common.price')}</p>
                             <p className="text-lg text-blue-600">
                               {(service.price / 1000000).toFixed(1)}M
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xs text-gray-600">Nộp lúc</p>
+                            <p className="text-xs text-gray-600">{t('admin.submittedAt')}</p>
                             <p className="text-sm text-gray-900">{service.submittedAt}</p>
                           </div>
                         </div>
@@ -351,7 +359,7 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
                           variant={service.status === "pending" ? "default" : "outline"}
                         >
                           <Eye className="w-4 h-4" />
-                          {service.status === "pending" ? "Xem xét & Duyệt" : "Xem chi tiết"}
+                          {service.status === "pending" ? t('admin.reviewAndApprove') : t('common.viewDetails')}
                         </Button>
                       </div>
                     </Card>
@@ -361,7 +369,7 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
 
               {filteredServices.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-gray-500">Không tìm thấy dịch vụ nào</p>
+                  <p className="text-gray-500">{t('admin.noServicesFound')}</p>
                 </div>
               )}
             </TabsContent>

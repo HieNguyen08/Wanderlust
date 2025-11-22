@@ -8,6 +8,7 @@ import {
     Mail,
     Phone
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -31,6 +32,7 @@ export default function VisaConfirmationPage({
   total,
   onNavigate 
 }: VisaConfirmationPageProps) {
+  const { t } = useTranslation();
   const applicationNumber = `VISA-${Date.now().toString().slice(-8)}`;
   const estimatedCompletionDate = new Date();
   estimatedCompletionDate.setDate(estimatedCompletionDate.getDate() + 
@@ -38,12 +40,12 @@ export default function VisaConfirmationPage({
 
   const handleDownloadReceipt = () => {
     // Simulate download
-    alert("Đang tải biên nhận...");
+    alert(t('visa.downloadingReceipt'));
   };
 
   const handleDownloadInvoice = () => {
     // Simulate download
-    alert("Đang tải hóa đơn...");
+    alert(t('visa.downloadingInvoice'));
   };
 
   return (
@@ -56,10 +58,10 @@ export default function VisaConfirmationPage({
             <CheckCircle2 className="w-12 h-12 text-green-600" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            Đăng Ký Thành Công!
+            {t('visa.applicationSuccess')}
           </h1>
           <p className="text-xl text-gray-600">
-            Chúng tôi đã nhận được hồ sơ xin visa của bạn
+            {t('visa.applicationSuccessMessage')}
           </p>
         </div>
 
@@ -68,7 +70,7 @@ export default function VisaConfirmationPage({
           <div className="flex items-center justify-between mb-6 pb-6 border-b">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                Mã đơn hàng
+                {t('visa.orderCode')}
               </h2>
               <p className="text-3xl font-bold text-blue-600">
                 {applicationNumber}
@@ -81,47 +83,47 @@ export default function VisaConfirmationPage({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Thông Tin Đơn Hàng</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">{t('visa.orderInformation')}</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Quốc gia:</span>
+                  <span className="text-gray-600">{t('visa.destinationCountry')}:</span>
                   <span className="font-semibold">{country?.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Loại visa:</span>
+                  <span className="text-gray-600">{t('visa.visaType')}:</span>
                   <span className="font-semibold">{country?.type}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Họ tên:</span>
+                  <span className="text-gray-600">{t('visa.fullName')}:</span>
                   <span className="font-semibold">{formData?.fullName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Số hộ chiếu:</span>
+                  <span className="text-gray-600">{t('visa.passportNumber')}:</span>
                   <span className="font-semibold">{formData?.passportNumber}</span>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Thanh Toán</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">{t('visa.payment')}</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Phương thức:</span>
+                  <span className="text-gray-600">{t('common.paymentMethod')}:</span>
                   <span className="font-semibold">
-                    {paymentMethod === "credit-card" ? "Thẻ tín dụng" : 
-                     paymentMethod === "bank-transfer" ? "Chuyển khoản" : 
-                     "Ví điện tử"}
+                    {paymentMethod === "credit-card" ? t('visa.creditDebitCard') : 
+                     paymentMethod === "bank-transfer" ? t('visa.bankTransfer') : 
+                     t('visa.eWallet')}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Tổng tiền:</span>
+                  <span className="text-gray-600">{t('common.totalAmount')}:</span>
                   <span className="font-semibold text-blue-600">
                     {(total || 0).toLocaleString()} VNĐ
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Trạng thái:</span>
-                  <span className="font-semibold text-green-600">Đã thanh toán</span>
+                  <span className="text-gray-600">{t('common.status')}:</span>
+                  <span className="font-semibold text-green-600">{t('common.paid')}</span>
                 </div>
               </div>
             </div>
@@ -133,14 +135,14 @@ export default function VisaConfirmationPage({
             <div className="flex items-start">
               <Calendar className="w-5 h-5 text-blue-600 mt-0.5 mr-3 shrink-0" />
               <div>
-                <h4 className="font-semibold text-blue-900 mb-1">Thời Gian Xử Lý</h4>
+                <h4 className="font-semibold text-blue-900 mb-1">{t('visa.processingTime')}</h4>
                 <p className="text-sm text-blue-800">
-                  Dự kiến hoàn thành: <span className="font-semibold">
+                  {t('visa.estimatedCompletion')}: <span className="font-semibold">
                     {estimatedCompletionDate.toLocaleDateString('vi-VN')}
                   </span>
                 </p>
                 <p className="text-sm text-blue-800 mt-1">
-                  Thời gian xử lý: {country?.processingTime}
+                  {t('visa.processingTimeLabel')}: {country?.processingTime}
                 </p>
               </div>
             </div>
@@ -149,16 +151,16 @@ export default function VisaConfirmationPage({
 
         {/* Next Steps */}
         <Card className="p-6 mb-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Bước Tiếp Theo</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-4">{t('visa.nextSteps')}</h3>
           <div className="space-y-4">
             <div className="flex items-start">
               <div className="shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-4">
                 1
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">Email xác nhận</h4>
+                <h4 className="font-semibold text-gray-900 mb-1">{t('visa.confirmationEmail')}</h4>
                 <p className="text-sm text-gray-600">
-                  Chúng tôi đã gửi email xác nhận đến {formData?.email}. Vui lòng kiểm tra hộp thư.
+                  {t('visa.confirmationEmailDesc', { email: formData?.email })}
                 </p>
               </div>
             </div>
@@ -168,9 +170,9 @@ export default function VisaConfirmationPage({
                 2
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">Theo dõi tiến độ</h4>
+                <h4 className="font-semibold text-gray-900 mb-1">{t('visa.trackProgress')}</h4>
                 <p className="text-sm text-gray-600">
-                  Bạn có thể theo dõi tiến độ xử lý hồ sơ qua email hoặc hotline của chúng tôi.
+                  {t('visa.trackProgressDesc')}
                 </p>
               </div>
             </div>
@@ -180,7 +182,7 @@ export default function VisaConfirmationPage({
                 3
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">Nhận visa</h4>
+                <h4 className="font-semibold text-gray-900 mb-1">{t('visa.receiveVisa')}</h4>
                 <p className="text-sm text-gray-600">
                   Khi visa được phê duyệt, chúng tôi sẽ liên hệ bạn để gửi hộ chiếu có visa đã dán.
                 </p>

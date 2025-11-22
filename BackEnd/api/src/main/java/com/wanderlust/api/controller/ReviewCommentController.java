@@ -122,27 +122,6 @@ public class ReviewCommentController {
 
     // ==========================================
     // PARTNER (VENDOR) ENDPOINTS
-    // ==========================================
-
-    /**
-     * POST /api/reviews/{id}/respond
-     * Partner (Vendor) phản hồi review
-     */
-    @PostMapping("/{id}/respond")
-    @PreAuthorize("hasRole('PARTNER')")
-    public ResponseEntity<ReviewCommentDTO> addVendorResponse(
-            @PathVariable String id,
-            @RequestBody ReviewCommentVendorResponseDTO responseDTO) {
-        String partnerId = getCurrentUserId(); // ID của partner/vendor
-        ReviewCommentDTO updatedReview = reviewCommentService.addVendorResponse(id, responseDTO, partnerId);
-        return ResponseEntity.ok(updatedReview);
-    }
-
-    // ==========================================
-    // ADMIN ENDPOINTS
-    // (Thường nên tách ra AdminController riêng, nhưng theo API .txt có thể gộp)
-    // ==========================================
-
     /**
      * GET /api/reviews/admin/all
      * [ADMIN] Lấy tất cả review (mọi trạng thái)
@@ -189,7 +168,7 @@ public class ReviewCommentController {
         reviewCommentService.deleteAdminReview(id);
         return ResponseEntity.noContent().build();
     }
-    
+
     /**
      * DELETE /api/reviews/admin/all
      * [ADMIN] Xóa tất cả review

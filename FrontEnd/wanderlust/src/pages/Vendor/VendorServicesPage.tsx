@@ -12,6 +12,7 @@ import {
     XCircle
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
 import { VendorLayout } from "../../components/VendorLayout";
@@ -59,6 +60,7 @@ export default function VendorServicesPage({
   onNavigate, 
   vendorType = "hotel" 
 }: VendorServicesPageProps) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<ServiceStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -92,7 +94,7 @@ export default function VendorServicesPage({
       }));
       setServices(mappedServices);
     } catch (error) {
-      toast.error('Không thể tải danh sách dịch vụ');
+      toast.error(t('vendor.errorLoadingServices'));
     } finally {
       setLoading(false);
     }
@@ -109,28 +111,28 @@ export default function VendorServicesPage({
     switch (status) {
       case "pending":
         return {
-          label: "Đang chờ duyệt",
+          label: t('vendor.pendingApproval'),
           icon: Clock,
           className: "bg-yellow-100 text-yellow-700 border-yellow-200",
           iconColor: "text-yellow-600"
         };
       case "approved":
         return {
-          label: "Đã duyệt / Live",
+          label: t('vendor.approvedLive'),
           icon: CheckCircle2,
           className: "bg-green-100 text-green-700 border-green-200",
           iconColor: "text-green-600"
         };
       case "needs_revision":
         return {
-          label: "Cần chỉnh sửa",
+          label: t('vendor.needsRevision'),
           icon: AlertCircle,
           className: "bg-orange-100 text-orange-700 border-orange-200",
           iconColor: "text-orange-600"
         };
       case "rejected":
         return {
-          label: "Bị từ chối",
+          label: t('vendor.rejected'),
           icon: XCircle,
           className: "bg-red-100 text-red-700 border-red-200",
           iconColor: "text-red-600"
@@ -140,30 +142,30 @@ export default function VendorServicesPage({
 
   const getTypeLabel = (type: ServiceType) => {
     switch (type) {
-      case "hotel": return "Khách sạn";
-      case "activity": return "Hoạt động";
-      case "car": return "Thuê xe";
+      case "hotel": return t('vendor.hotel');
+      case "activity": return t('vendor.activity');
+      case "car": return t('vendor.car');
     }
   };
 
   const stats = [
     { 
-      label: "Đang hoạt động", 
+      label: t('vendor.activeServices'), 
       value: services.filter(s => s.status === "approved").length,
       color: "green"
     },
     { 
-      label: "Chờ duyệt", 
+      label: t('vendor.pendingApproval'), 
       value: services.filter(s => s.status === "pending").length,
       color: "yellow"
     },
     { 
-      label: "Cần sửa", 
+      label: t('vendor.needsRevision'), 
       value: services.filter(s => s.status === "needs_revision").length,
       color: "orange"
     },
     { 
-      label: "Tổng doanh thu", 
+      label: t('vendor.totalRevenue'), 
       value: `₫${(services.reduce((sum, s) => sum + s.revenue, 0) / 1000000).toFixed(0)}M`,
       color: "blue"
     },
@@ -200,14 +202,14 @@ export default function VendorServicesPage({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl text-gray-900 mb-2">Quản lý Dịch vụ</h1>
+            <h1 className="text-3xl text-gray-900 mb-2">{t('vendor.manageServices')}</h1>
             <p className="text-gray-600">
-              Quản lý tất cả dịch vụ của bạn - Khách sạn, Hoạt động, Thuê xe
+              {t('vendor.manageServicesDesc')}
             </p>
           </div>
           <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="w-4 h-4" />
-            Thêm dịch vụ mới
+            {t('vendor.addNewService')}
           </Button>
         </div>
 
@@ -229,7 +231,7 @@ export default function VendorServicesPage({
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="Tìm kiếm dịch vụ..."
+                placeholder={t('vendor.searchServices')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -240,23 +242,23 @@ export default function VendorServicesPage({
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
             <TabsList>
               <TabsTrigger value="all">
-                Tất cả ({services.length})
+                {t('common.all')} ({services.length})
               </TabsTrigger>
               <TabsTrigger value="approved" className="gap-2">
                 <CheckCircle2 className="w-4 h-4" />
-                Đang hoạt động
+                {t('vendor.activeServices')}
               </TabsTrigger>
               <TabsTrigger value="pending" className="gap-2">
                 <Clock className="w-4 h-4" />
-                Chờ duyệt
+                {t('vendor.pendingApproval')}
               </TabsTrigger>
               <TabsTrigger value="needs_revision" className="gap-2">
                 <AlertCircle className="w-4 h-4" />
-                Cần chỉnh sửa
+                {t('vendor.needsRevision')}
               </TabsTrigger>
               <TabsTrigger value="rejected" className="gap-2">
                 <XCircle className="w-4 h-4" />
-                Bị từ chối
+                {t('vendor.rejected')}
               </TabsTrigger>
             </TabsList>
 
@@ -304,7 +306,7 @@ export default function VendorServicesPage({
                                 : "text-red-700"
                             }`}>
                               <AlertCircle className="w-3 h-3" />
-                              Ghi chú từ Admin:
+                              {t('vendor.adminNote')}
                             </p>
                             <p className="text-xs text-gray-700 whitespace-pre-line line-clamp-3">
                               {service.adminNote}
@@ -314,15 +316,15 @@ export default function VendorServicesPage({
 
                         <div className="grid grid-cols-3 gap-2 mb-4 pt-4 border-t">
                           <div>
-                            <p className="text-xs text-gray-600">Lượt xem</p>
+                            <p className="text-xs text-gray-600">{t('vendor.views')}</p>
                             <p className="text-sm text-gray-900">{service.views}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-600">Bookings</p>
+                            <p className="text-xs text-gray-600">{t('vendor.bookings')}</p>
                             <p className="text-sm text-gray-900">{service.bookings}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-600">Doanh thu</p>
+                            <p className="text-xs text-gray-600">{t('vendor.revenue')}</p>
                             <p className="text-sm text-green-600">
                               {(service.revenue / 1000000).toFixed(0)}M
                             </p>
@@ -331,7 +333,7 @@ export default function VendorServicesPage({
 
                         <div className="flex items-center justify-between pt-4 border-t">
                           <div>
-                            <p className="text-xs text-gray-600">Giá</p>
+                            <p className="text-xs text-gray-600">{t('vendor.price')}</p>
                             <p className="text-lg text-blue-600">
                               {(service.price / 1000000).toFixed(1)}M
                             </p>
@@ -356,7 +358,7 @@ export default function VendorServicesPage({
                                   onClick={() => handleEdit(service)}
                                 >
                                   <Edit className="w-4 h-4" />
-                                  Chỉnh sửa
+                                  {t('vendor.edit')}
                                 </DropdownMenuItem>
                                 {(service.status === "needs_revision" || service.status === "rejected") && (
                                   <DropdownMenuItem 
@@ -364,7 +366,7 @@ export default function VendorServicesPage({
                                     onClick={() => handleResubmit(service)}
                                   >
                                     <RefreshCw className="w-4 h-4" />
-                                    Nộp lại
+                                    {t('vendor.resubmit')}
                                   </DropdownMenuItem>
                                 )}
                                 <DropdownMenuItem 
@@ -372,7 +374,7 @@ export default function VendorServicesPage({
                                   onClick={() => handleDelete(service)}
                                 >
                                   <Trash2 className="w-4 h-4" />
-                                  Xóa
+                                  {t('vendor.delete')}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -381,9 +383,9 @@ export default function VendorServicesPage({
 
                         {/* Submission Info */}
                         <div className="mt-4 pt-4 border-t text-xs text-gray-500">
-                          <p>Nộp: {service.submittedAt}</p>
+                          <p>{t('vendor.submitted')}: {service.submittedAt}</p>
                           {service.reviewedAt && (
-                            <p>Duyệt: {service.reviewedAt}</p>
+                            <p>{t('vendor.reviewed')}: {service.reviewedAt}</p>
                           )}
                         </div>
                       </div>
@@ -394,7 +396,7 @@ export default function VendorServicesPage({
 
               {filteredServices.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-gray-500">Không tìm thấy dịch vụ nào</p>
+                  <p className="text-gray-500">{t('vendor.noServicesFound')}</p>
                 </div>
               )}
             </TabsContent>
@@ -415,8 +417,8 @@ export default function VendorServicesPage({
           setIsAddDialogOpen(false);
           setEditingService(null);
           toast.success(editingService 
-            ? "Đã lưu thay đổi và gửi lại để Admin duyệt." 
-            : "Đã gửi yêu cầu thêm dịch vụ mới. Admin sẽ duyệt trong 1-2 ngày làm việc."
+            ? t('vendor.editServiceSuccess')
+            : t('vendor.addServiceSuccess')
           );
         }}
         editService={editingService}

@@ -6,6 +6,7 @@ import {
     TrendingDown,
     TrendingUp
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { PageType } from "../../MainApp";
 import { VendorLayout } from "../../components/VendorLayout";
 import { Button } from "../../components/ui/button";
@@ -28,6 +29,8 @@ export default function VendorReportsPage({
   onNavigate,
   vendorType = "hotel"
 }: VendorReportsPageProps) {
+  const { t } = useTranslation();
+  
   const revenueData = [
     { month: "Tháng 7", revenue: 120000000, bookings: 32, occupancy: 75 },
     { month: "Tháng 8", revenue: 145000000, bookings: 38, occupancy: 82 },
@@ -46,28 +49,28 @@ export default function VendorReportsPage({
 
   const stats = [
     {
-      label: "Doanh thu 6 tháng",
+      label: t('vendor.sixMonthRevenue'),
       value: "₫935M",
       change: "+24.5%",
       trend: "up",
       icon: DollarSign,
     },
     {
-      label: "Tổng bookings",
+      label: t('vendor.totalBookings'),
       value: "247",
       change: "+18.2%",
       trend: "up",
       icon: BookOpen,
     },
     {
-      label: "Tỷ lệ lấp đầy TB",
+      label: t('vendor.averageOccupancy'),
       value: "83.5%",
       change: "+7.2%",
       trend: "up",
       icon: TrendingUp,
     },
     {
-      label: "Đánh giá TB",
+      label: t('vendor.averageRating'),
       value: "4.8★",
       change: "+0.3",
       trend: "up",
@@ -86,8 +89,8 @@ export default function VendorReportsPage({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl text-gray-900 mb-2">Báo cáo & Thống kê</h1>
-            <p className="text-gray-600">Phân tích hoạt động kinh doanh</p>
+            <h1 className="text-3xl text-gray-900 mb-2">{t('vendor.reportsAnalytics')}</h1>
+            <p className="text-gray-600">{t('vendor.analyzeBusinessPerformance')}</p>
           </div>
           <div className="flex gap-2">
             <Select defaultValue="6months">
@@ -95,16 +98,16 @@ export default function VendorReportsPage({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="this-month">Tháng này</SelectItem>
-                <SelectItem value="last-month">Tháng trước</SelectItem>
-                <SelectItem value="3months">3 tháng</SelectItem>
-                <SelectItem value="6months">6 tháng</SelectItem>
-                <SelectItem value="this-year">Năm nay</SelectItem>
+                <SelectItem value="this-month">{t('vendor.thisMonth')}</SelectItem>
+                <SelectItem value="last-month">{t('vendor.lastMonth')}</SelectItem>
+                <SelectItem value="3months">{t('vendor.threeMonths')}</SelectItem>
+                <SelectItem value="6months">{t('vendor.sixMonths')}</SelectItem>
+                <SelectItem value="this-year">{t('vendor.thisYear')}</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline" className="gap-2">
               <Download className="w-4 h-4" />
-              Export
+              {t('vendor.export')}
             </Button>
           </div>
         </div>
@@ -127,7 +130,7 @@ export default function VendorReportsPage({
                 <p className="text-sm text-gray-600 mb-2">{stat.label}</p>
                 <div className="flex items-center gap-1">
                   <span className={`text-sm font-medium ${trendColor}`}>{stat.change}</span>
-                  <span className="text-sm text-gray-500">so với kỳ trước</span>
+                  <span className="text-sm text-gray-500">{t('vendor.comparedToPrevious')}</span>
                 </div>
               </Card>
             );
@@ -137,14 +140,14 @@ export default function VendorReportsPage({
         {/* Tabs */}
         <Tabs defaultValue="revenue">
           <TabsList>
-            <TabsTrigger value="revenue">Doanh thu</TabsTrigger>
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="occupancy">Tỷ lệ lấp đầy</TabsTrigger>
+            <TabsTrigger value="revenue">{t('vendor.revenueTab')}</TabsTrigger>
+            <TabsTrigger value="bookings">{t('vendor.bookingsTab')}</TabsTrigger>
+            <TabsTrigger value="occupancy">{t('vendor.occupancyTab')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="revenue" className="mt-6">
             <Card className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Biểu đồ doanh thu 6 tháng</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-6">{t('vendor.sixMonthRevenueChart')}</h3>
               
               <div className="space-y-4">
                 {revenueData.map((data, index) => (
@@ -170,15 +173,15 @@ export default function VendorReportsPage({
               <div className="mt-8 pt-6 border-t">
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Tổng doanh thu</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('vendor.totalRevenue')}</p>
                     <p className="text-2xl font-bold text-gray-900">₫935M</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Trung bình/tháng</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('vendor.averagePerMonth')}</p>
                     <p className="text-2xl font-bold text-gray-900">₫156M</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Tăng trưởng</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('vendor.growth')}</p>
                     <p className="text-2xl font-bold text-green-600">+62.5%</p>
                   </div>
                 </div>
@@ -188,7 +191,7 @@ export default function VendorReportsPage({
 
           <TabsContent value="bookings" className="mt-6">
             <Card className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Top phòng được đặt nhiều nhất</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-6">{t('vendor.topBookedRooms')}</h3>
               <div className="space-y-4">
                 {topRooms.map((room, index) => (
                   <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
@@ -220,7 +223,7 @@ export default function VendorReportsPage({
 
           <TabsContent value="occupancy" className="mt-6">
             <Card className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Tỷ lệ lấp đầy theo tháng</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-6">{t('vendor.monthlyOccupancy')}</h3>
               <div className="space-y-4">
                 {revenueData.map((data, index) => (
                   <div key={index} className="flex items-center gap-4">
@@ -245,11 +248,11 @@ export default function VendorReportsPage({
               <div className="mt-8 pt-6 border-t">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-purple-50 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-1">Tỷ lệ TB</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('vendor.averageRate')}</p>
                     <p className="text-3xl font-bold text-purple-600">83.5%</p>
                   </div>
                   <div className="p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-1">Tháng cao nhất</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('vendor.highestMonth')}</p>
                     <p className="text-3xl font-bold text-green-600">92%</p>
                   </div>
                 </div>

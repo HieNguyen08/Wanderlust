@@ -1,5 +1,6 @@
 import { ArrowLeft, CheckCircle2, Clock, Mail, Phone, Send, Users } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { PageType } from "../../MainApp";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
@@ -50,6 +51,7 @@ const VISA_TYPES = [
 ];
 
 export default function VisaConsultationPage({ onNavigate, requestData }: VisaConsultationPageProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -87,7 +89,7 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
             className="gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            Quay lại
+            {t('visa.backToVisa')}
           </Button>
         </div>
       </div>
@@ -98,9 +100,9 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
           <div className="lg:col-span-2">
             <Card className="p-8">
               <div className="mb-8">
-                <h1 className="text-3xl mb-2">Đăng ký tư vấn Visa</h1>
+                <h1 className="text-3xl mb-2">{t('visa.consultationTitle')}</h1>
                 <p className="text-gray-600">
-                  Điền thông tin bên dưới và chúng tôi sẽ liên hệ tư vấn miễn phí trong vòng 24h
+                  {t('visa.consultationSubtitle')}
                 </p>
               </div>
 
@@ -108,7 +110,7 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                 {/* Full Name */}
                 <div>
                   <Label htmlFor="fullName" className="text-base mb-2 block">
-                    Họ và tên <span className="text-red-500">*</span>
+                    {t('visa.fullName')} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="fullName"
@@ -124,7 +126,7 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="phone" className="text-base mb-2 block">
-                      Số điện thoại <span className="text-red-500">*</span>
+                      {t('visa.phoneNumber')} <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="phone"
@@ -156,11 +158,11 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="country" className="text-base mb-2 block">
-                      Quốc gia <span className="text-red-500">*</span>
+                      {t('visa.country')} <span className="text-red-500">*</span>
                     </Label>
                     <Select value={formData.country} onValueChange={(val) => handleChange("country", val)}>
                       <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Chọn quốc gia" />
+                        <SelectValue placeholder={t('visa.selectCountry')} />
                       </SelectTrigger>
                       <SelectContent>
                         {COUNTRIES.map((country) => (
@@ -173,11 +175,11 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                   </div>
                   <div>
                     <Label htmlFor="visaType" className="text-base mb-2 block">
-                      Loại visa <span className="text-red-500">*</span>
+                      {t('visa.visaType')} <span className="text-red-500">*</span>
                     </Label>
                     <Select value={formData.visaType} onValueChange={(val) => handleChange("visaType", val)}>
                       <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Chọn loại visa" />
+                        <SelectValue placeholder={t('visa.selectVisaType')} />
                       </SelectTrigger>
                       <SelectContent>
                         {VISA_TYPES.map((type) => (
@@ -194,7 +196,7 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="numberOfPeople" className="text-base mb-2 block">
-                      Số lượng người
+                      {t('visa.numberOfPeople')}
                     </Label>
                     <Input
                       id="numberOfPeople"
@@ -208,7 +210,7 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                   </div>
                   <div>
                     <Label htmlFor="expectedDate" className="text-base mb-2 block">
-                      Thời gian dự kiến xuất phát
+                      {t('visa.departureDatePlan')}
                     </Label>
                     <Input
                       id="expectedDate"
@@ -248,7 +250,7 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                 {/* Note */}
                 <div>
                   <Label htmlFor="note" className="text-base mb-2 block">
-                    Ghi chú (nếu có)
+                    {t('visa.additionalNotes')}
                   </Label>
                   <Textarea
                     id="note"
@@ -268,7 +270,7 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                     size="lg"
                   >
                     <Send className="w-5 h-5 mr-2" />
-                    Gửi yêu cầu tư vấn
+                    {t('visa.submitRequest')}
                   </Button>
                   <p className="text-sm text-gray-500 text-center mt-3">
                     Bằng cách gửi form, bạn đồng ý với điều khoản sử dụng của chúng tôi
@@ -290,9 +292,9 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                     <Phone className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Hotline</p>
+                    <p className="text-sm text-gray-600">{t('visa.hotline')}</p>
                     <p className="text-blue-600">1900-xxxx-xxx</p>
-                    <p className="text-xs text-gray-500">Thời gian: 8:00 - 20:00</p>
+                    <p className="text-xs text-gray-500">{t('visa.workingHours')}</p>
                   </div>
                 </div>
 
@@ -301,9 +303,9 @@ export default function VisaConsultationPage({ onNavigate, requestData }: VisaCo
                     <Mail className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Email</p>
+                    <p className="text-sm text-gray-600">{t('visa.emailSupport')}</p>
                     <p className="text-green-600">visa@wanderlust.vn</p>
-                    <p className="text-xs text-gray-500">Phản hồi trong 24h</p>
+                    <p className="text-xs text-gray-500">{t('visa.replyWithin24h')}</p>
                   </div>
                 </div>
               </div>

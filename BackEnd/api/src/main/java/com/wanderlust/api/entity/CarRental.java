@@ -28,7 +28,7 @@ public class CarRental {
     @Id
     private String id; // Sửa rental_ID -> id
 
-    private String vendorId;   // Sửa userId -> vendorId
+    private String vendorId;  // Sửa userId -> vendorId
     private String locationId; // FK to Location
 
     // --- Car Details ---

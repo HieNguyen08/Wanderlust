@@ -1,33 +1,41 @@
-import { useState } from "react";
-import { AdminLayout } from "../../components/AdminLayout";
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+    Building2,
+    Edit,
+    Eye,
+    MapPin,
+    MoreVertical,
+    Plus,
+    Star,
+    Trash2,
+    TrendingUp
+} from "lucide-react";
+import { useState } from "react";
+import { useTranslation } from 'react-i18next';
+import { toast } from "sonner";
+import type { PageType } from "../../MainApp";
+import AdminLayout from "../../components/AdminLayout";
+import { HotelDetailDialog } from "../../components/admin/HotelDetailDialog";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "../../components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
-import {
-  Search, Plus, MoreVertical, Edit, Trash2, Eye,
-  Star, MapPin, Building2, TrendingUp
-} from "lucide-react";
-import type { PageType } from "../../MainApp";
-import { HotelDetailDialog } from "../../components/admin/HotelDetailDialog";
-import { toast } from "sonner";
 
 interface AdminHotelsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -48,6 +56,7 @@ interface Hotel {
 }
 
 export default function AdminHotelsPage({ onNavigate }: AdminHotelsPageProps) {
+  const { t } = useTranslation();
   const [isAddHotelOpen, setIsAddHotelOpen] = useState(false);
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -134,10 +143,10 @@ export default function AdminHotelsPage({ onNavigate }: AdminHotelsPageProps) {
   ];
 
   const stats = [
-    { label: "Tổng khách sạn", value: "156", icon: Building2 },
-    { label: "Đang hoạt động", value: "142", icon: Building2 },
-    { label: "Bookings tháng này", value: "523", icon: TrendingUp },
-    { label: "Doanh thu", value: "₫892M", icon: TrendingUp },
+    { label: t('admin.totalHotels'), value: "156", icon: Building2 },
+    { label: t('admin.activeHotels'), value: "142", icon: Building2 },
+    { label: t('admin.bookingsThisMonth'), value: "523", icon: TrendingUp },
+    { label: t('admin.revenue'), value: "₫892M", icon: TrendingUp },
   ];
 
   const handleViewDetail = (hotel: Hotel) => {
@@ -146,17 +155,17 @@ export default function AdminHotelsPage({ onNavigate }: AdminHotelsPageProps) {
   };
 
   const handleEdit = (hotel: Hotel) => {
-    toast.success(`Chỉnh sửa ${hotel.name}`);
+    toast.success(t('admin.editingHotel', { name: hotel.name }));
     // TODO: Open edit dialog or navigate to edit page
   };
 
   const handleDelete = (hotel: Hotel) => {
-    toast.error(`Xóa ${hotel.name}`);
+    toast.error(t('admin.deletingHotel', { name: hotel.name }));
     // TODO: Show delete confirmation
   };
 
   const handleManageRooms = (hotel: Hotel) => {
-    toast.info(`Quản lý phòng cho ${hotel.name}`);
+    toast.info(t('admin.managingRoomsFor', { name: hotel.name }));
     // TODO: Navigate to rooms management page
   };
 
@@ -166,54 +175,54 @@ export default function AdminHotelsPage({ onNavigate }: AdminHotelsPageProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl text-gray-900 mb-2">Quản lý Khách sạn</h1>
-            <p className="text-gray-600">Quản lý thông tin khách sạn và phòng</p>
+            <h1 className="text-3xl text-gray-900 mb-2">{t('admin.manageHotels')}</h1>
+            <p className="text-gray-600">{t('admin.manageHotelsDesc')}</p>
           </div>
           <Dialog open={isAddHotelOpen} onOpenChange={setIsAddHotelOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="w-4 h-4" />
-                Thêm khách sạn
+                {t('admin.addHotel')}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Thêm khách sạn mới</DialogTitle>
+                <DialogTitle>{t('admin.addNewHotel')}</DialogTitle>
                 <DialogDescription>
-                  Nhập thông tin khách sạn mới vào hệ thống
+                  {t('admin.addNewHotelDesc')}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid grid-cols-2 gap-4 py-4">
                 <div className="col-span-2">
-                  <Label htmlFor="hotelName">Tên khách sạn</Label>
+                  <Label htmlFor="hotelName">{t('admin.hotelName')}</Label>
                   <Input id="hotelName" placeholder="JW Marriott..." className="mt-1" />
                 </div>
                 <div>
-                  <Label htmlFor="location">Địa điểm</Label>
+                  <Label htmlFor="location">{t('admin.location')}</Label>
                   <Input id="location" placeholder="Phú Quốc, Việt Nam" className="mt-1" />
                 </div>
                 <div>
-                  <Label htmlFor="rooms">Số phòng</Label>
+                  <Label htmlFor="rooms">{t('admin.numberOfRooms')}</Label>
                   <Input id="rooms" type="number" placeholder="120" className="mt-1" />
                 </div>
                 <div>
-                  <Label htmlFor="price">Giá/đêm (VND)</Label>
+                  <Label htmlFor="price">{t('admin.pricePerNight')}</Label>
                   <Input id="price" type="number" placeholder="3500000" className="mt-1" />
                 </div>
                 <div>
-                  <Label htmlFor="stars">Hạng sao</Label>
+                  <Label htmlFor="stars">{t('admin.starRating')}</Label>
                   <Input id="stars" type="number" min="1" max="5" placeholder="5" className="mt-1" />
                 </div>
                 <div className="col-span-2">
-                  <Label htmlFor="description">Mô tả</Label>
-                  <Textarea id="description" placeholder="Mô tả chi tiết..." className="mt-1" rows={3} />
+                  <Label htmlFor="description">{t('admin.description')}</Label>
+                  <Textarea id="description" placeholder={t('admin.detailedDescription')} className="mt-1" rows={3} />
                 </div>
                 <div className="col-span-2">
-                  <Label htmlFor="image">URL hình ảnh</Label>
+                  <Label htmlFor="image">{t('admin.imageUrl')}</Label>
                   <Input id="image" placeholder="https://..." className="mt-1" />
                 </div>
                 <div className="col-span-2">
-                  <Button className="w-full">Thêm khách sạn</Button>
+                  <Button className="w-full">{t('admin.addHotel')}</Button>
                 </div>
               </div>
             </DialogContent>
@@ -254,7 +263,7 @@ export default function AdminHotelsPage({ onNavigate }: AdminHotelsPageProps) {
                         : "bg-gray-100 text-gray-700"
                     }`}
                   >
-                    {hotel.status === "active" ? "Hoạt động" : "Tạm ngưng"}
+                    {hotel.status === "active" ? t('admin.active') : t('admin.suspended')}
                   </Badge>
                 </div>
 
@@ -271,26 +280,26 @@ export default function AdminHotelsPage({ onNavigate }: AdminHotelsPageProps) {
                   <div className="flex items-center gap-2 mb-3">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                     <span className="font-semibold">{hotel.rating}</span>
-                    <span className="text-sm text-gray-600">({hotel.reviews} đánh giá)</span>
+                    <span className="text-sm text-gray-600">({hotel.reviews} {t('admin.reviews')})</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 mb-4 pt-4 border-t">
                     <div>
-                      <p className="text-xs text-gray-600">Số phòng</p>
+                      <p className="text-xs text-gray-600">{t('admin.numberOfRooms')}</p>
                       <p className="font-semibold text-gray-900">{hotel.rooms}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Bookings</p>
+                      <p className="text-xs text-gray-600">{t('admin.bookings')}</p>
                       <p className="font-semibold text-gray-900">{hotel.bookings}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Giá/đêm</p>
+                      <p className="text-xs text-gray-600">{t('admin.pricePerNight')}</p>
                       <p className="font-semibold text-blue-600">
                         {(hotel.price / 1000000).toFixed(1)}M
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600">Doanh thu</p>
+                      <p className="text-xs text-gray-600">{t('admin.revenue')}</p>
                       <p className="font-semibold text-green-600">
                         {(hotel.revenue / 1000000).toFixed(0)}M
                       </p>
@@ -305,7 +314,7 @@ export default function AdminHotelsPage({ onNavigate }: AdminHotelsPageProps) {
                       onClick={() => handleViewDetail(hotel)}
                     >
                       <Eye className="w-4 h-4" />
-                      Xem
+                      {t('common.view')}
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -319,21 +328,21 @@ export default function AdminHotelsPage({ onNavigate }: AdminHotelsPageProps) {
                           onClick={() => handleEdit(hotel)}
                         >
                           <Edit className="w-4 h-4" />
-                          Chỉnh sửa
+                          {t('common.edit')}
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           className="gap-2"
                           onClick={() => handleManageRooms(hotel)}
                         >
                           <Building2 className="w-4 h-4" />
-                          Quản lý phòng
+                          {t('admin.manageRooms')}
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           className="gap-2 text-red-600"
                           onClick={() => handleDelete(hotel)}
                         >
                           <Trash2 className="w-4 h-4" />
-                          Xóa
+                          {t('common.delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
 import type { PageType } from "../../MainApp";
-import { Footer } from "../../components/Footer";
 // Sử dụng API thật kết nối MongoDB local:
 import { travelGuideApi } from "../../utils/api";
 // Test API (không dùng nữa):
@@ -15,6 +16,7 @@ interface TravelGuidePageProps {
 }
 
 export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
+  const { t } = useTranslation();
   const [vietnamDestinations, setVietnamDestinations] = useState<TravelGuide[]>([]);
   const [popularDestinations, setPopularDestinations] = useState<TravelGuide[]>([]);
   const [blogPosts, setBlogPosts] = useState<TravelGuide[]>([]);
@@ -92,7 +94,7 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -128,7 +130,7 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
           className="gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          Quay lại trang chủ
+          {t('common.back')}
         </Button>
       </div>
 
@@ -137,10 +139,10 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
         {/* Vietnam Travel Guide */}
         <section className="mb-16">
           <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            Cẩm nang du lịch
+            {t('travelGuide.title')}
           </h3>
           <p className="text-gray-600 text-lg mb-8">
-            Cẩm nang du lịch cho chuyến đi hoàn hảo
+            {t('travelGuide.subtitle')}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {vietnamDestinations.map((dest) => (
@@ -166,10 +168,10 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
         {/* Popular Destinations */}
         <section className="mb-16">
           <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            Các điểm đến phổ biến
+            {t('travelGuide.popularDestinations')}
           </h3>
           <p className="text-gray-600 text-lg mb-8">
-            Hãy chuẩn bị hành lý và khám phá những điểm đến này ngay thôi!
+            {t('travelGuide.popularDestinationsSubtitle')}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {popularDestinations.map((dest) => (
@@ -196,10 +198,10 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
         {/* Travel Inspiration Blog */}
         <section className="mb-16">
           <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            Cảm hứng du lịch
+            {t('travelGuide.blogTitle')}
           </h3>
           <p className="text-gray-600 text-lg mb-8">
-            Đọc các bài viết sau để lên kế hoạch du lịch cho mình!
+            {t('travelGuide.blogSubtitle')}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {blogPosts.map((post) => (
@@ -231,10 +233,10 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
         {/* Explore the World */}
         <section>
           <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            Khám phá thế giới
+            {t('travelGuide.exploreWorld')}
           </h3>
           <p className="text-gray-600 text-lg mb-8">
-            Khám phá các Châu lục trên thế giới
+            {t('travelGuide.exploreWorldSubtitle')}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {continents.map((continent) => (

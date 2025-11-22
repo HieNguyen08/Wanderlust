@@ -1,7 +1,9 @@
 import {
     Activity,
+    Calendar,
     Car,
     CheckCircle,
+    CheckCircle2,
     Clock,
     Download,
     Eye,
@@ -14,6 +16,7 @@ import {
     XCircle
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
 import { AdminLayout } from "../../components/AdminLayout";
@@ -57,6 +60,7 @@ interface Booking {
 }
 
 export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -72,7 +76,7 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
         setBookings(data);
       } catch (error) {
         console.error('Failed to load bookings:', error);
-        toast.error('Không thể tải danh sách bookings');
+        toast.error(t('admin.cannotLoadBookings'));
       } finally {
         setLoading(false);
       }
@@ -87,24 +91,24 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
   };
 
   const handleConfirm = (booking: Booking) => {
-    toast.success(`Đã xác nhận booking ${booking.id}`);
+    toast.success(t('admin.bookingConfirmed', { id: booking.id }));
     // TODO: Implement confirm logic
   };
 
   const handleCancel = (booking: Booking) => {
-    toast.error(`Đã hủy booking ${booking.id}`);
+    toast.error(t('admin.bookingCancelled', { id: booking.id }));
     // TODO: Implement cancel logic
   };
 
   const handleRefund = async (booking: Booking) => {
     try {
       await adminApi.deleteBooking(booking.id);
-      toast.success(`Đã hoàn tiền cho booking ${booking.id}`);
+      toast.success(t('admin.refundProcessed', { id: booking.id }));
       // Reload bookings
       const data = await adminApi.getAllBookings();
       setBookings(data);
     } catch (error) {
-      toast.error('Không thể hoàn tiền');
+      toast.error(t('admin.cannotProcessRefund'));
     }
   };
 
@@ -120,28 +124,28 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
 
   const stats = [
     {
-      label: "Tổng đặt chỗ",
+      label: t('admin.totalBookings'),
       value: bookings.length,
       change: "+12.5%",
       icon: Calendar,
       color: "blue"
     },
     {
-      label: "Đã xác nhận",
+      label: t('admin.confirmed'),
       value: bookings.filter(b => b.status === "confirmed").length,
       change: "+8.2%",
       icon: CheckCircle2,
       color: "green"
     },
     {
-      label: "Chờ xử lý",
+      label: t('admin.pending'),
       value: bookings.filter(b => b.status === "pending").length,
       change: "-3.1%",
       icon: Clock,
       color: "orange"
     },
     {
-      label: "Đã hủy",
+      label: t('admin.cancelled'),
       value: bookings.filter(b => b.status === "cancelled").length,
       change: "+1.8%",
       icon: XCircle,
@@ -226,10 +230,10 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
 
   const getTypeBadge = (type: string) => {
     const config = {
-      flight: { label: "Vé máy bay", icon: Plane, color: "blue" },
-      hotel: { label: "Khách sạn", icon: Hotel, color: "green" },
-      car: { label: "Thuê xe", icon: Car, color: "purple" },
-      activity: { label: "Hoạt động", icon: Activity, color: "orange" },
+      flight: { label: t('admin.flightTicket'), icon: Plane, color: "blue" },
+      hotel: { label: t('admin.hotel'), icon: Hotel, color: "green" },
+      car: { label: t('admin.carRental'), icon: Car, color: "purple" },
+      activity: { label: t('admin.activity'), icon: Activity, color: "orange" },
     };
     const { label, icon: Icon, color } = config[type as keyof typeof config];
     return (
@@ -243,13 +247,13 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "confirmed":
-        return <Badge className="bg-green-100 text-green-700">Đã xác nhận</Badge>;
+        return <Badge className="bg-green-100 text-green-700">{t('admin.confirmed')}</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-700">Chờ xử lý</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700">{t('admin.pending')}</Badge>;
       case "cancelled":
-        return <Badge className="bg-red-100 text-red-700">Đã hủy</Badge>;
+        return <Badge className="bg-red-100 text-red-700">{t('admin.cancelled')}</Badge>;
       case "completed":
-        return <Badge className="bg-blue-100 text-blue-700">Hoàn thành</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700">{t('admin.completed')}</Badge>;
       default:
         return null;
     }
@@ -258,11 +262,11 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
   const getPaymentBadge = (payment: string) => {
     switch (payment) {
       case "paid":
-        return <Badge className="bg-green-100 text-green-700">Đã thanh toán</Badge>;
+        return <Badge className="bg-green-100 text-green-700">{t('admin.paid')}</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-700">Chờ thanh toán</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700">{t('admin.pendingPayment')}</Badge>;
       case "refunded":
-        return <Badge className="bg-gray-100 text-gray-700">Đã hoàn tiền</Badge>;
+        return <Badge className="bg-gray-100 text-gray-700">{t('admin.refunded')}</Badge>;
       default:
         return null;
     }
@@ -273,8 +277,8 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl text-gray-900 mb-2">Quản lý Bookings</h1>
-          <p className="text-gray-600">Quản lý tất cả đơn đặt chỗ và giao dịch</p>
+          <h1 className="text-3xl text-gray-900 mb-2">{t('admin.manageBookings')}</h1>
+          <p className="text-gray-600">{t('admin.manageBookingsDesc')}</p>
         </div>
 
         {/* Stats */}
@@ -299,7 +303,7 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="Tìm kiếm mã booking, khách hàng, dịch vụ..."
+                placeholder={t('admin.searchBookings')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -307,18 +311,18 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
             </div>
             <Button variant="outline" className="gap-2">
               <Download className="w-4 h-4" />
-              Export Excel
+              {t('admin.exportExcel')}
             </Button>
           </div>
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
-              <TabsTrigger value="all">Tất cả ({bookings.length})</TabsTrigger>
-              <TabsTrigger value="flight">Vé máy bay</TabsTrigger>
-              <TabsTrigger value="hotel">Khách sạn</TabsTrigger>
-              <TabsTrigger value="car">Thuê xe</TabsTrigger>
-              <TabsTrigger value="activity">Hoạt động</TabsTrigger>
+              <TabsTrigger value="all">{t('common.all')} ({bookings.length})</TabsTrigger>
+              <TabsTrigger value="flight">{t('admin.flightTicket')}</TabsTrigger>
+              <TabsTrigger value="hotel">{t('admin.hotel')}</TabsTrigger>
+              <TabsTrigger value="car">{t('admin.carRental')}</TabsTrigger>
+              <TabsTrigger value="activity">{t('admin.activity')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">
@@ -326,16 +330,16 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Mã booking</TableHead>
-                      <TableHead>Khách hàng</TableHead>
-                      <TableHead>Loại</TableHead>
-                      <TableHead>Dịch vụ</TableHead>
-                      <TableHead>Ngày đặt</TableHead>
-                      <TableHead>Ngày đi</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead>Thanh toán</TableHead>
-                      <TableHead>Số tiền</TableHead>
-                      <TableHead className="text-right">Hành động</TableHead>
+                      <TableHead>{t('admin.bookingCode')}</TableHead>
+                      <TableHead>{t('admin.customer')}</TableHead>
+                      <TableHead>{t('admin.type')}</TableHead>
+                      <TableHead>{t('admin.service')}</TableHead>
+                      <TableHead>{t('admin.bookingDate')}</TableHead>
+                      <TableHead>{t('admin.travelDate')}</TableHead>
+                      <TableHead>{t('admin.status')}</TableHead>
+                      <TableHead>{t('admin.payment')}</TableHead>
+                      <TableHead>{t('admin.amount')}</TableHead>
+                      <TableHead className="text-right">{t('admin.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -382,7 +386,7 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem className="gap-2">
                                   <Download className="w-4 h-4" />
-                                  Tải hóa đơn
+                                  {t('admin.downloadInvoice')}
                                 </DropdownMenuItem>
                                 {booking.status === "pending" && (
                                   <DropdownMenuItem 
@@ -390,7 +394,7 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
                                     onClick={() => handleConfirm(booking)}
                                   >
                                     <CheckCircle className="w-4 h-4" />
-                                    Xác nhận
+                                    {t('admin.confirm')}
                                   </DropdownMenuItem>
                                 )}
                                 {booking.status !== "cancelled" && booking.status !== "completed" && (
@@ -399,7 +403,7 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
                                     onClick={() => handleCancel(booking)}
                                   >
                                     <X className="w-4 h-4" />
-                                    Hủy booking
+                                    {t('admin.cancelBooking')}
                                   </DropdownMenuItem>
                                 )}
                                 {booking.payment === "paid" && booking.status === "cancelled" && (
@@ -408,7 +412,7 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
                                     onClick={() => handleRefund(booking)}
                                   >
                                     <RefreshCw className="w-4 h-4" />
-                                    Hoàn tiền
+                                    {t('admin.refund')}
                                   </DropdownMenuItem>
                                 )}
                               </DropdownMenuContent>
