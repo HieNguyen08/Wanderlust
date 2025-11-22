@@ -41,9 +41,11 @@ interface CarDetailPageProps {
     rating?: number;
   };
   onNavigate: (page: PageType, data?: any) => void;
+  userRole?: any;
+  onLogout?: () => void;
 }
 
-export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
+export default function CarDetailPage({ car, onNavigate, userRole, onLogout }: CarDetailPageProps) {
   const { t } = useTranslation();
   const [isLiked, setIsLiked] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -221,7 +223,7 @@ export default function CarDetailPage({ car, onNavigate }: CarDetailPageProps) {
 
   return (
     <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
-      <Header currentPage="car-rental" onNavigate={onNavigate} />
+      <Header currentPage="car-rental" onNavigate={onNavigate} userRole={userRole} onLogout={onLogout} />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 pt-[calc(60px+2rem)]">

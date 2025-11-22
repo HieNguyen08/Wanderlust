@@ -1,15 +1,15 @@
 import {
-  CheckCircle,
-  Clock,
-  Dumbbell,
-  Eye,
-  Heart, MapPin,
-  ParkingCircle,
-  Share2,
-  Star,
-  Utensils,
-  Wifi,
-  X
+    CheckCircle,
+    Clock,
+    Dumbbell,
+    Eye,
+    Heart, MapPin,
+    ParkingCircle,
+    Share2,
+    Star,
+    Utensils,
+    Wifi,
+    X
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -19,18 +19,21 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "../../components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import type { PageType } from "../../MainApp";
+import { type FrontendRole } from "../../utils/roleMapper";
 
 interface SavedItemsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
+  userRole?: FrontendRole | null;
+  onLogout?: () => void;
 }
 
 interface SavedItem {
@@ -54,7 +57,7 @@ interface SavedItem {
   excluded?: string[];
 }
 
-export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
+export default function SavedItemsPage({ onNavigate, userRole, onLogout }: SavedItemsPageProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("all");
   const [selectedItem, setSelectedItem] = useState<SavedItem | null>(null);
@@ -232,7 +235,7 @@ export default function SavedItemsPage({ onNavigate }: SavedItemsPageProps) {
   };
 
   return (
-    <ProfileLayout currentPage="saved-items" onNavigate={onNavigate} activePage="saved">
+    <ProfileLayout currentPage="saved-items" onNavigate={onNavigate} activePage="saved" userRole={userRole} onLogout={onLogout}>
       <div className="space-y-6">
         {/* Header */}
         <div>

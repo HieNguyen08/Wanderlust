@@ -1,13 +1,13 @@
 import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  CheckCircle,
-  Clock,
-  Plus,
-  RefreshCw,
-  TrendingUp,
-  Wallet,
-  XCircle
+    ArrowDownLeft,
+    ArrowUpRight,
+    CheckCircle,
+    Clock,
+    Plus,
+    RefreshCw,
+    TrendingUp,
+    Wallet,
+    XCircle
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,9 +18,12 @@ import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import type { PageType } from "../../MainApp";
 import { transactionApi, walletApi } from "../../utils/api";
+import { type FrontendRole } from "../../utils/roleMapper";
 
 interface UserWalletPageProps {
   onNavigate: (page: PageType, data?: any) => void;
+  userRole?: FrontendRole | null;
+  onLogout?: () => void;
 }
 
 interface WalletTransaction {
@@ -34,7 +37,7 @@ interface WalletTransaction {
   vendorName?: string;
 }
 
-export default function UserWalletPage({ onNavigate }: UserWalletPageProps) {
+export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserWalletPageProps) {
   const { t } = useTranslation();
   const [balance, setBalance] = useState(0);
   const [totalTopUp, setTotalTopUp] = useState(0);
@@ -142,7 +145,7 @@ export default function UserWalletPage({ onNavigate }: UserWalletPageProps) {
   };
 
   return (
-    <ProfileLayout currentPage="wallet" onNavigate={onNavigate} activePage="wallet">
+    <ProfileLayout currentPage="wallet" onNavigate={onNavigate} activePage="wallet" userRole={userRole} onLogout={onLogout}>
       <div className="space-y-6">
         {/* Header */}
         <div>

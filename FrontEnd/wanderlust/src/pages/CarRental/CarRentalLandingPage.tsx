@@ -1,26 +1,28 @@
-import { Fuel, Users, Settings, Heart, Star, Shield, Clock, Zap, MapPin, Calendar as CalendarIcon, ChevronDown, Check } from "lucide-react";
-import { Button } from "../../components/ui/button";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import { Calendar as CalendarIcon, Check, ChevronDown, Clock, Fuel, Heart, Settings, Shield, Star, Users, Zap } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import type { PageType } from "../../MainApp";
+import { Footer } from "../../components/Footer";
 import { Header } from "../../components/Header";
 import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import type { PageType } from "../../MainApp";
-import { Footer } from "../../components/Footer";
-import { Card } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
 import { Calendar } from "../../components/ui/calendar";
+import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
-import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Label } from "../../components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
-import { useState, useRef, useEffect } from "react";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
-import { toast } from "sonner";
-import { locationApi, carRentalApi } from "../../utils/api";
+import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
+import { carRentalApi, locationApi } from "../../utils/api";
 
 interface CarRentalLandingPageProps {
   onNavigate: (page: PageType, data?: any) => void;
+  userRole?: any;
+  onLogout?: () => void;
 }
 
 interface LocationItem {
@@ -39,7 +41,7 @@ const timeSlots = [
   "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30",
 ];
 
-export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPageProps) {
+export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }: CarRentalLandingPageProps) {
   // Locations from backend
   const [locations, setLocations] = useState<LocationItem[]>([]);
   const [loadingLocations, setLoadingLocations] = useState(true);
@@ -209,7 +211,7 @@ export default function CarRentalLandingPage({ onNavigate }: CarRentalLandingPag
       />
 
       {/* Header */}
-      <Header currentPage="car-rental" onNavigate={onNavigate} />
+      <Header currentPage="car-rental" onNavigate={onNavigate} userRole={userRole} onLogout={onLogout} />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 pt-[calc(60px+2rem)]">

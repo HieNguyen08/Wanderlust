@@ -6,12 +6,12 @@ import { ProfileLayout } from "../../components/ProfileLayout";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -19,12 +19,15 @@ import { Separator } from "../../components/ui/separator";
 import { Switch } from "../../components/ui/switch";
 import type { PageType } from "../../MainApp";
 import { profileApi } from "../../utils/api";
+import { type FrontendRole } from "../../utils/roleMapper";
 
 interface SettingsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
+  userRole?: FrontendRole | null;
+  onLogout?: () => void;
 }
 
-export default function SettingsPage({ onNavigate }: SettingsPageProps) {
+export default function SettingsPage({ onNavigate, userRole, onLogout }: SettingsPageProps) {
   const { t } = useTranslation();
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -117,7 +120,7 @@ export default function SettingsPage({ onNavigate }: SettingsPageProps) {
   };
 
   return (
-    <ProfileLayout currentPage="settings" onNavigate={onNavigate} activePage="settings">
+    <ProfileLayout currentPage="settings" onNavigate={onNavigate} activePage="settings" userRole={userRole} onLogout={onLogout}>
       <div className="space-y-6">
         {/* Header */}
         <div>

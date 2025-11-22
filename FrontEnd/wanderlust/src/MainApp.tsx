@@ -178,30 +178,30 @@ export default function MainApp() {
       {currentPage === "visa-documents" && <VisaDocumentsPage country={pageData?.country} formData={pageData?.formData} onNavigate={handleNavigate} />}
       {currentPage === "visa-payment" && <VisaPaymentPage country={pageData?.country} formData={pageData?.formData} documents={pageData?.documents} onNavigate={handleNavigate} />}
       {currentPage === "visa-confirmation" && <VisaConfirmationPage {...pageData} onNavigate={handleNavigate} />}
-      {currentPage === "activities" && <ActivitiesPage initialCategory={pageData?.category} onNavigate={handleNavigate} />}
-      {currentPage === "activity-detail" && pageData && <ActivityDetailPage activity={pageData} onNavigate={handleNavigate} />}
+      {currentPage === "activities" && <ActivitiesPage initialCategory={pageData?.category} onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+      {currentPage === "activity-detail" && pageData && <ActivityDetailPage activity={pageData} onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
       {currentPage === "travel-guide" && <TravelGuidePage onNavigate={handleNavigate} />}
       {currentPage === "guide-detail" && pageData && <GuideDetailPage guide={pageData.guide} onNavigate={handleNavigate} />}
       {currentPage === "travel-article" && pageData && <TravelArticlePage article={pageData.article} onNavigate={handleNavigate} />}
       {currentPage === "about" && <AboutPage onNavigate={handleNavigate} />}
       {currentPage === "promotions" && <PromotionsPage onNavigate={handleNavigate} />}
       {currentPage === "tour-detail" && pageData && <TourDetailPage tour={pageData} onNavigate={handleNavigate} />}
-      {currentPage === "car-rental" && <CarRentalLandingPage onNavigate={handleNavigate} />}
-      {currentPage === "car-list" && <CarRentalListPage onNavigate={handleNavigate} />}
-      {currentPage === "car-detail" && pageData && <CarDetailPage car={pageData} onNavigate={handleNavigate} />}
-      {currentPage === "profile" && <ProfilePage onNavigate={handleNavigate} />}
-      {currentPage === "booking-history" && <BookingHistoryPage onNavigate={handleNavigate} />}
-      {currentPage === "saved-items" && <SavedItemsPage onNavigate={handleNavigate} />}
-      {currentPage === "vouchers" && <UserVouchersPage onNavigate={handleNavigate} />}
-      {currentPage === "wallet" && <UserWalletPage onNavigate={handleNavigate} />}
-      {currentPage === "topup-wallet" && <TopUpWalletPage onNavigate={handleNavigate} />}
-      {currentPage === "settings" && <SettingsPage onNavigate={handleNavigate} />}
-      {currentPage === "saved-payment-methods" && <SavedPaymentMethodsPage onNavigate={handleNavigate} />}
+      {currentPage === "car-rental" && <CarRentalLandingPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+      {currentPage === "car-list" && <CarRentalListPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+      {currentPage === "car-detail" && pageData && <CarDetailPage car={pageData} onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+      {currentPage === "profile" && <ProfilePage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+      {currentPage === "booking-history" && <BookingHistoryPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+      {currentPage === "saved-items" && <SavedItemsPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+      {currentPage === "vouchers" && <UserVouchersPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+      {currentPage === "wallet" && <UserWalletPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+      {currentPage === "topup-wallet" && <TopUpWalletPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+      {currentPage === "settings" && <SettingsPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+      {currentPage === "saved-payment-methods" && <SavedPaymentMethodsPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
       {currentPage === "payment-methods" && <PaymentMethodsPage onNavigate={handleNavigate} bookingData={pageData} />}
       {currentPage === "flight-review" && <FlightReviewPage onNavigate={handleNavigate} flightData={pageData} />}
       {currentPage === "hotel-review" && <HotelReviewPage onNavigate={handleNavigate} hotelData={pageData} />}
-      {currentPage === "car-review" && <CarRentalReviewPage onNavigate={handleNavigate} carData={pageData} />}
-      {currentPage === "activity-review" && <ActivityReviewPage onNavigate={handleNavigate} activityData={pageData} />}
+      {currentPage === "car-review" && <CarRentalReviewPage onNavigate={handleNavigate} carData={pageData} userRole={userRole} onLogout={handleLogout} />}
+      {currentPage === "activity-review" && <ActivityReviewPage onNavigate={handleNavigate} activityData={pageData} userRole={userRole} onLogout={handleLogout} />}
       {currentPage === "admin-dashboard" && <AdminDashboard onNavigate={handleNavigate} />}
       {currentPage === "admin-users" && <AdminUsersPage onNavigate={handleNavigate} />}
       {currentPage === "admin-bookings" && <AdminBookingsPage onNavigate={handleNavigate} />}

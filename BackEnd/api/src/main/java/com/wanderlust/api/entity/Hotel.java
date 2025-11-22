@@ -37,15 +37,13 @@ public class Hotel {
     private String phone;
     private String email;
     private String website;
-    private LocalTime checkInTime;
-    private LocalTime checkOutTime;
 
     // JSON Structures (Mapping phức tạp)
     // Lưu ý: MongoDB sẽ tự động map các List/Object này thành JSON array/object
-    private List<HotelImage> images; 
+    private List<HotelImage> images;
     private List<String> amenities; // Sửa lại từ String thành List<String> để đúng spec JSON
     private HotelPolicies policies; // Sửa lại từ String thành Object để đúng spec JSON
-    
+
     private HotelStatusType status;
 
     private Boolean featured;
@@ -61,7 +59,6 @@ public class Hotel {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
@@ -76,7 +73,7 @@ public class Hotel {
     @NoArgsConstructor
     public static class HotelPolicies {
         private String cancellation; // Chính sách hủy
-        private Boolean pets;        // Thú cưng (true/false) hoặc String mô tả
-        private Boolean smoking;     // Hút thuốc
+        private Boolean pets; // Thú cưng (true/false) hoặc String mô tả
+        private Boolean smoking; // Hút thuốc
     }
 }

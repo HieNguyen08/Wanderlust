@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Award, Building2, Calendar as CalendarIcon, Check, ChevronDown, Clock, Gift, Hotel, MapPin, Minus, Plus, Repeat, Search, Sparkles, Star, Tag, TrendingUp, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
@@ -31,6 +32,7 @@ interface Destination {
 
 // Search Form Component
 function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => void; isSearching: boolean }) {
+  const { t } = useTranslation();
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [destination, setDestination] = useState<Destination | null>(null);
   const [checkIn, setCheckIn] = useState<Date>();
@@ -118,7 +120,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
   const handleSearch = () => {
     // Validation
     if (!destination) {
-      toast.error("Vui lòng chọn địa điểm");
+      toast.error(t('hotels.locationPlaceholder'));
       return;
     }
     if (!checkIn) {
@@ -146,7 +148,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
     <div className="w-full max-w-[1168px] mx-auto px-4 -mt-[140px] relative z-20">
       <div className="bg-white rounded-lg border border-[#c8c8c8] p-6 shadow-lg">
         <h2 className="text-[24px] font-['Sansita'] font-bold text-black mb-4">
-          Tìm kiếm khách sạn
+          {t('hotels.searchTitle')}
         </h2>
 
         {/* Location */}
@@ -156,14 +158,14 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
               <div className="bg-white border border-[#a1b0cc] rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition-colors">
                 <Hotel className="w-5 h-5 text-blue-600" />
                 <div className="flex-1">
-                  <label className="text-xs text-gray-500 block">Thành phố, khách sạn, điểm đến</label>
+                  <label className="text-xs text-gray-500 block">{t('hotels.locationPlaceholder')}</label>
                   {destination ? (
                     <div className="text-[15px] font-['Sansita'] font-bold text-[#7c8db0]">
                       {destination.name}, {destination.country}
                     </div>
                   ) : (
                     <div className="text-[15px] font-['Sansita'] font-bold text-gray-400">
-                      Đà Nẵng, Việt Nam
+                      {t('hotels.defaultLocation')}
                     </div>
                   )}
                 </div>
@@ -172,9 +174,9 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
             </PopoverTrigger>
             <PopoverContent className="w-[400px] p-0" align="start">
               <Command>
-                <CommandInput placeholder="Tìm kiếm địa điểm..." />
+                <CommandInput placeholder={t('hotels.searchLocationPlaceholder')} />
                 <CommandList>
-                  <CommandEmpty>Không tìm thấy địa điểm.</CommandEmpty>
+                  <CommandEmpty>{t('hotels.noLocationFound')}</CommandEmpty>
                   <CommandGroup>
                     {destinations.map((dest: Destination) => (
                       <CommandItem
@@ -191,7 +193,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
                         />
                         <div className="flex flex-col">
                           <span>{dest.name}, {dest.country}</span>
-                          <span className="text-xs text-gray-500">{dest.hotels} khách sạn</span>
+                          <span className="text-xs text-gray-500">{dest.hotels} {t('hotels.hotelsCount')}</span>
                         </div>
                       </CommandItem>
                     ))}
@@ -210,7 +212,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
               <div className="bg-white border border-[#a1b0cc] rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition-colors">
                 <CalendarIcon className="w-5 h-5 text-blue-600" />
                 <div className="flex-1">
-                  <label className="text-xs text-gray-500 block">Thời gian nhận phòng</label>
+                  <label className="text-xs text-gray-500 block">{t('hotels.checkInLabel')}</label>
                   <span className="text-sm text-[#7c8db0] font-['Sansita'] font-bold">
                     {checkIn
                       ? format(checkIn, "d 'tháng' M, EEEE", { locale: vi })
@@ -245,7 +247,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
               <div className="bg-white border border-[#a1b0cc] rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition-colors">
                 <CalendarIcon className="w-5 h-5 text-gray-400" />
                 <div className="flex-1">
-                  <label className="text-xs text-gray-500 block">Thời gian trả phòng</label>
+                  <label className="text-xs text-gray-500 block">{t('hotels.checkOutLabel')}</label>
                   <span className="text-sm text-[#7c8db0] font-['Sansita'] font-bold">
                     {checkOut
                       ? format(checkOut, "d 'tháng' M, EEEE", { locale: vi })
@@ -275,9 +277,9 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
               <div className="bg-white border border-[#a1b0cc] rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition-colors">
                 <Users className="w-5 h-5 text-gray-400" />
                 <div className="flex-1">
-                  <label className="text-xs text-gray-500 block">Số khách & số phòng</label>
+                  <label className="text-xs text-gray-500 block">{t('hotels.guestsAndRooms')}</label>
                   <span className="text-sm text-[#7c8db0] font-['Sansita'] font-bold">
-                    {adults} người lớn, {children} trẻ em, {rooms} phòng
+                    {adults} {t('common.adults')}, {children} {t('common.children')}, {rooms} {t('common.rooms')}
                   </span>
                 </div>
                 <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -288,8 +290,8 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
                 {/* Adults */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-medium">Người lớn</div>
-                    <div className="text-xs text-gray-500">Từ 12 tuổi trở lên</div>
+                    <div className="font-medium">{t('common.adults')}</div>
+                    <div className="text-xs text-gray-500">{t('hotels.adultsDesc')}</div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Button
@@ -315,8 +317,8 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
                 {/* Children */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-medium">Trẻ em</div>
-                    <div className="text-xs text-gray-500">Dưới 12 tuổi</div>
+                    <div className="font-medium">{t('common.children')}</div>
+                    <div className="text-xs text-gray-500">{t('hotels.childrenDesc')}</div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Button
@@ -342,7 +344,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
                 {/* Rooms */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-medium">Số phòng</div>
+                    <div className="font-medium">{t('common.rooms')}</div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Button
@@ -369,7 +371,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
                   className="w-full"
                   onClick={() => setGuestsOpen(false)}
                 >
-                  Xác nhận
+                  {t('common.confirm')}
                 </Button>
               </div>
             </PopoverContent>
@@ -381,7 +383,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
           <div className="flex items-center gap-2">
             <MapPin className="w-[30px] h-[30px] text-gray-400" />
             <span className="text-[16px] font-['Sansita'] text-[#0194f3]">
-              Khách sạn xem gần đây
+              {t('hotels.recentHotels')}
             </span>
           </div>
 
@@ -391,7 +393,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
             className="bg-[#0194f3] hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50"
           >
             <Search className="w-4 h-4" />
-            {isSearching ? "Đang tìm..." : "Tìm kiếm"}
+            {isSearching ? t('hotels.searching') : t('common.search')}
           </Button>
         </div>
       </div>
@@ -400,6 +402,7 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
 }
 
 export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) {
+  const { t } = useTranslation();
   const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -484,22 +487,22 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
   const domesticDestinations = [
     {
       name: "Phú Quốc",
-      hotels: "250+ khách sạn",
-      price: "từ 850.000đ/đêm",
+      hotels: `250+ ${t('hotels.hotelsCount')}`,
+      price: `${t('common.from')} 850.000đ/${t('common.perNight')}`,
       image: "https://images.unsplash.com/photo-1641810560800-6f1254f3636f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aWV0bmFtJTIwcGh1JTIwcXVvYyUyMHJlc29ydHxlbnwxfHx8fDE3NjE5OTAyOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.8
     },
     {
       name: "Đà Nẵng",
-      hotels: "340+ khách sạn",
-      price: "từ 650.000đ/đêm",
+      hotels: `340+ ${t('hotels.hotelsCount')}`,
+      price: `${t('common.from')} 650.000đ/${t('common.perNight')}`,
       image: "https://images.unsplash.com/photo-1723142282970-1fd415eec1ad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aWV0bmFtJTIwZGFuYW5nJTIwYmVhY2h8ZW58MXx8fHwxNzYwMTA1ODc0fDA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.7
     },
     {
       name: "Nha Trang",
-      hotels: "280+ khách sạn",
-      price: "từ 550.000đ/đêm",
+      hotels: `280+ ${t('hotels.hotelsCount')}`,
+      price: `${t('common.from')} 550.000đ/${t('common.perNight')}`,
       image: "https://images.unsplash.com/photo-1558117338-aa433feb1c62?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cm9waWNhbCUyMGJlYWNoJTIwcmVzb3J0fGVufDF8fHx8MTc2MDEwNTg3M3ww&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.6
     }
@@ -508,22 +511,22 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
   const internationalDestinations = [
     {
       name: "Phuket, Thái Lan",
-      hotels: "450+ khách sạn",
-      price: "từ 1.200.000đ/đêm",
+      hotels: `450+ ${t('hotels.hotelsCount')}`,
+      price: `${t('common.from')} 1.200.000đ/${t('common.perNight')}`,
       image: "https://images.unsplash.com/photo-1729615220929-afe0f01aea61?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0aGFpbGFuZCUyMHBodWtldCUyMGhvdGVsfGVufDF8fHx8MTc2MTk5MDI5OXww&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.9
     },
     {
       name: "Singapore",
-      hotels: "380+ khách sạn",
-      price: "từ 2.500.000đ/đêm",
+      hotels: `380+ ${t('hotels.hotelsCount')}`,
+      price: `${t('common.from')} 2.500.000đ/${t('common.perNight')}`,
       image: "https://images.unsplash.com/photo-1599917858303-0c3c47ccece3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzaW5nYXBvcmUlMjBtYXJpbmElMjBiYXklMjBob3RlbHxlbnwxfHx8fDE3NjE5OTAyOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.8
     },
     {
       name: "Maldives",
       hotels: "180+ resort",
-      price: "từ 8.500.000đ/đêm",
+      price: `${t('common.from')} 8.500.000đ/${t('common.perNight')}`,
       image: "https://images.unsplash.com/photo-1637576308588-6647bf80944d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYWxkaXZlcyUyMG92ZXJ3YXRlciUyMGJ1bmdhbG93fGVufDF8fHx8MTc2MTk5MDMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 5.0
     }
@@ -535,7 +538,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
       <SearchLoadingOverlay
         isLoading={isSearching}
         searchType="hotel"
-        message="Đang tìm kiếm khách sạn phù hợp..."
+        message={t('hotels.searchingMessage')}
       />
 
       {/* Hero Section */}
@@ -554,13 +557,13 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
         <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
           <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30 mb-4">
             <Sparkles className="w-3 h-3 mr-1" />
-            Ưu đãi đặc biệt
+            {t('hotels.specialOffers')}
           </Badge>
           <h1 className="text-white text-5xl md:text-6xl mb-4 drop-shadow-2xl max-w-4xl">
-            Từ Đông Nam Á Đến Thế Giới, Trong Tầm Tay Bạn
+            {t('hotels.heroTitle')}
           </h1>
           <p className="text-white/90 text-xl max-w-2xl drop-shadow-lg">
-            Khám phá hơn 1,000+ khách sạn & resort đẳng cấp với giá tốt nhất
+            {t('hotels.heroSubtitle')}
           </p>
         </div>
       </div>
@@ -574,17 +577,17 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
         <section>
           <div className="flex items-center gap-3 mb-8">
             <Gift className="w-8 h-8 text-red-500" />
-            <h2 className="text-4xl">Ưu đãi dành cho bạn</h2>
+            <h2 className="text-4xl">{t('hotels.offersTitle')}</h2>
           </div>
           {loadingPromotions ? (
             <div className="text-center py-12">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-              <p className="mt-4 text-gray-600">Đang tải ưu đãi...</p>
+              <p className="mt-4 text-gray-600">{t('hotels.loadingOffers')}</p>
             </div>
           ) : promotions.length === 0 ? (
             <div className="text-center py-12">
               <Gift className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">Hiện chưa có ưu đãi nào</p>
+              <p className="text-gray-500">{t('hotels.noOffers')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -625,7 +628,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
         <section>
           <div className="flex items-center gap-3 mb-8">
             <Building2 className="w-8 h-8 text-blue-600" />
-            <h2 className="text-4xl">Giá tốt tại các điểm đến nội địa</h2>
+            <h2 className="text-4xl">{t('hotels.domesticDestinations')}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {domesticDestinations.map((dest, index) => (
@@ -662,7 +665,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
         <section>
           <div className="flex items-center gap-3 mb-8">
             <TrendingUp className="w-8 h-8 text-purple-600" />
-            <h2 className="text-4xl">Giá tốt tại các điểm đến quốc tế</h2>
+            <h2 className="text-4xl">{t('hotels.internationalDestinations')}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {internationalDestinations.map((dest, index) => (
@@ -703,13 +706,13 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
               <Badge className="bg-orange-100 text-orange-700 border-0">VIP Member</Badge>
             </div>
             <h3 className="text-3xl">
-              Đăng ký hội viên, nhận thêm nhiều ưu đãi
+              {t('hotels.memberPromoTitle')}
             </h3>
             <p className="text-lg text-gray-700">
-              Vui lòng quét mã QR để biết thêm chi tiết về chương trình ưu đãi của chúng tôi.
+              {t('hotels.memberPromoDesc')}
             </p>
             <Button className="bg-orange-600 hover:bg-orange-700">
-              Tìm hiểu thêm
+              {t('hotels.learnMore')}
             </Button>
           </div>
           <div className="w-32 h-32 md:w-40 md:h-40 bg-white rounded-xl border-2 border-orange-300 flex items-center justify-center shadow-lg">
@@ -719,17 +722,17 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
 
         {/* FAQ Section */}
         <section className="space-y-4">
-          <h2 className="text-[24px] font-['Arya'] font-bold text-black">FAQ</h2>
-          <p className="text-[18px] font-['Arvo'] text-black">Câu hỏi thường gặp</p>
+          <h2 className="text-[24px] font-['Arya'] font-bold text-black">{t('hotels.faqTitle')}</h2>
+          <p className="text-[18px] font-['Arvo'] text-black">{t('hotels.faqSubtitle')}</p>
 
           {/* FAQ Items */}
           <div className="space-y-2">
             {[
-              "Làm thế nào để tôi có thể tìm kiếm chuyến bay, khách sạn và đặt phòng trên trang web này?",
-              "Những hình thức thanh toán nào được chấp nhận?",
-              "Liệu tôi có thể hủy chuyến sau khi đã xác nhận đặt vé và phòng?",
-              "Những thông tin cần thiết về lộ trình và mô tả chuyến đi?",
-              "Làm thế nào để tôi có thể liên lạc với nhân viên hỗ trợ trong thời gian chuyến du lịch diễn ra?",
+              t('hotels.faq.q1'),
+              t('hotels.faq.q2'),
+              t('hotels.faq.q3'),
+              t('hotels.faq.q4'),
+              t('hotels.faq.q5'),
             ].map((question, i) => (
               <div
                 key={i}
@@ -750,9 +753,9 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
         <Dialog open={!!selectedVoucher} onOpenChange={() => setSelectedVoucher(null)}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Chi tiết ưu đãi</DialogTitle>
+              <DialogTitle>{t('hotels.offerDetails')}</DialogTitle>
               <DialogDescription>
-                Thông tin chi tiết về chương trình khuyến mãi
+                {t('hotels.offerDetailsDesc')}
               </DialogDescription>
             </DialogHeader>
 
@@ -783,7 +786,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
               <div className="bg-linear-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm text-gray-600 mb-1">Mã voucher</div>
+                    <div className="text-sm text-gray-600 mb-1">{t('hotels.voucherCode')}</div>
                     <div className="text-2xl font-mono tracking-wider text-blue-600">
                       {selectedVoucher.code}
                     </div>
@@ -797,7 +800,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
                 <div className="flex items-start gap-3">
                   <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
                   <div>
-                    <div className="text-sm text-gray-600">Có hiệu lực đến</div>
+                    <div className="text-sm text-gray-600">{t('hotels.validUntil')}</div>
                     <div className="font-medium">
                       {new Date(selectedVoucher.endDate).toLocaleDateString('vi-VN')}
                     </div>

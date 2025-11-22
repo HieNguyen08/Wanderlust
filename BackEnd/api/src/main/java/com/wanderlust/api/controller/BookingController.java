@@ -1,5 +1,8 @@
 package com.wanderlust.api.controller;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +36,43 @@ import lombok.AllArgsConstructor;
 public class BookingController {
 
     private final BookingService bookingService;
+    
+    // DateTimeFormatter to handle multiple date formats
+    private static final DateTimeFormatter[] DATE_FORMATTERS = {
+        DateTimeFormatter.ofPattern("dd/MM/yyyy"),  // 23/11/2025
+        DateTimeFormatter.ofPattern("yyyy-MM-dd"),  // 2025-11-23
+        DateTimeFormatter.ISO_LOCAL_DATE,           // ISO format
+        DateTimeFormatter.ofPattern("MM/dd/yyyy")   // 11/23/2025
+    };
+    
+    // Helper method to parse date with multiple formats
+    private LocalDate parseDate(String dateStr) {
+        // Return null for null, empty, or whitespace-only strings
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            return null;
+        }
+        
+        // Trim the string
+        dateStr = dateStr.trim();
+        
+        // If it contains 'T', extract just the date part (ISO DateTime format)
+        if (dateStr.contains("T")) {
+            dateStr = dateStr.substring(0, dateStr.indexOf("T"));
+        }
+        
+        // Try each formatter
+        for (DateTimeFormatter formatter : DATE_FORMATTERS) {
+            try {
+                return LocalDate.parse(dateStr, formatter);
+            } catch (DateTimeParseException e) {
+                // Continue to next formatter
+            }
+        }
+        
+        // If all formatters fail, log warning and return null instead of throwing exception
+        System.err.println("Warning: Unable to parse date: '" + dateStr + "'. Supported formats: dd/MM/yyyy, yyyy-MM-dd, MM/dd/yyyy. Returning null.");
+        return null;
+    }
 
     // Helper để lấy UserID từ Authentication
     private String getUserIdFromAuthentication(Authentication authentication) {
@@ -101,12 +141,12 @@ public class BookingController {
         // Parse dates
         String startDateStr = (String) payload.get("startDate");
         if (startDateStr != null) {
-            bookingDTO.setStartDate(java.time.LocalDate.parse(startDateStr.substring(0, 10)));
+            bookingDTO.setStartDate(parseDate(startDateStr));
         }
         
         String endDateStr = (String) payload.get("endDate");
         if (endDateStr != null) {
-            bookingDTO.setEndDate(java.time.LocalDate.parse(endDateStr.substring(0, 10)));
+            bookingDTO.setEndDate(parseDate(endDateStr));
         }
         
         // Parse guestInfo
@@ -116,6 +156,27 @@ public class BookingController {
             @SuppressWarnings("unchecked")
             Map<String, Object> guestInfoObj = (Map<String, Object>) (Map<?, ?>) guestInfo;
             bookingDTO.setGuestInfo(guestInfoObj);
+        }
+        
+        // Parse quantity
+        Object quantityObj = payload.get("quantity");
+        if (quantityObj != null) {
+            Integer quantity = null;
+            if (quantityObj instanceof Integer) {
+                quantity = (Integer) quantityObj;
+            } else if (quantityObj instanceof String) {
+                try {
+                    quantity = Integer.parseInt((String) quantityObj);
+                } catch (NumberFormatException e) {
+                    // Ignore invalid quantity
+                }
+            }
+            // Store quantity in numberOfGuests or metadata as needed
+            // For now, we can add it to metadata
+            if (quantity != null && quantity > 0) {
+                // This can be mapped to numberOfGuests or stored in metadata
+                // depending on your business logic
+            }
         }
         
         // Parse specialRequests

@@ -33,9 +33,12 @@ import {
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import type { PageType } from "../../MainApp";
+import { type FrontendRole } from "../../utils/roleMapper";
 
 interface SavedPaymentMethodsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
+  userRole?: FrontendRole | null;
+  onLogout?: () => void;
 }
 
 interface PaymentMethod {
@@ -51,7 +54,7 @@ interface PaymentMethod {
   accountNumber?: string;
 }
 
-export default function SavedPaymentMethodsPage({ onNavigate }: SavedPaymentMethodsPageProps) {
+export default function SavedPaymentMethodsPage({ onNavigate, userRole, onLogout }: SavedPaymentMethodsPageProps) {
   const { t } = useTranslation();
   // Mock saved payment methods
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
@@ -208,6 +211,8 @@ export default function SavedPaymentMethodsPage({ onNavigate }: SavedPaymentMeth
       activePage="saved-payment-methods"
       currentPage="saved-payment-methods"
       onNavigate={onNavigate}
+      userRole={userRole}
+      onLogout={onLogout}
     >
       <div className="space-y-6">
         {/* Page Header */}

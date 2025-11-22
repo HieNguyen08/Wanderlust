@@ -1,17 +1,17 @@
 import {
-    ArrowRight,
-    Calendar,
-    CheckCircle2,
-    Clock,
-    Flame,
-    Globe,
-    Mail,
-    MessageCircle,
-    Phone,
-    Shield,
-    Star,
-    TrendingUp,
-    Users
+  ArrowRight,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Flame,
+  Globe,
+  Mail,
+  MessageCircle,
+  Phone,
+  Shield,
+  Star,
+  TrendingUp,
+  Users
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,9 +30,9 @@ interface VisaLandingPageProps {
 
 const ArticleCard = ({ article, onNavigate }: { article: any; onNavigate: (page: PageType, data?: any) => void }) => {
   const { t } = useTranslation();
-  
+
   return (
-    <Card 
+    <Card
       className="overflow-hidden group hover:shadow-lg transition-all cursor-pointer"
       onClick={() => onNavigate("visa-article", article)}
     >
@@ -59,10 +59,10 @@ const ArticleCard = ({ article, onNavigate }: { article: any; onNavigate: (page:
           <h3 className="line-clamp-2">{article.title}</h3>
         </div>
       </div>
-      
+
       <div className="p-4">
         <p className="text-gray-600 text-sm mb-3 line-clamp-2">{article.excerpt}</p>
-        
+
         <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
           <div className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
@@ -74,7 +74,7 @@ const ArticleCard = ({ article, onNavigate }: { article: any; onNavigate: (page:
           </div>
         </div>
 
-        <Button 
+        <Button
           className="w-full"
           variant="outline"
           onClick={(e) => {
@@ -162,7 +162,7 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/50 to-black/70" />
-        
+
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-white max-w-4xl px-4">
             <Badge className="bg-blue-500/90 text-white border-0 mb-4 px-4 py-2">
@@ -176,21 +176,21 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
               {t('visa.heroSubtitle')}
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="bg-orange-500 hover:bg-orange-600 text-white h-14 px-8 text-lg"
                 onClick={() => onNavigate("visa-consultation")}
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
                 {t('visa.consultNow')}
               </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
+              <Button
+                size="lg"
+                variant="outline"
                 className="bg-white/10 backdrop-blur-sm border-white text-white hover:bg-white/20 h-14 px-8 text-lg"
               >
                 <Phone className="w-5 h-5 mr-2" />
-                Hotline: 1900-xxxx
+                {t('visa.hotline')}: 1900-xxxx
               </Button>
             </div>
           </div>
@@ -282,8 +282,8 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
             <div className="flex items-center gap-3 mb-8">
               <div className="text-5xl">🦘</div>
               <div>
-                <h2 className="text-4xl">Visa Châu Úc</h2>
-                <p className="text-gray-600">Thông tin visa các nước châu Úc</p>
+                <h2 className="text-4xl">{t('visa.oceaniaVisa')}</h2>
+                <p className="text-gray-600">{t('visa.oceaniaVisaDesc')}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -342,19 +342,19 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
           <p className="text-xl mb-8 text-orange-100">
             {t('visa.consultationSubtitle')}
           </p>
-          
+
           <div className="flex gap-4 justify-center flex-wrap">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="bg-white text-orange-600 hover:bg-gray-100 h-14 px-8 text-lg"
               onClick={() => onNavigate("visa-consultation")}
             >
               <MessageCircle className="w-5 h-5 mr-2" />
               {t('visa.freeConsultation')}
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
+            <Button
+              size="lg"
+              variant="outline"
               className="border-white text-white hover:bg-white/20 h-14 px-8 text-lg"
             >
               <Mail className="w-5 h-5 mr-2" />
@@ -368,7 +368,7 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
                 <Star className="w-6 h-6" />
                 <div>
                   <div className="text-2xl">95%</div>
-                  <div className="text-sm text-orange-100">Tỷ lệ thành công</div>
+                  <div className="text-sm text-orange-100">{t('visa.successRate')}</div>
                 </div>
               </div>
             </div>
@@ -377,7 +377,7 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
                 <Users className="w-6 h-6" />
                 <div>
                   <div className="text-2xl">10,000+</div>
-                  <div className="text-sm text-orange-100">Khách hàng tin tưởng</div>
+                  <div className="text-sm text-orange-100">{t('visa.trustedCustomers')}</div>
                 </div>
               </div>
             </div>
@@ -386,7 +386,7 @@ export default function VisaLandingPage({ onNavigate }: VisaLandingPageProps) {
                 <Globe className="w-6 h-6" />
                 <div>
                   <div className="text-2xl">50+</div>
-                  <div className="text-sm text-orange-100">Quốc gia hỗ trợ</div>
+                  <div className="text-sm text-orange-100">{t('visa.supportedCountries')}</div>
                 </div>
               </div>
             </div>

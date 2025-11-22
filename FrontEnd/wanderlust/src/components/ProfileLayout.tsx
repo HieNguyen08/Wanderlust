@@ -6,6 +6,7 @@ import avatarOther from "../assets/images/avatarother.jpeg";
 import avatarWoman from "../assets/images/avatarwoman.jpeg";
 import type { PageType } from "../MainApp";
 import { tokenService } from "../utils/api";
+import { type FrontendRole } from "../utils/roleMapper";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 
@@ -14,9 +15,11 @@ interface ProfileLayoutProps {
   currentPage: PageType;
   onNavigate: (page: PageType, data?: any) => void;
   activePage?: "profile" | "bookings" | "saved" | "vouchers" | "wallet" | "settings" | "saved-payment-methods";
+  userRole?: FrontendRole | null;
+  onLogout?: () => void;
 }
 
-export function ProfileLayout({ children, currentPage, onNavigate, activePage = "profile" }: ProfileLayoutProps) {
+export function ProfileLayout({ children, currentPage, onNavigate, activePage = "profile", userRole, onLogout }: ProfileLayoutProps) {
   const { t } = useTranslation();
   
   // Get user data from localStorage
@@ -89,7 +92,12 @@ export function ProfileLayout({ children, currentPage, onNavigate, activePage = 
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header currentPage={currentPage} onNavigate={onNavigate} />
+      <Header 
+        currentPage={currentPage} 
+        onNavigate={onNavigate}
+        userRole={userRole}
+        onLogout={onLogout}
+      />
       
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 pt-[calc(60px+2rem)]">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

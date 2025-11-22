@@ -49,11 +49,11 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Lấy guides Việt Nam (type = destination, country = Việt Nam)
         const vietnamGuides = await travelGuideApi.getByCountry("Việt Nam");
         setVietnamDestinations(vietnamGuides.filter((g: TravelGuide) => g.type === "destination").slice(0, 4));
-        
+
         // Lấy featured destinations (không phải Việt Nam)
         const featuredGuides = await travelGuideApi.getFeatured();
         setPopularDestinations(
@@ -61,11 +61,11 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
             .filter((g: TravelGuide) => g.type === "destination" && g.country !== "Việt Nam")
             .slice(0, 4)
         );
-        
+
         // Lấy blog posts
         const blogs = await travelGuideApi.getByType("blog");
         setBlogPosts(blogs.slice(0, 3));
-        
+
       } catch (error) {
         console.error("Error fetching travel guides:", error);
       } finally {
@@ -113,12 +113,12 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-white">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Find travel inspirations, your way!
+              {t('travelGuide.heroTitle')}
             </h2>
           </div>
         </div>
         <div className="absolute bottom-8 right-8 text-white text-xl">
-          Hạ Long Bay, Vietnam
+          {t('travelGuide.heroLocation')}
         </div>
       </div>
 
@@ -243,11 +243,11 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
               <div
                 key={continent.id}
                 className="relative h-56 rounded-2xl overflow-hidden cursor-pointer group"
-                onClick={() => onNavigate("guide-detail", { 
-                  id: continent.id, 
+                onClick={() => onNavigate("guide-detail", {
+                  id: continent.id,
                   name: continent.name,
                   image: continent.image,
-                  description: `Khám phá vẻ đẹp và văn hóa độc đáo của châu ${continent.name}`
+                  description: t('travelGuide.exploreContinentDesc', { continent: t(`travelGuide.continents.${continent.id}`) })
                 })}
               >
                 <ImageWithFallback
@@ -257,7 +257,7 @@ export default function TravelGuidePage({ onNavigate }: TravelGuidePageProps) {
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent" />
                 <h4 className="absolute bottom-6 left-6 text-white text-xl font-bold">
-                  {continent.name}
+                  {t(`travelGuide.continents.${continent.id}`)}
                 </h4>
               </div>
             ))}

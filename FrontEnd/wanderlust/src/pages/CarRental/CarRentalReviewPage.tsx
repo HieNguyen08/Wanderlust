@@ -1,8 +1,10 @@
 import { AlertTriangle, Calendar, Car, MapPin, Settings } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
+import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
+import { Header } from "../../components/Header";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
@@ -12,20 +14,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Separator } from "../../components/ui/separator";
 import { Textarea } from "../../components/ui/textarea";
 import type { PageType } from "../../MainApp";
+import { profileApi, tokenService } from "../../utils/api";
 
 interface CarRentalReviewPageProps {
   onNavigate: (page: PageType, data?: any) => void;
   carData?: any;
+  userRole?: any;
+  onLogout?: () => void;
 }
 
-export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalReviewPageProps) {
+export default function CarRentalReviewPage({ onNavigate, carData, userRole, onLogout }: CarRentalReviewPageProps) {
   const { t } = useTranslation();
   const [contactInfo, setContactInfo] = useState({
-    fullName: "Nguyễn Văn A",
-    email: "nguyenvana@example.com",
-    phone: "+84901234567",
+    fullName: "",
+    email: "",
+    phone: "",
     countryCode: "+84"
   });
+
+  const [isLoadingUserData, setIsLoadingUserData] = useState(true);
 
   const [driverInfo, setDriverInfo] = useState({
     title: "",
@@ -43,6 +50,37 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
 
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+
+  // Load user info when component mounts
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (tokenService.isAuthenticated()) {
+        try {
+          const userProfile = await profileApi.getCurrentUser();
+          
+          setContactInfo({
+            fullName: `${userProfile.firstName} ${userProfile.lastName}`.trim(),
+            email: userProfile.email || "",
+            phone: userProfile.mobile || "",
+            countryCode: "+84"
+          });
+          
+          toast.success(t('carRental.userInfoLoaded') || 'Đã tải thông tin người dùng');
+        } catch (error: any) {
+          console.error('Error loading user profile:', error);
+          if (error.message !== 'UNAUTHORIZED') {
+            toast.info(t('carRental.fillContactInfo') || 'Vui lòng điền thông tin liên hệ');
+          }
+        } finally {
+          setIsLoadingUserData(false);
+        }
+      } else {
+        setIsLoadingUserData(false);
+      }
+    };
+
+    loadUserData();
+  }, [t]);
 
   // Mock data
   const car = carData?.car || {
@@ -100,7 +138,11 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">      <div className="max-w-7xl mx-auto px-4 py-8 pt-[calc(60px+2rem)]">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <Header currentPage="car-rental" onNavigate={onNavigate} userRole={userRole} onLogout={onLogout} />
+
+      <div className="max-w-7xl mx-auto px-4 py-8 pt-[calc(60px+2rem)]">
         {/* Breadcrumb */}
         <div className="mb-6">
           <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -128,7 +170,7 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
                     {t('carRentalReview.voucherSentHere')}
                   </p>
                 </div>
-                {!isEditingContact && (
+                {!isEditingContact && !isLoadingUserData && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -139,6 +181,13 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
                 )}
               </div>
 
+              {isLoadingUserData ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-3 text-gray-600">{t('common.loading') || 'Đang tải...'}</span>
+                </div>
+              ) : (
+                <>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="contactName">
@@ -211,6 +260,8 @@ export default function CarRentalReviewPage({ onNavigate, carData }: CarRentalRe
                     {t('carRentalReview.cancel')}
                   </Button>
                 </div>
+              )}
+                </>
               )}
             </Card>
 

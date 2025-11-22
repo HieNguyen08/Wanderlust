@@ -15,6 +15,7 @@ import { useState } from "react";
 import { useTranslation } from 'react-i18next';
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
+import { Header } from "../../components/Header";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -35,9 +36,11 @@ interface ActivityDetailPageProps {
     description: string;
   };
   onNavigate: (page: PageType, data?: any) => void;
+  userRole?: any;
+  onLogout?: () => void;
 }
 
-export default function ActivityDetailPage({ activity, onNavigate }: ActivityDetailPageProps) {
+export default function ActivityDetailPage({ activity, onNavigate, userRole, onLogout }: ActivityDetailPageProps) {
   const { t } = useTranslation();
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [guestCount, setGuestCount] = useState(1);
@@ -98,6 +101,9 @@ export default function ActivityDetailPage({ activity, onNavigate }: ActivityDet
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <Header currentPage="activities" onNavigate={onNavigate} userRole={userRole} onLogout={onLogout} />
+
       {/* Breadcrumb */}
       <div className="bg-white border-b pt-[60px]">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">

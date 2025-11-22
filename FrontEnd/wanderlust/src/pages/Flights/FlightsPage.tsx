@@ -1,21 +1,21 @@
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import {
-    ArrowRightLeft,
-    Calendar as CalendarIcon,
-    Check, ChevronsUpDown,
-    Copy,
-    Globe,
-    Headphones,
-    Minus,
-    PlaneLanding,
-    PlaneTakeoff,
-    Plus,
-    Search,
-    Shield,
-    Sparkles,
-    Tag,
-    Users
+  ArrowRightLeft,
+  Calendar as CalendarIcon,
+  Check, ChevronsUpDown,
+  Copy,
+  Globe,
+  Headphones,
+  Minus,
+  PlaneLanding,
+  PlaneTakeoff,
+  Plus,
+  Search,
+  Shield,
+  Sparkles,
+  Tag,
+  Users
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
@@ -56,7 +56,7 @@ const airports = [
 export default function FlightsPage({ onNavigate }: FlightsPageProps) {
   const { t } = useTranslation();
   const heroSearchRef = useRef<HTMLDivElement>(null);
-  
+
   // Search form state
   const [tripType, setTripType] = useState<"one-way" | "round-trip" | "multi-city">("round-trip");
   const [fromAirport, setFromAirport] = useState<typeof airports[0] | null>(null);
@@ -66,17 +66,17 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
   const [openFrom, setOpenFrom] = useState(false);
   const [openTo, setOpenTo] = useState(false);
   const [openPassengers, setOpenPassengers] = useState(false);
-  
+
   // Passenger & Class state
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [cabinClass, setCabinClass] = useState<"economy" | "business" | "first">("economy");
-  
+
   // Voucher modal
   const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  
+
   // Loading state
   const [isSearching, setIsSearching] = useState(false);
 
@@ -135,11 +135,11 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       setSavingVoucher(true);
       await userVoucherApi.saveToWallet(voucher.code);
       toast.success(`Đã lưu mã ${voucher.code} vào Ví Voucher!`);
-      
+
       // Refresh available vouchers
       const available = await userVoucherApi.getAvailable();
       setSavedVouchers(available.map((v: any) => v.voucherCode));
-      
+
       setSelectedVoucher(null);
     } catch (error: any) {
       toast.error(error.message || 'Không thể lưu voucher');
@@ -183,7 +183,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
 
     // Show loading overlay
     setIsSearching(true);
-    
+
     // Simulate search delay (in production, this would be an API call)
     setTimeout(() => {
       setIsSearching(false);
@@ -208,10 +208,10 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
   const handlePopularFlightClick = (from: string, to: string) => {
     const fromAirportData = airports.find(a => a.city === from);
     const toAirportData = airports.find(a => a.city === to);
-    
+
     if (fromAirportData) setFromAirport(fromAirportData);
     if (toAirportData) setToAirport(toAirportData);
-    
+
     // Scroll to hero search
     heroSearchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     toast.success(t('flights.routeSelected', { from, to }));
@@ -239,7 +239,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
   return (
     <div className="bg-white min-h-screen">
       {/* Loading Overlay */}
-      <SearchLoadingOverlay 
+      <SearchLoadingOverlay
         isLoading={isSearching}
         searchType="flight"
         message={t('flights.searchingFlights')}
@@ -319,9 +319,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                               }}
                             >
                               <Check
-                                className={`mr-2 h-4 w-4 ${
-                                  fromAirport?.code === airport.code ? "opacity-100" : "opacity-0"
-                                }`}
+                                className={`mr-2 h-4 w-4 ${fromAirport?.code === airport.code ? "opacity-100" : "opacity-0"
+                                  }`}
                               />
                               <div>
                                 <div className="font-medium">{airport.city} ({airport.code})</div>
@@ -388,9 +387,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                               }}
                             >
                               <Check
-                                className={`mr-2 h-4 w-4 ${
-                                  toAirport?.code === airport.code ? "opacity-100" : "opacity-0"
-                                }`}
+                                className={`mr-2 h-4 w-4 ${toAirport?.code === airport.code ? "opacity-100" : "opacity-0"
+                                  }`}
                               />
                               <div>
                                 <div className="font-medium">{airport.city} ({airport.code})</div>
@@ -591,8 +589,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                         </RadioGroup>
                       </div>
 
-                      <Button 
-                        onClick={() => setOpenPassengers(false)} 
+                      <Button
+                        onClick={() => setOpenPassengers(false)}
                         className="w-full bg-blue-600 hover:bg-blue-700"
                       >
                         {t('common.done')}
@@ -604,7 +602,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
 
               {/* Search Button */}
               <div className={tripType === "round-trip" ? "md:col-span-1" : "md:col-span-1"}>
-                <Button 
+                <Button
                   onClick={handleSearch}
                   className="w-full h-14 bg-[#0194f3] hover:bg-[#0180d6] text-white"
                 >
@@ -745,8 +743,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
             <h2 className="text-3xl mb-2">{t('common.dealsForYou')}</h2>
             <p className="text-gray-600">{t('common.hottestPromotions')}</p>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => onNavigate("promotions")}
             className="border-blue-600 text-blue-600 hover:bg-blue-50"
           >
@@ -767,7 +765,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
             <CarouselContent className="-ml-2 md:-ml-4">
               {promotions.map((promo: any) => (
                 <CarouselItem key={promo.id} className="md:basis-1/2 lg:basis-1/3">
-                  <div 
+                  <div
                     onClick={() => setSelectedVoucher(promo)}
                     className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer group"
                   >
@@ -782,7 +780,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                       </div>
                     </div>
                     <div className="p-5">
-                      <div className="text-sm text-gray-600 mb-1">Wanderlust Travel</div>
+                      <div className="text-sm text-gray-600 mb-1">{t('common.travelAgency')}</div>
                       <h3 className="text-lg mb-2">{promo.title}</h3>
                       <p className="text-sm text-gray-600 mb-4">{promo.description}</p>
                       <div className="flex items-center justify-between">
@@ -814,28 +812,28 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
         <Accordion type="single" collapsible className="w-full">
           {[
             {
-              q: "Làm thế nào để tìm kiếm và đặt vé máy bay trên Wanderlust?",
-              a: "Bạn chỉ cần nhập điểm đi, điểm đến, ngày bay và số hành khách vào khung tìm kiếm. Hệ thống sẽ hiển thị các chuyến bay phù hợp. Chọn chuyến bay bạn muốn, điền thông tin hành khách và thanh toán."
+              q: t('flights.faqQuestions.q1'),
+              a: t('flights.faqQuestions.a1')
             },
             {
-              q: "Những hình thức thanh toán nào được chấp nhận?",
-              a: "Chúng tôi chấp nhận thanh toán qua thẻ tín dụng/ghi nợ (Visa, Mastercard), ví điện tử (Momo, ZaloPay), chuyển khoản ngân hàng và Ví Wanderlust."
+              q: t('flights.faqQuestions.q2'),
+              a: t('flights.faqQuestions.a2')
             },
             {
-              q: "Tôi có thể hủy hoặc đổi vé sau khi đã đặt không?",
-              a: "Có, bạn có thể hủy hoặc đổi vé tùy theo điều kiện của loại vé bạn đã mua. Vé Linh hoạt cho phép hủy/đổi miễn phí, trong khi vé Tiết kiệm có thể tính phí. Vui lòng kiểm tra điều kiện cụ thể khi đặt vé."
+              q: t('flights.faqQuestions.q3'),
+              a: t('flights.faqQuestions.a3')
             },
             {
-              q: "Làm sao để biết chuyến bay có bị hoãn hoặc hủy?",
-              a: "Chúng tôi sẽ gửi thông báo qua email và SMS đến số điện thoại bạn đã đăng ký. Bạn cũng có thể kiểm tra trạng thái chuyến bay trong mục 'Đơn hàng của tôi'."
+              q: t('flights.faqQuestions.q4'),
+              a: t('flights.faqQuestions.a4')
             },
             {
-              q: "Tôi có thể đặt vé cho nhiều hành khách cùng lúc không?",
-              a: "Có, bạn có thể đặt vé cho tối đa 9 hành khách trong một giao dịch. Hệ thống sẽ yêu cầu bạn điền thông tin cho từng hành khách."
+              q: t('flights.faqQuestions.q5'),
+              a: t('flights.faqQuestions.a5')
             },
             {
-              q: "Chính sách hành lý ký gửi là gì?",
-              a: "Chính sách hành lý phụ thuộc vào hãng hàng không và loại vé. Thông tin chi tiết về hành lý sẽ được hiển thị khi bạn chọn chuyến bay."
+              q: t('flights.faqQuestions.q6'),
+              a: t('flights.faqQuestions.a6')
             }
           ].map((faq, index) => (
             <AccordionItem key={index} value={`item-${index}`}>
@@ -869,8 +867,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-full">
-                  {selectedVoucher.type === 'PERCENTAGE' 
-                    ? `${selectedVoucher.value}%` 
+                  {selectedVoucher.type === 'PERCENTAGE'
+                    ? `${selectedVoucher.value}%`
                     : `${(selectedVoucher.value / 1000).toFixed(0)}K`}
                 </div>
               </div>
@@ -913,25 +911,25 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                     ))
                   ) : (
                     <>
-                      <li>• Áp dụng cho vé máy bay</li>
-                      <li>• Không áp dụng cùng các chương trình khuyến mãi khác</li>
-                      <li>• Mỗi tài khoản chỉ được sử dụng 1 lần</li>
+                      <li>• {t('flights.voucherConditions.flight')}</li>
+                      <li>• {t('flights.voucherConditions.noCombine')}</li>
+                      <li>• {t('flights.voucherConditions.oneTime')}</li>
                     </>
                   )}
                 </ul>
               </div>
 
-              <Button 
+              <Button
                 className="w-full bg-blue-600 hover:bg-blue-700"
                 onClick={() => handleSaveVoucher(selectedVoucher)}
                 disabled={savedVouchers.includes(selectedVoucher.code) || savingVoucher}
               >
                 <Tag className="w-4 h-4 mr-2" />
-                {savingVoucher 
-                  ? 'Đang lưu...' 
-                  : savedVouchers.includes(selectedVoucher.code) 
-                    ? 'Đã lưu vào Ví Voucher' 
-                    : 'Lưu vào Ví Voucher'
+                {savingVoucher
+                  ? t('flights.savingVoucher')
+                  : savedVouchers.includes(selectedVoucher.code)
+                    ? t('flights.savedVoucher')
+                    : t('flights.saveVoucher')
                 }
               </Button>
             </div>
@@ -940,12 +938,12 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       )}
 
       <Footer />
-      
+
       {/* Search Loading Overlay */}
-      <SearchLoadingOverlay 
-        isLoading={isSearching} 
+      <SearchLoadingOverlay
+        isLoading={isSearching}
         searchType="flight"
-        message="Đang tìm kiếm chuyến bay tốt nhất cho bạn..."
+        message={t('flights.searchingMessage')}
       />
     </div>
   );

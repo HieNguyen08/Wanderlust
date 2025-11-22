@@ -1,11 +1,11 @@
 import {
-  ArrowLeft,
-  CheckCircle,
-  CreditCard,
-  Shield,
-  Smartphone,
-  TrendingUp,
-  Zap
+    ArrowLeft,
+    CheckCircle,
+    CreditCard,
+    Shield,
+    Smartphone,
+    TrendingUp,
+    Zap
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -16,12 +16,15 @@ import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Separator } from "../../components/ui/separator";
 import type { PageType } from "../../MainApp";
+import { type FrontendRole } from "../../utils/roleMapper";
 
 interface TopUpWalletPageProps {
   onNavigate: (page: PageType, data?: any) => void;
+  userRole?: FrontendRole | null;
+  onLogout?: () => void;
 }
 
-export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
+export default function TopUpWalletPage({ onNavigate, userRole, onLogout }: TopUpWalletPageProps) {
   const { t } = useTranslation();
   const [amount, setAmount] = useState("");
   const [selectedMethod, setSelectedMethod] = useState<"card" | "momo" | "vnpay" | null>(null);
@@ -93,7 +96,7 @@ export default function TopUpWalletPage({ onNavigate }: TopUpWalletPageProps) {
   const newBalance = amount ? currentBalance + parseInt(amount) : currentBalance;
 
   return (
-    <ProfileLayout currentPage="wallet" onNavigate={onNavigate} activePage="wallet">
+    <ProfileLayout currentPage="wallet" onNavigate={onNavigate} activePage="wallet" userRole={userRole} onLogout={onLogout}>
       <div className="space-y-6">
         {/* Header */}
         <div>

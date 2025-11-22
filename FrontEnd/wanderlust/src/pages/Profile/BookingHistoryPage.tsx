@@ -40,18 +40,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 import { Textarea } from "../../components/ui/textarea";
 import type { PageType } from "../../MainApp";
 import { bookingApi } from "../../utils/api";
+import { type FrontendRole } from "../../utils/roleMapper";
 
 interface BookingHistoryPageProps {
   onNavigate: (page: PageType, data?: any) => void;
+  userRole?: FrontendRole | null;
+  onLogout?: () => void;
 }
 
 interface Booking {
   id: string;
-  type: "flight" | "hotel" | "car" | "activity" | "visa";
+  type: "flight" | "hotel" | "car" | "activity";
   status: "completed" | "upcoming" | "cancelled";
   title: string;
   subtitle: string;
   date: string;
+  endDate?: string;
   location: string;
   image: string;
   price: number;
@@ -78,12 +82,14 @@ interface Booking {
     email: string;
   };
   hasReview?: boolean;
+  // Original backend data
+  rawData?: any;
 }
 
-export default function BookingHistoryPage({ onNavigate }: BookingHistoryPageProps) {
+export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: BookingHistoryPageProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"upcoming" | "completed" | "cancelled">("upcoming");
-  const [serviceFilter, setServiceFilter] = useState<"all" | "flight" | "hotel" | "car" | "activity" | "visa">("all");
+  const [serviceFilter, setServiceFilter] = useState<"all" | "flight" | "hotel" | "car" | "activity">("all");
   
   // Data states
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -109,70 +115,82 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
       'PENDING': 'upcoming',
       'CONFIRMED': 'upcoming',
       'COMPLETED': 'completed',
-      'CANCELLED': 'cancelled'
+      'CANCELLED': 'cancelled',
+      'REFUND_REQUESTED': 'cancelled'
     };
 
-    // Map backend productType to UI type
-    const typeMap: Record<string, "flight" | "hotel" | "car" | "activity" | "visa"> = {
+    // Map backend bookingType to UI type
+    const typeMap: Record<string, "flight" | "hotel" | "car" | "activity"> = {
       'FLIGHT': 'flight',
       'HOTEL': 'hotel',
       'CAR_RENTAL': 'car',
-      'ACTIVITY': 'activity',
-      'VISA': 'visa'
+      'ACTIVITY': 'activity'
     };
 
-    const bookingType = typeMap[apiBooking.productType] || 'flight';
+    const bookingType = typeMap[apiBooking.bookingType] || 'flight';
     
     // Extract location and subtitle based on type
     let location = 'N/A';
     let subtitle = '';
     let imageUrl = '';
+    let title = '';
     
     if (bookingType === 'flight') {
       const flightMatch = apiBooking.specialRequests?.match(/Flight: (.*?) to (.*?)\./);
       location = flightMatch?.[1] || 'N/A';
-      subtitle = flightMatch ? `${flightMatch[1]} → ${flightMatch[2]}` : '';
+      subtitle = flightMatch ? `${flightMatch[1]} → ${flightMatch[2]}` : 'Flight Booking';
+      title = 'Vé máy bay';
       imageUrl = "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&h=300&fit=crop";
     } else if (bookingType === 'hotel') {
-      const hotelMatch = apiBooking.specialRequests?.match(/Hotel: (.*?)\. Room: (.*?)\./);
+      const hotelMatch = apiBooking.specialRequests?.match(/Hotel: (.*?)\./);
+      const roomMatch = apiBooking.specialRequests?.match(/Room: (.*?)\./);
+      title = hotelMatch?.[1] || 'Khách sạn';
+      subtitle = roomMatch?.[1] || 'Hotel Room';
       location = hotelMatch?.[1] || 'N/A';
-      subtitle = hotelMatch?.[2] || 'Hotel Room';
       imageUrl = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop";
     } else if (bookingType === 'car') {
-      const carMatch = apiBooking.specialRequests?.match(/Car: (.*?)\. Location: (.*?)\./);
-      location = carMatch?.[2] || 'N/A';
+      const carMatch = apiBooking.specialRequests?.match(/Car: (.*?)\./);
+      const locationMatch = apiBooking.specialRequests?.match(/Location: (.*?)\./);
+      title = carMatch?.[1] || 'Thuê xe';
       subtitle = carMatch?.[1] || 'Car Rental';
+      location = locationMatch?.[1] || 'N/A';
       imageUrl = "https://images.unsplash.com/photo-1590362891991-f776e747a588?w=400&h=300&fit=crop";
     } else if (bookingType === 'activity') {
       const activityMatch = apiBooking.specialRequests?.match(/Activity: (.*?)\./);
+      title = activityMatch?.[1] || 'Hoạt động';
       subtitle = activityMatch?.[1] || 'Activity';
       location = 'Activity Location';
       imageUrl = "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=400&h=300&fit=crop";
     }
 
+    // Format dates
+    const startDate = apiBooking.startDate ? new Date(apiBooking.startDate) : new Date();
+    const endDate = apiBooking.endDate ? new Date(apiBooking.endDate) : null;
+
     return {
       id: apiBooking.id,
       type: bookingType,
       status: statusMap[apiBooking.status] || 'upcoming',
-      title: apiBooking.productName || subtitle || `${apiBooking.productType} Booking`,
+      title: title,
       subtitle: subtitle,
-      date: new Date(apiBooking.startDate).toLocaleDateString('vi-VN'),
+      date: startDate.toLocaleDateString('vi-VN'),
+      endDate: endDate ? endDate.toLocaleDateString('vi-VN') : undefined,
       location: location,
       image: imageUrl,
       price: apiBooking.totalPrice || 0,
       bookingCode: apiBooking.bookingCode || apiBooking.id.substring(0, 8).toUpperCase(),
-      details: `${apiBooking.quantity || 1} ${bookingType === 'hotel' ? 'phòng' : bookingType === 'car' ? 'xe' : 'người'}`,
+      details: apiBooking.specialRequests || '',
       participants: apiBooking.guestInfo ? [
         {
-          name: `${apiBooking.guestInfo.firstName} ${apiBooking.guestInfo.lastName}`,
-          email: apiBooking.guestInfo.email,
-          phone: apiBooking.guestInfo.phone
+          name: `${apiBooking.guestInfo.firstName || ''} ${apiBooking.guestInfo.lastName || ''}`.trim(),
+          email: apiBooking.guestInfo.email || '',
+          phone: apiBooking.guestInfo.phone || ''
         }
       ] : [],
       paymentDetails: {
-        method: apiBooking.paymentMethod || 'Unknown',
+        method: apiBooking.paymentMethod || 'Chưa thanh toán',
         transactionId: apiBooking.id,
-        paidAt: new Date(apiBooking.bookingDate || apiBooking.createdAt).toLocaleString('vi-VN')
+        paidAt: apiBooking.bookingDate ? new Date(apiBooking.bookingDate).toLocaleString('vi-VN') : 'N/A'
       },
       cancellationPolicy: {
         refundPercentage: 80,
@@ -184,7 +202,8 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
         phone: '1900 xxxx',
         email: 'support@wanderlust.vn'
       },
-      hasReview: false
+      hasReview: false,
+      rawData: apiBooking
     };
   };
 
@@ -223,7 +242,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
 
     try {
       setIsCancelling(true);
-      await bookingApi.cancel(selectedBooking.id, cancelReason);
+      await bookingApi.cancelBooking(selectedBooking.id, cancelReason);
       
       // Update local state
       setBookings(prevBookings =>
@@ -275,7 +294,6 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
       case "hotel": return Hotel;
       case "car": return Car;
       case "activity": return Activity;
-      case "visa": return FileText;
       default: return Hotel;
     }
   };
@@ -286,7 +304,6 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
       case "hotel": return t('profile.bookingHistory.hotel', 'Khách sạn');
       case "car": return t('profile.bookingHistory.car', 'Thuê xe');
       case "activity": return t('profile.bookingHistory.activity', 'Hoạt động');
-      case "visa": return t('profile.bookingHistory.visa', 'Visa');
       default: return "";
     }
   };
@@ -385,7 +402,7 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
   };
 
   return (
-    <ProfileLayout currentPage="booking-history" onNavigate={onNavigate} activePage="bookings">
+    <ProfileLayout currentPage="booking-history" onNavigate={onNavigate} activePage="bookings" userRole={userRole} onLogout={onLogout}>
       <div className="space-y-6">
         {/* Header */}
         <div>
@@ -472,14 +489,6 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
                 >
                   <Activity className="w-4 h-4 mr-1" />
                   {t('profile.bookingHistory.activity')}
-                </Button>
-                <Button 
-                  variant={serviceFilter === "visa" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setServiceFilter("visa")}
-                >
-                  <FileText className="w-4 h-4 mr-1" />
-                  {t('profile.bookingHistory.visa')}
                 </Button>
               </div>
             </div>
@@ -686,16 +695,22 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
 
                   <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                     <div>
-                      <p className="text-sm text-gray-600">{t('profile.bookingHistory.usageDate', 'Ngày sử dụng')}</p>
+                      <p className="text-sm text-gray-600">{t('profile.bookingHistory.startDate', 'Ngày bắt đầu')}</p>
                       <p>{selectedBooking.date}</p>
                     </div>
+                    {selectedBooking.endDate && (
+                      <div>
+                        <p className="text-sm text-gray-600">{t('profile.bookingHistory.endDate', 'Ngày kết thúc')}</p>
+                        <p>{selectedBooking.endDate}</p>
+                      </div>
+                    )}
                     <div>
                       <p className="text-sm text-gray-600">{t('profile.bookingHistory.location', 'Địa điểm')}</p>
                       <p>{selectedBooking.location}</p>
                     </div>
                     <div className="col-span-2">
                       <p className="text-sm text-gray-600">{t('profile.bookingHistory.details', 'Chi tiết')}</p>
-                      <p>{selectedBooking.details}</p>
+                      <p className="whitespace-pre-line">{selectedBooking.details}</p>
                     </div>
                   </div>
                 </div>
@@ -915,12 +930,26 @@ export default function BookingHistoryPage({ onNavigate }: BookingHistoryPagePro
             </div>
           )}
 
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="cancelReason">{t('profile.bookingHistory.cancelReason', 'Lý do hủy')}</Label>
+              <Textarea
+                id="cancelReason"
+                placeholder={t('profile.bookingHistory.enterCancelReason', 'Nhập lý do hủy booking...')}
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                rows={3}
+                className="mt-2"
+              />
+            </div>
+          </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCancelDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsCancelDialogOpen(false)} disabled={isCancelling}>
               {t('profile.bookingHistory.keepBooking', 'Không, giữ lại')}
             </Button>
-            <Button variant="destructive" onClick={handleConfirmCancel}>
-              {t('profile.bookingHistory.confirmCancelButton', 'Xác nhận hủy')}
+            <Button variant="destructive" onClick={handleCancelBooking} disabled={isCancelling}>
+              {isCancelling ? t('profile.bookingHistory.cancelling', 'Đang hủy...') : t('profile.bookingHistory.confirmCancelButton', 'Xác nhận hủy')}
             </Button>
           </DialogFooter>
         </DialogContent>

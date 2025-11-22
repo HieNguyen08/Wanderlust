@@ -1,5 +1,7 @@
 import { Calendar, Info, MapPin, Users } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
@@ -10,6 +12,7 @@ import { Label } from "../../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Separator } from "../../components/ui/separator";
 import type { PageType } from "../../MainApp";
+import { profileApi, tokenService } from "../../utils/api";
 
 interface HotelReviewPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -17,12 +20,15 @@ interface HotelReviewPageProps {
 }
 
 export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPageProps) {
+  const { t } = useTranslation();
   const [contactInfo, setContactInfo] = useState({
-    fullName: "Nguyễn Văn A",
-    email: "nguyenvana@example.com",
-    phone: "+84901234567",
+    fullName: "",
+    email: "",
+    phone: "",
     countryCode: "+84"
   });
+
+  const [isLoadingUserData, setIsLoadingUserData] = useState(true);
 
   const [guestInfo, setGuestInfo] = useState({
     title: "",
@@ -44,6 +50,38 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
   });
 
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+
+  // Load user info when component mounts
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (tokenService.isAuthenticated()) {
+        try {
+          const userProfile = await profileApi.getCurrentUser();
+          
+          // Auto-fill contact info from user profile
+          setContactInfo({
+            fullName: `${userProfile.firstName} ${userProfile.lastName}`.trim(),
+            email: userProfile.email || "",
+            phone: userProfile.mobile || "",
+            countryCode: "+84"
+          });
+          
+          toast.success(t('hotels.userInfoLoaded') || 'Đã tải thông tin người dùng');
+        } catch (error: any) {
+          console.error('Error loading user profile:', error);
+          if (error.message !== 'UNAUTHORIZED') {
+            toast.info(t('hotels.fillContactInfo') || 'Vui lòng điền thông tin liên hệ');
+          }
+        } finally {
+          setIsLoadingUserData(false);
+        }
+      } else {
+        setIsLoadingUserData(false);
+      }
+    };
+
+    loadUserData();
+  }, [t]);
 
   // Mock data
   const hotel = hotelData?.hotel || {
@@ -138,26 +176,33 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl text-gray-900 mb-1">Thông tin Liên hệ</h2>
+                  <h2 className="text-2xl text-gray-900 mb-1">{t('hotels.contactInfo') || 'Thông tin Liên hệ'}</h2>
                   <p className="text-sm text-gray-600">
-                    Xác nhận đặt phòng sẽ được gửi đến đây
+                    {t('hotels.confirmationWillBeSent') || 'Xác nhận đặt phòng sẽ được gửi đến đây'}
                   </p>
                 </div>
-                {!isEditingContact && (
+                {!isEditingContact && !isLoadingUserData && (
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setIsEditingContact(true)}
                   >
-                    Chỉnh sửa
+                    {t('common.edit') || 'Chỉnh sửa'}
                   </Button>
                 )}
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              {isLoadingUserData ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-3 text-gray-600">{t('common.loading') || 'Đang tải...'}</span>
+                </div>
+              ) : (
+                <>
+                  <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="contactName">
-                    Tên đầy đủ <span className="text-red-600">*</span>
+                    {t('hotels.fullName') || 'Tên đầy đủ'} <span className="text-red-600">*</span>
                   </Label>
                   <Input
                     id="contactName"
@@ -184,7 +229,7 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
 
                 <div className="md:col-span-2">
                   <Label htmlFor="contactPhone">
-                    Số điện thoại di động <span className="text-red-600">*</span>
+                    {t('hotels.mobilePhone') || 'Số điện thoại di động'} <span className="text-red-600">*</span>
                   </Label>
                   <div className="flex gap-2 mt-1">
                     <Select
@@ -217,15 +262,17 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
               {isEditingContact && (
                 <div className="mt-4 flex gap-2">
                   <Button onClick={() => setIsEditingContact(false)}>
-                    Lưu
+                    {t('common.save') || 'Lưu'}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setIsEditingContact(false)}
                   >
-                    Hủy
+                    {t('common.cancel') || 'Hủy'}
                   </Button>
                 </div>
+              )}
+                </>
               )}
             </Card>
 

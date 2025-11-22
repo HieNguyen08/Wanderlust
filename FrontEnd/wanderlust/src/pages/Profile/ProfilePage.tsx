@@ -22,23 +22,26 @@ import { ProfileLayout } from "../../components/ProfileLayout";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import type { PageType } from "../../MainApp";
 import { profileApi, tokenService } from "../../utils/api";
+import { type FrontendRole } from "../../utils/roleMapper";
 
 interface ProfilePageProps {
   onNavigate: (page: PageType, data?: any) => void;
+  userRole?: FrontendRole | null;
+  onLogout?: () => void;
 }
 
-export default function ProfilePage({ onNavigate }: ProfilePageProps) {
+export default function ProfilePage({ onNavigate, userRole, onLogout }: ProfilePageProps) {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -297,7 +300,7 @@ export default function ProfilePage({ onNavigate }: ProfilePageProps) {
   ];
 
   return (
-    <ProfileLayout currentPage="profile" onNavigate={onNavigate} activePage="profile">
+    <ProfileLayout currentPage="profile" onNavigate={onNavigate} activePage="profile" userRole={userRole} onLogout={onLogout}>
       <div className="space-y-6">
         {/* Avatar Change Dialog */}
         <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>

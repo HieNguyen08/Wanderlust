@@ -11,12 +11,15 @@ import { Input } from "../../components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import type { PageType } from "../../MainApp";
 import { tokenService, userVoucherApi } from "../../utils/api";
+import { type FrontendRole } from "../../utils/roleMapper";
 
 interface UserVouchersPageProps {
   onNavigate: (page: PageType, data?: any) => void;
+  userRole?: FrontendRole | null;
+  onLogout?: () => void;
 }
 
-export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) {
+export default function UserVouchersPage({ onNavigate, userRole, onLogout }: UserVouchersPageProps) {
   const { t } = useTranslation();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [addCodeInput, setAddCodeInput] = useState("");
@@ -236,7 +239,7 @@ export default function UserVouchersPage({ onNavigate }: UserVouchersPageProps) 
   );
 
   return (
-    <ProfileLayout currentPage="vouchers" onNavigate={onNavigate} activePage="vouchers">
+    <ProfileLayout currentPage="vouchers" onNavigate={onNavigate} activePage="vouchers" userRole={userRole} onLogout={onLogout}>
       <div className="space-y-6">
         {/* Header */}
         <div>

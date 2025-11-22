@@ -39,9 +39,11 @@ interface Activity {
 interface ActivitiesPageProps {
   onNavigate: (page: PageType, data?: any) => void;
   initialCategory?: string;
+  userRole?: any;
+  onLogout?: () => void;
 }
 
-export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: ActivitiesPageProps) {
+export default function ActivitiesPage({ onNavigate, initialCategory = "all", userRole, onLogout }: ActivitiesPageProps) {
   const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState("");
@@ -159,7 +161,7 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all" }: 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <Header currentPage="activities" onNavigate={onNavigate} />
+      <Header currentPage="activities" onNavigate={onNavigate} userRole={userRole} onLogout={onLogout} />
 
       {/* Hero Section */}
       <div className="relative w-full bg-gradient-to-r from-blue-600 to-blue-700 pb-8">

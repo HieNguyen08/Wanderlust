@@ -216,7 +216,7 @@ public class TransactionServiceImpl implements TransactionService {
                         if (activity != null) serviceName = "Hoạt động: " + activity.getName();
                     }
                     break;
-                case CAR:
+                case CAR_RENTAL:
                     if (booking.getCarRentalId() != null) {
                         CarRental car = carRentalService.findById(booking.getCarRentalId());
                         if (car != null) serviceName = "Thuê xe: " + car.getBrand() + " " + car.getModel();

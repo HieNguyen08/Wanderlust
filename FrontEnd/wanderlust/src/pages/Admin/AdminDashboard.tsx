@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { AdminLayout } from "../../components/AdminLayout";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
@@ -129,6 +129,11 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
   return (
     <AdminLayout currentPage="admin-dashboard" onNavigate={onNavigate} activePage="admin-dashboard">
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      ) : (
       <div className="space-y-6">
         {/* Page Header */}
         <div>
@@ -174,24 +179,28 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               </Button>
             </div>
             <div className="space-y-4">
-              {bookings.map((booking) => (
+              {bookings.length > 0 ? bookings.map((booking) => (
                 <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-gray-900">{booking.customer}</span>
+                      <span className="font-medium text-gray-900">{booking.customer || 'N/A'}</span>
                       <span className="text-sm text-gray-500">#{booking.id}</span>
                     </div>
-                    <p className="text-sm text-gray-600">{booking.type}</p>
+                    <p className="text-sm text-gray-600">{booking.type || 'N/A'}</p>
                   </div>
                   <div className="text-right mr-4">
                     <p className="font-semibold text-gray-900">
-                      {booking.amount.toLocaleString('vi-VN')}đ
+                      {booking.amount ? booking.amount.toLocaleString('vi-VN') + 'đ' : '0đ'}
                     </p>
-                    <p className="text-xs text-gray-500">{booking.date}</p>
+                    <p className="text-xs text-gray-500">{booking.date || 'N/A'}</p>
                   </div>
                   {getStatusBadge(booking.status)}
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-8 text-gray-500">
+                  {t('admin.noRecentBookings', 'Không có đơn đặt gần đây')}
+                </div>
+              )}
             </div>
           </Card>
 
@@ -305,6 +314,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           </Button>
         </div>
       </div>
+      )}
     </AdminLayout>
   );
 }

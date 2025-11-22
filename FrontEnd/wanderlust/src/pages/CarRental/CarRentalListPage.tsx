@@ -21,6 +21,8 @@ import { carRentalApi, locationApi } from "../../utils/api";
 
 interface CarRentalListPageProps {
   onNavigate: (page: PageType, data?: any) => void;
+  userRole?: any;
+  onLogout?: () => void;
 }
 
 interface LocationItem {
@@ -39,7 +41,7 @@ const timeSlots = [
   "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30",
 ];
 
-export default function CarRentalListPage({ onNavigate }: CarRentalListPageProps) {
+export default function CarRentalListPage({ onNavigate, userRole, onLogout }: CarRentalListPageProps) {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedCapacities, setSelectedCapacities] = useState<string[]>([]);
   const [maxPrice, setMaxPrice] = useState(100);
@@ -257,7 +259,7 @@ export default function CarRentalListPage({ onNavigate }: CarRentalListPageProps
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Header */}
-      <Header currentPage="car-rental" onNavigate={onNavigate} />
+      <Header currentPage="car-rental" onNavigate={onNavigate} userRole={userRole} onLogout={onLogout} />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 pt-[calc(60px+2rem)]">

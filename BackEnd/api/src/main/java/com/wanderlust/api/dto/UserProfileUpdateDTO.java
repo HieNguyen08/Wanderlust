@@ -1,8 +1,10 @@
 package com.wanderlust.api.dto;
 
-import com.wanderlust.api.entity.types.Gender;
-
 import java.time.LocalDate;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.wanderlust.api.configure.GenderDeserializer;
+import com.wanderlust.api.entity.types.Gender;
 
 import lombok.Data;
 
@@ -18,5 +20,7 @@ public class UserProfileUpdateDTO {
     private String country;
     private String passportNumber;
     private LocalDate passportExpiry;
+    
+    @JsonDeserialize(using = GenderDeserializer.class)
     private Gender gender;
 }

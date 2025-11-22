@@ -5,7 +5,7 @@ import com.wanderlust.api.entity.types.HotelStatusType;
 import com.wanderlust.api.entity.types.HotelType;
 import lombok.Data;
 import java.math.BigDecimal;
-import java.time.LocalTime;
+
 import java.util.List;
 
 @Data
@@ -22,8 +22,7 @@ public class HotelDTO {
     private String phone;
     private String email;
     private String website;
-    private LocalTime checkInTime;
-    private LocalTime checkOutTime;
+
     private List<Hotel.HotelImage> images;
     private List<String> amenities;
     private Hotel.HotelPolicies policies;
