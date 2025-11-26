@@ -1,10 +1,14 @@
 package com.wanderlust.api.mapper;
 
+import java.util.List;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+
 import com.wanderlust.api.dto.hotelDTO.HotelDTO;
 import com.wanderlust.api.entity.Hotel;
-import org.mapstruct.*;
-
-import java.util.List;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface HotelMapper {
@@ -14,7 +18,6 @@ public interface HotelMapper {
      * Map các trường có tên khác nhau từ Entity sang DTO
      */
     @Mapping(source = "hotelID", target = "id")
-    @Mapping(source = "hotel_Type", target = "hotelType")
     HotelDTO toDTO(Hotel hotel);
 
     /**
@@ -30,7 +33,6 @@ public interface HotelMapper {
     @Mapping(target = "hotelID", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(source = "hotelType", target = "hotel_Type")
     @Mapping(target = "latitude", ignore = true)
     @Mapping(target = "longitude", ignore = true)
     @Mapping(target = "shortDescription", ignore = true)
@@ -47,7 +49,6 @@ public interface HotelMapper {
     @Mapping(target = "hotelID", ignore = true) // Không cho phép update ID
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(source = "hotelType", target = "hotel_Type")
     @Mapping(target = "latitude", ignore = true)
     @Mapping(target = "longitude", ignore = true)
     @Mapping(target = "shortDescription", ignore = true)

@@ -1,17 +1,18 @@
 package com.wanderlust.api.services;
 
-import com.wanderlust.api.entity.Flight;
-import com.wanderlust.api.entity.types.FlightStatus;
-import com.wanderlust.api.repository.FlightRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.wanderlust.api.entity.Flight;
+import com.wanderlust.api.entity.types.FlightStatus;
+import com.wanderlust.api.repository.FlightRepository;
 
 @Service
 public class FlightService {
@@ -41,12 +42,16 @@ public class FlightService {
     }
 
     /**
-     * Tìm kiếm chuyến bay (Core function cho frontend)
+     * Tìm kiếm chuyến bay (Core function cho frontend) - Nâng cao
      * @param from - Mã sân bay đi (VD: "SGN")
      * @param to - Mã sân bay đến (VD: "HAN")
      * @param date - Ngày bay (LocalDate)
      * @param directOnly - Chỉ tìm chuyến bay thẳng?
      * @param airlineCodes - Lọc theo hãng bay (optional)
+     * @param minPrice - Giá tối thiểu (optional)
+     * @param maxPrice - Giá tối đa (optional)
+     * @param cabinClass - Hạng vé: "economy", "premiumEconomy", "business" (optional)
+     * @param departureTimeRange - Khung giờ khởi hành: "morning" (6-12h), "afternoon" (12-18h), "evening" (18-24h) (optional)
      * @return Danh sách chuyến bay phù hợp
      */
     public List<Flight> searchFlights(
@@ -54,7 +59,11 @@ public class FlightService {
             String to,
             LocalDate date,
             Boolean directOnly,
-            List<String> airlineCodes
+            List<String> airlineCodes,
+            java.math.BigDecimal minPrice,
+            java.math.BigDecimal maxPrice,
+            String cabinClass,
+            String departureTimeRange
     ) {
         // Tạo khoảng thời gian cho cả ngày
         LocalDateTime startOfDay = date.atStartOfDay();
@@ -79,6 +88,70 @@ public class FlightService {
         if (airlineCodes != null && !airlineCodes.isEmpty()) {
             flights = flights.stream()
                     .filter(f -> airlineCodes.contains(f.getAirlineCode()))
+                    .collect(Collectors.toList());
+        }
+
+        // Lọc theo giá
+        if (minPrice != null || maxPrice != null) {
+            flights = flights.stream()
+                    .filter(f -> {
+                        // Lấy giá thấp nhất của cabin class được chọn (hoặc economy nếu không chọn)
+                        String targetCabin = (cabinClass != null && !cabinClass.isEmpty()) ? cabinClass : "economy";
+                        
+                        if (f.getCabinClasses() != null && f.getCabinClasses().containsKey(targetCabin)) {
+                            Flight.CabinClassInfo cabinInfo = f.getCabinClasses().get(targetCabin);
+                            if (cabinInfo != null && cabinInfo.getFromPrice() != null) {
+                                java.math.BigDecimal price = cabinInfo.getFromPrice();
+                                
+                                // Kiểm tra khoảng giá
+                                if (minPrice != null && price.compareTo(minPrice) < 0) {
+                                    return false;
+                                }
+                                if (maxPrice != null && price.compareTo(maxPrice) > 0) {
+                                    return false;
+                                }
+                            }
+                        }
+                        return true;
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        // Lọc theo khung giờ khởi hành
+        if (departureTimeRange != null && !departureTimeRange.isEmpty()) {
+            flights = flights.stream()
+                    .filter(f -> {
+                        if (f.getDepartureTime() == null) return true;
+                        
+                        int hour = f.getDepartureTime().getHour();
+                        
+                        switch (departureTimeRange.toLowerCase()) {
+                            case "morning":
+                            case "early":
+                                return hour >= 0 && hour < 12;
+                            case "afternoon":
+                            case "noon":
+                                return hour >= 12 && hour < 18;
+                            case "evening":
+                            case "night":
+                                return hour >= 18 && hour < 24;
+                            default:
+                                return true;
+                        }
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        // Lọc theo cabin class availability
+        if (cabinClass != null && !cabinClass.isEmpty()) {
+            flights = flights.stream()
+                    .filter(f -> {
+                        if (f.getCabinClasses() != null && f.getCabinClasses().containsKey(cabinClass)) {
+                            Flight.CabinClassInfo cabinInfo = f.getCabinClasses().get(cabinClass);
+                            return cabinInfo != null && cabinInfo.getAvailable() != null && cabinInfo.getAvailable();
+                        }
+                        return false;
+                    })
                     .collect(Collectors.toList());
         }
 

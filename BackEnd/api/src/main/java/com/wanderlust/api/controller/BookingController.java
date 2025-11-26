@@ -36,30 +36,30 @@ import lombok.AllArgsConstructor;
 public class BookingController {
 
     private final BookingService bookingService;
-    
+
     // DateTimeFormatter to handle multiple date formats
     private static final DateTimeFormatter[] DATE_FORMATTERS = {
-        DateTimeFormatter.ofPattern("dd/MM/yyyy"),  // 23/11/2025
-        DateTimeFormatter.ofPattern("yyyy-MM-dd"),  // 2025-11-23
-        DateTimeFormatter.ISO_LOCAL_DATE,           // ISO format
-        DateTimeFormatter.ofPattern("MM/dd/yyyy")   // 11/23/2025
+            DateTimeFormatter.ofPattern("dd/MM/yyyy"), // 23/11/2025
+            DateTimeFormatter.ofPattern("yyyy-MM-dd"), // 2025-11-23
+            DateTimeFormatter.ISO_LOCAL_DATE, // ISO format
+            DateTimeFormatter.ofPattern("MM/dd/yyyy") // 11/23/2025
     };
-    
+
     // Helper method to parse date with multiple formats
     private LocalDate parseDate(String dateStr) {
         // Return null for null, empty, or whitespace-only strings
         if (dateStr == null || dateStr.trim().isEmpty()) {
             return null;
         }
-        
+
         // Trim the string
         dateStr = dateStr.trim();
-        
+
         // If it contains 'T', extract just the date part (ISO DateTime format)
         if (dateStr.contains("T")) {
             dateStr = dateStr.substring(0, dateStr.indexOf("T"));
         }
-        
+
         // Try each formatter
         for (DateTimeFormatter formatter : DATE_FORMATTERS) {
             try {
@@ -68,9 +68,11 @@ public class BookingController {
                 // Continue to next formatter
             }
         }
-        
-        // If all formatters fail, log warning and return null instead of throwing exception
-        System.err.println("Warning: Unable to parse date: '" + dateStr + "'. Supported formats: dd/MM/yyyy, yyyy-MM-dd, MM/dd/yyyy. Returning null.");
+
+        // If all formatters fail, log warning and return null instead of throwing
+        // exception
+        System.err.println("Warning: Unable to parse date: '" + dateStr
+                + "'. Supported formats: dd/MM/yyyy, yyyy-MM-dd, MM/dd/yyyy. Returning null.");
         return null;
     }
 
@@ -86,7 +88,7 @@ public class BookingController {
         } else {
             throw new IllegalStateException("Invalid principal type. Expected CustomUserDetails or CustomOAuth2User.");
         }
-        
+
         if (userId == null) {
             throw new SecurityException("User ID is null in principal.");
         }
@@ -95,7 +97,7 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<List<BookingDTO>> getMyBookings(Authentication authentication) {
-        String userId = getUserIdFromAuthentication(authentication); // ĐÃ SỬA
+        String userId = getUserIdFromAuthentication(authentication);
         return new ResponseEntity<>(bookingService.findByUserId(userId), HttpStatus.OK);
     }
 
@@ -106,19 +108,20 @@ public class BookingController {
     }
 
     @PostMapping
-    public ResponseEntity<BookingDTO> createBooking(@RequestBody Map<String, Object> payload, Authentication authentication) {
+    public ResponseEntity<BookingDTO> createBooking(@RequestBody Map<String, Object> payload,
+            Authentication authentication) {
         String userId = getUserIdFromAuthentication(authentication);
-        
+
         // Parse payload từ frontend
         BookingDTO bookingDTO = new BookingDTO();
         bookingDTO.setUserId(userId);
-        
+
         // Map productType -> bookingType
         String productType = (String) payload.get("productType");
         if (productType != null) {
             bookingDTO.setBookingType(BookingType.valueOf(productType));
         }
-        
+
         // Map productId -> specific ID field
         String productId = (String) payload.get("productId");
         if (productType != null && productId != null) {
@@ -137,18 +140,18 @@ public class BookingController {
                     break;
             }
         }
-        
+
         // Parse dates
         String startDateStr = (String) payload.get("startDate");
         if (startDateStr != null) {
             bookingDTO.setStartDate(parseDate(startDateStr));
         }
-        
+
         String endDateStr = (String) payload.get("endDate");
         if (endDateStr != null) {
             bookingDTO.setEndDate(parseDate(endDateStr));
         }
-        
+
         // Parse guestInfo
         @SuppressWarnings("unchecked")
         Map<String, String> guestInfo = (Map<String, String>) payload.get("guestInfo");
@@ -157,7 +160,7 @@ public class BookingController {
             Map<String, Object> guestInfoObj = (Map<String, Object>) (Map<?, ?>) guestInfo;
             bookingDTO.setGuestInfo(guestInfoObj);
         }
-        
+
         // Parse quantity
         Object quantityObj = payload.get("quantity");
         if (quantityObj != null) {
@@ -178,18 +181,18 @@ public class BookingController {
                 // depending on your business logic
             }
         }
-        
+
         // Parse specialRequests
         String specialRequests = (String) payload.get("specialRequests");
         if (specialRequests != null) {
             bookingDTO.setSpecialRequests(specialRequests);
         }
-        
+
         // Set default values
         bookingDTO.setStatus(BookingStatus.PENDING);
         bookingDTO.setPaymentStatus(com.wanderlust.api.entity.types.PaymentStatus.PENDING);
         bookingDTO.setCurrency("VND");
-        
+
         BookingDTO newBooking = bookingService.create(bookingDTO);
         return new ResponseEntity<>(newBooking, HttpStatus.CREATED);
     }
@@ -197,10 +200,10 @@ public class BookingController {
     @PutMapping("/{id}/cancel")
     @PreAuthorize("hasRole('ADMIN') or @webSecurity.isBookingOwner(authentication, #id)")
     public ResponseEntity<BookingDTO> cancelBooking(
-            @PathVariable String id, 
+            @PathVariable String id,
             @RequestBody(required = false) Map<String, String> payload,
             Authentication authentication) {
-        
+
         String reason = payload != null ? payload.get("reason") : "User requested cancellation";
         String currentUserId = getUserIdFromAuthentication(authentication);
 
@@ -212,6 +215,20 @@ public class BookingController {
     @PreAuthorize("@webSecurity.isBookingOwner(authentication, #id)")
     public ResponseEntity<BookingDTO> requestRefund(@PathVariable String id) {
         BookingDTO result = bookingService.requestRefund(id);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    /**
+     * User confirms booking completion
+     * Can only be called after booking endDate
+     */
+    @PostMapping("/{id}/complete")
+    @PreAuthorize("@webSecurity.isBookingOwner(authentication, #id)")
+    public ResponseEntity<BookingDTO> completeBooking(
+            @PathVariable String id,
+            Authentication authentication) {
+        String userId = getUserIdFromAuthentication(authentication);
+        BookingDTO result = bookingService.completeBooking(id, userId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

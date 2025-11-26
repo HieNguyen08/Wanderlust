@@ -1,7 +1,8 @@
 import { format } from "date-fns";
-import { AlertCircle, ArrowLeft, Calendar as CalendarIcon, CheckCircle2 } from "lucide-react";
+import { AlertCircle, ArrowLeft, Calendar as CalendarIcon, CheckCircle2, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { visaApplicationApi, type VisaApplicationCreateDTO } from "../../api/visaApplicationApi";
 import { Button } from "../../components/ui/button";
 import { Calendar } from "../../components/ui/calendar";
 import { Card } from "../../components/ui/card";
@@ -22,6 +23,8 @@ interface VisaApplicationPageProps {
 export default function VisaApplicationPage({ country, onNavigate }: VisaApplicationPageProps) {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     // Personal Information
     fullName: "",
@@ -66,15 +69,64 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    setSubmitError(null);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Go to documents page
-      onNavigate("visa-documents", { country, formData });
+      // Submit application
+      await handleSubmit();
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setSubmitError(null);
+
+      // Prepare data for API
+      const applicationData: VisaApplicationCreateDTO = {
+        country: country?.name || "Unknown",
+        fullName: formData.fullName,
+        dateOfBirth: formData.dateOfBirth ? format(formData.dateOfBirth, "yyyy-MM-dd") : "",
+        placeOfBirth: formData.placeOfBirth,
+        nationality: formData.nationality,
+        gender: formData.gender,
+        maritalStatus: formData.maritalStatus,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        passportNumber: formData.passportNumber,
+        passportIssueDate: formData.passportIssueDate ? format(formData.passportIssueDate, "yyyy-MM-dd") : "",
+        passportExpiryDate: formData.passportExpiryDate ? format(formData.passportExpiryDate, "yyyy-MM-dd") : "",
+        passportIssuePlace: formData.passportIssuePlace,
+        purposeOfTravel: formData.purposeOfTravel,
+        departureDate: formData.departureDate ? format(formData.departureDate, "yyyy-MM-dd") : "",
+        returnDate: formData.returnDate ? format(formData.returnDate, "yyyy-MM-dd") : "",
+        accommodationAddress: formData.accommodationAddress,
+        occupation: formData.occupation,
+        companyName: formData.companyName || undefined,
+        companyAddress: formData.companyAddress || undefined,
+        monthlyIncome: formData.monthlyIncome || undefined,
+        previousVisits: formData.previousVisits,
+        criminalRecord: formData.criminalRecord,
+        healthIssues: formData.healthIssues,
+        additionalNotes: formData.additionalNotes || undefined,
+      };
+
+      const result = await visaApplicationApi.createApplication(applicationData);
+      
+      // Success - navigate to success page or visa documents page
+      onNavigate("visa-documents", { country, formData, applicationId: result.id });
+    } catch (error) {
+      console.error("Error submitting visa application:", error);
+      setSubmitError(error instanceof Error ? error.message : "Đã xảy ra lỗi khi nộp hồ sơ");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -594,6 +646,14 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
           {renderStepContent()}
         </Card>
 
+        {/* Error Message */}
+        {submitError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start">
+            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 mr-3 shrink-0" />
+            <div className="text-sm text-red-800">{submitError}</div>
+          </div>
+        )}
+
         {/* Navigation Buttons */}
         <div className="flex justify-between gap-4">
           <Button
@@ -606,8 +666,16 @@ export default function VisaApplicationPage({ country, onNavigate }: VisaApplica
           <Button
             onClick={handleNext}
             className="bg-blue-600 hover:bg-blue-700 px-8"
+            disabled={isSubmitting}
           >
-            {currentStep === totalSteps ? t('visa.continueSubmit') : t('visa.next')}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Đang xử lý...
+              </>
+            ) : (
+              currentStep === totalSteps ? t('visa.continueSubmit') : t('visa.next')
+            )}
           </Button>
         </div>
       </div>

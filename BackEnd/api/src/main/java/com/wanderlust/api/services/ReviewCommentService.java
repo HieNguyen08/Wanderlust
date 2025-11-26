@@ -1,6 +1,19 @@
 package com.wanderlust.api.services;
 
-import com.wanderlust.api.dto.reviewComment.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import com.wanderlust.api.dto.reviewComment.ReviewCommentAdminUpdateDTO;
+import com.wanderlust.api.dto.reviewComment.ReviewCommentCreateDTO;
+import com.wanderlust.api.dto.reviewComment.ReviewCommentDTO;
+import com.wanderlust.api.dto.reviewComment.ReviewCommentUpdateDTO;
+import com.wanderlust.api.dto.reviewComment.ReviewCommentVendorResponseDTO;
 import com.wanderlust.api.entity.Booking;
 import com.wanderlust.api.entity.ReviewComment;
 import com.wanderlust.api.entity.User;
@@ -9,21 +22,13 @@ import com.wanderlust.api.entity.types.ReviewStatus;
 import com.wanderlust.api.entity.types.ReviewTargetType;
 import com.wanderlust.api.entity.types.Role;
 import com.wanderlust.api.mapper.ReviewCommentMapper;
+import com.wanderlust.api.repository.ActivityRepository;
 import com.wanderlust.api.repository.BookingRepository;
+import com.wanderlust.api.repository.HotelRepository;
 import com.wanderlust.api.repository.ReviewCommentRepository;
 import com.wanderlust.api.repository.UserRepository;
-import com.wanderlust.api.repository.HotelRepository;
-import com.wanderlust.api.repository.ActivityRepository;
 
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -245,6 +250,22 @@ public class ReviewCommentService {
 
         List<ReviewComment> reviews = reviewCommentRepository.findByTargetIdIn(targetIds);
         return reviewCommentMapper.toDTOs(reviews);
+    }
+
+    /**
+     * [PARTNER] Alias method for getReviewsByVendor
+     */
+    public List<ReviewCommentDTO> findAllByVendorId(String vendorId) {
+        return getReviewsByVendor(vendorId);
+    }
+
+    /**
+     * [PARTNER] Respond to a review
+     */
+    public ReviewCommentDTO respondToReview(String reviewId, String responseText, String vendorId) {
+        ReviewCommentVendorResponseDTO responseDTO = new ReviewCommentVendorResponseDTO();
+        responseDTO.setVendorResponse(responseText);
+        return addVendorResponse(reviewId, responseDTO, vendorId);
     }
 
     // ==========================================

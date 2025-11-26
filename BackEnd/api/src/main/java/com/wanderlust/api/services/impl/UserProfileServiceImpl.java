@@ -1,6 +1,19 @@
 package com.wanderlust.api.services.impl;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.wanderlust.api.dto.ChangePasswordDTO;
+import com.wanderlust.api.dto.MembershipInfoDTO;
 import com.wanderlust.api.dto.NotificationSettingsDTO;
+import com.wanderlust.api.dto.UserProfileResponseDTO;
+import com.wanderlust.api.dto.UserProfileUpdateDTO;
+import com.wanderlust.api.dto.UserStatsDTO;
 import com.wanderlust.api.entity.NotificationSettings;
 import com.wanderlust.api.entity.User;
 import com.wanderlust.api.entity.types.MembershipLevel;
@@ -10,21 +23,8 @@ import com.wanderlust.api.mapper.NotificationSettingsMapper;
 import com.wanderlust.api.mapper.UserProfileMapper;
 import com.wanderlust.api.repository.UserRepository;
 import com.wanderlust.api.services.UserProfileService;
+
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
-
-import com.wanderlust.api.dto.UserProfileResponseDTO;
-import com.wanderlust.api.dto.UserProfileUpdateDTO;
-import com.wanderlust.api.dto.UserStatsDTO;
-import com.wanderlust.api.dto.MembershipInfoDTO;
-import com.wanderlust.api.dto.ChangePasswordDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -60,7 +60,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (dto.getCity() != null) user.setCity(dto.getCity());
         if (dto.getCountry() != null) user.setCountry(dto.getCountry());
         if (dto.getPassportNumber() != null) user.setPassportNumber(dto.getPassportNumber());
-        if (dto.getPassportExpiry() != null) user.setPassportExpiryDate(dto.getPassportExpiry());
+        if (dto.getPassportExpiryDate() != null) user.setPassportExpiryDate(dto.getPassportExpiryDate());
         if (dto.getGender() != null) user.setGender(dto.getGender());
 
         user.setUpdatedAt(LocalDateTime.now());

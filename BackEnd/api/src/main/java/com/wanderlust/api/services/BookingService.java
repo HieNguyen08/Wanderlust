@@ -19,14 +19,14 @@ import com.wanderlust.api.services.ActivityService;
 import com.wanderlust.api.services.CarRentalService;
 
 // === IMPORT EXCEPTION MỚI ===
-import com.wanderlust.api.exception.ResourceNotFoundException; 
+import com.wanderlust.api.exception.ResourceNotFoundException;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j; 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal; 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -37,24 +37,26 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BookingService {
 
-        private final BookingRepository bookingRepository;
-        private final BookingMapper bookingMapper;
+    private final BookingRepository bookingRepository;
+    private final BookingMapper bookingMapper;
 
-        private final HotelRepository hotelRepository;
-        private final RoomRepository roomRepository;
-        private final ActivityService activityService;
-        private final CarRentalService carRentalService;
-    
+    private final HotelRepository hotelRepository;
+    private final RoomRepository roomRepository;
+    private final ActivityService activityService;
+    private final CarRentalService carRentalService;
+
     private final Sort defaultSort = Sort.by(Sort.Direction.DESC, "createdAt");
 
     // ... (các hàm findAll, findByUserId, findByVendorId không đổi) ...
     public List<BookingDTO> findAll() {
         return bookingMapper.toDTOs(bookingRepository.findAll(defaultSort));
     }
+
     public List<BookingDTO> findByUserId(String userId) {
-        List<Booking> bookings = bookingRepository.findByUserId(userId, defaultSort); 
+        List<Booking> bookings = bookingRepository.findByUserId(userId, defaultSort);
         return bookingMapper.toDTOs(bookings);
     }
+
     public List<BookingDTO> findByVendorId(String vendorId) {
         List<Booking> bookings = bookingRepository.findByVendorId(vendorId, defaultSort);
         return bookingMapper.toDTOs(bookings);
@@ -72,15 +74,15 @@ public class BookingService {
     // --- POST: Tạo mới Booking ---
     public BookingDTO create(BookingDTO bookingDTO) {
         Booking booking = bookingMapper.toEntity(bookingDTO);
-        
-        String code = "WL" + System.currentTimeMillis(); 
+
+        String code = "WL" + System.currentTimeMillis();
         booking.setBookingCode(code);
-        
+
         if (booking.getStatus() == null) {
-            booking.setStatus(BookingStatus.PENDING); 
+            booking.setStatus(BookingStatus.PENDING);
         }
         booking.setBookingDate(LocalDateTime.now());
-        
+
         // Logic này đã gọi findVendorIdForBooking
         String vendorId = findVendorIdForBooking(booking);
         booking.setVendorId(vendorId);
@@ -89,7 +91,8 @@ public class BookingService {
         return bookingMapper.toDTO(savedBooking);
     }
 
-    // Helper to determine vendor ID for a booking; returns existing vendorId or null when unknown
+    // Helper to determine vendor ID for a booking; returns existing vendorId or
+    // null when unknown
     private String findVendorIdForBooking(Booking booking) {
         if (booking == null) {
             return null;
@@ -98,7 +101,8 @@ public class BookingService {
         if (booking.getVendorId() != null) {
             return booking.getVendorId();
         }
-        // Additional vendor resolution logic (by related entity IDs) can be added here later.
+        // Additional vendor resolution logic (by related entity IDs) can be added here
+        // later.
         return null;
     }
 
@@ -120,16 +124,14 @@ public class BookingService {
                 .filter(b -> b.getStatus() != null) // Lọc các giá trị null (nếu có)
                 .collect(Collectors.groupingBy(
                         Booking::getStatus,
-                        Collectors.counting()
-                ));
+                        Collectors.counting()));
 
         // 5. Đếm số lượng booking theo loại
         Map<BookingType, Long> countByType = allBookings.stream()
                 .filter(b -> b.getBookingType() != null) // Lọc các giá trị null
                 .collect(Collectors.groupingBy(
                         Booking::getBookingType,
-                        Collectors.counting()
-                ));
+                        Collectors.counting()));
 
         // 6. Tính tổng doanh thu theo trạng thái
         Map<BookingStatus, BigDecimal> revenueByStatus = allBookings.stream()
@@ -137,20 +139,18 @@ public class BookingService {
                 .collect(Collectors.groupingBy(
                         Booking::getStatus,
                         Collectors.reducing(
-                                BigDecimal.ZERO,      // Giá trị khởi tạo
+                                BigDecimal.ZERO, // Giá trị khởi tạo
                                 Booking::getTotalPrice, // Hàm lấy giá trị
-                                BigDecimal::add       // Hàm cộng dồn
-                        )
-                ));
-        
+                                BigDecimal::add // Hàm cộng dồn
+                        )));
+
         // 7. Trả về DTO
         return new BookingStatisticsDTO(
                 totalBookings,
                 totalRevenue,
                 countByStatus,
                 revenueByStatus,
-                countByType
-        );
+                countByType);
     }
 
     // --- POST: Preview Booking (Cho trang checkout) ---
@@ -158,20 +158,20 @@ public class BookingService {
         // ... (Logic tính toán không đổi) ...
         Booking booking = bookingMapper.toEntity(bookingDTO);
         String vendorId = findVendorIdForBooking(booking);
-        bookingDTO.setVendorId(vendorId); 
-        
+        bookingDTO.setVendorId(vendorId);
+
         if (bookingDTO.getBasePrice() != null) {
             BigDecimal basePrice = bookingDTO.getBasePrice();
             BigDecimal serviceFee = basePrice.multiply(new BigDecimal("0.05"));
-            BigDecimal taxes = basePrice.multiply(new BigDecimal("0.08")); 
+            BigDecimal taxes = basePrice.multiply(new BigDecimal("0.08"));
             BigDecimal total = basePrice.add(serviceFee).add(taxes);
-            
+
             bookingDTO.setFees(serviceFee);
             bookingDTO.setTaxes(taxes);
             bookingDTO.setTotalPrice(total);
             bookingDTO.setCurrency("VND");
         }
-        
+
         return bookingDTO;
     }
 
@@ -182,7 +182,7 @@ public class BookingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", id));
 
         bookingMapper.updateEntityFromDTO(bookingDTO, existingBooking);
-        
+
         Booking savedBooking = bookingRepository.save(existingBooking);
         return bookingMapper.toDTO(savedBooking);
     }
@@ -193,11 +193,11 @@ public class BookingService {
                 // THAY ĐỔI TẠI ĐÂY
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", id));
 
-        if (booking.getStatus() == BookingStatus.COMPLETED) { 
+        if (booking.getStatus() == BookingStatus.COMPLETED) {
             throw new RuntimeException("Cannot cancel a completed booking");
         }
 
-        booking.setStatus(BookingStatus.CANCELLED); 
+        booking.setStatus(BookingStatus.CANCELLED);
         booking.setCancellationReason(reason);
         booking.setCancelledBy(cancelledBy);
         booking.setCancelledAt(LocalDateTime.now());
@@ -211,8 +211,8 @@ public class BookingService {
                 // THAY ĐỔI TẠI ĐÂY
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", id));
 
-        booking.setStatus(BookingStatus.REFUND_REQUESTED); 
-        
+        booking.setStatus(BookingStatus.REFUND_REQUESTED);
+
         return bookingMapper.toDTO(bookingRepository.save(booking));
     }
 
@@ -222,22 +222,48 @@ public class BookingService {
                 // THAY ĐỔI TẠI ĐÂY
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", id));
 
-        booking.setStatus(BookingStatus.CONFIRMED); 
+        booking.setStatus(BookingStatus.CONFIRMED);
         booking.setVendorConfirmed(true);
 
         return bookingMapper.toDTO(bookingRepository.save(booking));
     }
-    
+
     // --- ACTION: Từ chối Booking (Vendor/Admin) ---
     public BookingDTO rejectBooking(String id, String reason) {
         Booking booking = bookingRepository.findById(id)
                 // THAY ĐỔI TẠI ĐÂY
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", id));
 
-        booking.setStatus(BookingStatus.CANCELLED); 
+        booking.setStatus(BookingStatus.CANCELLED);
         booking.setVendorConfirmed(false);
         booking.setCancellationReason(reason);
-        
+
+        return bookingMapper.toDTO(bookingRepository.save(booking));
+    }
+
+    // --- ACTION: User confirms booking completion ---
+    public BookingDTO completeBooking(String id, String userId) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", id));
+
+        // Verify booking belongs to user
+        if (!booking.getUserId().equals(userId)) {
+            throw new RuntimeException("Unauthorized: Booking does not belong to user");
+        }
+
+        // Can only complete if booking is confirmed and past end date
+        if (booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new RuntimeException("Can only complete confirmed bookings");
+        }
+
+        if (booking.getEndDate() != null && LocalDateTime.now().isBefore(booking.getEndDate())) {
+            throw new RuntimeException("Cannot complete booking before end date");
+        }
+
+        booking.setStatus(BookingStatus.COMPLETED);
+        booking.setUserConfirmed(true);
+        booking.setAutoCompleted(false);
+
         return bookingMapper.toDTO(bookingRepository.save(booking));
     }
 
@@ -249,9 +275,8 @@ public class BookingService {
         }
         bookingRepository.deleteById(id);
     }
-    
+
     public void deleteAll() {
         bookingRepository.deleteAll();
     }
 }
-

@@ -22,11 +22,11 @@ import { ProfileLayout } from "../../components/ProfileLayout";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -160,6 +160,13 @@ export default function ProfilePage({ onNavigate, userRole, onLogout }: ProfileP
   // Load user data from API on mount
   useEffect(() => {
     const loadUserData = async () => {
+      // Check authentication first
+      if (!tokenService.isAuthenticated()) {
+        toast.error('Vui lòng đăng nhập để xem trang này');
+        onNavigate('login');
+        return;
+      }
+
       try {
         setLoading(true);
         
@@ -196,6 +203,15 @@ export default function ProfilePage({ onNavigate, userRole, onLogout }: ProfileP
         
       } catch (error: any) {
         console.error('Failed to load user data:', error);
+        
+        // Handle authentication error
+        if (error.message === 'UNAUTHORIZED') {
+          toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
+          tokenService.clearAuth();
+          onNavigate('login');
+          return;
+        }
+        
         toast.error(error.message || 'Failed to load profile');
         
         // Fallback to localStorage if API fails

@@ -98,7 +98,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
   const [inboundFlight, setInboundFlight] = useState<any>(searchData?.inboundFlight || null);
 
   // Backend data state
-  const [flights, setFlights] = useState<any[]>([]);
+  const [flights, setFlights] = useState<any[]>(searchData?.outboundFlights || []);
   const [dayPricesData, setDayPricesData] = useState<any[]>([]);
 
   // Get current flight details based on leg
@@ -106,14 +106,35 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
   const getCurrentTo = () => (tripType === 'one-way' || flightLeg === 'outbound') ? toAirport : fromAirport;
   const getCurrentBaseDate = () => (tripType === 'one-way' || flightLeg === 'outbound') ? departDate : returnDate;
 
-  // Fetch flights from backend
+  // Load initial flights from searchData if available
   useEffect(() => {
+    if (searchData?.outboundFlights && flightLeg === 'outbound') {
+      setFlights(searchData.outboundFlights);
+      setIsLoading(false);
+    } else if (searchData?.returnFlights && flightLeg === 'inbound') {
+      setFlights(searchData.returnFlights);
+      setIsLoading(false);
+    }
+  }, [searchData, flightLeg]);
+
+  // Fetch flights from backend when search params change
+  useEffect(() => {
+    // Skip if we already have data from initial search
+    if (searchData?.outboundFlights && flightLeg === 'outbound' && 
+        format(selectedDay, 'yyyy-MM-dd') === format(searchData.departDate, 'yyyy-MM-dd')) {
+      return;
+    }
+    if (searchData?.returnFlights && flightLeg === 'inbound' && 
+        format(selectedDay, 'yyyy-MM-dd') === format(searchData.returnDate, 'yyyy-MM-dd')) {
+      return;
+    }
+
     const fetchFlights = async () => {
       setIsLoading(true);
       try {
         const currentFrom = getCurrentFrom();
         const currentTo = getCurrentTo();
-        const results = await flightApi.search({
+        const results = await flightApi.searchFlights({
           from: currentFrom.code,
           to: currentTo.code,
           date: format(selectedDay, 'yyyy-MM-dd'),
@@ -145,7 +166,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
         const startDate = format(subDays(baseDate, 3), 'yyyy-MM-dd');
         const endDate = format(addDays(baseDate, 3), 'yyyy-MM-dd');
         
-        const results = await flightApi.searchByDateRange({
+        const results = await flightApi.searchFlightsByDateRange({
           from: currentFrom.code,
           to: currentTo.code,
           startDate,

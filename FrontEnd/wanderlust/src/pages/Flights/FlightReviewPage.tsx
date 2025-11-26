@@ -38,7 +38,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
     phone: "",
     countryCode: "+84"
   });
-  
+
   const [isLoadingUserData, setIsLoadingUserData] = useState(true);
 
   const [passengers, setPassengers] = useState<PassengerForm[]>([
@@ -64,7 +64,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
       if (tokenService.isAuthenticated()) {
         try {
           const userProfile = await profileApi.getCurrentUser();
-          
+
           // Auto-fill contact info from user profile
           setContactInfo({
             fullName: `${userProfile.firstName} ${userProfile.lastName}`.trim(),
@@ -72,7 +72,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
             phone: userProfile.mobile || "",
             countryCode: "+84"
           });
-          
+
           toast.success(t('flights.userInfoLoaded') || 'Đã tải thông tin người dùng');
         } catch (error: any) {
           console.error('Error loading user profile:', error);
@@ -105,13 +105,13 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
   };
 
   const returnFlight = flightData?.return;
-  
+
   // Extract passenger counts from object or use default
   const passengerInfo = flightData?.passengers || { adults: 1, children: 0, infants: 0 };
-  const numPassengers = typeof passengerInfo === 'number' 
-    ? passengerInfo 
+  const numPassengers = typeof passengerInfo === 'number'
+    ? passengerInfo
     : (passengerInfo.adults || 0) + (passengerInfo.children || 0) + (passengerInfo.infants || 0);
-  
+
   const basePrice = 1500000;
   const taxAndFees = 500000;
   const totalPrice = (basePrice + taxAndFees) * numPassengers;
@@ -161,345 +161,385 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
 
   return (
     <div className="min-h-screen bg-gray-50">      <div className="max-w-7xl mx-auto px-4 py-8 pt-[calc(60px+2rem)]">
-        {/* Breadcrumb */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <button onClick={() => onNavigate("flights")} className="hover:text-blue-600">
-              {t('flights.flightTickets')}
-            </button>
-            <span>/</span>
-            <button onClick={() => onNavigate("search")} className="hover:text-blue-600">
-              {t('common.search')}
-            </button>
-            <span>/</span>
-            <span className="text-gray-900">{t('flights.reviewAndFillInfo')}</span>
-          </div>
+      {/* Breadcrumb */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <button onClick={() => onNavigate("flights")} className="hover:text-blue-600">
+            {t('flights.flightTickets')}
+          </button>
+          <span>/</span>
+          <button onClick={() => onNavigate("search")} className="hover:text-blue-600">
+            {t('common.search')}
+          </button>
+          <span>/</span>
+          <span className="text-gray-900">{t('flights.reviewAndFillInfo')}</span>
         </div>
+      </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content - Left Column */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Alert */}
-            <Card className="p-4 bg-blue-50 border-blue-200">
-              <div className="flex gap-3">
-                <AlertCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-900">
-                  <p className="mb-1">
-                    <strong>{t('flights.importantNote')}:</strong> {t('flights.passengerInfoMustMatch')}
-                  </p>
-                  <p>{t('flights.ticketNonRefundable')}</p>
-                </div>
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Main Content - Left Column */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Alert */}
+          <Card className="p-4 bg-blue-50 border-blue-200">
+            <div className="flex gap-3">
+              <AlertCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+              <div className="text-sm text-blue-900">
+                <p className="mb-1">
+                  <strong>{t('flights.importantNote')}:</strong> {t('flights.passengerInfoMustMatch')}
+                </p>
+                <p>{t('flights.ticketNonRefundable')}</p>
               </div>
-            </Card>
+            </div>
+          </Card>
 
-            {/* Contact Information */}
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl text-gray-900 mb-1">{t('flights.contactInfo')}</h2>
-                  <p className="text-sm text-gray-600">
-                    {t('flights.eTicketWillBeSent')}
-                  </p>
-                </div>
-                {!isEditingContact && !isLoadingUserData && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditingContact(true)}
-                  >
-                    {t('common.edit')}
-                  </Button>
-                )}
+          {/* Contact Information */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl text-gray-900 mb-1">{t('flights.contactInfo')}</h2>
+                <p className="text-sm text-gray-600">
+                  {t('flights.eTicketWillBeSent')}
+                </p>
               </div>
-
-              {isLoadingUserData ? (
-                <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-3 text-gray-600">{t('common.loading') || 'Đang tải...'}</span>
-                </div>
-              ) : (
-                <>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="contactName">
-                        {t('flights.fullName')} <span className="text-red-600">*</span>
-                      </Label>
-                      <Input
-                        id="contactName"
-                        value={contactInfo.fullName}
-                        onChange={(e) => setContactInfo({ ...contactInfo, fullName: e.target.value })}
-                        disabled={!isEditingContact}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="contactEmail">
-                        Email <span className="text-red-600">*</span>
-                      </Label>
-                      <Input
-                        id="contactEmail"
-                        type="email"
-                        value={contactInfo.email}
-                        onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
-                        disabled={!isEditingContact}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <Label htmlFor="contactPhone">
-                        {t('flights.mobilePhone')} <span className="text-red-600">*</span>
-                      </Label>
-                      <div className="flex gap-2 mt-1">
-                        <Select
-                          value={contactInfo.countryCode}
-                          onValueChange={(v) => setContactInfo({ ...contactInfo, countryCode: v })}
-                          disabled={!isEditingContact}
-                        >
-                          <SelectTrigger className="w-[120px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="+84">🇻🇳 +84</SelectItem>
-                            <SelectItem value="+1">🇺🇸 +1</SelectItem>
-                            <SelectItem value="+44">🇬🇧 +44</SelectItem>
-                            <SelectItem value="+86">🇨🇳 +86</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Input
-                          id="contactPhone"
-                          value={contactInfo.phone.replace(contactInfo.countryCode, "")}
-                          onChange={(e) => setContactInfo({ ...contactInfo, phone: contactInfo.countryCode + e.target.value })}
-                          disabled={!isEditingContact}
-                          className="flex-1"
-                          placeholder="901234567"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {isEditingContact && (
-                    <div className="mt-4 flex gap-2">
-                      <Button onClick={() => setIsEditingContact(false)}>
-                        {t('common.save')}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsEditingContact(false)}
-                      >
-                        {t('common.cancel')}
-                      </Button>
-                    </div>
-                  )}
-                </>
+              {!isEditingContact && !isLoadingUserData && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditingContact(true)}
+                >
+                  {t('common.edit')}
+                </Button>
               )}
-            </Card>
+            </div>
 
-            {/* Passenger Information */}
-            {[...Array(numPassengers)].map((_, index) => (
-              <Card key={index} className="p-6">
-                <h2 className="text-2xl text-gray-900 mb-6">
-                  {t('flights.passenger')} {index + 1}: {t('flights.adult')}
-                </h2>
-
-                <div className="space-y-4">
-                  {/* Title */}
+            {isLoadingUserData ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-3 text-gray-600">{t('common.loading') || 'Đang tải...'}</span>
+              </div>
+            ) : (
+              <>
+                <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor={`title-${index}`}>
-                      {t('flights.title')} <span className="text-red-600">*</span>
-                    </Label>
-                    <Select
-                      value={passengers[index]?.title || ""}
-                      onValueChange={(v) => handleUpdatePassenger(index, "title", v)}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder={t('common.select')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="mr">{t('flights.mr')}</SelectItem>
-                        <SelectItem value="mrs">{t('flights.mrs')}</SelectItem>
-                        <SelectItem value="ms">{t('flights.ms')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Name Fields */}
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor={`lastName-${index}`}>
-                        {t('flights.lastName')} <span className="text-red-600">*</span>
-                      </Label>
-                      <Input
-                        id={`lastName-${index}`}
-                        value={passengers[index]?.lastName || ""}
-                        onChange={(e) => handleUpdatePassenger(index, "lastName", e.target.value)}
-                        placeholder="NGUYEN"
-                        className="mt-1 uppercase"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">{t('flights.asOnIdPassport')}</p>
-                    </div>
-
-                    <div>
-                      <Label htmlFor={`middleName-${index}`}>
-                        {t('flights.middleName')}
-                      </Label>
-                      <Input
-                        id={`middleName-${index}`}
-                        value={passengers[index]?.middleName || ""}
-                        onChange={(e) => handleUpdatePassenger(index, "middleName", e.target.value)}
-                        placeholder="VAN"
-                        className="mt-1 uppercase"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor={`firstName-${index}`}>
-                        {t('flights.firstName')} <span className="text-red-600">*</span>
-                      </Label>
-                      <Input
-                        id={`firstName-${index}`}
-                        value={passengers[index]?.firstName || ""}
-                        onChange={(e) => handleUpdatePassenger(index, "firstName", e.target.value)}
-                        placeholder="A"
-                        className="mt-1 uppercase"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Date of Birth */}
-                  <div>
-                    <Label htmlFor={`dob-${index}`}>
-                      {t('flights.dateOfBirth')} <span className="text-red-600">*</span>
+                    <Label htmlFor="contactName">
+                      {t('flights.fullName')} <span className="text-red-600">*</span>
                     </Label>
                     <Input
-                      id={`dob-${index}`}
-                      type="date"
-                      value={passengers[index]?.dateOfBirth || ""}
-                      onChange={(e) => handleUpdatePassenger(index, "dateOfBirth", e.target.value)}
+                      id="contactName"
+                      value={contactInfo.fullName}
+                      onChange={(e) => setContactInfo({ ...contactInfo, fullName: e.target.value })}
+                      disabled={!isEditingContact}
                       className="mt-1"
                     />
                   </div>
 
-                  {/* International Flight Additional Fields */}
-                  {isInternational && (
-                    <>
-                      <Separator />
-                      <h3 className="text-gray-900">{t('flights.passportInfo')}</h3>
+                  <div>
+                    <Label htmlFor="contactEmail">
+                      Email <span className="text-red-600">*</span>
+                    </Label>
+                    <Input
+                      id="contactEmail"
+                      type="email"
+                      value={contactInfo.email}
+                      onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
+                      disabled={!isEditingContact}
+                      className="mt-1"
+                    />
+                  </div>
 
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor={`nationality-${index}`}>
-                            {t('flights.nationality')} <span className="text-red-600">*</span>
-                          </Label>
-                          <Select
-                            value={passengers[index]?.nationality || ""}
-                            onValueChange={(v) => handleUpdatePassenger(index, "nationality", v)}
-                          >
-                            <SelectTrigger className="mt-1">
-                              <SelectValue placeholder={t('flights.selectNationality')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="VN">Việt Nam</SelectItem>
-                              <SelectItem value="US">United States</SelectItem>
-                              <SelectItem value="GB">United Kingdom</SelectItem>
-                              <SelectItem value="CN">China</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label htmlFor={`passportNumber-${index}`}>
-                            {t('flights.passportNumber')} <span className="text-red-600">*</span>
-                          </Label>
-                          <Input
-                            id={`passportNumber-${index}`}
-                            value={passengers[index]?.passportNumber || ""}
-                            onChange={(e) => handleUpdatePassenger(index, "passportNumber", e.target.value)}
-                            placeholder="N1234567"
-                            className="mt-1 uppercase"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor={`passportCountry-${index}`}>
-                            {t('flights.passportIssuingCountry')} <span className="text-red-600">*</span>
-                          </Label>
-                          <Select
-                            value={passengers[index]?.passportIssuingCountry || ""}
-                            onValueChange={(v) => handleUpdatePassenger(index, "passportIssuingCountry", v)}
-                          >
-                            <SelectTrigger className="mt-1">
-                              <SelectValue placeholder={t('flights.selectCountry')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="VN">Việt Nam</SelectItem>
-                              <SelectItem value="US">United States</SelectItem>
-                              <SelectItem value="GB">United Kingdom</SelectItem>
-                              <SelectItem value="CN">China</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label htmlFor={`passportExpiry-${index}`}>
-                            {t('flights.passportExpiry')} <span className="text-red-600">*</span>
-                          </Label>
-                          <Input
-                            id={`passportExpiry-${index}`}
-                            type="date"
-                            value={passengers[index]?.passportExpiry || ""}
-                            onChange={(e) => handleUpdatePassenger(index, "passportExpiry", e.target.value)}
-                            className="mt-1"
-                          />
-                        </div>
-                      </div>
-                    </>
-                  )}
+                  <div className="md:col-span-2">
+                    <Label htmlFor="contactPhone">
+                      {t('flights.mobilePhone')} <span className="text-red-600">*</span>
+                    </Label>
+                    <div className="flex gap-2 mt-1">
+                      <Select
+                        value={contactInfo.countryCode}
+                        onValueChange={(v) => setContactInfo({ ...contactInfo, countryCode: v })}
+                        disabled={!isEditingContact}
+                      >
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="+84">🇻🇳 +84</SelectItem>
+                          <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                          <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                          <SelectItem value="+86">🇨🇳 +86</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        id="contactPhone"
+                        value={contactInfo.phone.replace(contactInfo.countryCode, "")}
+                        onChange={(e) => setContactInfo({ ...contactInfo, phone: contactInfo.countryCode + e.target.value })}
+                        disabled={!isEditingContact}
+                        className="flex-1"
+                        placeholder="901234567"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </Card>
-            ))}
 
-            {/* Terms & Conditions */}
-            <Card className="p-6">
-              <div className="flex items-start gap-3">
-                <Checkbox
-                  id="terms"
-                  checked={agreeToTerms}
-                  onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
-                  className="mt-1"
-                />
-                <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer">
-                  {t('flights.iAgreeWith')}{" "}
-                  <button className="text-blue-600 hover:underline">{t('flights.termsAndConditions')}</button>,{" "}
-                  <button className="text-blue-600 hover:underline">{t('flights.cancellationPolicy')}</button> {t('common.and')}{" "}
-                  <button className="text-blue-600 hover:underline">{t('flights.privacyPolicy')}</button> {t('flights.ofWanderlust')}
-                </label>
+                {isEditingContact && (
+                  <div className="mt-4 flex gap-2">
+                    <Button onClick={() => setIsEditingContact(false)}>
+                      {t('common.save')}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEditingContact(false)}
+                    >
+                      {t('common.cancel')}
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </Card>
+
+          {/* Passenger Information */}
+          {[...Array(numPassengers)].map((_, index) => (
+            <Card key={index} className="p-6">
+              <h2 className="text-2xl text-gray-900 mb-6">
+                {t('flights.passenger')} {index + 1}: {t('flights.adult')}
+              </h2>
+
+              <div className="space-y-4">
+                {/* Title */}
+                <div>
+                  <Label htmlFor={`title-${index}`}>
+                    {t('flights.passengerTitle')} <span className="text-red-600">*</span>
+                  </Label>
+                  <Select
+                    value={passengers[index]?.title || ""}
+                    onValueChange={(v) => handleUpdatePassenger(index, "title", v)}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder={t('common.select')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mr">{t('flights.mr')}</SelectItem>
+                      <SelectItem value="mrs">{t('flights.mrs')}</SelectItem>
+                      <SelectItem value="ms">{t('flights.ms')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Name Fields */}
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor={`lastName-${index}`}>
+                      {t('flights.lastName')} <span className="text-red-600">*</span>
+                    </Label>
+                    <Input
+                      id={`lastName-${index}`}
+                      value={passengers[index]?.lastName || ""}
+                      onChange={(e) => handleUpdatePassenger(index, "lastName", e.target.value)}
+                      placeholder="NGUYEN"
+                      className="mt-1 uppercase"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">{t('flights.asOnIdPassport')}</p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`middleName-${index}`}>
+                      {t('flights.middleName')}
+                    </Label>
+                    <Input
+                      id={`middleName-${index}`}
+                      value={passengers[index]?.middleName || ""}
+                      onChange={(e) => handleUpdatePassenger(index, "middleName", e.target.value)}
+                      placeholder="VAN"
+                      className="mt-1 uppercase"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`firstName-${index}`}>
+                      {t('flights.firstName')} <span className="text-red-600">*</span>
+                    </Label>
+                    <Input
+                      id={`firstName-${index}`}
+                      value={passengers[index]?.firstName || ""}
+                      onChange={(e) => handleUpdatePassenger(index, "firstName", e.target.value)}
+                      placeholder="A"
+                      className="mt-1 uppercase"
+                    />
+                  </div>
+                </div>
+
+                {/* Date of Birth */}
+                <div>
+                  <Label htmlFor={`dob-${index}`}>
+                    {t('flights.dateOfBirth')} <span className="text-red-600">*</span>
+                  </Label>
+                  <Input
+                    id={`dob-${index}`}
+                    type="date"
+                    value={passengers[index]?.dateOfBirth || ""}
+                    onChange={(e) => handleUpdatePassenger(index, "dateOfBirth", e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* International Flight Additional Fields */}
+                {isInternational && (
+                  <>
+                    <Separator />
+                    <h3 className="text-gray-900">{t('flights.passportInfo')}</h3>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor={`nationality-${index}`}>
+                          {t('flights.nationality')} <span className="text-red-600">*</span>
+                        </Label>
+                        <Select
+                          value={passengers[index]?.nationality || ""}
+                          onValueChange={(v) => handleUpdatePassenger(index, "nationality", v)}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder={t('flights.selectNationality')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="VN">Việt Nam</SelectItem>
+                            <SelectItem value="US">United States</SelectItem>
+                            <SelectItem value="GB">United Kingdom</SelectItem>
+                            <SelectItem value="CN">China</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor={`passportNumber-${index}`}>
+                          {t('flights.passportNumber')} <span className="text-red-600">*</span>
+                        </Label>
+                        <Input
+                          id={`passportNumber-${index}`}
+                          value={passengers[index]?.passportNumber || ""}
+                          onChange={(e) => handleUpdatePassenger(index, "passportNumber", e.target.value)}
+                          placeholder="N1234567"
+                          className="mt-1 uppercase"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor={`passportCountry-${index}`}>
+                          {t('flights.passportIssuingCountry')} <span className="text-red-600">*</span>
+                        </Label>
+                        <Select
+                          value={passengers[index]?.passportIssuingCountry || ""}
+                          onValueChange={(v) => handleUpdatePassenger(index, "passportIssuingCountry", v)}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder={t('flights.selectCountry')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="VN">Việt Nam</SelectItem>
+                            <SelectItem value="US">United States</SelectItem>
+                            <SelectItem value="GB">United Kingdom</SelectItem>
+                            <SelectItem value="CN">China</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor={`passportExpiry-${index}`}>
+                          {t('flights.passportExpiry')} <span className="text-red-600">*</span>
+                        </Label>
+                        <Input
+                          id={`passportExpiry-${index}`}
+                          type="date"
+                          value={passengers[index]?.passportExpiry || ""}
+                          onChange={(e) => handleUpdatePassenger(index, "passportExpiry", e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </Card>
+          ))}
 
-            {/* Action Button */}
-            <Button
-              size="lg"
-              className="w-full"
-              onClick={handleContinueToPayment}
-              disabled={!agreeToTerms}
-            >
-              {t('flights.continueToPayment')}
-            </Button>
-          </div>
+          {/* Terms & Conditions */}
+          <Card className="p-6">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="terms"
+                checked={agreeToTerms}
+                onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
+                className="mt-1"
+              />
+              <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer">
+                {t('flights.iAgreeWith')}{" "}
+                <button className="text-blue-600 hover:underline">{t('flights.termsAndConditions')}</button>,{" "}
+                <button className="text-blue-600 hover:underline">{t('flights.cancellationPolicy')}</button> {t('common.and')}{" "}
+                <button className="text-blue-600 hover:underline">{t('flights.privacyPolicy')}</button> {t('flights.ofWanderlust')}
+              </label>
+            </div>
+          </Card>
 
-          {/* Sidebar - Right Column */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-24">
-              <Card className="p-6">
-                <h2 className="text-xl text-gray-900 mb-6">{t('flights.yourFlight')}</h2>
+          {/* Action Button */}
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={handleContinueToPayment}
+            disabled={!agreeToTerms}
+          >
+            {t('flights.continueToPayment')}
+          </Button>
+        </div>
 
-                {/* Outbound Flight */}
+        {/* Sidebar - Right Column */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-24">
+            <Card className="p-6">
+              <h2 className="text-xl text-gray-900 mb-6">{t('flights.yourFlight')}</h2>
+
+              {/* Outbound Flight */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Plane className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm text-gray-600">{t('flights.outbound')}</span>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                      <span className="text-white text-xs">VN</span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-900">{outboundFlight.airline}</p>
+                      <p className="text-xs text-gray-600">{outboundFlight.flightNumber}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="text-2xl text-gray-900">{outboundFlight.departure}</p>
+                      <p className="text-sm text-gray-600">{outboundFlight.from}</p>
+                    </div>
+                    <div className="flex-1 mx-4">
+                      <div className="border-t border-gray-300 relative">
+                        <Clock className="w-4 h-4 text-gray-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-50" />
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl text-gray-900">{outboundFlight.arrival}</p>
+                      <p className="text-sm text-gray-600">{outboundFlight.to}</p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-gray-600">{outboundFlight.date}</p>
+                  <p className="text-xs text-gray-600">{outboundFlight.class}</p>
+                </div>
+              </div>
+
+              {/* Return Flight */}
+              {returnFlight && (
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <Plane className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm text-gray-600">{t('flights.outbound')}</span>
+                    <Plane className="w-4 h-4 text-blue-600 rotate-180" />
+                    <span className="text-sm text-gray-600">{t('flights.return')}</span>
                   </div>
 
                   <div className="bg-gray-50 rounded-lg p-4">
@@ -508,15 +548,15 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                         <span className="text-white text-xs">VN</span>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-900">{outboundFlight.airline}</p>
-                        <p className="text-xs text-gray-600">{outboundFlight.flightNumber}</p>
+                        <p className="text-sm text-gray-900">{returnFlight.airline}</p>
+                        <p className="text-xs text-gray-600">{returnFlight.flightNumber}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between mb-2">
                       <div>
-                        <p className="text-2xl text-gray-900">{outboundFlight.departure}</p>
-                        <p className="text-sm text-gray-600">{outboundFlight.from}</p>
+                        <p className="text-2xl text-gray-900">{returnFlight.departure}</p>
+                        <p className="text-sm text-gray-600">{returnFlight.from}</p>
                       </div>
                       <div className="flex-1 mx-4">
                         <div className="border-t border-gray-300 relative">
@@ -524,93 +564,53 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl text-gray-900">{outboundFlight.arrival}</p>
-                        <p className="text-sm text-gray-600">{outboundFlight.to}</p>
+                        <p className="text-2xl text-gray-900">{returnFlight.arrival}</p>
+                        <p className="text-sm text-gray-600">{returnFlight.to}</p>
                       </div>
                     </div>
 
-                    <p className="text-xs text-gray-600">{outboundFlight.date}</p>
-                    <p className="text-xs text-gray-600">{outboundFlight.class}</p>
+                    <p className="text-xs text-gray-600">{returnFlight.date}</p>
+                    <p className="text-xs text-gray-600">{returnFlight.class}</p>
                   </div>
                 </div>
+              )}
 
-                {/* Return Flight */}
-                {returnFlight && (
-                  <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Plane className="w-4 h-4 text-blue-600 rotate-180" />
-                      <span className="text-sm text-gray-600">{t('flights.return')}</span>
-                    </div>
+              <Separator className="my-6" />
 
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                          <span className="text-white text-xs">VN</span>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-900">{returnFlight.airline}</p>
-                          <p className="text-xs text-gray-600">{returnFlight.flightNumber}</p>
-                        </div>
-                      </div>
+              {/* Price Details */}
+              <div className="space-y-3">
+                <h3 className="text-gray-900 mb-3">{t('flights.priceDetails')}</h3>
 
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <p className="text-2xl text-gray-900">{returnFlight.departure}</p>
-                          <p className="text-sm text-gray-600">{returnFlight.from}</p>
-                        </div>
-                        <div className="flex-1 mx-4">
-                          <div className="border-t border-gray-300 relative">
-                            <Clock className="w-4 h-4 text-gray-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-50" />
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-2xl text-gray-900">{returnFlight.arrival}</p>
-                          <p className="text-sm text-gray-600">{returnFlight.to}</p>
-                        </div>
-                      </div>
-
-                      <p className="text-xs text-gray-600">{returnFlight.date}</p>
-                      <p className="text-xs text-gray-600">{returnFlight.class}</p>
-                    </div>
-                  </div>
-                )}
-
-                <Separator className="my-6" />
-
-                {/* Price Details */}
-                <div className="space-y-3">
-                  <h3 className="text-gray-900 mb-3">{t('flights.priceDetails')}</h3>
-                  
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">
-                      {t('flights.ticketPrice')} ({numPassengers} {t('flights.adult')})
-                    </span>
-                    <span className="text-gray-900">
-                      {(basePrice * numPassengers).toLocaleString('vi-VN')}đ
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">{t('flights.taxesAndFees')}</span>
-                    <span className="text-gray-900">
-                      {(taxAndFees * numPassengers).toLocaleString('vi-VN')}đ
-                    </span>
-                  </div>
-
-                  <Separator />
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-900">{t('flights.totalPrice')}</span>
-                    <span className="text-2xl text-blue-600">
-                      {totalPrice.toLocaleString('vi-VN')}đ
-                    </span>
-                  </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">
+                    {t('flights.ticketPrice')} ({numPassengers} {t('flights.adult')})
+                  </span>
+                  <span className="text-gray-900">
+                    {(basePrice * numPassengers).toLocaleString('vi-VN')}đ
+                  </span>
                 </div>
-              </Card>
-            </div>
+
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">{t('flights.taxesAndFees')}</span>
+                  <span className="text-gray-900">
+                    {(taxAndFees * numPassengers).toLocaleString('vi-VN')}đ
+                  </span>
+                </div>
+
+                <Separator />
+
+                <div className="flex justify-between">
+                  <span className="text-gray-900">{t('flights.totalPrice')}</span>
+                  <span className="text-2xl text-blue-600">
+                    {totalPrice.toLocaleString('vi-VN')}đ
+                  </span>
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
       </div>
+    </div>
 
       <Footer />
     </div>

@@ -82,7 +82,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
     name: "",
     email: "",
     phone: "",
-    role: "user" as "user" | "admin" | "moderator",
+    role: "user" as "user" | "admin" | "vendor",
     password: "",
   });
 
@@ -93,7 +93,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
     name: "",
     email: "",
     phone: "",
-    role: "user" as "user" | "admin" | "moderator",
+    role: "user" as "user" | "admin" | "vendor",
     status: "active" as "active" | "banned" | "suspended",
   });
 
@@ -226,8 +226,8 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
     switch (role) {
       case "admin":
         return <Badge className="bg-purple-100 text-purple-700">Admin</Badge>;
-      case "moderator":
-        return <Badge className="bg-blue-100 text-blue-700">Moderator</Badge>;
+      case "vendor":
+        return <Badge className="bg-blue-100 text-blue-700">Vendor</Badge>;
       case "user":
         return <Badge className="bg-gray-100 text-gray-700">User</Badge>;
       default:
@@ -321,7 +321,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="moderator">Moderator</SelectItem>
+                      <SelectItem value="vendor">Vendor</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
@@ -372,7 +372,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
               <SelectContent>
                 <SelectItem value="all">{t('admin.allRoles')}</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="moderator">Moderator</SelectItem>
+                <SelectItem value="vendor">Vendor</SelectItem>
                 <SelectItem value="user">User</SelectItem>
               </SelectContent>
             </Select>
@@ -571,7 +571,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="moderator">Moderator</SelectItem>
+                  <SelectItem value="vendor">Vendor</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>

@@ -1,24 +1,30 @@
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+    Ban,
+    Calendar, Clock,
+    DollarSign,
+    Edit,
+    Mail, Phone,
+    Shield,
+    ShoppingBag,
+    User
+} from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "../ui/dialog";
 import { Separator } from "../ui/separator";
-import { 
-  User, Mail, Phone, Calendar, Clock, 
-  ShoppingBag, DollarSign, Shield, Ban, Edit
-} from "lucide-react";
 
 interface UserData {
   id: string;
   name: string;
   email: string;
   phone: string;
-  role: "user" | "admin" | "moderator";
+  role: "user" | "admin" | "vendor";
   status: "active" | "banned" | "suspended";
   joinDate: string;
   lastLogin: string;
@@ -48,7 +54,7 @@ export function UserDetailDialog({
   const roleColors = {
     user: "bg-blue-100 text-blue-700",
     admin: "bg-purple-100 text-purple-700",
-    moderator: "bg-green-100 text-green-700",
+    vendor: "bg-green-100 text-green-700",
   };
 
   const statusColors = {
@@ -61,11 +67,11 @@ export function UserDetailDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl">Chi tiết người dùng</DialogTitle>
             <div className="flex gap-2">
               <Badge className={roleColors[user.role]}>
-                {user.role === "user" ? "User" : user.role === "admin" ? "Admin" : "Moderator"}
+                {user.role === "user" ? "User" : user.role === "admin" ? "Admin" : "Vendor"}
               </Badge>
               <Badge className={statusColors[user.status]}>
                 {user.status === "active" ? "Hoạt động" : user.status === "banned" ? "Đã chặn" : "Tạm ngưng"}
@@ -111,7 +117,7 @@ export function UserDetailDialog({
                   Vai trò
                 </p>
                 <Badge className={roleColors[user.role]}>
-                  {user.role === "user" ? "User" : user.role === "admin" ? "Admin" : "Moderator"}
+                  {user.role === "user" ? "User" : user.role === "admin" ? "Admin" : "Vendor"}
                 </Badge>
               </div>
             </div>

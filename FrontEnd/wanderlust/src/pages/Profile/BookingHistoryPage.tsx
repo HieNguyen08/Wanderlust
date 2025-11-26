@@ -39,7 +39,7 @@ import { Label } from "../../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Textarea } from "../../components/ui/textarea";
 import type { PageType } from "../../MainApp";
-import { bookingApi } from "../../utils/api";
+import { bookingApi, tokenService } from "../../utils/api";
 import { type FrontendRole } from "../../utils/roleMapper";
 
 interface BookingHistoryPageProps {
@@ -90,11 +90,11 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"upcoming" | "completed" | "cancelled">("upcoming");
   const [serviceFilter, setServiceFilter] = useState<"all" | "flight" | "hotel" | "car" | "activity">("all");
-  
+
   // Data states
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Dialog states
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
@@ -102,7 +102,7 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
-  
+
   // Review form states
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
@@ -128,13 +128,13 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
     };
 
     const bookingType = typeMap[apiBooking.bookingType] || 'flight';
-    
+
     // Extract location and subtitle based on type
     let location = 'N/A';
     let subtitle = '';
     let imageUrl = '';
     let title = '';
-    
+
     if (bookingType === 'flight') {
       const flightMatch = apiBooking.specialRequests?.match(/Flight: (.*?) to (.*?)\./);
       location = flightMatch?.[1] || 'N/A';
@@ -210,21 +210,35 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
   // Load bookings from backend
   useEffect(() => {
     const loadBookings = async () => {
+      // Check authentication first
+      if (!tokenService.isAuthenticated()) {
+        toast.error('Vui lòng đăng nhập để xem lịch sử đặt chỗ');
+        onNavigate('login');
+        return;
+      }
+
       try {
         setLoading(true);
         const bookingsData = await bookingApi.getMyBookings();
-        
+
         // Transform API data to UI format
-        const transformedBookings = Array.isArray(bookingsData) 
+        const transformedBookings = Array.isArray(bookingsData)
           ? bookingsData.map(transformBookingData)
           : [];
-        
+
         setBookings(transformedBookings);
       } catch (error: any) {
         console.error('Failed to load bookings:', error);
-        if (error.message !== 'UNAUTHORIZED') {
-          toast.error('Không thể tải lịch sử đặt chỗ');
+
+        // Handle authentication error
+        if (error.message === 'UNAUTHORIZED') {
+          toast.error('Phiên đăng nhập đã hết hạn');
+          tokenService.clearAuth();
+          onNavigate('login');
+          return;
         }
+
+        toast.error('Không thể tải lịch sử đặt chỗ');
       } finally {
         setLoading(false);
       }
@@ -243,22 +257,22 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
     try {
       setIsCancelling(true);
       await bookingApi.cancelBooking(selectedBooking.id, cancelReason);
-      
+
       // Update local state
       setBookings(prevBookings =>
         prevBookings.map(b =>
           b.id === selectedBooking.id ? { ...b, status: 'cancelled' } : b
         )
       );
-      
+
       toast.success('Đã hủy đặt chỗ thành công');
       setIsCancelDialogOpen(false);
       setCancelReason("");
       setSelectedBooking(null);
-      
+
       // Reload bookings to get updated data
       const bookingsData = await bookingApi.getMyBookings();
-      const transformedBookings = Array.isArray(bookingsData) 
+      const transformedBookings = Array.isArray(bookingsData)
         ? bookingsData.map(transformBookingData)
         : [];
       setBookings(transformedBookings);
@@ -275,10 +289,10 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
     try {
       await bookingApi.requestRefund(bookingId);
       toast.success('Đã gửi yêu cầu hoàn tiền thành công');
-      
+
       // Reload bookings
       const bookingsData = await bookingApi.getMyBookings();
-      const transformedBookings = Array.isArray(bookingsData) 
+      const transformedBookings = Array.isArray(bookingsData)
         ? bookingsData.map(transformBookingData)
         : [];
       setBookings(transformedBookings);
@@ -329,21 +343,21 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
   });
 
   const stats = [
-    { 
-      label: t('profile.bookingHistory.upcoming'), 
-      value: bookings.filter(b => b.status === "upcoming").length, 
+    {
+      label: t('profile.bookingHistory.upcoming'),
+      value: bookings.filter(b => b.status === "upcoming").length,
       icon: AlertCircle,
       color: "text-blue-600"
     },
-    { 
-      label: t('profile.bookingHistory.completed'), 
-      value: bookings.filter(b => b.status === "completed").length, 
+    {
+      label: t('profile.bookingHistory.completed'),
+      value: bookings.filter(b => b.status === "completed").length,
       icon: CheckCircle,
       color: "text-green-600"
     },
-    { 
-      label: t('profile.bookingHistory.cancelled'), 
-      value: bookings.filter(b => b.status === "cancelled").length, 
+    {
+      label: t('profile.bookingHistory.cancelled'),
+      value: bookings.filter(b => b.status === "cancelled").length,
       icon: XCircle,
       color: "text-red-600"
     }
@@ -372,7 +386,7 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
       return;
     }
     // Mock submit
-    alert(t('profile.bookingHistory.reviewSubmitted', `Đã gửi đánh giá {{rating}} sao cho {{title}}`, {rating, title: selectedBooking?.title}));
+    alert(t('profile.bookingHistory.reviewSubmitted', `Đã gửi đánh giá {{rating}} sao cho {{title}}`, { rating, title: selectedBooking?.title }));
     setIsReviewDialogOpen(false);
     // Update booking to mark as reviewed
     if (selectedBooking) {
@@ -387,18 +401,36 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
 
   const handleConfirmCancel = () => {
     if (!selectedBooking) return;
-    
+
     // Mock cancel request - in real app, would trigger backend process
     alert(t('profile.bookingHistory.cancelRequestSent', `Đã gửi yêu cầu hủy booking {{code}}.\n\nTheo chính sách, bạn sẽ được hoàn {{percent}}% ({{amount}}đ).\n\nTrạng thái: Đang chờ xử lý hoàn tiền.\nThời gian hoàn tiền dự kiến: 5-7 ngày làm việc.`, {
       code: selectedBooking.bookingCode,
       percent: selectedBooking.cancellationPolicy?.refundPercentage,
       amount: selectedBooking.cancellationPolicy?.refundAmount.toLocaleString('vi-VN')
     }));
-    
+
     setIsCancelDialogOpen(false);
-    
+
     // In real app, this would update the booking status to "cancelled - pending refund"
     // and create a refund request for admin to process
+  };
+
+  // Handle booking completion confirmation
+  const handleConfirmCompletion = async (booking: Booking) => {
+    try {
+      await bookingApi.completeBooking(booking.id);
+      toast.success('Đã xác nhận hoàn thành chuyến đi');
+
+      // Reload bookings to get updated data
+      const bookingsData = await bookingApi.getMyBookings();
+      const transformedBookings = Array.isArray(bookingsData)
+        ? bookingsData.map(transformBookingData)
+        : [];
+      setBookings(transformedBookings);
+    } catch (error: any) {
+      console.error('Failed to confirm completion:', error);
+      toast.error('Không thể xác nhận hoàn thành');
+    }
   };
 
   return (
@@ -451,14 +483,14 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
             <div className="mb-6">
               <p className="text-sm mb-2 text-gray-700">{t('profile.bookingHistory.filterByService', 'Lọc theo loại dịch vụ')}:</p>
               <div className="flex flex-wrap gap-2">
-                <Button 
+                <Button
                   variant={serviceFilter === "all" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setServiceFilter("all")}
                 >
                   {t('profile.bookingHistory.all', 'Tất cả')}
                 </Button>
-                <Button 
+                <Button
                   variant={serviceFilter === "flight" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setServiceFilter("flight")}
@@ -466,7 +498,7 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                   <Plane className="w-4 h-4 mr-1" />
                   {t('profile.bookingHistory.flight')}
                 </Button>
-                <Button 
+                <Button
                   variant={serviceFilter === "hotel" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setServiceFilter("hotel")}
@@ -474,7 +506,7 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                   <Hotel className="w-4 h-4 mr-1" />
                   {t('profile.bookingHistory.hotel')}
                 </Button>
-                <Button 
+                <Button
                   variant={serviceFilter === "car" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setServiceFilter("car")}
@@ -482,7 +514,7 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                   <Car className="w-4 h-4 mr-1" />
                   {t('profile.bookingHistory.car')}
                 </Button>
-                <Button 
+                <Button
                   variant={serviceFilter === "activity" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setServiceFilter("activity")}
@@ -559,19 +591,19 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                                 </p>
                               </div>
                               <div className="flex flex-wrap gap-2">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
+                                <Button
+                                  variant="outline"
+                                  size="sm"
                                   className="gap-2"
                                   onClick={() => handleViewDetails(booking)}
                                 >
                                   <Eye className="w-4 h-4" />
                                   {t('profile.bookingHistory.viewDetails', 'Xem chi tiết')}
                                 </Button>
-                                
+
                                 {booking.status === "completed" && !booking.hasReview && (
-                                  <Button 
-                                    size="sm" 
+                                  <Button
+                                    size="sm"
                                     className="gap-2"
                                     onClick={() => handleWriteReview(booking)}
                                   >
@@ -581,9 +613,9 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                                 )}
 
                                 {booking.status === "completed" && booking.hasReview && (
-                                  <Button 
+                                  <Button
                                     variant="outline"
-                                    size="sm" 
+                                    size="sm"
                                     className="gap-2"
                                     disabled
                                   >
@@ -593,9 +625,9 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                                 )}
 
                                 {booking.status === "upcoming" && (
-                                  <Button 
-                                    variant="destructive" 
-                                    size="sm" 
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
                                     className="gap-2"
                                     onClick={() => handleRequestCancel(booking)}
                                   >
@@ -603,6 +635,20 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                                     {t('profile.bookingHistory.requestCancel', 'Yêu cầu hủy')}
                                   </Button>
                                 )}
+
+                                {/* Show Confirm Completion for upcoming bookings past endDate */}
+                                {booking.status === "upcoming" && booking.endDate &&
+                                  new Date() > new Date(booking.endDate) && (
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      className="gap-2 bg-green-600 hover:bg-green-700"
+                                      onClick={() => handleConfirmCompletion(booking)}
+                                    >
+                                      <CheckCircle className="w-4 h-4" />
+                                      {t('profile.bookingHistory.confirmCompletion', 'Xác nhận hoàn thành')}
+                                    </Button>
+                                  )}
                               </div>
                             </div>
                           </div>
@@ -641,7 +687,7 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                     <p className="text-xl">{selectedBooking.bookingCode}</p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-blue-100">{t('profile.bookingHistory.serviceType', 'Loại dịch vụ')}</p>
@@ -686,7 +732,7 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                   <FileText className="w-5 h-5 text-blue-600" />
                   {t('profile.bookingHistory.detailsTitle', 'Chi tiết')} {getTypeLabel(selectedBooking.type)}
                 </h3>
-                
+
                 <div className="space-y-4">
                   <div>
                     <h4 className="mb-2">{selectedBooking.title}</h4>
@@ -842,11 +888,10 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                     className="transition-transform hover:scale-110"
                   >
                     <Star
-                      className={`w-8 h-8 ${
-                        star <= (hoverRating || rating)
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-gray-300"
-                      }`}
+                      className={`w-8 h-8 ${star <= (hoverRating || rating)
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-gray-300"
+                        }`}
                     />
                   </button>
                 ))}

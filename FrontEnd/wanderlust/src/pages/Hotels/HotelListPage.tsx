@@ -9,6 +9,7 @@ import { Button } from "../../components/ui/button";
 
 import { format, parse } from "date-fns";
 import { toast } from "sonner";
+import type { PageType } from "../../MainApp";
 import { hotelApi } from "../../utils/api";
 
 interface Hotel {
@@ -39,7 +40,7 @@ interface HotelListPageProps {
       rooms: number;
     };
   };
-  onNavigate: (page: string, data?: any) => void;
+  onNavigate: (page: PageType, data?: any) => void;
 }
 
 export default function HotelListPage({

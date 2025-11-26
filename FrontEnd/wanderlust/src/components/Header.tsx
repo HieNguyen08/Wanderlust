@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Globe, Heart, History, LogOut, Menu, Settings, User, Wallet, X } from "lucide-react";
+import { Bell, Check, ChevronDown, Globe, Heart, History, LogOut, Menu, Settings, User, Wallet, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import avatarMan from '../assets/images/avatarman.jpeg';
@@ -24,6 +24,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
+  const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isChangingLanguage, setIsChangingLanguage] = useState(false);
 
@@ -91,10 +92,10 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
 
   // Language options
   const languages = [
-    { code: "vi", name: "Tiếng Việt", flag: "🇻🇳" },
-    { code: "en", name: "English", flag: "🇺🇸" },
-    { code: "ja", name: "日本語", flag: "🇯🇵" },
-    { code: "ko", name: "한국어", flag: "🇰🇷" },
+    { code: "vi", name: "Tiếng Việt", flag: "VN" },
+    { code: "en", name: "English", flag: "EN" },
+    { code: "ja", name: "日本語", flag: "JP" },
+    { code: "ko", name: "한국어", flag: "KR" },
   ];
 
   // Handle language change
@@ -125,7 +126,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
   useEffect(() => {
     // Chỉ sync khi mount lần đầu, không sync khi đang thay đổi ngôn ngữ
     if (isChangingLanguage) return;
-    
+
     const storedLang = localStorage.getItem('i18nextLng');
     if (storedLang && storedLang !== i18n.language) {
       console.log('🔄 Syncing language from localStorage:', storedLang);
@@ -311,7 +312,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                 `}
               >
                 <Globe className={`w-4 h-4 shrink-0 ${isWhiteHeader ? 'text-gray-700' : 'text-white'}`} />
-                <span className={`${isWhiteHeader ? 'text-gray-900' : 'text-white'}`}>
+                <span className={`font-bold ${isWhiteHeader ? 'text-gray-900' : 'text-white'}`}>
                   {languages.find(l => l.code === i18n.language)?.flag}
                 </span>
                 <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${languageDropdownOpen ? 'rotate-180' : ''} ${isWhiteHeader ? 'text-gray-700' : 'text-white'}`} />
@@ -335,7 +336,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                           `}
                         >
                           <div className="flex items-center gap-3">
-                            <span className="text-xl">{lang.flag}</span>
+                            <span className="text-sm font-bold bg-gray-100 px-2 py-1 rounded-md min-w-[36px] text-center text-gray-700">{lang.flag}</span>
                             <span className={`${i18n.language === lang.code ? 'text-blue-600 font-medium' : 'text-gray-700'}`}>
                               {lang.name}
                             </span>
@@ -372,6 +373,61 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                       <p className={`leading-tight ${isWhiteHeader ? 'text-gray-900' : 'text-white'}`}>{(walletBalance / 1000).toLocaleString('vi-VN')}k</p>
                     </div>
                   </button>
+
+                  {/* Notification Bell - Compact */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setNotificationDropdownOpen(!notificationDropdownOpen)}
+                      className={`
+                        relative flex items-center gap-2 px-3 py-2 rounded-md transition-all
+                        ${isWhiteHeader
+                          ? 'bg-gray-100 hover:bg-gray-200'
+                          : 'bg-black/30 hover:bg-black/40 backdrop-blur-sm drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]'
+                        }
+                      `}
+                    >
+                      <Bell className={`w-4 h-4 ${isWhiteHeader ? 'text-gray-700' : 'text-white'}`} />
+                      {/* Notification badge - mock count, will be replaced with real data */}
+                      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+
+                    {notificationDropdownOpen && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setNotificationDropdownOpen(false)}
+                        />
+                        <div className="absolute top-full mt-2 right-0 bg-white rounded-lg shadow-xl py-2 min-w-[320px] max-w-[400px] z-20">
+                          <div className="px-4 py-2 border-b">
+                            <h3 className="font-semibold text-gray-900">Notifications</h3>
+                          </div>
+                          <div className="max-h-[400px] overflow-y-auto">
+                            {/* Mock notification - will be replaced with real data */}
+                            <div className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b">
+                              <p className="text-sm text-gray-900 mb-1">
+                                Your trip to Hanoi has ended
+                              </p>
+                              <p className="text-xs text-gray-600 mb-2">
+                                Please confirm completion or request a refund
+                              </p>
+                              <button
+                                onClick={() => {
+                                  setNotificationDropdownOpen(false);
+                                  onNavigate("booking-history");
+                                }}
+                                className="text-xs text-blue-600 hover:text-blue-700"
+                              >
+                                View booking →
+                              </button>
+                            </div>
+                            <div className="px-4 py-3 text-center text-sm text-gray-500">
+                              No more notifications
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
 
                   {/* Profile Dropdown - Compact */}
                   <div className="relative">

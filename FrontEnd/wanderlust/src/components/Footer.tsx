@@ -1,10 +1,14 @@
 import { Facebook, Instagram, Twitter, Youtube, Phone, Mail, MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import type { PageType } from "../MainApp";
 
 interface FooterProps {
-  onNavigate?: (page: string, data?: any) => void;
+  onNavigate?: (page: PageType, data?: any) => void;
 }
 
 export function Footer({ }: FooterProps = {}) {
+  const { t } = useTranslation();
+
   return (
     <footer className="bg-gray-900 text-gray-300 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-6">
@@ -13,7 +17,7 @@ export function Footer({ }: FooterProps = {}) {
           <div>
             <h3 className="text-white mb-4">Wanderlust</h3>
             <p className="text-sm mb-4">
-              Đồng hành cùng bạn trên mọi hành trình khám phá thế giới
+              {t('footer.slogan')}
             </p>
             <div className="flex gap-4">
               <a href="#" className="hover:text-blue-400 transition-colors">
@@ -33,35 +37,35 @@ export function Footer({ }: FooterProps = {}) {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-white mb-4">Liên kết nhanh</h4>
+            <h4 className="text-white mb-4">{t('footer.quickLinks')}</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Về chúng tôi</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Điều khoản sử dụng</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Chính sách bảo mật</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Câu hỏi thường gặp</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Tuyển dụng</a></li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">{t('footer.aboutUs')}</a></li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">{t('footer.terms')}</a></li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">{t('footer.privacy')}</a></li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">{t('footer.faq')}</a></li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">{t('footer.careers')}</a></li>
             </ul>
           </div>
 
           {/* Services */}
           <div>
-            <h4 className="text-white mb-4">Dịch vụ</h4>
+            <h4 className="text-white mb-4">{t('footer.services')}</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Vé máy bay</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Đặt phòng khách sạn</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Dịch vụ Visa</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Thuê xe</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition-colors">Tour du lịch</a></li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">{t('nav.flights')}</a></li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">{t('nav.hotel')}</a></li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">{t('nav.visa')}</a></li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">{t('nav.carRental')}</a></li>
+              <li><a href="#" className="hover:text-blue-400 transition-colors">{t('nav.activities')}</a></li>
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h4 className="text-white mb-4">Liên hệ</h4>
+            <h4 className="text-white mb-4">{t('footer.contactUs')}</h4>
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2">
                 <MapPin className="w-5 h-5 mt-0.5 shrink-0" />
-                <span>123 Nguyễn Huệ, Quận 1, TP.HCM, Việt Nam</span>
+                <span>{t('footer.address')}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="w-5 h-5 shrink-0" />
@@ -76,7 +80,7 @@ export function Footer({ }: FooterProps = {}) {
         </div>
 
         <div className="border-t border-gray-800 pt-8 text-center text-sm">
-          <p>&copy; 2025 Wanderlust. All rights reserved.</p>
+          <p>{t('footer.copyright')}</p>
         </div>
       </div>
     </footer>

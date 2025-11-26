@@ -17,7 +17,7 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import type { PageType } from "../../MainApp";
-import { transactionApi, walletApi } from "../../utils/api";
+import { tokenService, transactionApi, walletApi } from "../../utils/api";
 import { type FrontendRole } from "../../utils/roleMapper";
 
 interface UserWalletPageProps {
@@ -51,6 +51,13 @@ export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserW
   // Load wallet and transactions data
   useEffect(() => {
     const loadWalletData = async () => {
+      // Check authentication first
+      if (!tokenService.isAuthenticated()) {
+        toast.error('Vui lòng đăng nhập để xem ví');
+        onNavigate('login');
+        return;
+      }
+
       try {
         setLoading(true);
         
@@ -61,9 +68,15 @@ export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserW
           setTotalTopUp(walletData.totalTopUp || 0);
           setTotalSpent(walletData.totalSpent || 0);
           setTotalRefund(walletData.totalRefund || 0);
-        } catch (walletError) {
+        } catch (walletError: any) {
+          // Handle authentication error
+          if (walletError.message === 'UNAUTHORIZED') {
+            toast.error('Phiên đăng nhập đã hết hạn');
+            tokenService.clearAuth();
+            onNavigate('login');
+            return;
+          }
           console.warn('Wallet API not available, using default values');
-          // Set default values if API fails
           setBalance(0);
           setTotalTopUp(0);
           setTotalSpent(0);
@@ -90,7 +103,14 @@ export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserW
           
           setTransactions(mappedTransactions);
           setTotalPages(transactionData.totalPages || 0);
-        } catch (txnError) {
+        } catch (txnError: any) {
+          // Handle authentication error
+          if (txnError.message === 'UNAUTHORIZED') {
+            toast.error('Phiên đăng nhập đã hết hạn');
+            tokenService.clearAuth();
+            onNavigate('login');
+            return;
+          }
           console.warn('Transaction API not available, showing empty list');
           setTransactions([]);
           setTotalPages(0);

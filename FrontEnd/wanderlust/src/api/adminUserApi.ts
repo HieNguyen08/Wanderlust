@@ -5,7 +5,7 @@ export interface AdminUser {
   name: string;
   email: string;
   phone: string;
-  role: "user" | "admin" | "moderator";
+  role: "user" | "admin" | "vendor";
   status: "active" | "banned" | "suspended";
   joinDate: string;
   lastLogin: string;
@@ -26,7 +26,7 @@ export const adminUserApi = {
       name: `${user.firstName} ${user.lastName}`,
       email: user.email,
       phone: user.mobile || "",
-      role: user.role ? user.role.toLowerCase() : "user",
+      role: user.role === "PARTNER" ? "vendor" : user.role ? user.role.toLowerCase() : "user",
       status: user.isBlocked ? "banned" : "active", // Simple mapping for now
       joinDate: user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : "",
       lastLogin: user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "Never",
@@ -47,7 +47,7 @@ export const adminUserApi = {
       email: userData.email,
       mobile: userData.phone,
       password: userData.password,
-      role: userData.role.toUpperCase(),
+      role: userData.role === "vendor" ? "PARTNER" : userData.role.toUpperCase(),
       isBlocked: userData.status === "banned",
     };
 
@@ -79,7 +79,7 @@ export const adminUserApi = {
       ...namePayload,
       email: userData.email,
       mobile: userData.phone,
-      role: userData.role ? userData.role.toUpperCase() : undefined,
+      role: userData.role ? (userData.role === "vendor" ? "PARTNER" : userData.role.toUpperCase()) : undefined,
       isBlocked: userData.status === "banned",
     };
 

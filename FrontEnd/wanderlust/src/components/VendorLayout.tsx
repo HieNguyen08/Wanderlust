@@ -3,6 +3,9 @@ import {
     BarChart3,
     BookOpen,
     Car,
+    Check,
+    ChevronDown,
+    Globe,
     Home,
     Hotel,
     LayoutDashboard,
@@ -16,7 +19,11 @@ import {
 } from "lucide-react";
 import { ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
+import avatarMan from '../assets/images/avatarman.jpeg';
+import avatarOther from '../assets/images/avatarother.jpeg';
+import avatarWoman from '../assets/images/avatarwoman.jpeg';
 import type { PageType } from "../MainApp";
+import { tokenService } from "../utils/api";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -25,6 +32,7 @@ interface VendorLayoutProps {
   children: ReactNode;
   currentPage: PageType;
   onNavigate: (page: PageType, data?: any) => void;
+  onLogout?: () => void;
   activePage?: "vendor-dashboard" | "vendor-services" | "vendor-bookings" | "vendor-reviews" | "vendor-vouchers" | "vendor-reports" | "vendor-settings";
   vendorType?: "hotel" | "activity" | "car" | "airline";
 }
@@ -32,12 +40,63 @@ interface VendorLayoutProps {
 export function VendorLayout({ 
   children, 
   currentPage, 
-  onNavigate, 
+  onNavigate,
+  onLogout, 
   activePage = "vendor-dashboard",
   vendorType = "hotel"
 }: VendorLayoutProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
+
+  // Get user data from localStorage
+  const userData = tokenService.getUserData() || {};
+  const displayName = userData?.firstName || "Vendor";
+  const userEmail = userData?.email || "vendor@wanderlust.com";
+
+  // Get avatar based on gender
+  const getAvatarSrc = (userData: any): string => {
+    if (userData?.avatar) {
+      return userData.avatar;
+    }
+    const gender = userData?.gender?.toUpperCase();
+    switch (gender) {
+      case 'MALE':
+        return avatarMan;
+      case 'FEMALE':
+        return avatarWoman;
+      case 'OTHER':
+        return avatarOther;
+      default:
+        return avatarOther;
+    }
+  };
+
+  // Language options
+  const languages = [
+    { code: "vi", name: "Tiếng Việt", flag: "VN" },
+    { code: "en", name: "English", flag: "EN" },
+    { code: "ja", name: "日本語", flag: "JP" },
+    { code: "ko", name: "한국어", flag: "KR" },
+  ];
+
+  // Handle language change
+  const handleLanguageChange = (langCode: string) => {
+    i18n.changeLanguage(langCode).then(() => {
+      localStorage.setItem('i18nextLng', langCode);
+      setLanguageDropdownOpen(false);
+    });
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    tokenService.clearToken();
+    if (onLogout) {
+      onLogout();
+    } else {
+      onNavigate("home");
+    }
+  };
 
   const vendorInfo = {
     hotel: {
@@ -134,18 +193,55 @@ export function VendorLayout({
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
             
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 bg-${currentVendor.color}-100 rounded-lg flex items-center justify-center`}>
-                <VendorIcon className={`w-6 h-6 text-${currentVendor.color}-600`} />
-              </div>
-              <div>
-                <h1 className="font-semibold text-gray-900">{currentVendor.name}</h1>
-                <p className="text-xs text-gray-500">{currentVendor.type}</p>
-              </div>
-            </div>
+            <h1 
+              className="font-['Kadwa',_serif] text-2xl text-blue-600 cursor-pointer"
+              onClick={() => onNavigate("home")}
+            >
+              Wanderlust Vendor
+            </h1>
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Language Selector */}
+            <div className="relative">
+              <button
+                onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <Globe className="w-5 h-5 text-gray-600" />
+                <span className="hidden sm:inline text-sm font-medium text-gray-700">
+                  {languages.find(l => l.code === i18n.language)?.flag || "EN"}
+                </span>
+                <ChevronDown className="w-4 h-4 text-gray-600" />
+              </button>
+
+              {languageDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setLanguageDropdownOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border py-2 z-50">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => handleLanguageChange(lang.code)}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center justify-between group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-gray-700">{lang.flag}</span>
+                          <span className="text-sm text-gray-700">{lang.name}</span>
+                        </div>
+                        {i18n.language === lang.code && (
+                          <Check className="w-4 h-4 text-blue-600" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
             {/* Back to Home Button */}
             <Button
               variant="outline"
@@ -168,12 +264,14 @@ export function VendorLayout({
             {/* Vendor Profile */}
             <div className="flex items-center gap-3 pl-4 border-l">
               <div className="hidden md:block text-right">
-                <p className="text-sm font-medium text-gray-900">Nguyễn Văn A</p>
-                <p className="text-xs text-gray-500">Quản lý</p>
+                <p className="text-sm font-medium text-gray-900">{displayName}</p>
+                <p className="text-xs text-gray-500">{userEmail}</p>
               </div>
-              <div className={`w-10 h-10 bg-${currentVendor.color}-600 rounded-full flex items-center justify-center text-white font-semibold`}>
-                A
-              </div>
+              <img 
+                src={getAvatarSrc(userData)} 
+                alt={displayName}
+                className="w-10 h-10 rounded-full object-cover"
+              />
             </div>
           </div>
         </div>
@@ -232,10 +330,7 @@ export function VendorLayout({
               
               {/* Logout */}
               <button
-                onClick={() => {
-                  // TODO: Clear vendor session
-                  onNavigate("home");
-                }}
+                onClick={handleLogout}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all"
               >
                 <LogOut className="w-5 h-5" />

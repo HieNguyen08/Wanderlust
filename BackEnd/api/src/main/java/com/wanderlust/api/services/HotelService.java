@@ -1,5 +1,12 @@
 package com.wanderlust.api.services;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
 import com.wanderlust.api.dto.hotelDTO.HotelDTO;
 import com.wanderlust.api.dto.hotelDTO.HotelSearchCriteria;
 import com.wanderlust.api.dto.hotelDTO.RoomDTO;
@@ -8,13 +15,8 @@ import com.wanderlust.api.mapper.HotelMapper;
 import com.wanderlust.api.mapper.RoomMapper;
 import com.wanderlust.api.repository.HotelRepository;
 import com.wanderlust.api.repository.RoomRepository;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 @Service
@@ -27,11 +29,84 @@ public class HotelService {
 
     // 1. Search Hotels (Location, filters)
     public List<HotelDTO> searchHotels(HotelSearchCriteria criteria) {
-        if (criteria.getLocation() != null) {
-            // Giả sử repository trả về List<Hotel>, mapper sẽ convert sang List<DTO>
-            return hotelMapper.toDTOs(hotelRepository.searchBasic(criteria.getLocation()));
+        List<Hotel> hotels;
+        
+        // Bước 1: Lọc theo location
+        if (criteria.getLocation() != null && !criteria.getLocation().isEmpty()) {
+            // Kiểm tra xem location có phải là locationId không
+            if (criteria.getLocation().startsWith("location_")) {
+                hotels = hotelRepository.findByLocationId(criteria.getLocation());
+            } else {
+                // Tìm theo keyword (tên hoặc địa chỉ)
+                hotels = hotelRepository.searchBasic(criteria.getLocation());
+            }
+        } else {
+            hotels = hotelRepository.findAll();
         }
-        return findAll();
+        
+        // Bước 2: Áp dụng các bộ lọc nâng cao
+        return hotels.stream()
+                // Lọc theo hạng sao
+                .filter(h -> {
+                    if (criteria.getMinStar() != null && h.getStarRating() != null) {
+                        if (h.getStarRating() < criteria.getMinStar()) return false;
+                    }
+                    if (criteria.getMaxStar() != null && h.getStarRating() != null) {
+                        if (h.getStarRating() > criteria.getMaxStar()) return false;
+                    }
+                    return true;
+                })
+                // Lọc theo giá (lowestPrice)
+                .filter(h -> {
+                    if (criteria.getMinPrice() != null && h.getLowestPrice() != null) {
+                        if (h.getLowestPrice().compareTo(criteria.getMinPrice()) < 0) return false;
+                    }
+                    if (criteria.getMaxPrice() != null && h.getLowestPrice() != null) {
+                        if (h.getLowestPrice().compareTo(criteria.getMaxPrice()) > 0) return false;
+                    }
+                    return true;
+                })
+                // Lọc theo loại khách sạn
+                .filter(h -> {
+                    if (criteria.getHotelType() != null) {
+                        return criteria.getHotelType().equals(h.getHotelType());
+                    }
+                    return true;
+                })
+                // Lọc theo đánh giá (rating)
+                .filter(h -> {
+                    if (criteria.getMinRating() != null && h.getAverageRating() != null) {
+                        return h.getAverageRating().compareTo(criteria.getMinRating()) >= 0;
+                    }
+                    return true;
+                })
+                // Lọc theo tiện ích (amenities) - hotel phải có TẤT CẢ các amenities được yêu cầu
+                .filter(h -> {
+                    if (criteria.getAmenities() != null && !criteria.getAmenities().isEmpty()) {
+                        if (h.getAmenities() == null || h.getAmenities().isEmpty()) {
+                            return false;
+                        }
+                        // Kiểm tra hotel có chứa TẤT CẢ các amenities yêu cầu không
+                        return h.getAmenities().containsAll(criteria.getAmenities());
+                    }
+                    return true;
+                })
+                // Lọc theo featured
+                .filter(h -> {
+                    if (criteria.getFeaturedOnly() != null && criteria.getFeaturedOnly()) {
+                        return h.getFeatured() != null && h.getFeatured();
+                    }
+                    return true;
+                })
+                // Lọc theo verified
+                .filter(h -> {
+                    if (criteria.getVerifiedOnly() != null && criteria.getVerifiedOnly()) {
+                        return h.getVerified() != null && h.getVerified();
+                    }
+                    return true;
+                })
+                .map(hotelMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     // 2. Get Featured Hotels

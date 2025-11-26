@@ -1275,6 +1275,17 @@ export const bookingApi = {
     }
     return response.json();
   },
+
+  // Complete booking (user confirms completion)
+  completeBooking: async (id: string) => {
+    const response = await authenticatedFetch(`/api/bookings/${id}/complete`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to complete booking');
+    }
+    return response.json();
+  },
 };
 
 // Admin API endpoints

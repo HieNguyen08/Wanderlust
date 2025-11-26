@@ -11,8 +11,9 @@ import {
     Ticket,
     Users
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
+import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { Header } from "../../components/Header";
@@ -20,9 +21,10 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import type { PageType } from "../../MainApp";
+import { activityApi } from "../../utils/api";
 
 interface ActivityDetailPageProps {
-  activity: {
+  activity?: {
     id: string;
     name: string;
     image: string;
@@ -35,16 +37,85 @@ interface ActivityDetailPageProps {
     duration?: string;
     description: string;
   };
+  activityId?: string; // Allow passing just ID to load from API
   onNavigate: (page: PageType, data?: any) => void;
   userRole?: any;
   onLogout?: () => void;
 }
 
-export default function ActivityDetailPage({ activity, onNavigate, userRole, onLogout }: ActivityDetailPageProps) {
+export default function ActivityDetailPage({ activity: initialActivity, activityId, onNavigate, userRole, onLogout }: ActivityDetailPageProps) {
   const { t } = useTranslation();
+  const [activity, setActivity] = useState(initialActivity);
+  const [loading, setLoading] = useState(!initialActivity && !!activityId);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [guestCount, setGuestCount] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
+
+  // Load activity details if only ID is provided
+  useEffect(() => {
+    const loadActivityDetails = async () => {
+      if (!initialActivity && activityId) {
+        try {
+          setLoading(true);
+          const data = await activityApi.getActivityById(activityId);
+          
+          // Map backend data to frontend format
+          const mapCategory = (backendCategory: string) => {
+            const cat = backendCategory?.toUpperCase();
+            switch (cat) {
+              case 'ATTRACTION': return 'attractions';
+              case 'TOUR': return 'tours';
+              case 'FOOD': return 'food';
+              case 'RELAXATION': return 'spa';
+              case 'ENTERTAINMENT': return 'music';
+              case 'ADVENTURE': return 'tours';
+              case 'CULTURE': return 'attractions';
+              default: return 'other';
+            }
+          };
+
+          const mappedActivity = {
+            id: data.id,
+            name: data.name,
+            image: data.images?.[0]?.url || "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&h=600&fit=crop",
+            price: data.price,
+            originalPrice: data.originalPrice,
+            category: mapCategory(data.category),
+            rating: data.averageRating || 0,
+            reviews: data.totalReviews || 0,
+            location: data.meetingPoint || "Vietnam",
+            duration: data.duration,
+            description: data.description
+          };
+
+          setActivity(mappedActivity);
+        } catch (error) {
+          console.error("Error loading activity details:", error);
+          toast.error(t('activitiesPage.failedToLoadActivity') || "Không thể tải thông tin hoạt động");
+          onNavigate("activities");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadActivityDetails();
+  }, [activityId, initialActivity, onNavigate, t]);
+
+  // Show loading state
+  if (loading || !activity) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header currentPage="activities" onNavigate={onNavigate} userRole={userRole} onLogout={onLogout} />
+        <div className="flex justify-center items-center h-[calc(100vh-60px)]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">{t('common.loading') || 'Đang tải...'}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const highlights = [
     "Hủy miễn phí trước 24 giờ",

@@ -18,7 +18,7 @@ import { Label } from "../../components/ui/label";
 import { Separator } from "../../components/ui/separator";
 import { Switch } from "../../components/ui/switch";
 import type { PageType } from "../../MainApp";
-import { profileApi } from "../../utils/api";
+import { profileApi, tokenService } from "../../utils/api";
 import { type FrontendRole } from "../../utils/roleMapper";
 
 interface SettingsPageProps {
@@ -49,6 +49,11 @@ export default function SettingsPage({ onNavigate, userRole, onLogout }: Setting
   // Load notification settings from backend
   useEffect(() => {
     const loadNotificationSettings = async () => {
+      // Check authentication first
+      if (!tokenService.isAuthenticated()) {
+        return; // Silently skip if not authenticated
+      }
+
       try {
         const settings = await profileApi.getNotificationSettings();
         setNotifications({
@@ -60,6 +65,13 @@ export default function SettingsPage({ onNavigate, userRole, onLogout }: Setting
           smsBooking: settings.smsNotifications || false,
         });
       } catch (error: any) {
+        // Handle authentication error
+        if (error.message === 'UNAUTHORIZED') {
+          toast.error('Phiên đăng nhập đã hết hạn');
+          tokenService.clearAuth();
+          onNavigate('login');
+          return;
+        }
         console.error('Failed to load notification settings:', error);
       }
     };

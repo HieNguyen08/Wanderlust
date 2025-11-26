@@ -1,24 +1,35 @@
 package com.wanderlust.api.services;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.wanderlust.api.entity.User;
+import com.wanderlust.api.entity.Wallet;
 import com.wanderlust.api.entity.types.Role;
+import com.wanderlust.api.entity.types.WalletStatus;
 import com.wanderlust.api.repository.UserRepository;
+import com.wanderlust.api.repository.WalletRepository;
 
-import lombok.AllArgsConstructor;
-
-@AllArgsConstructor
 @Service
 public class UserService implements BaseServices<User> {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final WalletRepository walletRepository;
+    
+    public UserService(UserRepository userRepository, 
+                      PasswordEncoder passwordEncoder,
+                      @Lazy WalletRepository walletRepository) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.walletRepository = walletRepository;
+    }
 
     // Get all users
     public List<User> findAll() {
@@ -146,7 +157,29 @@ public class UserService implements BaseServices<User> {
         newUser.setTotalTrips(0);
         newUser.setTotalReviews(0);
 
-        return userRepository.insert(newUser);
+        User savedUser = userRepository.insert(newUser);
+        
+        // **TỰ ĐỘNG TẠO WALLET CHO USER MỚI**
+        try {
+            Wallet newWallet = Wallet.builder()
+                    .userId(savedUser.getUserId())
+                    .balance(BigDecimal.ZERO)
+                    .currency("VND")
+                    .totalTopUp(BigDecimal.ZERO)
+                    .totalSpent(BigDecimal.ZERO)
+                    .totalRefund(BigDecimal.ZERO)
+                    .status(WalletStatus.ACTIVE)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+            walletRepository.save(newWallet);
+            System.out.println("✅ Created wallet for new OAuth user: " + savedUser.getUserId());
+        } catch (Exception e) {
+            System.err.println("❌ Failed to create wallet for new OAuth user: " + savedUser.getUserId());
+            e.printStackTrace();
+        }
+        
+        return savedUser;
     }
 
 }

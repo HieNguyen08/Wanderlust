@@ -44,9 +44,9 @@ public class Booking {
     private String carRentalId; // Sửa car_Rental_ID -> carRentalId
     private String activityId;  // Thêm activityId
 
-    // --- Dates ---
-    private LocalDate startDate;
-    private LocalDate endDate;
+    // --- Dates --- (UPDATED TO LocalDateTime)
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
     private LocalDateTime bookingDate;
 
     // --- Guest Info (JSON Structures) ---
@@ -80,6 +80,10 @@ public class Booking {
     // --- Vendor Info ---
     private String vendorId;        // ID của đối tác cung cấp dịch vụ
     private Boolean vendorConfirmed;
+    
+    // --- Completion Tracking --- (NEW)
+    private Boolean userConfirmed;  // Người dùng xác nhận hoàn thành
+    private Boolean autoCompleted;  // Tự động hoàn thành bởi hệ thống
 
     // --- Additional Data ---
     // Dùng Map để lưu dữ liệu đặc thù của từng loại booking

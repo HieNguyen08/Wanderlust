@@ -28,7 +28,7 @@ import type { PageType } from "../../MainApp";
 import { carRentalApi } from "../../utils/api";
 
 interface CarDetailPageProps {
-  car: {
+  car?: {
     id: number;
     name: string;
     type: string;
@@ -40,13 +40,16 @@ interface CarDetailPageProps {
     originalPrice?: number;
     rating?: number;
   };
+  carId?: string; // Allow passing just ID to load from API
   onNavigate: (page: PageType, data?: any) => void;
   userRole?: any;
   onLogout?: () => void;
 }
 
-export default function CarDetailPage({ car, onNavigate, userRole, onLogout }: CarDetailPageProps) {
+export default function CarDetailPage({ car: initialCar, carId, onNavigate, userRole, onLogout }: CarDetailPageProps) {
   const { t } = useTranslation();
+  const [car, setCar] = useState(initialCar);
+  const [loading, setLoading] = useState(!initialCar && !!carId);
   const [isLiked, setIsLiked] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [recommendedCars, setRecommendedCars] = useState<any[]>([]);
@@ -56,14 +59,57 @@ export default function CarDetailPage({ car, onNavigate, userRole, onLogout }: C
   const [dropoffDate, setDropoffDate] = useState<string>("");
   const [pickupLocation, setPickupLocation] = useState<string>("");
 
+  // Load car details if only ID is provided
+  useEffect(() => {
+    const loadCarDetails = async () => {
+      if (!initialCar && carId) {
+        try {
+          setLoading(true);
+          const data = await carRentalApi.getCarById(carId);
+          
+          // Map backend data to frontend format
+          const mappedCar = {
+            id: data.id,
+            name: `${data.brand} ${data.model}`,
+            brand: data.brand,
+            model: data.model,
+            type: data.type || "SUV",
+            image: data.images?.[0]?.url || "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800&h=600&fit=crop",
+            gasoline: data.fuelType || "Gasoline",
+            transmission: data.transmission || "Manual",
+            capacity: `${data.seats || 5} People`,
+            seats: data.seats,
+            price: data.pricePerDay ? Math.round(data.pricePerDay / 24000) : 0,
+            originalPrice: undefined,
+            rating: data.averageRating || 4.5,
+          };
+          
+          setCar(mappedCar);
+        } catch (error) {
+          console.error("Error loading car details:", error);
+          toast.error(t('carDetail.failedToLoadCar') || "Không thể tải thông tin xe");
+          onNavigate("car-rental");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadCarDetails();
+  }, [carId, initialCar, onNavigate, t]);
+
   // Scroll to top when car changes (when user clicks on recommended car)
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [car.id]);
+    if (car?.id) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [car?.id]);
 
   // Fetch recommended cars from backend
   useEffect(() => {
     const fetchRecommendedCars = async () => {
+      if (!car?.id) return; // Wait for car to load
+      
       try {
         // Fetch ALL cars instead of just popular ones
         const response = await carRentalApi.getAllCars();
@@ -111,7 +157,7 @@ export default function CarDetailPage({ car, onNavigate, userRole, onLogout }: C
     };
 
     fetchRecommendedCars();
-  }, [car.id]);
+  }, [car?.id, car?.type]);
 
   // Handle booking
   const handleBooking = () => {
@@ -220,6 +266,21 @@ export default function CarDetailPage({ car, onNavigate, userRole, onLogout }: C
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
     },
   ];
+
+  // Show loading state
+  if (loading || !car) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header currentPage="car-rental" onNavigate={onNavigate} userRole={userRole} onLogout={onLogout} />
+        <div className="flex justify-center items-center h-[calc(100vh-60px)]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">{t('common.loading') || 'Đang tải...'}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">

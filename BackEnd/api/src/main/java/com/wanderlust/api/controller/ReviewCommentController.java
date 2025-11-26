@@ -1,18 +1,33 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.dto.reviewComment.*;
-import com.wanderlust.api.entity.types.ReviewTargetType;
-import com.wanderlust.api.services.ReviewCommentService;
-import com.wanderlust.api.services.CustomUserDetails;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.wanderlust.api.dto.reviewComment.ReviewCommentAdminUpdateDTO;
+import com.wanderlust.api.dto.reviewComment.ReviewCommentCreateDTO;
+import com.wanderlust.api.dto.reviewComment.ReviewCommentDTO;
+import com.wanderlust.api.dto.reviewComment.ReviewCommentUpdateDTO;
+import com.wanderlust.api.entity.types.ReviewTargetType;
+import com.wanderlust.api.services.CustomUserDetails;
+import com.wanderlust.api.services.ReviewCommentService;
+
+import lombok.RequiredArgsConstructor;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -122,6 +137,37 @@ public class ReviewCommentController {
 
     // ==========================================
     // PARTNER (VENDOR) ENDPOINTS
+    // ==========================================
+
+    /**
+     * POST /api/reviews/{id}/respond
+     * [PARTNER] Vendor phản hồi review
+     */
+    @PostMapping("/{id}/respond")
+    @PreAuthorize("hasRole('PARTNER')")
+    public ResponseEntity<ReviewCommentDTO> respondToReview(
+            @PathVariable String id,
+            @RequestBody Map<String, String> response) {
+        String vendorId = getCurrentUserId();
+        String responseText = response.get("response");
+        ReviewCommentDTO updatedReview = reviewCommentService.respondToReview(id, responseText, vendorId);
+        return ResponseEntity.ok(updatedReview);
+    }
+
+    /**
+     * GET /api/reviews/vendor/{vendorId}
+     * [PARTNER] Lấy tất cả reviews về dịch vụ của vendor
+     */
+    @GetMapping("/vendor/{vendorId}")
+    @PreAuthorize("hasRole('PARTNER') or hasRole('ADMIN')")
+    public ResponseEntity<List<ReviewCommentDTO>> getReviewsByVendor(@PathVariable String vendorId) {
+        List<ReviewCommentDTO> reviews = reviewCommentService.findAllByVendorId(vendorId);
+        return ResponseEntity.ok(reviews);
+    }
+
+    // ==========================================
+    // ADMIN ENDPOINTS
+    // ==========================================
     /**
      * GET /api/reviews/admin/all
      * [ADMIN] Lấy tất cả review (mọi trạng thái)

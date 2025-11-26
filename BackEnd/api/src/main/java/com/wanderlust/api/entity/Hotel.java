@@ -1,20 +1,20 @@
 package com.wanderlust.api.entity;
 
-import java.time.LocalTime;
-import java.time.LocalDateTime;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
-import com.wanderlust.api.entity.types.HotelType;
+
 import com.wanderlust.api.entity.types.HotelStatusType;
+import com.wanderlust.api.entity.types.HotelType;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Document(collection = "hotel")
 @Data
@@ -27,7 +27,7 @@ public class Hotel {
     private String locationId;
     private String name;
     private String slug;
-    private HotelType hotel_Type; // type
+    private HotelType hotelType; // type
     private Integer starRating; // starRating
     private String address;
     private BigDecimal latitude;

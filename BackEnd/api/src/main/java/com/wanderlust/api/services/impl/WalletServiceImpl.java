@@ -1,32 +1,39 @@
 package com.wanderlust.api.services.impl;
 
-// Import DTOs
-import com.wanderlust.api.dto.walletDTO.*;
-import com.wanderlust.api.dto.payment.RefundRequestDTO; 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
-// Import Entity, Enum, Exception
-import com.wanderlust.api.entity.Payment; 
-import com.wanderlust.api.entity.Wallet;
-import com.wanderlust.api.entity.WalletTransaction;
-import com.wanderlust.api.entity.types.*; 
-import com.wanderlust.api.exception.ResourceNotFoundException;
-
-// Import Repository, Service
-import com.wanderlust.api.repository.PaymentRepository; 
-import com.wanderlust.api.repository.WalletRepository;
-import com.wanderlust.api.services.WalletService;
-import com.wanderlust.api.services.TransactionService;
-
-// === IMPORT MỚI ===
-import com.wanderlust.api.services.BookingService; 
-
-import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import com.wanderlust.api.dto.walletDTO.PaymentCallbackDTO;
+import com.wanderlust.api.dto.walletDTO.PaymentResponseDTO;
+import com.wanderlust.api.dto.walletDTO.TopUpRequestDTO;
+import com.wanderlust.api.dto.walletDTO.TopUpResponseDTO;
+import com.wanderlust.api.dto.walletDTO.TransactionDetailDTO;
+import com.wanderlust.api.dto.walletDTO.TransactionSummaryDTO;
+import com.wanderlust.api.dto.walletDTO.WalletPaymentRequestDTO;
+import com.wanderlust.api.dto.walletDTO.WalletRefundRequestDTO;
+import com.wanderlust.api.dto.walletDTO.WalletResponseDTO;
+import com.wanderlust.api.dto.walletDTO.WithdrawRequestDTO;
+import com.wanderlust.api.dto.walletDTO.WithdrawResponseDTO;
+import com.wanderlust.api.entity.Payment;
+import com.wanderlust.api.entity.Wallet;
+import com.wanderlust.api.entity.WalletTransaction;
+import com.wanderlust.api.entity.types.PaymentMethod;
+import com.wanderlust.api.entity.types.PaymentStatus;
+import com.wanderlust.api.entity.types.TransactionStatus;
+import com.wanderlust.api.entity.types.TransactionType;
+import com.wanderlust.api.entity.types.WalletStatus;
+import com.wanderlust.api.exception.ResourceNotFoundException;
+import com.wanderlust.api.repository.PaymentRepository;
+import com.wanderlust.api.repository.WalletRepository;
+import com.wanderlust.api.services.BookingService;
+import com.wanderlust.api.services.TransactionService;
+import com.wanderlust.api.services.WalletService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -42,8 +49,12 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public WalletResponseDTO getWalletByUserId(String userId) {
+        // Tự động tạo wallet nếu chưa có (cho user cũ)
         Wallet wallet = walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found for user ID: " + userId));
+                .orElseGet(() -> {
+                    System.out.println("⚠️ Wallet not found for user: " + userId + ". Creating new wallet...");
+                    return createWalletForNewUser(userId);
+                });
         return modelMapper.map(wallet, WalletResponseDTO.class);
     }
     @Override

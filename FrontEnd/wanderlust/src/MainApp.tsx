@@ -24,14 +24,14 @@ import { ActivitiesPage, ActivityDetailPage, ActivityReviewPage } from "./pages/
 
 // Visa
 import {
-    VisaApplicationPage,
-    VisaArticleDetailPage,
-    VisaConfirmationPage,
-    VisaConsultationPage,
-    VisaDocumentsPage,
-    VisaLandingPage,
-    VisaPaymentPage,
-    VisaTrackingPage
+  VisaApplicationPage,
+  VisaArticleDetailPage,
+  VisaConfirmationPage,
+  VisaConsultationPage,
+  VisaDocumentsPage,
+  VisaLandingPage,
+  VisaPaymentPage,
+  VisaTrackingPage
 } from "./pages/Visa";
 
 // Travel Guide
@@ -39,57 +39,59 @@ import { GuideDetailPage, TourDetailPage, TravelArticlePage, TravelGuidePage } f
 
 // Booking
 import { BookingDetailsPage, ConfirmationPage, SearchPage } from "./pages/Booking";
+import CheckoutPage from "./pages/Booking/CheckoutPage";
+import PaymentCallbackPage from "./pages/Booking/PaymentCallbackPage";
 
 // Profile (User)
 import {
-    BookingHistoryPage,
-    PaymentMethodsPage,
-    ProfilePage,
-    SavedItemsPage,
-    SavedPaymentMethodsPage,
-    SettingsPage,
-    TopUpWalletPage,
-    UserVouchersPage,
-    UserWalletPage
+  BookingHistoryPage,
+  PaymentMethodsPage,
+  ProfilePage,
+  SavedItemsPage,
+  SavedPaymentMethodsPage,
+  SettingsPage,
+  TopUpWalletPage,
+  UserVouchersPage,
+  UserWalletPage
 } from "./pages/Profile";
 
 // Admin
 import {
-    AdminActivitiesPage,
-    AdminBookingsPage,
-    AdminDashboard,
-    AdminFlightsPage,
-    AdminPendingServicesPage,
-    AdminRefundsPage,
-    AdminRefundWalletPage,
-    AdminReportsPage,
-    AdminReviewsPage,
-    AdminSettingsPage,
-    AdminUsersPage,
-    AdminVouchersPage
+  AdminActivitiesPage,
+  AdminBookingsPage,
+  AdminDashboard,
+  AdminFlightsPage,
+  AdminPendingServicesPage,
+  AdminRefundsPage,
+  AdminRefundWalletPage,
+  AdminReportsPage,
+  AdminReviewsPage,
+  AdminSettingsPage,
+  AdminUsersPage,
+  AdminVouchersPage
 } from "./pages/Admin";
 
 // Vendor
 import {
-    VendorBookingsPage,
-    VendorDashboard,
-    VendorReportsPage,
-    VendorReviewsPage,
-    VendorServicesPage,
-    VendorSettingsPage,
-    VendorVouchersPage
+  VendorBookingsPage,
+  VendorDashboard,
+  VendorReportsPage,
+  VendorReviewsPage,
+  VendorServicesPage,
+  VendorSettingsPage,
+  VendorVouchersPage
 } from "./pages/Vendor";
 
 // Others
 import { AboutPage, OffersPage, PromotionsPage } from "./pages/Others";
 
-export type PageType = "home" | "flights" | "search" | "booking" | "confirmation" | "offers" | "hotel" | "hotel-list" | "hotel-detail" | "visa" | "visa-article" | "visa-consultation" | "visa-tracking" | "visa-application" | "visa-documents" | "visa-payment" | "visa-confirmation" | "activities" | "activity-detail" | "travel-guide" | "guide-detail" | "travel-article" | "about" | "promotions" | "tour-detail" | "car-rental" | "car-list" | "car-detail" | "profile" | "booking-history" | "saved-items" | "vouchers" | "wallet" | "topup-wallet" | "settings" | "saved-payment-methods" | "payment-methods" | "flight-review" | "hotel-review" | "car-review" | "activity-review" | "admin-dashboard" | "admin-users" | "admin-bookings" | "admin-flights" | "admin-activities" | "admin-reviews" | "admin-reports" | "admin-settings" | "admin-refunds" | "admin-refund-wallet" | "admin-pending-services" | "admin-vouchers" | "vendor-dashboard" | "vendor-services" | "vendor-bookings" | "vendor-reviews" | "vendor-reports" | "vendor-settings" | "vendor-vouchers" | "login" | "login-success";
+export type PageType = "home" | "flights" | "search" | "booking" | "checkout" | "payment-callback" | "confirmation" | "offers" | "hotel" | "hotel-list" | "hotel-detail" | "visa" | "visa-article" | "visa-consultation" | "visa-tracking" | "visa-application" | "visa-documents" | "visa-payment" | "visa-confirmation" | "activities" | "activity-detail" | "travel-guide" | "guide-detail" | "travel-article" | "about" | "promotions" | "tour-detail" | "car-rental" | "car-list" | "car-detail" | "profile" | "booking-history" | "saved-items" | "vouchers" | "wallet" | "topup-wallet" | "settings" | "saved-payment-methods" | "payment-methods" | "flight-review" | "hotel-review" | "car-review" | "activity-review" | "admin-dashboard" | "admin-users" | "admin-bookings" | "admin-flights" | "admin-activities" | "admin-reviews" | "admin-reports" | "admin-settings" | "admin-refunds" | "admin-refund-wallet" | "admin-pending-services" | "admin-vouchers" | "vendor-dashboard" | "vendor-services" | "vendor-bookings" | "vendor-reviews" | "vendor-reports" | "vendor-settings" | "vendor-vouchers" | "login" | "login-success";
 
 export default function MainApp() {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
   const [pageData, setPageData] = useState<any>(null);
   const [userRole, setUserRole] = useState<FrontendRole | null>(null);
-  
+
   // DEBUG: Log current page to console
   useEffect(() => {
     console.log("📍 Current page:", currentPage);
@@ -103,7 +105,7 @@ export default function MainApp() {
   useEffect(() => {
     const token = tokenService.getToken();
     const userData = tokenService.getUserData();
-    
+
     // Chỉ restore session nếu CÓ token hợp lệ
     if (token && userData && userData.role) {
       setUserRole(userData.role as FrontendRole);
@@ -122,10 +124,12 @@ export default function MainApp() {
   useEffect(() => {
     const path = window.location.pathname;
     console.log("🛣️ Detected URL path:", path);
-    
+
     if (path === '/login-success' && window.location.search.includes('token')) {
       console.log("🚀 Auto-navigating to login-success page!");
       setCurrentPage('login-success');
+    } else if (path.includes('/payment/callback')) {
+      setCurrentPage('payment-callback');
     }
   }, []);
 
@@ -154,8 +158,8 @@ export default function MainApp() {
     <div>
       {/* Header - shown on all pages except login */}
       {shouldShowHeader && (
-        <Header 
-          currentPage={currentPage} 
+        <Header
+          currentPage={currentPage}
           onNavigate={handleNavigate}
           userRole={userRole}
           onLogout={handleLogout}
@@ -165,7 +169,9 @@ export default function MainApp() {
       {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} />}
       {currentPage === "search" && <SearchPage onNavigate={handleNavigate} searchData={pageData} />}
       {currentPage === "booking" && <BookingDetailsPage onNavigate={handleNavigate} />}
-      {currentPage === "confirmation" && <ConfirmationPage onNavigate={handleNavigate} />}
+      {currentPage === "checkout" && <CheckoutPage onNavigate={handleNavigate} bookingData={pageData} />}
+      {currentPage === "payment-callback" && <PaymentCallbackPage onNavigate={handleNavigate} />}
+      {currentPage === "confirmation" && <ConfirmationPage onNavigate={handleNavigate} paymentInfo={pageData?.paymentInfo} {...pageData} />}
       {currentPage === "offers" && <OffersPage onNavigate={handleNavigate} />}
       {currentPage === "hotel" && <HotelLandingPage onNavigate={handleNavigate} />}
       {currentPage === "hotel-list" && <HotelListPage searchParams={pageData} onNavigate={handleNavigate} />}

@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { Bell, X, Eye, CheckCircle, AlertCircle, Clock, MessageSquare } from "lucide-react";
-import { Badge } from "./ui/badge";
+import { AlertCircle, Bell, CheckCircle, Clock, Eye, Loader2, MessageSquare } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { PageType } from "../MainApp";
+import { notificationApi, type NotificationDTO } from "../api/notificationApi";
+import { tokenService } from "../utils/api";
+import { Badge } from "./ui/badge";
 
 interface Notification {
   id: string;
@@ -23,17 +25,111 @@ interface NotificationDropdownProps {
 
 export function NotificationDropdown({ onNavigate, userRole = "user" }: NotificationDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>(
-    getMockNotifications(userRole)
-  );
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // Fetch notifications from API
+  useEffect(() => {
+    // Only load if user is authenticated and dropdown is open
+    if (isOpen && tokenService.isAuthenticated()) {
+      loadNotifications();
+    }
+  }, [isOpen]);
 
-  const handleNotificationClick = (notification: Notification) => {
-    // Mark as read
-    setNotifications(prev =>
-      prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
-    );
+  // Fetch unread count on mount and periodically
+  useEffect(() => {
+    // Only load if user is authenticated
+    if (!tokenService.isAuthenticated()) {
+      return;
+    }
+    
+    loadUnreadCount();
+    const interval = setInterval(loadUnreadCount, 30000); // Every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadNotifications = async () => {
+    try {
+      setIsLoading(true);
+      const data = await notificationApi.getMyNotifications();
+      setNotifications(mapNotificationsFromAPI(data));
+    } catch (error) {
+      console.error("Error loading notifications:", error);
+      // Fallback to mock data if API fails
+      setNotifications(getMockNotifications(userRole));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadUnreadCount = async () => {
+    try {
+      const count = await notificationApi.getUnreadCount();
+      setUnreadCount(count);
+    } catch (error) {
+      // Silently fail if not authenticated
+      if (error instanceof Error && error.message !== 'UNAUTHORIZED') {
+        console.error("Error loading unread count:", error);
+      }
+    }
+  };
+
+  const mapNotificationsFromAPI = (apiNotifications: NotificationDTO[]): Notification[] => {
+    return apiNotifications.map(n => ({
+      id: n.id,
+      type: n.type.toLowerCase() as any,
+      title: n.title,
+      message: n.message,
+      time: formatTimeAgo(n.createdAt),
+      read: n.read,
+      link: n.relatedEntityId ? {
+        page: getPageFromEntityType(n.relatedEntityType),
+        data: { id: n.relatedEntityId }
+      } : undefined,
+    }));
+  };
+
+  const formatTimeAgo = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return "Vừa xong";
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    
+    return date.toLocaleDateString("vi-VN");
+  };
+
+  const getPageFromEntityType = (entityType?: string): PageType => {
+    switch (entityType) {
+      case "BOOKING": return "booking-history";
+      case "REVIEW": return "vendor-reviews";
+      case "PAYMENT": return "user-wallet";
+      default: return "home";
+    }
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    // Mark as read via API
+    if (!notification.read) {
+      try {
+        await notificationApi.markAsRead(notification.id);
+        setNotifications(prev =>
+          prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
+        );
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      } catch (error) {
+        console.error("Error marking notification as read:", error);
+      }
+    }
 
     // Navigate to linked page
     if (notification.link) {
@@ -42,12 +138,30 @@ export function NotificationDropdown({ onNavigate, userRole = "user" }: Notifica
     }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  const markAllAsRead = async () => {
+    const unreadNotifications = notifications.filter(n => !n.read);
+    
+    try {
+      await Promise.all(
+        unreadNotifications.map(n => notificationApi.markAsRead(n.id))
+      );
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+    }
   };
 
-  const clearAll = () => {
-    setNotifications([]);
+  const clearAll = async () => {
+    try {
+      await Promise.all(
+        notifications.map(n => notificationApi.deleteNotification(n.id))
+      );
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Error clearing notifications:", error);
+    }
   };
 
   const getIcon = (type: string) => {
@@ -120,7 +234,12 @@ export function NotificationDropdown({ onNavigate, userRole = "user" }: Notifica
 
             {/* Notifications List */}
             <div className="overflow-y-auto flex-1">
-              {notifications.length === 0 ? (
+              {isLoading ? (
+                <div className="p-8 text-center">
+                  <Loader2 className="w-8 h-8 text-gray-400 mx-auto mb-3 animate-spin" />
+                  <p className="text-gray-500">Đang tải thông báo...</p>
+                </div>
+              ) : notifications.length === 0 ? (
                 <div className="p-8 text-center">
                   <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500">Không có thông báo mới</p>

@@ -1,63 +1,53 @@
 import {
-    Activity,
-    Calendar,
-    Car,
-    CheckCircle,
-    CheckCircle2,
-    Clock,
-    Download,
-    Eye,
-    Hotel,
-    MoreVertical,
-    Plane,
-    RefreshCw,
-    Search,
-    X,
-    XCircle
+  Activity,
+  Calendar,
+  Car,
+  CheckCircle,
+  CheckCircle2,
+  Clock,
+  Download,
+  Eye,
+  Hotel,
+  MoreVertical,
+  Plane,
+  RefreshCw,
+  Search,
+  X,
+  XCircle
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
+import { AdminBooking, adminBookingApi, BookingStatus, BookingType, PaymentStatus } from "../../api/adminBookingApi";
 import { AdminLayout } from "../../components/AdminLayout";
 import { BookingDetailDialog } from "../../components/admin/BookingDetailDialog";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 import { Input } from "../../components/ui/input";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "../../components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { adminApi } from "../../utils/api";
 
 interface AdminBookingsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
 }
 
-interface Booking {
-  id: string;
-  customer: string;
-  email: string;
-  type: "flight" | "hotel" | "car" | "activity";
-  service: string;
-  bookingDate: string;
-  travelDate: string;
-  status: "confirmed" | "pending" | "cancelled" | "completed";
-  amount: number;
-  payment: "paid" | "pending" | "refunded";
-}
+// Using AdminBooking from API
+type Booking = AdminBooking;
 
 export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps) {
   const { t } = useTranslation();
@@ -72,8 +62,17 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
     const loadBookings = async () => {
       try {
         setLoading(true);
-        const data = await adminApi.getAllBookings();
-        setBookings(data);
+        const data = await adminBookingApi.getAllBookings();
+        
+        // Load service details for each booking
+        const bookingsWithDetails = await Promise.all(
+          data.map(async (booking) => {
+            const serviceDetails = await adminBookingApi.loadServiceDetails(booking);
+            return { ...booking, serviceDetails: serviceDetails || undefined };
+          })
+        );
+        
+        setBookings(bookingsWithDetails);
       } catch (error) {
         console.error('Failed to load bookings:', error);
         toast.error(t('admin.cannotLoadBookings'));
@@ -90,22 +89,36 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
     setIsDetailOpen(true);
   };
 
-  const handleConfirm = (booking: Booking) => {
-    toast.success(t('admin.bookingConfirmed', { id: booking.id }));
-    // TODO: Implement confirm logic
+  const handleConfirm = async (booking: Booking) => {
+    try {
+      await adminBookingApi.confirmBooking(booking.id);
+      toast.success(t('admin.bookingConfirmed', { id: booking.bookingCode }));
+      // Reload bookings
+      const data = await adminBookingApi.getAllBookings();
+      setBookings(data);
+    } catch (error) {
+      toast.error(t('admin.cannotConfirmBooking'));
+    }
   };
 
-  const handleCancel = (booking: Booking) => {
-    toast.error(t('admin.bookingCancelled', { id: booking.id }));
-    // TODO: Implement cancel logic
+  const handleCancel = async (booking: Booking) => {
+    try {
+      await adminBookingApi.cancelBooking(booking.id, 'Cancelled by admin');
+      toast.success(t('admin.bookingCancelled', { id: booking.bookingCode }));
+      // Reload bookings
+      const data = await adminBookingApi.getAllBookings();
+      setBookings(data);
+    } catch (error) {
+      toast.error(t('admin.cannotCancelBooking'));
+    }
   };
 
   const handleRefund = async (booking: Booking) => {
     try {
-      await adminApi.deleteBooking(booking.id);
-      toast.success(t('admin.refundProcessed', { id: booking.id }));
+      await adminBookingApi.updateBooking(booking.id, { paymentStatus: 'REFUNDED' });
+      toast.success(t('admin.refundProcessed', { id: booking.bookingCode }));
       // Reload bookings
-      const data = await adminApi.getAllBookings();
+      const data = await adminBookingApi.getAllBookings();
       setBookings(data);
     } catch (error) {
       toast.error(t('admin.cannotProcessRefund'));
@@ -113,13 +126,19 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
   };
 
   const filteredBookings = bookings.filter(booking => {
+    const customerName = booking.guestInfo?.fullName || '';
+    const customerEmail = booking.guestInfo?.email || '';
     const matchesSearch = searchQuery === "" ||
-      booking.customer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      booking.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      booking.id?.toLowerCase().includes(searchQuery.toLowerCase());
+      customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customerEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      booking.bookingCode?.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (activeTab === "all") return matchesSearch;
-    return matchesSearch && booking.status === activeTab;
+    if (activeTab === "confirmed" || activeTab === "pending" || activeTab === "cancelled" || activeTab === "completed") {
+      return matchesSearch && booking.status === activeTab.toUpperCase();
+    }
+    // Filter by booking type
+    return matchesSearch && booking.bookingType === activeTab.toUpperCase();
   });
 
   const stats = [
@@ -132,110 +151,37 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
     },
     {
       label: t('admin.confirmed'),
-      value: bookings.filter(b => b.status === "confirmed").length,
+      value: bookings.filter(b => b.status === "CONFIRMED").length,
       change: "+8.2%",
       icon: CheckCircle2,
       color: "green"
     },
     {
       label: t('admin.pending'),
-      value: bookings.filter(b => b.status === "pending").length,
+      value: bookings.filter(b => b.status === "PENDING").length,
       change: "-3.1%",
       icon: Clock,
       color: "orange"
     },
     {
       label: t('admin.cancelled'),
-      value: bookings.filter(b => b.status === "cancelled").length,
+      value: bookings.filter(b => b.status === "CANCELLED").length,
       change: "+1.8%",
       icon: XCircle,
       color: "red"
     },
   ];
 
-  const mockBookings = [
-    {
-      id: "BK001",
-      customer: "Nguyễn Văn A",
-      email: "nguyenvana@email.com",
-      type: "hotel",
-      service: "JW Marriott Phu Quoc - Deluxe Ocean View",
-      bookingDate: "2025-01-15",
-      travelDate: "2025-02-20",
-      status: "confirmed",
-      amount: 10500000,
-      payment: "paid",
-    },
-    {
-      id: "BK002",
-      customer: "Trần Thị B",
-      email: "tranthib@email.com",
-      type: "flight",
-      service: "HAN → SGN - Vietnam Airlines VN117",
-      bookingDate: "2025-01-15",
-      travelDate: "2025-01-20",
-      status: "pending",
-      amount: 2500000,
-      payment: "pending",
-    },
-    {
-      id: "BK003",
-      customer: "Lê Văn C",
-      email: "levanc@email.com",
-      type: "activity",
-      service: "Tour Thái Lan trọn gói (Bangkok, Pattaya)",
-      bookingDate: "2025-01-14",
-      travelDate: "2025-03-10",
-      status: "confirmed",
-      amount: 6690000,
-      payment: "paid",
-    },
-    {
-      id: "BK004",
-      customer: "Phạm Thị D",
-      email: "phamthid@email.com",
-      type: "car",
-      service: "Toyota Camry 2024 - 3 ngày",
-      bookingDate: "2025-01-14",
-      travelDate: "2025-01-18",
-      status: "cancelled",
-      amount: 1800000,
-      payment: "refunded",
-    },
-    {
-      id: "BK005",
-      customer: "Hoàng Văn E",
-      email: "hoangvane@email.com",
-      type: "hotel",
-      service: "InterContinental Danang - Premium Ocean View",
-      bookingDate: "2025-01-13",
-      travelDate: "2025-01-25",
-      status: "confirmed",
-      amount: 8400000,
-      payment: "paid",
-    },
-    {
-      id: "BK006",
-      customer: "Võ Thị F",
-      email: "vothif@email.com",
-      type: "flight",
-      service: "SGN → SIN - VietJet Air VJ651",
-      bookingDate: "2025-01-12",
-      travelDate: "2025-02-05",
-      status: "completed",
-      amount: 3200000,
-      payment: "paid",
-    },
-  ];
-
-  const getTypeBadge = (type: string) => {
-    const config = {
-      flight: { label: t('admin.flightTicket'), icon: Plane, color: "blue" },
-      hotel: { label: t('admin.hotel'), icon: Hotel, color: "green" },
-      car: { label: t('admin.carRental'), icon: Car, color: "purple" },
-      activity: { label: t('admin.activity'), icon: Activity, color: "orange" },
+  const getTypeBadge = (type: BookingType) => {
+    const config: Record<BookingType, { label: string; icon: any; color: string }> = {
+      FLIGHT: { label: t('admin.flightTicket'), icon: Plane, color: "blue" },
+      HOTEL: { label: t('admin.hotel'), icon: Hotel, color: "green" },
+      CAR_RENTAL: { label: t('admin.carRental'), icon: Car, color: "purple" },
+      ACTIVITY: { label: t('admin.activity'), icon: Activity, color: "orange" },
     };
-    const { label, icon: Icon, color } = config[type as keyof typeof config];
+    const typeConfig = config[type];
+    if (!typeConfig) return null;
+    const { label, icon: Icon, color } = typeConfig;
     return (
       <Badge className={`bg-${color}-100 text-${color}-700 gap-1`}>
         <Icon className="w-3 h-3" />
@@ -244,32 +190,51 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
     );
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: BookingStatus) => {
     switch (status) {
-      case "confirmed":
+      case "CONFIRMED":
         return <Badge className="bg-green-100 text-green-700">{t('admin.confirmed')}</Badge>;
-      case "pending":
+      case "PENDING":
         return <Badge className="bg-yellow-100 text-yellow-700">{t('admin.pending')}</Badge>;
-      case "cancelled":
+      case "CANCELLED":
         return <Badge className="bg-red-100 text-red-700">{t('admin.cancelled')}</Badge>;
-      case "completed":
+      case "COMPLETED":
         return <Badge className="bg-blue-100 text-blue-700">{t('admin.completed')}</Badge>;
+      case "REFUND_REQUESTED":
+        return <Badge className="bg-orange-100 text-orange-700">{t('admin.refundRequested')}</Badge>;
       default:
         return null;
     }
   };
 
-  const getPaymentBadge = (payment: string) => {
+  const getPaymentBadge = (payment: PaymentStatus) => {
     switch (payment) {
-      case "paid":
+      case "COMPLETED":
         return <Badge className="bg-green-100 text-green-700">{t('admin.paid')}</Badge>;
-      case "pending":
+      case "PENDING":
         return <Badge className="bg-yellow-100 text-yellow-700">{t('admin.pendingPayment')}</Badge>;
-      case "refunded":
+      case "PROCESSING":
+        return <Badge className="bg-blue-100 text-blue-700">{t('admin.processing')}</Badge>;
+      case "REFUNDED":
         return <Badge className="bg-gray-100 text-gray-700">{t('admin.refunded')}</Badge>;
+      case "FAILED":
+        return <Badge className="bg-red-100 text-red-700">{t('admin.failed')}</Badge>;
       default:
         return null;
     }
+  };
+
+  // Helper to get service name based on booking type
+  const getServiceName = (booking: Booking): string => {
+    if (booking.serviceDetails) {
+      return booking.serviceDetails.name;
+    }
+    // Fallback to IDs if service details not loaded
+    if (booking.flightId) return `Flight: ${booking.flightId}`;
+    if (booking.hotelId) return `Hotel: ${booking.hotelId}`;
+    if (booking.carRentalId) return `Car: ${booking.carRentalId}`;
+    if (booking.activityId) return `Activity: ${booking.activityId}`;
+    return 'N/A';
   };
 
   return (
@@ -319,10 +284,10 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
               <TabsTrigger value="all">{t('common.all')} ({bookings.length})</TabsTrigger>
-              <TabsTrigger value="flight">{t('admin.flightTicket')}</TabsTrigger>
-              <TabsTrigger value="hotel">{t('admin.hotel')}</TabsTrigger>
-              <TabsTrigger value="car">{t('admin.carRental')}</TabsTrigger>
-              <TabsTrigger value="activity">{t('admin.activity')}</TabsTrigger>
+              <TabsTrigger value="confirmed">{t('admin.confirmed')} ({bookings.filter(b => b.status === 'CONFIRMED').length})</TabsTrigger>
+              <TabsTrigger value="pending">{t('admin.pending')} ({bookings.filter(b => b.status === 'PENDING').length})</TabsTrigger>
+              <TabsTrigger value="cancelled">{t('admin.cancelled')} ({bookings.filter(b => b.status === 'CANCELLED').length})</TabsTrigger>
+              <TabsTrigger value="completed">{t('admin.completed')} ({bookings.filter(b => b.status === 'COMPLETED').length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">
@@ -343,29 +308,45 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredBookings.map((booking) => (
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={10} className="text-center py-8">
+                          {t('common.loading')}
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredBookings.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={10} className="text-center py-8">
+                          {t('admin.noBookingsFound')}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredBookings.map((booking) => (
                       <TableRow key={booking.id}>
-                        <TableCell className="font-medium">{booking.id}</TableCell>
+                        <TableCell className="font-medium">{booking.bookingCode}</TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium text-gray-900">{booking.customer}</p>
-                            <p className="text-sm text-gray-500">{booking.email}</p>
+                            <p className="font-medium text-gray-900">{booking.guestInfo?.fullName || 'N/A'}</p>
+                            <p className="text-sm text-gray-500">{booking.guestInfo?.email || 'N/A'}</p>
                           </div>
                         </TableCell>
-                        <TableCell>{getTypeBadge(booking.type)}</TableCell>
+                        <TableCell>{getTypeBadge(booking.bookingType)}</TableCell>
                         <TableCell className="max-w-xs">
-                          <p className="text-sm text-gray-900 truncate">{booking.service}</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">{getServiceName(booking)}</p>
+                          {booking.serviceDetails?.location && (
+                            <p className="text-xs text-gray-500 truncate">{booking.serviceDetails.location}</p>
+                          )}
                         </TableCell>
                         <TableCell className="text-sm text-gray-600">
-                          {booking.bookingDate}
+                          {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString() : 'N/A'}
                         </TableCell>
                         <TableCell className="text-sm text-gray-600">
-                          {booking.travelDate}
+                          {booking.startDate || 'N/A'}
                         </TableCell>
                         <TableCell>{getStatusBadge(booking.status)}</TableCell>
-                        <TableCell>{getPaymentBadge(booking.payment)}</TableCell>
+                        <TableCell>{getPaymentBadge(booking.paymentStatus)}</TableCell>
                         <TableCell className="font-semibold text-gray-900">
-                          {(booking.amount / 1000000).toFixed(1)}M
+                          {booking.totalPrice ? (booking.totalPrice / 1000000).toFixed(1) + 'M' : 'N/A'}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -388,7 +369,7 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
                                   <Download className="w-4 h-4" />
                                   {t('admin.downloadInvoice')}
                                 </DropdownMenuItem>
-                                {booking.status === "pending" && (
+                                {booking.status === "PENDING" && (
                                   <DropdownMenuItem 
                                     className="gap-2 text-green-600"
                                     onClick={() => handleConfirm(booking)}
@@ -397,7 +378,7 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
                                     {t('admin.confirm')}
                                   </DropdownMenuItem>
                                 )}
-                                {booking.status !== "cancelled" && booking.status !== "completed" && (
+                                {booking.status !== "CANCELLED" && booking.status !== "COMPLETED" && (
                                   <DropdownMenuItem 
                                     className="gap-2 text-red-600"
                                     onClick={() => handleCancel(booking)}
@@ -406,7 +387,7 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
                                     {t('admin.cancelBooking')}
                                   </DropdownMenuItem>
                                 )}
-                                {booking.payment === "paid" && booking.status === "cancelled" && (
+                                {booking.paymentStatus === "COMPLETED" && booking.status === "CANCELLED" && (
                                   <DropdownMenuItem 
                                     className="gap-2 text-blue-600"
                                     onClick={() => handleRefund(booking)}
@@ -420,7 +401,8 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ))
+                    )}
                   </TableBody>
                 </Table>
               </div>

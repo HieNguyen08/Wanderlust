@@ -47,9 +47,15 @@ public class FlightController {
             @RequestParam String to,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(required = false, defaultValue = "false") boolean directOnly,
-            @RequestParam(required = false) List<String> airlines) {
+            @RequestParam(required = false) List<String> airlines,
+            @RequestParam(required = false) java.math.BigDecimal minPrice,
+            @RequestParam(required = false) java.math.BigDecimal maxPrice,
+            @RequestParam(required = false) String cabinClass,
+            @RequestParam(required = false) String departureTimeRange) {
         
-        List<Flight> flights = flightService.searchFlights(from, to, date, directOnly, airlines);
+        List<Flight> flights = flightService.searchFlights(
+                from, to, date, directOnly, airlines, 
+                minPrice, maxPrice, cabinClass, departureTimeRange);
         return ResponseEntity.ok(flights);
     }
 

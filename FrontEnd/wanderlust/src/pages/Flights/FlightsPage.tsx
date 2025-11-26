@@ -33,7 +33,7 @@ import { Label } from "../../components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import type { PageType } from "../../MainApp";
-import { promotionApi, tokenService, userVoucherApi } from "../../utils/api";
+import { flightApi, promotionApi, tokenService, userVoucherApi } from "../../utils/api";
 
 interface FlightsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -154,7 +154,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
     setToAirport(temp);
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     // Validation
     if (!fromAirport) {
       toast.error("Vui lòng chọn điểm khởi hành");
@@ -181,13 +181,43 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       return;
     }
 
-    // Show loading overlay
-    setIsSearching(true);
+    try {
+      // Show loading overlay
+      setIsSearching(true);
 
-    // Simulate search delay (in production, this would be an API call)
-    setTimeout(() => {
-      setIsSearching(false);
-      // Navigate to SearchPage with data
+      // Format date to yyyy-MM-dd for API
+      const formattedDate = format(departDate, "yyyy-MM-dd");
+
+      // Search flights via API
+      console.log("🔍 Searching flights:", {
+        from: fromAirport.code,
+        to: toAirport.code,
+        date: formattedDate,
+        directOnly: false
+      });
+
+      const outboundFlights = await flightApi.searchFlights({
+        from: fromAirport.code,
+        to: toAirport.code,
+        date: formattedDate,
+        directOnly: false
+      });
+
+      console.log("✅ Found outbound flights:", outboundFlights);
+
+      let returnFlights = [];
+      if (tripType === "round-trip" && returnDate) {
+        const formattedReturnDate = format(returnDate, "yyyy-MM-dd");
+        returnFlights = await flightApi.searchFlights({
+          from: toAirport.code,
+          to: fromAirport.code,
+          date: formattedReturnDate,
+          directOnly: false
+        });
+        console.log("✅ Found return flights:", returnFlights);
+      }
+
+      // Navigate to SearchPage with results
       onNavigate("search", {
         tripType,
         from: fromAirport,
@@ -200,9 +230,16 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
           infants,
           total: adults + children + infants
         },
-        cabinClass
+        cabinClass,
+        outboundFlights,
+        returnFlights
       });
-    }, 2000); // 2 seconds delay to show loading animation
+    } catch (error: any) {
+      console.error("❌ Error searching flights:", error);
+      toast.error("Không thể tìm kiếm chuyến bay. Vui lòng thử lại.");
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handlePopularFlightClick = (from: string, to: string) => {
@@ -277,7 +314,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
               </div>
             </RadioGroup>
 
-            {/* Search Inputs */}
+            {/* Search Inputs - Row 1: Airports and Dates */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
               {/* From */}
               <div className="md:col-span-3">
@@ -463,27 +500,31 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                   </Popover>
                 </div>
               )}
+            </div>
 
+            {/* Search Inputs - Row 2: Passengers and Search */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 mt-3">
               {/* Passengers & Class */}
-              <div className={tripType === "round-trip" ? "md:col-span-2" : "md:col-span-4"}>
+              <div className={tripType === "round-trip" ? "md:col-span-6" : "md:col-span-6"}>
                 <Popover open={openPassengers} onOpenChange={setOpenPassengers}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className="w-full justify-start h-14 border-2 hover:border-blue-500 transition-colors"
                     >
-                      <Users className="w-5 h-5 text-blue-600 mr-2 shrink-0" />
+                      <Users className="w-4 h-4 text-blue-600 mr-1.5 shrink-0" />
                       <div className="flex flex-col items-start flex-1 min-w-0">
                         <span className="text-xs text-gray-500">{t('flights.passengersAndClass')}</span>
-                        <span className="truncate w-full text-left">
-                          {t('flights.passengers', { count: totalPassengers })}, {cabinClassLabels[cabinClass]}
+                        <span className="w-full text-left text-xs leading-tight">
+                          {adults} {t('flights.adults')}{children > 0 ? `, ${children} ${t('flights.children')}` : ''}{infants > 0 ? `, ${infants} ${t('flights.infants')}` : ''} • {cabinClassLabels[cabinClass]}
                         </span>
                       </div>
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      <ChevronsUpDown className="ml-1 h-4 w-4 shrink-0 opacity-50" />
+
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[320px]">
-                    <div className="space-y-4">
+                  <PopoverContent className="w-[380px] p-6">
+                    <div className="space-y-5">
                       {/* Adults */}
                       <div className="flex items-center justify-between">
                         <div>
@@ -601,7 +642,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
               </div>
 
               {/* Search Button */}
-              <div className={tripType === "round-trip" ? "md:col-span-1" : "md:col-span-1"}>
+              <div className={tripType === "round-trip" ? "md:col-span-3" : "md:col-span-3"}>
                 <Button
                   onClick={handleSearch}
                   className="w-full h-14 bg-[#0194f3] hover:bg-[#0180d6] text-white"
