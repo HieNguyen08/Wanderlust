@@ -60,23 +60,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 4. Nếu có email và user chưa được xác thực trong context
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // Tải thông tin User từ DB
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+            try {
+                // Tải thông tin User từ DB
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-            // 5. Kiểm tra token có hợp lệ không
-            // (Bạn cần đảm bảo JwtService có hàm này)
-            if (jwtService.isTokenValid(jwt, userDetails)) { 
-                // Tạo một đối tượng xác thực
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null, // Không cần credentials vì đã dùng token
-                        userDetails.getAuthorities()
-                );
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
-                // 6. Lưu thông tin xác thực vào SecurityContext
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                // 5. Kiểm tra token có hợp lệ không
+                // (Bạn cần đảm bảo JwtService có hàm này)
+                if (jwtService.isTokenValid(jwt, userDetails)) { 
+                    // Tạo một đối tượng xác thực
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null, // Không cần credentials vì đã dùng token
+                            userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
+                    // 6. Lưu thông tin xác thực vào SecurityContext
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            } catch (Exception e) {
+                // Nếu user không tìm thấy hoặc token invalid, log và tiếp tục
+                System.err.println("JWT User loading error: " + e.getMessage());
+                // Không throw exception, cho phép request tiếp tục (unauthenticated)
             }
         }
         

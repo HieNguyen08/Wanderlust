@@ -1,15 +1,23 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.entity.FlightSeat; // Use the FlightSeat entity directly
-import com.wanderlust.api.services.FlightSeatService;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.wanderlust.api.controller.dto.BulkFlightSeatRequest;
+import com.wanderlust.api.entity.FlightSeat; // Use the FlightSeat entity directly
+import com.wanderlust.api.services.FlightSeatService;
 
 @RestController
 @RequestMapping("/api/flight-seats")
@@ -36,6 +44,20 @@ public class FlightSeatController {
     public ResponseEntity<FlightSeat> addFlightSeat(@RequestBody FlightSeat flightSeat) {
         FlightSeat newFlightSeat = flightSeatService.create(flightSeat);
         return new ResponseEntity<>(newFlightSeat, HttpStatus.CREATED);
+    }
+
+    // Bulk create flight seats for a flight
+    @PostMapping("/bulk")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<FlightSeat>> bulkCreateFlightSeats(@RequestBody BulkFlightSeatRequest request) {
+        try {
+            List<FlightSeat> createdSeats = flightSeatService.createBulkSeats(request);
+            return new ResponseEntity<>(createdSeats, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // Update an existing flight seat
@@ -71,6 +93,18 @@ public class FlightSeatController {
         return new ResponseEntity<>("All flight seats have been deleted successfully!", HttpStatus.OK);
     }
 
+    // Delete all seats for a specific flight
+    @DeleteMapping("/flight/{flightId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> deleteFlightSeatsForFlight(@PathVariable String flightId) {
+        try {
+            flightSeatService.deleteSeatsForFlight(flightId);
+            return new ResponseEntity<>("Flight seats have been deleted successfully!", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     // Get a specific flight seat by id
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
@@ -80,6 +114,18 @@ public class FlightSeatController {
             return new ResponseEntity<>(flightSeat, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // Get all seats for a specific flight
+    @GetMapping("/flight/{flightId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<FlightSeat>> getFlightSeatsForFlight(@PathVariable String flightId) {
+        try {
+            List<FlightSeat> seats = flightSeatService.getSeatsForFlight(flightId);
+            return new ResponseEntity<>(seats, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

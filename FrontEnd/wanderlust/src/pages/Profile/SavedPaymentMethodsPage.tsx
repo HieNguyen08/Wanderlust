@@ -6,7 +6,7 @@ import {
     Trash2,
     Wallet
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ProfileLayout } from "../../components/ProfileLayout";
@@ -49,7 +49,7 @@ interface PaymentMethod {
   cardBrand?: "visa" | "mastercard" | "jcb" | "amex";
   expiryDate?: string;
   isDefault: boolean;
-  ewalletProvider?: "momo" | "zalopay" | "vnpay" | "shopeepay";
+  ewalletProvider?: "zalopay" | "vnpay" | "shopeepay";
   bankName?: string;
   accountNumber?: string;
 }
@@ -57,42 +57,30 @@ interface PaymentMethod {
 export default function SavedPaymentMethodsPage({ onNavigate, userRole, onLogout }: SavedPaymentMethodsPageProps) {
   const { t } = useTranslation();
   // Mock saved payment methods
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
-    {
-      id: "1",
-      type: "card",
-      name: "Thẻ Visa chính",
-      cardBrand: "visa",
-      lastFour: "4242",
-      expiryDate: "12/2026",
-      isDefault: true
-    },
-    {
-      id: "2",
-      type: "card",
-      name: "Mastercard phụ",
-      cardBrand: "mastercard",
-      lastFour: "5555",
-      expiryDate: "08/2025",
-      isDefault: false
-    },
-    {
-      id: "3",
-      type: "ewallet",
-      name: "Ví MoMo",
-      ewalletProvider: "momo",
-      lastFour: "9876",
-      isDefault: false
-    },
-    {
-      id: "4",
-      type: "bank",
-      name: "Tài khoản Vietcombank",
-      bankName: "Vietcombank",
-      accountNumber: "1234567890",
-      isDefault: false
-    }
-  ]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+
+  // Load from localStorage
+  useEffect(() => {
+    const loadPaymentMethods = () => {
+      try {
+        const stored = localStorage.getItem('user_payment_methods');
+        if (stored) {
+          setPaymentMethods(JSON.parse(stored));
+        }
+      } catch (error) {
+        console.error('Failed to load payment methods:', error);
+      }
+    };
+
+    loadPaymentMethods();
+    window.addEventListener('storage', loadPaymentMethods);
+    return () => window.removeEventListener('storage', loadPaymentMethods);
+  }, []);
+
+  // Save to localStorage whenever paymentMethods changes
+  useEffect(() => {
+    localStorage.setItem('user_payment_methods', JSON.stringify(paymentMethods));
+  }, [paymentMethods]);
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -109,7 +97,7 @@ export default function SavedPaymentMethodsPage({ onNavigate, userRole, onLogout
   });
 
   const handleSetDefault = (id: string) => {
-    setPaymentMethods(prev => 
+    setPaymentMethods(prev =>
       prev.map(pm => ({
         ...pm,
         isDefault: pm.id === id
@@ -120,7 +108,7 @@ export default function SavedPaymentMethodsPage({ onNavigate, userRole, onLogout
 
   const handleDelete = () => {
     if (!selectedMethod) return;
-    
+
     if (selectedMethod.isDefault) {
       toast.error(t('payment.cannotDeleteDefault', 'Không thể xóa phương thức thanh toán mặc định'));
       return;
@@ -198,7 +186,6 @@ export default function SavedPaymentMethodsPage({ onNavigate, userRole, onLogout
 
   const getEwalletIcon = (provider?: string) => {
     const providerLogos: Record<string, string> = {
-      momo: "https://developers.momo.vn/v3/img/logo.png",
       zalopay: "https://cdn.zalopay.com.vn/v2/img/logo.png",
       vnpay: "https://vnpay.vn/s1/statics.vnpay.vn/2023/6/0oxhzjmxbksr1686814746087.png",
       shopeepay: "https://down-cvs-vn.img.susercontent.com/vn-11134513-7qukw-lf2e81tgfxjt9e"
@@ -207,7 +194,7 @@ export default function SavedPaymentMethodsPage({ onNavigate, userRole, onLogout
   };
 
   return (
-    <ProfileLayout 
+    <ProfileLayout
       activePage="saved-payment-methods"
       currentPage="saved-payment-methods"
       onNavigate={onNavigate}
@@ -269,8 +256,8 @@ export default function SavedPaymentMethodsPage({ onNavigate, userRole, onLogout
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           {method.cardBrand && getCardBrandIcon(method.cardBrand) && (
-                            <img 
-                              src={getCardBrandIcon(method.cardBrand)!} 
+                            <img
+                              src={getCardBrandIcon(method.cardBrand)!}
                               alt={method.cardBrand}
                               className="h-6 w-auto"
                             />
@@ -288,8 +275,8 @@ export default function SavedPaymentMethodsPage({ onNavigate, userRole, onLogout
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           {method.ewalletProvider && getEwalletIcon(method.ewalletProvider) && (
-                            <img 
-                              src={getEwalletIcon(method.ewalletProvider)!} 
+                            <img
+                              src={getEwalletIcon(method.ewalletProvider)!}
                               alt={method.ewalletProvider}
                               className="h-6 w-auto"
                             />
@@ -498,7 +485,7 @@ export default function SavedPaymentMethodsPage({ onNavigate, userRole, onLogout
           <AlertDialogHeader>
             <AlertDialogTitle>{t('payment.confirmDelete', 'Xác nhận xóa')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('payment.confirmDeleteDesc', 'Bạn có chắc chắn muốn xóa phương thức thanh toán')} "{selectedMethod?.name}"? 
+              {t('payment.confirmDeleteDesc', 'Bạn có chắc chắn muốn xóa phương thức thanh toán')} "{selectedMethod?.name}"?
               {t('payment.cannotUndo', 'Hành động này không thể hoàn tác')}.
             </AlertDialogDescription>
           </AlertDialogHeader>

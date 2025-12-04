@@ -1,11 +1,10 @@
 import {
-    ArrowDown,
-    ArrowUp,
-    BookOpen,
-    DollarSign,
-    Eye, MoreVertical,
-    TrendingUp,
-    Users
+  ArrowDown,
+  ArrowUp,
+  BookOpen,
+  DollarSign,
+  TrendingUp,
+  Users
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,7 +14,7 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import type { PageType } from "../../MainApp";
-import { adminApi } from "../../utils/api";
+import { adminApi, hotelApi } from "../../utils/api";
 
 interface AdminDashboardProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -24,19 +23,43 @@ interface AdminDashboardProps {
 export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const { t } = useTranslation();
   const [statistics, setStatistics] = useState<any>(null);
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [recentBookings, setRecentBookings] = useState<any[]>([]);
+  const [topHotels, setTopHotels] = useState<any[]>([]);
+  const [latestReviews, setLatestReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
         setLoading(true);
-        const [stats, allBookings] = await Promise.all([
+        const [stats, allBookings, hotels, reviews] = await Promise.all([
           adminApi.getBookingStatistics(),
-          adminApi.getAllBookings()
+          adminApi.getAllBookings(),
+          hotelApi.searchHotels(),
+          adminApi.getAllReviews()
         ]);
+        
         setStatistics(stats);
-        setBookings(allBookings.slice(0, 5)); // Top 5 recent
+        
+        // Lấy 5 booking mới nhất
+        const sortedBookings = allBookings
+          .sort((a: any, b: any) => new Date(b.bookingDate || b.createdAt || 0).getTime() - new Date(a.bookingDate || a.createdAt || 0).getTime())
+          .slice(0, 5);
+        setRecentBookings(sortedBookings);
+        
+        // Sắp xếp khách sạn theo đánh giá (averageRating) từ cao đến thấp
+        const sortedHotels = hotels
+          .filter((h: any) => h.averageRating && h.averageRating > 0)
+          .sort((a: any, b: any) => (b.averageRating || 0) - (a.averageRating || 0))
+          .slice(0, 4);
+        setTopHotels(sortedHotels);
+        
+        // Lấy 3 review mới nhất
+        const sortedReviews = reviews
+          .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+          .slice(0, 3);
+        setLatestReviews(sortedReviews);
+        
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
         toast.error(t('admin.cannotLoadDashboard'));
@@ -46,85 +69,82 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     };
 
     loadDashboardData();
-  }, []);
+  }, [t]);
+
+  // Tính toán các chỉ số từ statistics
+  const totalUsers = statistics?.totalUsers || 0;
+  const userGrowth = statistics?.userGrowth || 0;
+  
+  const currentMonthRevenue = statistics?.currentMonthRevenue || 0;
+  const previousMonthRevenue = statistics?.previousMonthRevenue || 0;
+  const revenueGrowth = previousMonthRevenue > 0 
+    ? (((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100).toFixed(1)
+    : "0.0";
+  
+  const currentMonthBookings = statistics?.currentMonthBookings || 0;
+  const previousMonthBookings = statistics?.previousMonthBookings || 0;
+  const bookingGrowth = previousMonthBookings > 0
+    ? (((currentMonthBookings - previousMonthBookings) / previousMonthBookings) * 100).toFixed(1)
+    : "0.0";
+  
+  const overallGrowth = statistics?.overallGrowth || parseFloat(revenueGrowth);
 
   const stats = [
     {
       title: t('admin.totalUsers'),
-      value: "2,450",
-      change: "+12.5%",
-      trend: "up",
+      value: totalUsers.toLocaleString('vi-VN'),
+      change: `${userGrowth >= 0 ? '+' : ''}${userGrowth.toFixed(1)}%`,
+      trend: userGrowth >= 0 ? "up" : "down",
       icon: Users,
       color: "blue",
     },
     {
       title: t('admin.monthlyRevenue'),
-      value: "₫245.5M",
-      change: "+23.1%",
-      trend: "up",
+      value: `₫${(currentMonthRevenue / 1000000).toFixed(1)}M`,
+      change: `${parseFloat(revenueGrowth) >= 0 ? '+' : ''}${revenueGrowth}%`,
+      trend: parseFloat(revenueGrowth) >= 0 ? "up" : "down",
       icon: DollarSign,
       color: "green",
     },
     {
       title: t('admin.newBookings'),
-      value: "127",
-      change: "-4.3%",
-      trend: "down",
+      value: currentMonthBookings.toString(),
+      change: `${parseFloat(bookingGrowth) >= 0 ? '+' : ''}${bookingGrowth}%`,
+      trend: parseFloat(bookingGrowth) >= 0 ? "up" : "down",
       icon: BookOpen,
       color: "purple",
     },
     {
       title: t('admin.growth'),
-      value: "18.2%",
-      change: "+2.4%",
-      trend: "up",
+      value: `${Math.abs(overallGrowth).toFixed(1)}%`,
+      change: `${overallGrowth >= 0 ? '+' : ''}${overallGrowth.toFixed(1)}%`,
+      trend: overallGrowth >= 0 ? "up" : "down",
       icon: TrendingUp,
       color: "orange",
     },
   ];
 
-  const topHotels = [
-    { name: "JW Marriott Phu Quoc", bookings: 45, revenue: 157500000 },
-    { name: "InterContinental Danang", bookings: 38, revenue: 106400000 },
-    { name: "Vinpearl Resort Nha Trang", bookings: 32, revenue: 80000000 },
-    { name: "Azerai La Residence Hue", bookings: 28, revenue: 89600000 },
-  ];
-
-  const pendingReviews = [
-    {
-      user: "Nguyễn Văn A",
-      hotel: "JW Marriott Phu Quoc",
-      rating: 5,
-      comment: "Khách sạn tuyệt vời, dịch vụ chuyên nghiệp...",
-      date: "2 giờ trước",
-    },
-    {
-      user: "Trần Thị B",
-      hotel: "InterContinental Danang",
-      rating: 4,
-      comment: "Phòng đẹp, view biển tuyệt...",
-      date: "5 giờ trước",
-    },
-    {
-      user: "Lê Văn C",
-      hotel: "Vinpearl Nha Trang",
-      rating: 3,
-      comment: "Tạm ổn nhưng giá hơi cao...",
-      date: "1 ngày trước",
-    },
-  ];
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return t('common.justNow', 'Vừa xong');
+    if (diffInHours < 24) return t('common.hoursAgo', `${diffInHours} giờ trước`, { hours: diffInHours });
+    if (diffInHours < 48) return t('common.yesterday', '1 ngày trước');
+    return t('common.daysAgo', `${Math.floor(diffInHours / 24)} ngày trước`, { days: Math.floor(diffInHours / 24) });
+  };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return <Badge className="bg-green-100 text-green-700">{t('admin.confirmed')}</Badge>;
-      case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-700">{t('admin.pending')}</Badge>;
-      case "cancelled":
-        return <Badge className="bg-red-100 text-red-700">{t('admin.cancelled')}</Badge>;
-      default:
-        return null;
-    }
+    const statusMap: { [key: string]: { label: string; className: string } } = {
+      "PENDING": { label: t('admin.pending'), className: "bg-yellow-100 text-yellow-700" },
+      "CONFIRMED": { label: t('admin.confirmed'), className: "bg-blue-100 text-blue-700" },
+      "COMPLETED": { label: t('admin.completed'), className: "bg-green-100 text-green-700" },
+      "CANCELLED": { label: t('admin.cancelled'), className: "bg-red-100 text-red-700" },
+    };
+    
+    const statusInfo = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-700" };
+    return <Badge className={statusInfo.className}>{statusInfo.label}</Badge>;
   };
 
   return (
@@ -179,20 +199,26 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               </Button>
             </div>
             <div className="space-y-4">
-              {bookings.length > 0 ? bookings.map((booking) => (
+              {recentBookings.length > 0 ? recentBookings.map((booking) => (
                 <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-gray-900">{booking.customer || 'N/A'}</span>
+                      <span className="font-medium text-gray-900">
+                        {booking.user?.name || booking.user?.email || 'N/A'}
+                      </span>
                       <span className="text-sm text-gray-500">#{booking.id}</span>
                     </div>
-                    <p className="text-sm text-gray-600">{booking.type || 'N/A'}</p>
+                    <p className="text-sm text-gray-600">
+                      {booking.hotel?.name || booking.room?.hotel?.name || 'N/A'}
+                    </p>
                   </div>
                   <div className="text-right mr-4">
                     <p className="font-semibold text-gray-900">
-                      {booking.amount ? booking.amount.toLocaleString('vi-VN') + 'đ' : '0đ'}
+                      {booking.totalPrice ? booking.totalPrice.toLocaleString('vi-VN') + 'đ' : '0đ'}
                     </p>
-                    <p className="text-xs text-gray-500">{booking.date || 'N/A'}</p>
+                    <p className="text-xs text-gray-500">
+                      {booking.bookingDate ? formatDate(booking.bookingDate) : 'N/A'}
+                    </p>
                   </div>
                   {getStatusBadge(booking.status)}
                 </div>
@@ -204,115 +230,100 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
             </div>
           </Card>
 
-          {/* Top Hotels */}
+          {/* Top Hotels by Rating */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900">{t('admin.topHotels')}</h2>
-              <Button variant="ghost" size="sm" onClick={() => onNavigate("admin-hotels")}>
+              <Button variant="ghost" size="sm" onClick={() => onNavigate("admin-dashboard")}>
                 {t('common.viewAll')}
               </Button>
             </div>
             <div className="space-y-4">
-              {topHotels.map((hotel, index) => (
-                <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+              {topHotels.length > 0 ? topHotels.map((hotel, index) => (
+                <div key={hotel.hotelID} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
                   <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
                     {index + 1}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-medium text-gray-900 mb-1">{hotel.name}</h3>
-                    <p className="text-sm text-gray-600">{hotel.bookings} bookings</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <span
+                            key={i}
+                            className={`text-sm ${i < Math.floor(hotel.averageRating || 0) ? "text-yellow-400" : "text-gray-300"}`}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <span className="text-sm text-gray-600">
+                        {(hotel.averageRating || 0).toFixed(1)}
+                      </span>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-gray-900">
-                      {(hotel.revenue / 1000000).toFixed(1)}M
+                    <p className="text-sm text-gray-600">
+                      {hotel.totalReviews || 0} {t('admin.reviews', 'đánh giá')}
                     </p>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-8 text-gray-500">
+                  {t('admin.noHotels', 'Không có khách sạn')}
+                </div>
+              )}
             </div>
           </Card>
         </div>
 
-        {/* Pending Reviews */}
+        {/* Latest Reviews */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">{t('admin.pendingReviews')}</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{t('admin.latestReviews', 'Đánh giá mới nhất')}</h2>
             <Button variant="ghost" size="sm" onClick={() => onNavigate("admin-reviews")}>
               {t('common.viewAll')}
             </Button>
           </div>
           <div className="space-y-4">
-            {pendingReviews.map((review, index) => (
-              <div key={index} className="p-4 bg-gray-50 rounded-lg">
+            {latestReviews.length > 0 ? latestReviews.map((review) => (
+              <div key={review.id} className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h4 className="font-medium text-gray-900">{review.user}</h4>
-                    <p className="text-sm text-gray-600">{review.hotel}</p>
+                    <h4 className="font-medium text-gray-900">
+                      {review.user?.name || review.user?.email || 'N/A'}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {review.hotel?.name || 'N/A'}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <span
-                          key={i}
-                          className={`text-lg ${i < review.rating ? "text-yellow-400" : "text-gray-300"}`}
-                        >
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                    <button className="p-1 hover:bg-gray-200 rounded">
-                      <MoreVertical className="w-4 h-4 text-gray-600" />
-                    </button>
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <span
+                        key={i}
+                        className={`text-lg ${i < (review.rating || 0) ? "text-yellow-400" : "text-gray-300"}`}
+                      >
+                        ★
+                      </span>
+                    ))}
                   </div>
                 </div>
-                <p className="text-sm text-gray-700 mb-2">{review.comment}</p>
+                <p className="text-sm text-gray-700 mb-2">
+                  {review.comment || t('admin.noComment', 'Không có bình luận')}
+                </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">{review.date}</span>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline">{t('admin.reject')}</Button>
-                    <Button size="sm">{t('admin.approve')}</Button>
-                  </div>
+                  <span className="text-xs text-gray-500">
+                    {review.createdAt ? formatDate(review.createdAt) : 'N/A'}
+                  </span>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-center py-8 text-gray-500">
+                {t('admin.noReviews', 'Không có đánh giá')}
+              </div>
+            )}
           </div>
         </Card>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Button
-            variant="outline"
-            className="h-24 flex flex-col gap-2"
-            onClick={() => onNavigate("admin-users")}
-          >
-            <Users className="w-6 h-6" />
-            <span>{t('admin.addUser')}</span>
-          </Button>
-          <Button
-            variant="outline"
-            className="h-24 flex flex-col gap-2"
-            onClick={() => onNavigate("admin-hotels")}
-          >
-            <Eye className="w-6 h-6" />
-            <span>{t('admin.addHotel')}</span>
-          </Button>
-          <Button
-            variant="outline"
-            className="h-24 flex flex-col gap-2"
-            onClick={() => onNavigate("admin-bookings")}
-          >
-            <BookOpen className="w-6 h-6" />
-            <span>{t('admin.viewBookings')}</span>
-          </Button>
-          <Button
-            variant="outline"
-            className="h-24 flex flex-col gap-2"
-            onClick={() => onNavigate("admin-reports")}
-          >
-            <TrendingUp className="w-6 h-6" />
-            <span>{t('admin.reports')}</span>
-          </Button>
-        </div>
       </div>
       )}
     </AdminLayout>

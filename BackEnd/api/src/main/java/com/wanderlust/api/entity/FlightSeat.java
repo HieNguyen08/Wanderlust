@@ -45,7 +45,7 @@ public class FlightSeat {
     private SeatStatus status; // Enum thay cho Boolean availability
 
     // JSON features: ["power", "reclining"] -> Map thành List String
-    private List<String> features; 
+    private List<String> features;
 
     @CreatedDate
     private LocalDateTime createdAt;

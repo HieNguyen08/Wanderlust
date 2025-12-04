@@ -1,8 +1,7 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.dto.locationDTO.LocationRequestDTO;
-import com.wanderlust.api.dto.locationDTO.LocationResponseDTO;
-import com.wanderlust.api.services.LocationService;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -11,12 +10,24 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.wanderlust.api.dto.locationDTO.LocationRequestDTO;
+import com.wanderlust.api.dto.locationDTO.LocationResponseDTO;
+import com.wanderlust.api.services.LocationService;
 
 @RestController
 @RequestMapping("/api/locations")
+@CrossOrigin(origins = "*")
 public class LocationController {
 
     private final LocationService locationService;
@@ -28,16 +39,15 @@ public class LocationController {
 
     // 1. GET /api/locations - Lấy danh sách locations (có pagination)
     @GetMapping
-    // @PreAuthorize("isAuthenticated()") // Có thể mở public cho khách xem
     public ResponseEntity<Page<LocationResponseDTO>> getAllLocations(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "popularity") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
-        
+
         Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        
+
         return new ResponseEntity<>(locationService.findAll(pageable), HttpStatus.OK);
     }
 
@@ -63,6 +73,22 @@ public class LocationController {
         }
     }
 
+    // 4.1 GET /api/locations/type/:type - Get by Type (CONTRY, CITY)
+    @GetMapping("/type/{type}")
+    public ResponseEntity<List<LocationResponseDTO>> getLocationsByType(@PathVariable String type) {
+        try {
+            return new ResponseEntity<>(locationService.findByType(type), HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 4.2 GET /api/locations/parent/:parentId - Get by Parent ID
+    @GetMapping("/parent/{parentId}")
+    public ResponseEntity<List<LocationResponseDTO>> getLocationsByParentId(@PathVariable String parentId) {
+        return new ResponseEntity<>(locationService.findByParentId(parentId), HttpStatus.OK);
+    }
+
     // 5. POST /api/locations - Create new (Admin/Partner)
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
@@ -73,7 +99,7 @@ public class LocationController {
 
     // 6. PUT /api/locations/:id - Update (Admin/Partner)
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')") // <-- SỬA (Chỉ Admin được sửa Location)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateLocation(@PathVariable String id, @RequestBody LocationRequestDTO locationDTO) {
         try {
             LocationResponseDTO result = locationService.update(id, locationDTO);

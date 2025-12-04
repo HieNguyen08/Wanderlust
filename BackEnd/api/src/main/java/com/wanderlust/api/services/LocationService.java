@@ -3,6 +3,7 @@ package com.wanderlust.api.services;
 import com.wanderlust.api.dto.locationDTO.LocationRequestDTO;
 import com.wanderlust.api.dto.locationDTO.LocationResponseDTO;
 import com.wanderlust.api.entity.Location;
+import com.wanderlust.api.entity.types.LocationType;
 import com.wanderlust.api.mapper.LocationMapper;
 import com.wanderlust.api.repository.LocationRepository;
 import lombok.AllArgsConstructor;
@@ -17,7 +18,7 @@ import java.util.List;
 public class LocationService {
 
     private final LocationRepository locationRepository;
-    private final LocationMapper locationMapper; // MapStruct sẽ tự inject implementation vào đây
+    private final LocationMapper locationMapper;
 
     // Get all with pagination
     public Page<LocationResponseDTO> findAll(Pageable pageable) {
@@ -42,13 +43,29 @@ public class LocationService {
         return locationMapper.toDTO(location);
     }
 
+    // Get by Type
+    public List<LocationResponseDTO> findByType(String typeStr) {
+        try {
+            LocationType type = LocationType.valueOf(typeStr.toUpperCase());
+            return locationMapper.toDTOs(locationRepository.findByType(type));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid location type: " + typeStr);
+        }
+    }
+
+    // Get by Parent ID
+    public List<LocationResponseDTO> findByParentId(String parentId) {
+        return locationMapper.toDTOs(locationRepository.findByParentLocationId(parentId));
+    }
+
     // Create
     public LocationResponseDTO create(LocationRequestDTO locationDTO) {
         Location location = locationMapper.toEntity(locationDTO);
-        // Xử lý default logic nếu cần (ví dụ nếu null thì set mặc định)
-        if (location.getFeatured() == null) location.setFeatured(false);
-        if (location.getPopularity() == null) location.setPopularity(0);
-        
+        if (location.getFeatured() == null)
+            location.setFeatured(false);
+        if (location.getPopularity() == null)
+            location.setPopularity(0);
+
         Location savedLocation = locationRepository.save(location);
         return locationMapper.toDTO(savedLocation);
     }
@@ -57,10 +74,9 @@ public class LocationService {
     public LocationResponseDTO update(String id, LocationRequestDTO locationDTO) {
         Location existingLocation = locationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Location not found with id " + id));
-        
-        // MapStruct sẽ tự động copy các field không null từ DTO vào existingLocation
+
         locationMapper.updateEntityFromDTO(locationDTO, existingLocation);
-        
+
         Location updatedLocation = locationRepository.save(existingLocation);
         return locationMapper.toDTO(updatedLocation);
     }

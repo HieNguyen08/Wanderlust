@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Header } from "./components/Header";
+import { NotificationProvider } from "./contexts/NotificationContext";
 import { tokenService } from "./utils/api";
 import { type FrontendRole } from "./utils/roleMapper";
 
 // ===== PAGE IMPORTS (Organized by Feature) =====
 // Home
 import HomePage from "./pages/Home/HomePage";
+import LocationDetailPage from "./pages/Home/LocationDetailPage";
 
 // Auth
 import { LoginPage, LoginSuccessPage } from "./pages/Auth";
@@ -41,6 +43,8 @@ import { GuideDetailPage, TourDetailPage, TravelArticlePage, TravelGuidePage } f
 import { BookingDetailsPage, ConfirmationPage, SearchPage } from "./pages/Booking";
 import CheckoutPage from "./pages/Booking/CheckoutPage";
 import PaymentCallbackPage from "./pages/Booking/PaymentCallbackPage";
+import PaymentCancelPage from "./pages/Booking/PaymentCancelPage";
+import PaymentSuccessPage from "./pages/Booking/PaymentSuccessPage";
 
 // Profile (User)
 import {
@@ -85,7 +89,10 @@ import {
 // Others
 import { AboutPage, OffersPage, PromotionsPage } from "./pages/Others";
 
-export type PageType = "home" | "flights" | "search" | "booking" | "checkout" | "payment-callback" | "confirmation" | "offers" | "hotel" | "hotel-list" | "hotel-detail" | "visa" | "visa-article" | "visa-consultation" | "visa-tracking" | "visa-application" | "visa-documents" | "visa-payment" | "visa-confirmation" | "activities" | "activity-detail" | "travel-guide" | "guide-detail" | "travel-article" | "about" | "promotions" | "tour-detail" | "car-rental" | "car-list" | "car-detail" | "profile" | "booking-history" | "saved-items" | "vouchers" | "wallet" | "topup-wallet" | "settings" | "saved-payment-methods" | "payment-methods" | "flight-review" | "hotel-review" | "car-review" | "activity-review" | "admin-dashboard" | "admin-users" | "admin-bookings" | "admin-flights" | "admin-activities" | "admin-reviews" | "admin-reports" | "admin-settings" | "admin-refunds" | "admin-refund-wallet" | "admin-pending-services" | "admin-vouchers" | "vendor-dashboard" | "vendor-services" | "vendor-bookings" | "vendor-reviews" | "vendor-reports" | "vendor-settings" | "vendor-vouchers" | "login" | "login-success";
+// Stripe Payment Pages (for Wallet Top-up)
+import { PaymentCancel as StripePaymentCancel, PaymentSuccess as StripePaymentSuccess } from "./pages/StripePaymentPage";
+
+export type PageType = "home" | "flights" | "search" | "booking" | "checkout" | "payment-callback" | "payment-success" | "payment-cancel" | "stripe-payment-success" | "stripe-payment-cancel" | "confirmation" | "offers" | "hotel" | "hotel-list" | "hotel-detail" | "visa" | "visa-article" | "visa-consultation" | "visa-tracking" | "visa-application" | "visa-documents" | "visa-payment" | "visa-confirmation" | "activities" | "activity-detail" | "travel-guide" | "guide-detail" | "travel-article" | "about" | "promotions" | "tour-detail" | "car-rental" | "car-list" | "car-detail" | "profile" | "booking-history" | "saved-items" | "vouchers" | "wallet" | "topup-wallet" | "settings" | "saved-payment-methods" | "payment-methods" | "flight-review" | "hotel-review" | "car-review" | "activity-review" | "admin-dashboard" | "admin-users" | "admin-bookings" | "admin-flights" | "admin-activities" | "admin-reviews" | "admin-reports" | "admin-settings" | "admin-refunds" | "admin-refund-wallet" | "admin-pending-services" | "admin-vouchers" | "vendor-dashboard" | "vendor-services" | "vendor-bookings" | "vendor-reviews" | "vendor-reports" | "vendor-settings" | "vendor-vouchers" | "login" | "login-success" | "location-detail";
 
 export default function MainApp() {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
@@ -130,6 +137,12 @@ export default function MainApp() {
       setCurrentPage('login-success');
     } else if (path.includes('/payment/callback')) {
       setCurrentPage('payment-callback');
+    } else if (path === '/stripe/payment-success') {
+      console.log("✅ Stripe payment success detected!");
+      setCurrentPage('stripe-payment-success');
+    } else if (path === '/stripe/payment-cancel') {
+      console.log("❌ Stripe payment cancelled!");
+      setCurrentPage('stripe-payment-cancel');
     }
   }, []);
 
@@ -155,80 +168,87 @@ export default function MainApp() {
   const shouldShowHeader = !pagesWithoutHeader.includes(currentPage);
 
   return (
-    <div>
-      {/* Header - shown on all pages except login */}
-      {shouldShowHeader && (
-        <Header
-          currentPage={currentPage}
-          onNavigate={handleNavigate}
-          userRole={userRole}
-          onLogout={handleLogout}
-        />
-      )}
-      {currentPage === "home" && <HomePage onNavigate={handleNavigate} />}
-      {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} />}
-      {currentPage === "search" && <SearchPage onNavigate={handleNavigate} searchData={pageData} />}
-      {currentPage === "booking" && <BookingDetailsPage onNavigate={handleNavigate} />}
-      {currentPage === "checkout" && <CheckoutPage onNavigate={handleNavigate} bookingData={pageData} />}
-      {currentPage === "payment-callback" && <PaymentCallbackPage onNavigate={handleNavigate} />}
-      {currentPage === "confirmation" && <ConfirmationPage onNavigate={handleNavigate} paymentInfo={pageData?.paymentInfo} {...pageData} />}
-      {currentPage === "offers" && <OffersPage onNavigate={handleNavigate} />}
-      {currentPage === "hotel" && <HotelLandingPage onNavigate={handleNavigate} />}
-      {currentPage === "hotel-list" && <HotelListPage searchParams={pageData} onNavigate={handleNavigate} />}
-      {currentPage === "hotel-detail" && pageData && <HotelDetailPage hotel={pageData} hotelId={pageData.id || pageData.hotelId} onNavigate={handleNavigate} />}
-      {currentPage === "visa" && <VisaLandingPage onNavigate={handleNavigate} />}
-      {currentPage === "visa-article" && pageData && <VisaArticleDetailPage article={pageData} onNavigate={handleNavigate} />}
-      {currentPage === "visa-consultation" && <VisaConsultationPage requestData={pageData} onNavigate={handleNavigate} />}
-      {currentPage === "visa-tracking" && <VisaTrackingPage trackingData={pageData} onNavigate={handleNavigate} />}
-      {currentPage === "visa-application" && <VisaApplicationPage country={pageData?.country} onNavigate={handleNavigate} />}
-      {currentPage === "visa-documents" && <VisaDocumentsPage country={pageData?.country} formData={pageData?.formData} onNavigate={handleNavigate} />}
-      {currentPage === "visa-payment" && <VisaPaymentPage country={pageData?.country} formData={pageData?.formData} documents={pageData?.documents} onNavigate={handleNavigate} />}
-      {currentPage === "visa-confirmation" && <VisaConfirmationPage {...pageData} onNavigate={handleNavigate} />}
-      {currentPage === "activities" && <ActivitiesPage initialCategory={pageData?.category} onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "activity-detail" && pageData && <ActivityDetailPage activity={pageData} onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "travel-guide" && <TravelGuidePage onNavigate={handleNavigate} />}
-      {currentPage === "guide-detail" && pageData && <GuideDetailPage guide={pageData.guide} onNavigate={handleNavigate} />}
-      {currentPage === "travel-article" && pageData && <TravelArticlePage article={pageData.article} onNavigate={handleNavigate} />}
-      {currentPage === "about" && <AboutPage onNavigate={handleNavigate} />}
-      {currentPage === "promotions" && <PromotionsPage onNavigate={handleNavigate} />}
-      {currentPage === "tour-detail" && pageData && <TourDetailPage tour={pageData} onNavigate={handleNavigate} />}
-      {currentPage === "car-rental" && <CarRentalLandingPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "car-list" && <CarRentalListPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "car-detail" && pageData && <CarDetailPage car={pageData} onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "profile" && <ProfilePage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "booking-history" && <BookingHistoryPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "saved-items" && <SavedItemsPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "vouchers" && <UserVouchersPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "wallet" && <UserWalletPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "topup-wallet" && <TopUpWalletPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "settings" && <SettingsPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "saved-payment-methods" && <SavedPaymentMethodsPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "payment-methods" && <PaymentMethodsPage onNavigate={handleNavigate} bookingData={pageData} />}
-      {currentPage === "flight-review" && <FlightReviewPage onNavigate={handleNavigate} flightData={pageData} />}
-      {currentPage === "hotel-review" && <HotelReviewPage onNavigate={handleNavigate} hotelData={pageData} />}
-      {currentPage === "car-review" && <CarRentalReviewPage onNavigate={handleNavigate} carData={pageData} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "activity-review" && <ActivityReviewPage onNavigate={handleNavigate} activityData={pageData} userRole={userRole} onLogout={handleLogout} />}
-      {currentPage === "admin-dashboard" && <AdminDashboard onNavigate={handleNavigate} />}
-      {currentPage === "admin-users" && <AdminUsersPage onNavigate={handleNavigate} />}
-      {currentPage === "admin-bookings" && <AdminBookingsPage onNavigate={handleNavigate} />}
-      {currentPage === "admin-flights" && <AdminFlightsPage onNavigate={handleNavigate} />}
-      {currentPage === "admin-activities" && <AdminActivitiesPage onNavigate={handleNavigate} />}
-      {currentPage === "admin-reviews" && <AdminReviewsPage onNavigate={handleNavigate} />}
-      {currentPage === "admin-reports" && <AdminReportsPage onNavigate={handleNavigate} />}
-      {currentPage === "admin-settings" && <AdminSettingsPage onNavigate={handleNavigate} />}
-      {currentPage === "admin-refunds" && <AdminRefundsPage onNavigate={handleNavigate} />}
-      {currentPage === "admin-refund-wallet" && <AdminRefundWalletPage onNavigate={handleNavigate} />}
-      {currentPage === "admin-pending-services" && <AdminPendingServicesPage onNavigate={handleNavigate} />}
-      {currentPage === "admin-vouchers" && <AdminVouchersPage onNavigate={handleNavigate} />}
-      {currentPage === "vendor-dashboard" && <VendorDashboard onNavigate={handleNavigate} />}
-      {currentPage === "vendor-services" && <VendorServicesPage onNavigate={handleNavigate} />}
-      {currentPage === "vendor-bookings" && <VendorBookingsPage onNavigate={handleNavigate} />}
-      {currentPage === "vendor-reviews" && <VendorReviewsPage onNavigate={handleNavigate} />}
-      {currentPage === "vendor-reports" && <VendorReportsPage onNavigate={handleNavigate} />}
-      {currentPage === "vendor-settings" && <VendorSettingsPage onNavigate={handleNavigate} />}
-      {currentPage === "vendor-vouchers" && <VendorVouchersPage onNavigate={handleNavigate} />}
-      {currentPage === "login" && <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} initialMode={pageData?.mode} />}
-      {currentPage === "login-success" && <LoginSuccessPage onNavigate={handleNavigate} onLogin={handleLogin} />}
-    </div>
+    <NotificationProvider>
+      <div>
+        {/* Header - shown on all pages except login */}
+        {shouldShowHeader && (
+          <Header
+            currentPage={currentPage}
+            onNavigate={handleNavigate}
+            userRole={userRole}
+            onLogout={handleLogout}
+          />
+        )}
+        {currentPage === "home" && <HomePage onNavigate={handleNavigate} />}
+        {currentPage === "flights" && <FlightsPage onNavigate={handleNavigate} />}
+        {currentPage === "search" && <SearchPage onNavigate={handleNavigate} searchData={pageData} />}
+        {currentPage === "booking" && <BookingDetailsPage onNavigate={handleNavigate} />}
+        {currentPage === "checkout" && <CheckoutPage onNavigate={handleNavigate} bookingData={pageData} />}
+        {currentPage === "payment-callback" && <PaymentCallbackPage onNavigate={handleNavigate} />}
+        {currentPage === "payment-success" && <PaymentSuccessPage onNavigate={handleNavigate} sessionId={pageData?.sessionId} bookingId={pageData?.bookingId} />}
+        {currentPage === "payment-cancel" && <PaymentCancelPage onNavigate={handleNavigate} />}
+        {currentPage === "stripe-payment-success" && <StripePaymentSuccess />}
+        {currentPage === "stripe-payment-cancel" && <StripePaymentCancel />}
+        {currentPage === "confirmation" && <ConfirmationPage onNavigate={handleNavigate} paymentInfo={pageData?.paymentInfo} {...pageData} />}
+        {currentPage === "offers" && <OffersPage onNavigate={handleNavigate} />}
+        {currentPage === "hotel" && <HotelLandingPage onNavigate={handleNavigate} />}
+        {currentPage === "hotel-list" && <HotelListPage searchParams={pageData} onNavigate={handleNavigate} />}
+        {currentPage === "hotel-detail" && pageData && <HotelDetailPage hotel={pageData} hotelId={pageData.id || pageData.hotelId} onNavigate={handleNavigate} />}
+        {currentPage === "visa" && <VisaLandingPage onNavigate={handleNavigate} />}
+        {currentPage === "visa-article" && pageData && <VisaArticleDetailPage article={pageData} onNavigate={handleNavigate} />}
+        {currentPage === "visa-consultation" && <VisaConsultationPage requestData={pageData} onNavigate={handleNavigate} />}
+        {currentPage === "visa-tracking" && <VisaTrackingPage trackingData={pageData} onNavigate={handleNavigate} />}
+        {currentPage === "visa-application" && <VisaApplicationPage country={pageData?.country} onNavigate={handleNavigate} />}
+        {currentPage === "visa-documents" && <VisaDocumentsPage country={pageData?.country} formData={pageData?.formData} onNavigate={handleNavigate} />}
+        {currentPage === "visa-payment" && <VisaPaymentPage country={pageData?.country} formData={pageData?.formData} documents={pageData?.documents} onNavigate={handleNavigate} />}
+        {currentPage === "visa-confirmation" && <VisaConfirmationPage {...pageData} onNavigate={handleNavigate} />}
+        {currentPage === "activities" && <ActivitiesPage initialCategory={pageData?.category} onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} searchParams={pageData} />}
+        {currentPage === "activity-detail" && pageData && <ActivityDetailPage activity={pageData} onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+        {currentPage === "travel-guide" && <TravelGuidePage onNavigate={handleNavigate} />}
+        {currentPage === "guide-detail" && pageData && <GuideDetailPage guide={pageData.guide} onNavigate={handleNavigate} />}
+        {currentPage === "travel-article" && pageData && <TravelArticlePage article={pageData.article} onNavigate={handleNavigate} />}
+        {currentPage === "about" && <AboutPage onNavigate={handleNavigate} />}
+        {currentPage === "promotions" && <PromotionsPage onNavigate={handleNavigate} />}
+        {currentPage === "tour-detail" && pageData && <TourDetailPage tour={pageData} onNavigate={handleNavigate} />}
+        {currentPage === "car-rental" && <CarRentalLandingPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+        {currentPage === "car-list" && <CarRentalListPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} searchParams={pageData} />}
+        {currentPage === "car-detail" && pageData && <CarDetailPage car={pageData} onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+        {currentPage === "profile" && <ProfilePage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+        {currentPage === "booking-history" && <BookingHistoryPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+        {currentPage === "saved-items" && <SavedItemsPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+        {currentPage === "vouchers" && <UserVouchersPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+        {currentPage === "wallet" && <UserWalletPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+        {currentPage === "topup-wallet" && <TopUpWalletPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+        {currentPage === "settings" && <SettingsPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+        {currentPage === "saved-payment-methods" && <SavedPaymentMethodsPage onNavigate={handleNavigate} userRole={userRole} onLogout={handleLogout} />}
+        {currentPage === "payment-methods" && <PaymentMethodsPage onNavigate={handleNavigate} bookingData={pageData} />}
+        {currentPage === "flight-review" && <FlightReviewPage onNavigate={handleNavigate} flightData={pageData} />}
+        {currentPage === "hotel-review" && <HotelReviewPage onNavigate={handleNavigate} hotelData={pageData} />}
+        {currentPage === "car-review" && <CarRentalReviewPage onNavigate={handleNavigate} carData={pageData} userRole={userRole} onLogout={handleLogout} />}
+        {currentPage === "activity-review" && <ActivityReviewPage onNavigate={handleNavigate} activityData={pageData} userRole={userRole} onLogout={handleLogout} />}
+        {currentPage === "admin-dashboard" && <AdminDashboard onNavigate={handleNavigate} />}
+        {currentPage === "admin-users" && <AdminUsersPage onNavigate={handleNavigate} />}
+        {currentPage === "admin-bookings" && <AdminBookingsPage onNavigate={handleNavigate} />}
+        {currentPage === "admin-flights" && <AdminFlightsPage onNavigate={handleNavigate} />}
+        {currentPage === "admin-activities" && <AdminActivitiesPage onNavigate={handleNavigate} />}
+        {currentPage === "admin-reviews" && <AdminReviewsPage onNavigate={handleNavigate} />}
+        {currentPage === "admin-reports" && <AdminReportsPage onNavigate={handleNavigate} />}
+        {currentPage === "admin-settings" && <AdminSettingsPage onNavigate={handleNavigate} />}
+        {currentPage === "admin-refunds" && <AdminRefundsPage onNavigate={handleNavigate} />}
+        {currentPage === "admin-refund-wallet" && <AdminRefundWalletPage onNavigate={handleNavigate} />}
+        {currentPage === "admin-pending-services" && <AdminPendingServicesPage onNavigate={handleNavigate} />}
+        {currentPage === "admin-vouchers" && <AdminVouchersPage onNavigate={handleNavigate} />}
+        {currentPage === "vendor-dashboard" && <VendorDashboard onNavigate={handleNavigate} />}
+        {currentPage === "vendor-services" && <VendorServicesPage onNavigate={handleNavigate} />}
+        {currentPage === "vendor-bookings" && <VendorBookingsPage onNavigate={handleNavigate} />}
+        {currentPage === "vendor-reviews" && <VendorReviewsPage onNavigate={handleNavigate} />}
+        {currentPage === "vendor-reports" && <VendorReportsPage onNavigate={handleNavigate} />}
+        {currentPage === "vendor-settings" && <VendorSettingsPage onNavigate={handleNavigate} />}
+        {currentPage === "vendor-vouchers" && <VendorVouchersPage onNavigate={handleNavigate} />}
+        {currentPage === "login" && <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} initialMode={pageData?.mode} />}
+        {currentPage === "login-success" && <LoginSuccessPage onNavigate={handleNavigate} onLogin={handleLogin} />}
+        {currentPage === "location-detail" && pageData && <LocationDetailPage locationId={pageData.id} onNavigate={handleNavigate} />}
+      </div>
+    </NotificationProvider>
   );
 }

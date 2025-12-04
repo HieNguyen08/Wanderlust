@@ -18,6 +18,7 @@ import type { PageType } from "../../MainApp";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface BookingDetailsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -34,6 +35,7 @@ interface PassengerForm {
 }
 
 export default function BookingDetailsPage({ onNavigate, bookingData }: BookingDetailsPageProps) {
+  const { t } = useTranslation();
   const tripType = bookingData?.tripType || 'one-way';
   const isRoundTrip = tripType === 'round-trip';
 
@@ -104,9 +106,9 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
   };
 
   const getPassengerType = (index: number) => {
-    if (index < passengers.adults) return "Người lớn";
-    if (index < passengers.adults + passengers.children) return "Trẻ em";
-    return "Em bé";
+    if (index < passengers.adults) return t('booking.adult');
+    if (index < passengers.adults + passengers.children) return t('booking.child');
+    return t('booking.infant');
   };
 
   const validateAndContinue = () => {
@@ -114,33 +116,33 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
     for (let i = 0; i < passengerForms.length; i++) {
       const form = passengerForms[i];
       if (!form.title || !form.firstName || !form.lastName || !form.dateOfBirth) {
-        toast.error(`Vui lòng điền đầy đủ thông tin hành khách ${i + 1}`);
+        toast.error(t('pleaseFillPassengerInfo', { number: i + 1 }));
         return;
       }
     }
 
     // Validate contact info
     if (!contactEmail || !contactPhone) {
-      toast.error("Vui lòng điền đầy đủ thông tin liên lạc");
+      toast.error(t('pleaseFillContactInfo'));
       return;
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(contactEmail)) {
-      toast.error("Email không hợp lệ");
+      toast.error(t('common.invalidEmail', 'Email không hợp lệ'));
       return;
     }
 
     // Validate phone format
     if (contactPhone.length < 9 || contactPhone.length > 11) {
-      toast.error("Số điện thoại không hợp lệ");
+      toast.error(t('common.invalidPhone', 'Số điện thoại không hợp lệ'));
       return;
     }
 
     // Validate terms agreement
     if (!agreeTerms) {
-      toast.error("Vui lòng đồng ý với điều khoản và điều kiện");
+      toast.error(t('pleaseAgreeToTerms'));
       return;
     }
 
@@ -182,41 +184,38 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
           <Alert className="bg-blue-50 border-blue-200">
             <Info className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-sm">
-              <strong>Lưu ý quan trọng:</strong> Tên hành khách phải khớp chính xác với giấy tờ tùy thân (CCCD/Passport).
-              Các trường đánh dấu (*) là bắt buộc.
+              <strong>{t('booking.note')}:</strong> {t('booking.noteDesc')}
             </AlertDescription>
           </Alert>
 
           {/* Passenger Information Forms */}
           <Card className="p-6">
-            <h2 className="text-2xl mb-6">Thông tin hành khách</h2>
+            <h2 className="text-2xl mb-6">{t('booking.passengerInfo')}</h2>
 
             {passengerForms.map((form, index) => (
               <div key={index} className="mb-8 last:mb-0">
                 <div className="bg-gray-100 px-4 py-2 rounded-t-lg">
                   <h3 className="font-medium">
-                    Hành khách {index + 1}: {getPassengerType(index)}
+                    {t('booking.passenger')} {index + 1}: {getPassengerType(index)}
                   </h3>
                 </div>
-
-                <div className="border border-t-0 rounded-b-lg p-6 space-y-4">
-                  {/* Title */}
+                <div className="p-4 border border-t-0 rounded-b-lg space-y-4">
                   <div>
                     <Label htmlFor={`title-${index}`}>
-                      Quý danh <span className="text-red-600">*</span>
+                      {t('booking.honorific')} <span className="text-red-600">*</span>
                     </Label>
                     <Select
                       value={form.title}
                       onValueChange={(value) => updatePassengerForm(index, 'title', value)}
                     >
                       <SelectTrigger id={`title-${index}`}>
-                        <SelectValue placeholder="Chọn" />
+                        <SelectValue placeholder={t('common.select', 'Chọn')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="mr">Ông</SelectItem>
-                        <SelectItem value="mrs">Bà</SelectItem>
-                        <SelectItem value="ms">Cô</SelectItem>
-                        <SelectItem value="mstr">Em</SelectItem>
+                        <SelectItem value="mr">{t('booking.mr')}</SelectItem>
+                        <SelectItem value="mrs">{t('booking.mrs')}</SelectItem>
+                        <SelectItem value="ms">{t('booking.ms')}</SelectItem>
+                        <SelectItem value="mstr">{t('booking.mstr')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -224,7 +223,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                   {/* First Name */}
                   <div>
                     <Label htmlFor={`firstName-${index}`}>
-                      Họ <span className="text-red-600">*</span>
+                      {t('booking.firstName')} <span className="text-red-600">*</span>
                     </Label>
                     <Input
                       id={`firstName-${index}`}
@@ -232,13 +231,13 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                       value={form.firstName}
                       onChange={(e) => updatePassengerForm(index, 'firstName', e.target.value.toUpperCase())}
                     />
-                    <p className="text-xs text-gray-500 mt-1">Nhập chữ IN HOA không dấu</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('booking.enterUpperCase')}</p>
                   </div>
 
                   {/* Middle & Last Name */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor={`middleName-${index}`}>Tên đệm</Label>
+                      <Label htmlFor={`middleName-${index}`}>{t('booking.middleName')}</Label>
                       <Input
                         id={`middleName-${index}`}
                         placeholder="VD: VAN"
@@ -248,7 +247,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                     </div>
                     <div>
                       <Label htmlFor={`lastName-${index}`}>
-                        Tên <span className="text-red-600">*</span>
+                        {t('booking.lastName')} <span className="text-red-600">*</span>
                       </Label>
                       <Input
                         id={`lastName-${index}`}
@@ -262,7 +261,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                   {/* Date of Birth */}
                   <div>
                     <Label>
-                      Ngày sinh <span className="text-red-600">*</span>
+                      {t('booking.dateOfBirth')} <span className="text-red-600">*</span>
                     </Label>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -271,7 +270,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                           {form.dateOfBirth ? (
                             format(form.dateOfBirth, "dd/MM/yyyy")
                           ) : (
-                            <span className="text-gray-500">Chọn ngày sinh</span>
+                            <span className="text-gray-500">{t('booking.selectDate')}</span>
                           )}
                         </Button>
                       </PopoverTrigger>
@@ -287,15 +286,15 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                   </div>
 
                   {/* Frequent Flyer (Optional) */}
-                  {getPassengerType(index) === "Người lớn" && (
+                  {getPassengerType(index) === t('booking.adult') && (
                     <div>
-                      <Label htmlFor={`ffp-${index}`}>Chương trình khách hàng thường xuyên (không bắt buộc)</Label>
+                      <Label htmlFor={`ffp-${index}`}>{t('booking.frequentFlyer')}</Label>
                       <Select
                         value={form.frequentFlyerProgram || ""}
                         onValueChange={(value) => updatePassengerForm(index, 'frequentFlyerProgram', value)}
                       >
                         <SelectTrigger id={`ffp-${index}`}>
-                          <SelectValue placeholder="Chọn chương trình" />
+                          <SelectValue placeholder={t('booking.chooseProgram')} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="vn-lotusmiles">Vietnam Airlines - Lotusmiles</SelectItem>
@@ -312,16 +311,16 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
 
           {/* Contact Information */}
           <Card className="p-6">
-            <h2 className="text-2xl mb-2">Thông tin liên lạc</h2>
+            <h2 className="text-2xl mb-2">{t('booking.contactInfo')}</h2>
             <p className="text-sm text-gray-600 mb-6">
-              Thông tin xác nhận đặt chỗ sẽ được gửi đến email và số điện thoại này
+              {t('booking.contactInfoDesc', 'Thông tin xác nhận đặt chỗ sẽ được gửi đến email và số điện thoại này')}
             </p>
 
             <div className="space-y-4">
               {/* Email */}
               <div>
                 <Label htmlFor="email">
-                  Địa chỉ email <span className="text-red-600">*</span>
+                  {t('booking.email')} <span className="text-red-600">*</span>
                 </Label>
                 <Input
                   id="email"
@@ -335,16 +334,16 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
               {/* Phone Type */}
               <div>
                 <Label htmlFor="phoneType">
-                  Loại điện thoại <span className="text-red-600">*</span>
+                  {t('booking.phoneType')} <span className="text-red-600">*</span>
                 </Label>
                 <Select value={contactPhoneType} onValueChange={setContactPhoneType}>
                   <SelectTrigger id="phoneType">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="personal">Cá nhân</SelectItem>
-                    <SelectItem value="work">Công việc</SelectItem>
-                    <SelectItem value="home">Nhà riêng</SelectItem>
+                    <SelectItem value="personal">{t('booking.personal')}</SelectItem>
+                    <SelectItem value="work">{t('booking.work')}</SelectItem>
+                    <SelectItem value="home">{t('booking.home')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -353,7 +352,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="countryCode">
-                    Mã quốc gia <span className="text-red-600">*</span>
+                    {t('booking.countryCode')} <span className="text-red-600">*</span>
                   </Label>
                   <Select value={contactCountryCode} onValueChange={setContactCountryCode}>
                     <SelectTrigger id="countryCode">
@@ -369,7 +368,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                 </div>
                 <div className="col-span-2">
                   <Label htmlFor="phone">
-                    Số điện thoại <span className="text-red-600">*</span>
+                    {t('booking.phone')} <span className="text-red-600">*</span>
                   </Label>
                   <Input
                     id="phone"
@@ -397,15 +396,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                     htmlFor="terms"
                     className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                   >
-                    Tôi đã đọc và đồng ý với{" "}
-                    <a href="#" className="text-blue-600 hover:underline">
-                      Điều khoản & Điều kiện
-                    </a>{" "}
-                    và{" "}
-                    <a href="#" className="text-blue-600 hover:underline">
-                      Chính sách quyền riêng tư
-                    </a>{" "}
-                    của Wanderlust <span className="text-red-600">*</span>
+                    {t('booking.termsAgreement')} <span className="text-red-600">*</span>
                   </label>
                 </div>
               </div>
@@ -421,7 +412,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                     htmlFor="marketing"
                     className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                   >
-                    Tôi đồng ý nhận email về các ưu đãi, khuyến mãi và tin tức du lịch từ Wanderlust
+                    {t('booking.marketingAgreement')}
                   </label>
                 </div>
               </div>
@@ -436,16 +427,16 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
               onClick={validateAndContinue}
               disabled={!agreeTerms}
             >
-              TIẾP TỤC THANH TOÁN
+              {t('booking.continuePayment')}
             </Button>
           </div>
-        </div>
+        </div >
 
         {/* Sidebar Summary (Right) - Sticky */}
-        <div className="lg:col-span-1">
+        < div className="lg:col-span-1" >
           <div className="sticky top-24 space-y-4">
             <Card className="p-6">
-              <h3 className="text-lg mb-4">Chuyến bay của bạn</h3>
+              <h3 className="text-lg mb-4">{t('booking.yourFlight')}</h3>
 
               {/* Outbound Flight (For round-trip) or Single Flight */}
               {isRoundTrip && outboundFlight ? (
@@ -453,7 +444,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                   {/* Outbound Flight */}
                   <div className="space-y-4 mb-6 pb-6 border-b">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-blue-600">CHIỀU ĐI</span>
+                      <span className="text-sm font-medium text-blue-600">{t('booking.outbound')}</span>
                     </div>
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center shrink-0">
@@ -492,7 +483,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
 
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Loại vé</span>
+                        <span className="text-gray-600">{t('booking.ticketType')}</span>
                         <span className="font-medium">{outboundFlight.fare.name}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -506,7 +497,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                   {inboundFlight && (
                     <div className="space-y-4 mb-6">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-green-600">CHIỀU VỀ</span>
+                        <span className="text-sm font-medium text-green-600">{t('booking.inbound')}</span>
                       </div>
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 bg-green-100 rounded flex items-center justify-center shrink-0">
@@ -597,7 +588,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                   {/* Fare Details */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Loại vé</span>
+                      <span className="text-gray-600">{t('booking.ticketType')}</span>
                       <span className="font-medium">{fare.name || "Phổ thông"}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -607,19 +598,19 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                     {fare.checkedBag && fare.checkedBag !== "Không" && (
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Luggage className="w-4 h-4" />
-                        <span>Hành lý ký gửi: {fare.checkedBag}</span>
+                        <span>{t('booking.checkedBag')}: {fare.checkedBag}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2 text-sm">
                       {fare.refundable ? (
                         <>
                           <RefreshCcw className="w-4 h-4 text-green-600" />
-                          <span className="text-green-700">Có thể hoàn vé</span>
+                          <span className="text-green-700">{t('booking.refundable')}</span>
                         </>
                       ) : (
                         <>
                           <Ban className="w-4 h-4 text-red-600" />
-                          <span className="text-red-700">Không hoàn vé</span>
+                          <span className="text-red-700">{t('booking.nonRefundable')}</span>
                         </>
                       )}
                     </div>
@@ -631,7 +622,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
 
               {/* Price Breakdown */}
               <div className="space-y-3">
-                <h4 className="font-medium">Chi tiết giá</h4>
+                <h4 className="font-medium">{t('booking.priceDetails')}</h4>
 
                 {isRoundTrip && outboundFlight && inboundFlight ? (
                   <>
@@ -639,7 +630,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                     {passengers.adults > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">
-                          Người lớn x {passengers.adults} (Cả 2 chiều)
+                          {t('booking.adult')} x {passengers.adults}
                         </span>
                         <span>{((outboundFlight.fare.price + inboundFlight.fare.price) * passengers.adults).toLocaleString('vi-VN')}₫</span>
                       </div>
@@ -648,7 +639,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                     {passengers.children > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">
-                          Trẻ em x {passengers.children} (Cả 2 chiều)
+                          {t('booking.child')} x {passengers.children}
                         </span>
                         <span>{((outboundFlight.fare.price + inboundFlight.fare.price) * passengers.children).toLocaleString('vi-VN')}₫</span>
                       </div>
@@ -657,7 +648,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                     {passengers.infants > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">
-                          Em bé x {passengers.infants} (Cả 2 chiều)
+                          {t('booking.infant')} x {passengers.infants}
                         </span>
                         <span>{((outboundFlight.fare.price + inboundFlight.fare.price) * passengers.infants * 0.1).toLocaleString('vi-VN')}₫</span>
                       </div>
@@ -669,7 +660,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                     {passengers.adults > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">
-                          Người lớn x {passengers.adults}
+                          {t('booking.adult')} x {passengers.adults}
                         </span>
                         <span>{(fare.price * passengers.adults).toLocaleString('vi-VN')}₫</span>
                       </div>
@@ -678,7 +669,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                     {passengers.children > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">
-                          Trẻ em x {passengers.children}
+                          {t('booking.child')} x {passengers.children}
                         </span>
                         <span>{(fare.price * passengers.children).toLocaleString('vi-VN')}₫</span>
                       </div>
@@ -687,7 +678,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                     {passengers.infants > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">
-                          Em bé x {passengers.infants}
+                          {t('booking.infant')} x {passengers.infants}
                         </span>
                         <span>{(fare.price * passengers.infants * 0.1).toLocaleString('vi-VN')}₫</span>
                       </div>
@@ -696,14 +687,14 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                 )}
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Thuế & Phí</span>
+                  <span className="text-gray-600">{t('booking.taxesFees')}</span>
                   <span>{taxesFees.toLocaleString('vi-VN')}₫</span>
                 </div>
 
                 <Separator />
 
                 <div className="flex justify-between items-center">
-                  <span className="font-medium">TỔNG CỘNG</span>
+                  <span className="font-medium">{t('booking.total')}</span>
                   <span className="text-2xl text-blue-600">
                     {grandTotal.toLocaleString('vi-VN')}₫
                   </span>
@@ -717,7 +708,7 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
                 onClick={validateAndContinue}
                 disabled={!agreeTerms}
               >
-                TIẾP TỤC THANH TOÁN
+                {t('booking.continuePayment')}
               </Button>
             </Card>
 
@@ -725,15 +716,15 @@ export default function BookingDetailsPage({ onNavigate, bookingData }: BookingD
             <Alert className="bg-yellow-50 border-yellow-200">
               <AlertCircle className="h-4 w-4 text-yellow-600" />
               <AlertDescription className="text-xs">
-                Giá vé có thể thay đổi trước khi thanh toán. Vui lòng hoàn tất đặt vé sớm để đảm bảo giá tốt nhất.
+                {t('booking.priceChangeWarning')}
               </AlertDescription>
             </Alert>
           </div>
-        </div>
-      </div>
-    </div>
+        </div >
+      </div >
+    </div >
 
       <Footer onNavigate={onNavigate} />
-    </div>
+    </div >
   );
 }

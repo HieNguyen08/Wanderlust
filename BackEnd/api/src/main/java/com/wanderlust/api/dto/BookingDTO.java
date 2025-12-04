@@ -54,4 +54,8 @@ public class BookingDTO {
     private LocalDateTime cancelledAt;
     private String cancelledBy;
     private Boolean vendorConfirmed;
+
+    // --- Completion Tracking ---
+    private Boolean userConfirmed;  // Người dùng xác nhận hoàn thành
+    private Boolean autoCompleted;  // Tự động hoàn thành bởi hệ thống
 }

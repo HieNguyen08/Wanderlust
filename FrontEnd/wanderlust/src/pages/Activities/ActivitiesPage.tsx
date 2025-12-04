@@ -41,9 +41,10 @@ interface ActivitiesPageProps {
   initialCategory?: string;
   userRole?: any;
   onLogout?: () => void;
+  searchParams?: any;
 }
 
-export default function ActivitiesPage({ onNavigate, initialCategory = "all", userRole, onLogout }: ActivitiesPageProps) {
+export default function ActivitiesPage({ onNavigate, initialCategory = "all", userRole, onLogout, searchParams }: ActivitiesPageProps) {
   const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState("");
@@ -78,6 +79,24 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all", us
   ];
 
   const totalGuests = adults + children;
+
+  // Initialize from searchParams
+  useEffect(() => {
+    if (searchParams) {
+      if (searchParams.location) {
+        setSelectedLocation(searchParams.location);
+      }
+      if (searchParams.date) {
+        setSelectedDate(new Date(searchParams.date));
+      }
+      if (searchParams.adults) {
+        setAdults(searchParams.adults);
+      }
+      if (searchParams.children !== undefined) {
+        setChildren(searchParams.children);
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchActivities = async () => {

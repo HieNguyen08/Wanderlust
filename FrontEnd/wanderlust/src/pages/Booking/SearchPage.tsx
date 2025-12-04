@@ -1,18 +1,19 @@
 import { addDays, format, subDays } from "date-fns";
 import { vi } from "date-fns/locale";
 import {
-    ArrowRightLeft,
-    Ban,
-    Calendar as CalendarIcon,
-    Check, Filter,
-    Loader2,
-    Luggage,
-    Plane,
-    PlaneLanding,
-    PlaneTakeoff,
-    RefreshCcw
+  ArrowRightLeft,
+  Ban,
+  Calendar as CalendarIcon,
+  Check, Filter,
+  Loader2,
+  Luggage,
+  Plane,
+  PlaneLanding,
+  PlaneTakeoff,
+  RefreshCcw
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner@2.0.3";
 import { Footer } from "../../components/Footer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui/accordion";
@@ -59,10 +60,11 @@ const airlines = [
 ];
 
 export default function SearchPage({ onNavigate, searchData }: SearchPageProps) {
+  const { t } = useTranslation();
   // Loading state
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingPrices, setIsLoadingPrices] = useState(false);
-  
+
   // Search modification state
   const [showModifySearch, setShowModifySearch] = useState(false);
   const [tripType, setTripType] = useState(searchData?.tripType || "round-trip");
@@ -91,7 +93,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
   const [expandedFlight, setExpandedFlight] = useState<number | null>(null);
   const [expandedCabinClass, setExpandedCabinClass] = useState<string | null>(null);
   const [selectedFare, setSelectedFare] = useState<any>(null);
-  
+
   // Round-trip state
   const [flightLeg, setFlightLeg] = useState<'outbound' | 'inbound'>(searchData?.flightLeg || 'outbound');
   const [outboundFlight, setOutboundFlight] = useState<any>(searchData?.outboundFlight || null);
@@ -120,12 +122,12 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
   // Fetch flights from backend when search params change
   useEffect(() => {
     // Skip if we already have data from initial search
-    if (searchData?.outboundFlights && flightLeg === 'outbound' && 
-        format(selectedDay, 'yyyy-MM-dd') === format(searchData.departDate, 'yyyy-MM-dd')) {
+    if (searchData?.outboundFlights && flightLeg === 'outbound' &&
+      format(selectedDay, 'yyyy-MM-dd') === format(searchData.departDate, 'yyyy-MM-dd')) {
       return;
     }
-    if (searchData?.returnFlights && flightLeg === 'inbound' && 
-        format(selectedDay, 'yyyy-MM-dd') === format(searchData.returnDate, 'yyyy-MM-dd')) {
+    if (searchData?.returnFlights && flightLeg === 'inbound' &&
+      format(selectedDay, 'yyyy-MM-dd') === format(searchData.returnDate, 'yyyy-MM-dd')) {
       return;
     }
 
@@ -144,7 +146,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
         setFlights(results);
       } catch (error) {
         console.error('Error fetching flights:', error);
-        toast.error('Không thể tải danh sách chuyến bay. Vui lòng thử lại!');
+        toast.error(t('search.errorLoading'));
         setFlights([]);
       } finally {
         setIsLoading(false);
@@ -162,10 +164,10 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
         const currentFrom = getCurrentFrom();
         const currentTo = getCurrentTo();
         const baseDate = getCurrentBaseDate();
-        
+
         const startDate = format(subDays(baseDate, 3), 'yyyy-MM-dd');
         const endDate = format(addDays(baseDate, 3), 'yyyy-MM-dd');
-        
+
         const results = await flightApi.searchFlightsByDateRange({
           from: currentFrom.code,
           to: currentTo.code,
@@ -223,8 +225,8 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
   // Update isSelected immediately when selectedDay changes (instant UI update without re-fetch)
   useEffect(() => {
     if (dayPricesData.length === 0) return;
-    
-    setDayPricesData(prevDays => 
+
+    setDayPricesData(prevDays =>
       prevDays.map(day => ({
         ...day,
         isSelected: format(day.date, "yyyy-MM-dd") === format(selectedDay, "yyyy-MM-dd")
@@ -241,7 +243,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
 
   const handleModifySearch = () => {
     setShowModifySearch(false);
-    toast.success("Đã cập nhật tìm kiếm!");
+    toast.success(t('search.searchUpdated'));
     if (flightLeg === 'outbound') {
       setSelectedDay(departDate);
     } else {
@@ -256,38 +258,40 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
       fare,
       passengers: { adults, children, infants }
     });
-    toast.success(`Đã chọn ${fare.name} - ${fare.price.toLocaleString('vi-VN')}đ`);
+    toast.success(`${t('search.selected')} ${fare.name} - ${fare.price.toLocaleString('vi-VN')}đ`);
   };
 
   const handleContinueToReturn = () => {
     if (!selectedFare) {
-      toast.error("Vui lòng chọn loại vé chiều đi");
+      toast.error(t('search.selectOutbound'));
       return;
     }
-    
+
     // Save outbound flight
     setOutboundFlight({
       ...selectedFare,
       date: format(selectedDay, "dd/MM/yyyy")
     });
-    
+
     // Switch to inbound leg
     setFlightLeg('inbound');
     setSelectedDay(returnDate);
     setExpandedFlight(null);
     setExpandedCabinClass(null);
     setSelectedFare(null);
-    
-    toast.success("Vui lòng chọn chuyến bay về");
+
+    setSelectedFare(null);
+
+    toast.success(t('search.selectReturn'));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleContinue = () => {
     if (!selectedFare) {
-      toast.error("Vui lòng chọn loại vé");
+      toast.error(t('search.selectTicket'));
       return;
     }
-    
+
     // For one-way, go directly to review
     if (tripType === 'one-way') {
       // Navigate to flight review page
@@ -310,13 +314,13 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
       onNavigate("flight-review", flightData);
       return;
     }
-    
+
     // For round-trip, need both flights
     if (tripType === 'round-trip' && flightLeg === 'outbound') {
       handleContinueToReturn();
       return;
     }
-    
+
     // For round-trip inbound flight
     const flightData: any = {
       tripType,
@@ -341,7 +345,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
         date: format(selectedDay, "dd/MM/yyyy")
       }
     };
-    
+
     // Navigate to flight review page
     onNavigate("flight-review", flightData);
   };
@@ -356,13 +360,13 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
 
   return (
     <div className="min-h-screen bg-gray-50">{isLoading && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 flex items-center gap-3">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-            <span>Đang tìm kiếm chuyến bay...</span>
-          </div>
+      <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 flex items-center gap-3">
+          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+          <span>Đang tìm kiếm chuyến bay...</span>
         </div>
-      )}      {/* Search Summary Bar */}
+      </div>
+    )}      {/* Search Summary Bar */}
       <div className="bg-white border-b sticky top-0 z-40 shadow-sm mt-[60px]">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -388,8 +392,8 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                 <span>{cabinClassLabels[cabinClass]}</span>
               </div>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowModifySearch(true)}
               className="border-blue-600 text-blue-600 hover:bg-blue-50"
             >
@@ -405,11 +409,10 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
           <div className="max-w-7xl mx-auto px-4 md:px-8">
             <div className="flex gap-4">
               <button
-                className={`px-6 py-4 border-b-4 transition-all ${
-                  flightLeg === 'outbound'
+                className={`px-6 py-4 border-b-4 transition-all ${flightLeg === 'outbound'
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
                 onClick={() => {
                   if (flightLeg !== 'outbound') {
                     setFlightLeg('outbound');
@@ -431,15 +434,14 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                   {outboundFlight && <Check className="w-5 h-5 text-green-600" />}
                 </div>
               </button>
-              
+
               <button
-                className={`px-6 py-4 border-b-4 transition-all ${
-                  flightLeg === 'inbound'
+                className={`px-6 py-4 border-b-4 transition-all ${flightLeg === 'inbound'
                     ? 'border-blue-600 text-blue-600'
                     : outboundFlight
-                    ? 'border-transparent text-gray-600 hover:text-gray-900'
-                    : 'border-transparent text-gray-400 cursor-not-allowed'
-                }`}
+                      ? 'border-transparent text-gray-600 hover:text-gray-900'
+                      : 'border-transparent text-gray-400 cursor-not-allowed'
+                  }`}
                 onClick={() => {
                   if (outboundFlight && flightLeg !== 'inbound') {
                     setFlightLeg('inbound');
@@ -494,11 +496,10 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                   setExpandedCabinClass(null);
                   setSelectedFare(null);
                 }}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  day.isSelected 
-                    ? 'border-orange-500 bg-orange-50' 
+                className={`p-3 rounded-lg border-2 transition-all ${day.isSelected
+                    ? 'border-orange-500 bg-orange-50'
                     : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                }`}
+                  }`}
               >
                 <div className={`text-xs mb-1 ${day.isSelected ? 'text-orange-600' : 'text-gray-600'}`}>
                   {format(day.date, "EEE", { locale: vi })}
@@ -519,8 +520,8 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           <div className="flex items-center justify-between">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowFilters(true)}
               className="gap-2"
             >
@@ -577,7 +578,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                           <span className="font-medium">{flight.airlineName}</span>
                           <span className="text-sm text-gray-500">{flight.flightNumber}</span>
                         </div>
-                        
+
                         <div className="grid grid-cols-3 gap-2 items-center mb-2">
                           <div>
                             <div className="text-2xl">{format(new Date(flight.departureTime), 'HH:mm')}</div>
@@ -641,11 +642,10 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                             setExpandedCabinClass('economy');
                           }
                         }}
-                        className={`p-4 rounded-lg border-2 transition-all text-center ${
-                          expandedFlight === flight.id && expandedCabinClass === 'economy'
-                            ? 'border-blue-600 bg-blue-50' 
+                        className={`p-4 rounded-lg border-2 transition-all text-center ${expandedFlight === flight.id && expandedCabinClass === 'economy'
+                            ? 'border-blue-600 bg-blue-50'
                             : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50'
-                        }`}
+                          }`}
                       >
                         <div className="text-sm text-gray-600 mb-1">PHỔ THÔNG</div>
                         <div className="text-lg">
@@ -666,11 +666,10 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                             setExpandedCabinClass('premiumEconomy');
                           }
                         }}
-                        className={`p-4 rounded-lg border-2 transition-all text-center ${
-                          expandedFlight === flight.id && expandedCabinClass === 'premiumEconomy'
-                            ? 'border-blue-600 bg-blue-50' 
+                        className={`p-4 rounded-lg border-2 transition-all text-center ${expandedFlight === flight.id && expandedCabinClass === 'premiumEconomy'
+                            ? 'border-blue-600 bg-blue-50'
                             : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50'
-                        }`}
+                          }`}
                       >
                         <div className="text-sm text-gray-600 mb-1">PHỔ THÔNG ĐẶC BIỆT</div>
                         <div className="text-lg">
@@ -691,11 +690,10 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                             setExpandedCabinClass('business');
                           }
                         }}
-                        className={`p-4 rounded-lg border-2 transition-all text-center ${
-                          expandedFlight === flight.id && expandedCabinClass === 'business'
-                            ? 'border-blue-600 bg-blue-50' 
+                        className={`p-4 rounded-lg border-2 transition-all text-center ${expandedFlight === flight.id && expandedCabinClass === 'business'
+                            ? 'border-blue-600 bg-blue-50'
                             : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50'
-                        }`}
+                          }`}
                       >
                         <div className="text-sm text-gray-600 mb-1">THƯƠNG GIA</div>
                         <div className="text-lg">
@@ -713,73 +711,71 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                   <h3 className="text-lg mb-4">Chọn loại vé</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {flight.cabinClasses[expandedCabinClass]?.fares.map((fare: any) => (
-                        <Card 
-                          key={fare.id} 
-                          className={`cursor-pointer transition-all ${
-                            selectedFare?.fare?.id === fare.id 
-                              ? 'ring-2 ring-blue-600' 
-                              : 'hover:shadow-lg'
+                      <Card
+                        key={fare.id}
+                        className={`cursor-pointer transition-all ${selectedFare?.fare?.id === fare.id
+                            ? 'ring-2 ring-blue-600'
+                            : 'hover:shadow-lg'
                           }`}
-                          onClick={() => handleSelectFare(flight, expandedCabinClass, fare)}
-                        >
-                          <div className="p-4">
-                            <div className="flex items-start gap-3 mb-4">
-                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 ${
-                                selectedFare?.fare?.id === fare.id 
-                                  ? 'border-blue-600 bg-blue-600' 
-                                  : 'border-gray-300'
+                        onClick={() => handleSelectFare(flight, expandedCabinClass, fare)}
+                      >
+                        <div className="p-4">
+                          <div className="flex items-start gap-3 mb-4">
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 ${selectedFare?.fare?.id === fare.id
+                                ? 'border-blue-600 bg-blue-600'
+                                : 'border-gray-300'
                               }`}>
-                                {selectedFare?.fare?.id === fare.id && (
-                                  <div className="w-2 h-2 rounded-full bg-white" />
-                                )}
-                              </div>
-                              <div className="flex-1">
-                                <h4 className="font-medium mb-1">{fare.name}</h4>
-                                <div className="text-2xl text-blue-600">
-                                  {fare.price.toLocaleString('vi-VN')}₫
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="space-y-2 text-sm">
-                              <div className="flex items-center gap-2">
-                                <Luggage className="w-4 h-4 text-gray-500" />
-                                <span className="text-gray-700">{fare.baggage}</span>
-                              </div>
-                              {fare.checkedBag !== "Không" && (
-                                <div className="flex items-center gap-2">
-                                  <Luggage className="w-4 h-4 text-gray-500" />
-                                  <span className="text-gray-700">Hành lý ký gửi: {fare.checkedBag}</span>
-                                </div>
+                              {selectedFare?.fare?.id === fare.id && (
+                                <div className="w-2 h-2 rounded-full bg-white" />
                               )}
-                              <div className="flex items-center gap-2">
-                                {fare.refundable ? (
-                                  <RefreshCcw className="w-4 h-4 text-green-600" />
-                                ) : (
-                                  <Ban className="w-4 h-4 text-red-600" />
-                                )}
-                                <span className={fare.refundable ? "text-green-700" : "text-red-700"}>
-                                  {fare.refundable ? "Có thể hoàn vé" : "Không hoàn vé"}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {fare.changeable ? (
-                                  <RefreshCcw className="w-4 h-4 text-green-600" />
-                                ) : (
-                                  <Ban className="w-4 h-4 text-red-600" />
-                                )}
-                                <span className={fare.changeable ? "text-green-700" : "text-red-700"}>
-                                  {fare.changeable ? "Có thể đổi vé" : "Không đổi vé"}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Plane className="w-4 h-4 text-gray-500" />
-                                <span className="text-gray-700">Tích lũy {fare.miles} dặm</span>
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-medium mb-1">{fare.name}</h4>
+                              <div className="text-2xl text-blue-600">
+                                {fare.price.toLocaleString('vi-VN')}₫
                               </div>
                             </div>
                           </div>
-                        </Card>
-                      ))
+
+                          <div className="space-y-2 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Luggage className="w-4 h-4 text-gray-500" />
+                              <span className="text-gray-700">{fare.baggage}</span>
+                            </div>
+                            {fare.checkedBag !== "Không" && (
+                              <div className="flex items-center gap-2">
+                                <Luggage className="w-4 h-4 text-gray-500" />
+                                <span className="text-gray-700">Hành lý ký gửi: {fare.checkedBag}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2">
+                              {fare.refundable ? (
+                                <RefreshCcw className="w-4 h-4 text-green-600" />
+                              ) : (
+                                <Ban className="w-4 h-4 text-red-600" />
+                              )}
+                              <span className={fare.refundable ? "text-green-700" : "text-red-700"}>
+                                {fare.refundable ? "Có thể hoàn vé" : "Không hoàn vé"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {fare.changeable ? (
+                                <RefreshCcw className="w-4 h-4 text-green-600" />
+                              ) : (
+                                <Ban className="w-4 h-4 text-red-600" />
+                              )}
+                              <span className={fare.changeable ? "text-green-700" : "text-red-700"}>
+                                {fare.changeable ? "Có thể đổi vé" : "Không đổi vé"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Plane className="w-4 h-4 text-gray-500" />
+                              <span className="text-gray-700">Tích lũy {fare.miles} dặm</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))
                     }
                   </div>
                 </div>
@@ -796,7 +792,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="text-sm text-gray-600 mb-1">
-                  {tripType === 'one-way' 
+                  {tripType === 'one-way'
                     ? `${selectedFare.flight.flightNumber} • ${selectedFare.fare.name}`
                     : `${flightLeg === 'outbound' ? 'Chiều đi' : 'Chiều về'}: ${selectedFare.flight.flightNumber} • ${selectedFare.fare.name}`
                   }
@@ -813,13 +809,13 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                   )}
                 </div>
               </div>
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 onClick={handleContinue}
                 className="bg-orange-600 hover:bg-orange-700 whitespace-nowrap"
               >
-                {tripType === 'round-trip' && flightLeg === 'outbound' 
-                  ? 'CHỌN CHUYẾN VỀ' 
+                {tripType === 'round-trip' && flightLeg === 'outbound'
+                  ? 'CHỌN CHUYẾN VỀ'
                   : 'TIẾP TỤC ĐẶT VÉ'}
               </Button>
             </div>
@@ -965,7 +961,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                       { id: "night", label: "00:00 - 05:59 Đêm", value: "night" }
                     ].map(time => (
                       <label key={time.id} className="flex items-center space-x-2">
-                        <Checkbox 
+                        <Checkbox
                           checked={departureTime.includes(time.value)}
                           onCheckedChange={(checked) => {
                             if (checked) {
@@ -994,7 +990,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                       { id: "night", label: "00:00 - 05:59 Đêm", value: "night" }
                     ].map(time => (
                       <label key={time.id} className="flex items-center space-x-2">
-                        <Checkbox 
+                        <Checkbox
                           checked={arrivalTime.includes(time.value)}
                           onCheckedChange={(checked) => {
                             if (checked) {
@@ -1018,7 +1014,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
                   <div className="space-y-2">
                     {airlines.map(airline => (
                       <label key={airline.code} className="flex items-center space-x-2">
-                        <Checkbox 
+                        <Checkbox
                           checked={selectedAirlines.includes(airline.code)}
                           onCheckedChange={(checked) => {
                             if (checked) {
@@ -1038,8 +1034,8 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
           </div>
 
           <SheetFooter className="gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setSelectedAirlines([]);
                 setFlightType("all");
@@ -1050,7 +1046,7 @@ export default function SearchPage({ onNavigate, searchData }: SearchPageProps) 
             >
               THIẾT LẬP LẠI
             </Button>
-            <Button 
+            <Button
               onClick={() => {
                 setShowFilters(false);
                 toast.success("Đã áp dụng bộ lọc");

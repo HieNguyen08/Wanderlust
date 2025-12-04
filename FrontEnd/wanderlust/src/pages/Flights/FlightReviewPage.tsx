@@ -400,10 +400,10 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                             <SelectValue placeholder={t('flights.selectNationality')} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="VN">Việt Nam</SelectItem>
-                            <SelectItem value="US">United States</SelectItem>
-                            <SelectItem value="GB">United Kingdom</SelectItem>
-                            <SelectItem value="CN">China</SelectItem>
+                            <SelectItem value="VN">{t('common.countries.VN')}</SelectItem>
+                            <SelectItem value="US">{t('common.countries.US')}</SelectItem>
+                            <SelectItem value="GB">{t('common.countries.GB')}</SelectItem>
+                            <SelectItem value="CN">{t('common.countries.CN')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -433,10 +433,10 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                             <SelectValue placeholder={t('flights.selectCountry')} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="VN">Việt Nam</SelectItem>
-                            <SelectItem value="US">United States</SelectItem>
-                            <SelectItem value="GB">United Kingdom</SelectItem>
-                            <SelectItem value="CN">China</SelectItem>
+                            <SelectItem value="VN">{t('common.countries.VN')}</SelectItem>
+                            <SelectItem value="US">{t('common.countries.US')}</SelectItem>
+                            <SelectItem value="GB">{t('common.countries.GB')}</SelectItem>
+                            <SelectItem value="CN">{t('common.countries.CN')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

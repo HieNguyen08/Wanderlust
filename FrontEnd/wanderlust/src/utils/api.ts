@@ -280,7 +280,7 @@ export const walletApi = {
   // POST /api/v1/wallet/deposit - Nạp tiền vào ví
   deposit: async (depositData: {
     amount: number;
-    paymentMethod: string; // "CARD", "MOMO", "VNPAY"
+    paymentMethod: string; // "CARD", "STRIPE", "VNPAY"
   }) => {
     const response = await authenticatedFetch('/api/v1/wallet/deposit', {
       method: 'POST',
@@ -806,7 +806,7 @@ export const flightApi = {
   },
 
   // Tìm kiếm flights với filters
-  search: async (params: {
+  searchFlights: async (params: {
     from: string;
     to: string;
     date: string; // format: YYYY-MM-DD
@@ -836,7 +836,7 @@ export const flightApi = {
   },
 
   // Tìm kiếm flights theo date range (cho 7-day price calendar)
-  searchByDateRange: async (params: {
+  searchFlightsByDateRange: async (params: {
     from: string;
     to: string;
     startDate: string; // format: YYYY-MM-DD
@@ -981,42 +981,112 @@ export const locationApi = {
       searchParams.append('sortDir', params.sortDir);
     }
 
-    const url = searchParams.toString()
-      ? `${API_BASE_URL}/api/locations?${searchParams.toString()}`
-      : `${API_BASE_URL}/api/locations`;
+    const url = `/api/locations${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('Failed to fetch locations');
+    try {
+      const response = await authenticatedFetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch locations');
+      }
+      return response.json();
+    } catch (error: any) {
+      // If not authenticated, try without token for public access
+      if (error.message === 'UNAUTHORIZED') {
+        const publicUrl = searchParams.toString()
+          ? `${API_BASE_URL}/api/locations?${searchParams.toString()}`
+          : `${API_BASE_URL}/api/locations`;
+        const response = await fetch(publicUrl);
+        if (!response.ok) {
+          throw new Error('Failed to fetch locations');
+        }
+        return response.json();
+      }
+      throw error;
     }
-    return response.json();
   },
 
   // Lấy locations nổi bật
   getFeaturedLocations: async () => {
-    const response = await fetch(`${API_BASE_URL}/api/locations/featured`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch featured locations');
+    try {
+      const response = await authenticatedFetch('/api/locations/featured');
+      if (!response.ok) {
+        throw new Error('Failed to fetch featured locations');
+      }
+      return response.json();
+    } catch (error: any) {
+      // If not authenticated, try without token for public access
+      if (error.message === 'UNAUTHORIZED') {
+        const response = await fetch(`${API_BASE_URL}/api/locations/featured`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch featured locations');
+        }
+        return response.json();
+      }
+      throw error;
     }
-    return response.json();
   },
 
   // Tìm kiếm location theo query
   searchLocations: async (query: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/locations/search?query=${encodeURIComponent(query)}`);
-    if (!response.ok) {
-      throw new Error('Failed to search locations');
+    try {
+      const response = await authenticatedFetch(`/api/locations/search?query=${encodeURIComponent(query)}`);
+      if (!response.ok) {
+        throw new Error('Failed to search locations');
+      }
+      return response.json();
+    } catch (error: any) {
+      // If not authenticated, try without token for public access
+      if (error.message === 'UNAUTHORIZED') {
+        const response = await fetch(`${API_BASE_URL}/api/locations/search?query=${encodeURIComponent(query)}`);
+        if (!response.ok) {
+          throw new Error('Failed to search locations');
+        }
+        return response.json();
+      }
+      throw error;
     }
-    return response.json();
   },
 
   // Lấy chi tiết location theo ID
   getLocationById: async (id: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/locations/${id}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch location details');
+    try {
+      const response = await authenticatedFetch(`/api/locations/${id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch location details');
+      }
+      return response.json();
+    } catch (error: any) {
+      // If not authenticated, try without token for public access
+      if (error.message === 'UNAUTHORIZED') {
+        const response = await fetch(`${API_BASE_URL}/api/locations/${id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch location details');
+        }
+        return response.json();
+      }
+      throw error;
     }
-    return response.json();
+  },
+
+  // Lấy locations theo type (CITY, COUNTRY)
+  getLocationsByType: async (type: string) => {
+    try {
+      const response = await authenticatedFetch(`/api/locations/type/${type}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch locations by type');
+      }
+      return response.json();
+    } catch (error: any) {
+      // If not authenticated, try without token for public access
+      if (error.message === 'UNAUTHORIZED') {
+        const response = await fetch(`${API_BASE_URL}/api/locations/type/${type}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch locations by type');
+        }
+        return response.json();
+      }
+      throw error;
+    }
   },
 };
 

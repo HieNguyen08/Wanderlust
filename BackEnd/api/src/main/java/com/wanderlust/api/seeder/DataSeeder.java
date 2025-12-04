@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
@@ -12,10 +13,14 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wanderlust.api.entity.Flight;
+import com.wanderlust.api.entity.FlightSeat;
+import com.wanderlust.api.entity.Location;
 import com.wanderlust.api.entity.Promotion;
 import com.wanderlust.api.entity.TravelGuide;
 import com.wanderlust.api.entity.VisaArticle;
 import com.wanderlust.api.repository.FlightRepository;
+import com.wanderlust.api.repository.FlightSeatRepository;
+import com.wanderlust.api.repository.LocationRepository;
 import com.wanderlust.api.repository.PromotionRepository;
 import com.wanderlust.api.repository.TravelGuideRepository;
 import com.wanderlust.api.repository.VisaArticleRepository;
@@ -24,11 +29,13 @@ import com.wanderlust.api.repository.VisaArticleRepository;
 public class DataSeeder implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(DataSeeder.class);
-    
+
     private final TravelGuideRepository travelGuideRepository;
     private final PromotionRepository promotionRepository;
     private final VisaArticleRepository visaArticleRepository;
     private final FlightRepository flightRepository;
+    private final FlightSeatRepository flightSeatRepository;
+    private final LocationRepository locationRepository;
     private final ObjectMapper objectMapper;
 
     public DataSeeder(
@@ -36,30 +43,40 @@ public class DataSeeder implements CommandLineRunner {
             PromotionRepository promotionRepository,
             VisaArticleRepository visaArticleRepository,
             FlightRepository flightRepository,
+            FlightSeatRepository flightSeatRepository,
+            LocationRepository locationRepository,
             ObjectMapper objectMapper) {
         this.travelGuideRepository = travelGuideRepository;
         this.promotionRepository = promotionRepository;
         this.visaArticleRepository = visaArticleRepository;
         this.flightRepository = flightRepository;
+        this.flightSeatRepository = flightSeatRepository;
+        this.locationRepository = locationRepository;
         this.objectMapper = objectMapper;
     }
 
     @Override
     public void run(String... args) throws Exception {
         logger.info("🌱 Starting data seeding...");
-        
+
         // Seed Travel Guides (from JSON file)
         seedTravelGuides();
-        
+
         // Seed Promotions (from JSON file)
         seedPromotions();
-        
+
         // Seed Visa Articles (from JSON file)
         seedVisaArticles();
-        
+
         // Seed Flights (from JSON file)
         seedFlights();
-        
+
+        // Seed Flight Seats (from JSON file)
+        seedFlightSeats();
+
+        // Seed Locations (from JSON file)
+        seedLocations();
+
         logger.info("✅ Data seeding completed successfully!");
     }
 
@@ -67,7 +84,7 @@ public class DataSeeder implements CommandLineRunner {
         try {
             // Kiểm tra xem đã có data chưa - KHÔNG XÓA data cũ
             long count = travelGuideRepository.count();
-            
+
             if (count > 0) {
                 logger.info("Database already has {} travel guides. Skipping seed.", count);
                 return;
@@ -81,9 +98,9 @@ public class DataSeeder implements CommandLineRunner {
 
             // Parse JSON thành List<TravelGuide>
             List<TravelGuide> travelGuides = objectMapper.readValue(
-                inputStream, 
-                new TypeReference<List<TravelGuide>>() {}
-            );
+                    inputStream,
+                    new TypeReference<List<TravelGuide>>() {
+                    });
 
             // Lưu vào database
             List<TravelGuide> savedGuides = travelGuideRepository.saveAll(travelGuides);
@@ -98,7 +115,7 @@ public class DataSeeder implements CommandLineRunner {
     private void seedPromotions() {
         try {
             long existingCount = promotionRepository.count();
-            
+
             if (existingCount > 0) {
                 logger.info("Database already has {} promotions. Skipping seed.", existingCount);
                 return;
@@ -112,9 +129,9 @@ public class DataSeeder implements CommandLineRunner {
 
             // Parse JSON thành List<Promotion>
             List<Promotion> promotions = objectMapper.readValue(
-                inputStream, 
-                new TypeReference<List<Promotion>>() {}
-            );
+                    inputStream,
+                    new TypeReference<List<Promotion>>() {
+                    });
 
             // Lưu vào database
             List<Promotion> savedPromotions = promotionRepository.saveAll(promotions);
@@ -130,7 +147,7 @@ public class DataSeeder implements CommandLineRunner {
         try {
             // Kiểm tra xem đã có data chưa - KHÔNG XÓA data cũ
             long count = visaArticleRepository.count();
-            
+
             if (count > 0) {
                 logger.info("Database already has {} visa articles. Skipping seed.", count);
                 return;
@@ -144,9 +161,9 @@ public class DataSeeder implements CommandLineRunner {
 
             // Parse JSON thành List<VisaArticle>
             List<VisaArticle> visaArticles = objectMapper.readValue(
-                inputStream, 
-                new TypeReference<List<VisaArticle>>() {}
-            );
+                    inputStream,
+                    new TypeReference<List<VisaArticle>>() {
+                    });
 
             // Lưu vào database
             List<VisaArticle> savedArticles = visaArticleRepository.saveAll(visaArticles);
@@ -161,7 +178,7 @@ public class DataSeeder implements CommandLineRunner {
     private void seedFlights() {
         try {
             long count = flightRepository.count();
-            
+
             if (count > 0) {
                 logger.info("Database already has {} flights. Skipping seed.", count);
                 return;
@@ -175,9 +192,9 @@ public class DataSeeder implements CommandLineRunner {
 
             // Parse JSON thành List<Flight>
             List<Flight> flights = objectMapper.readValue(
-                inputStream, 
-                new TypeReference<List<Flight>>() {}
-            );
+                    inputStream,
+                    new TypeReference<List<Flight>>() {
+                    });
 
             // Lưu vào database
             List<Flight> savedFlights = flightRepository.saveAll(flights);
@@ -186,6 +203,68 @@ public class DataSeeder implements CommandLineRunner {
 
         } catch (Exception e) {
             logger.error("Error seeding flights: {}", e.getMessage(), e);
+        }
+    }
+
+    private void seedFlightSeats() {
+        try {
+            long count = flightSeatRepository.count();
+
+            if (count > 0) {
+                logger.info("Database already has {} flight seats. Skipping seed.", count);
+                return;
+            }
+
+            logger.info("No existing flight seats found. Starting seed...");
+
+            // Đọc file JSON từ resources
+            ClassPathResource resource = new ClassPathResource("data/flightseat.json");
+            InputStream inputStream = resource.getInputStream();
+
+            // Parse JSON thành List<FlightSeat>
+            List<FlightSeat> flightSeats = objectMapper.readValue(
+                    inputStream,
+                    new TypeReference<List<FlightSeat>>() {
+                    });
+
+            // Lưu vào database
+            List<FlightSeat> savedSeats = flightSeatRepository.saveAll(flightSeats);
+
+            logger.info("Successfully seeded {} flight seats to database!", savedSeats.size());
+
+        } catch (Exception e) {
+            logger.error("Error seeding flight seats: {}", e.getMessage(), e);
+        }
+    }
+
+    private void seedLocations() {
+        try {
+            long count = locationRepository.count();
+
+            if (count > 0) {
+                logger.info("Database already has {} locations. Skipping seed.", count);
+                return;
+            }
+
+            logger.info("No existing locations found. Starting seed...");
+
+            // Đọc file JSON từ resources
+            ClassPathResource resource = new ClassPathResource("data/locations.json");
+            InputStream inputStream = resource.getInputStream();
+
+            // Parse JSON thành List<Location>
+            List<Location> locations = objectMapper.readValue(
+                    inputStream,
+                    new TypeReference<List<Location>>() {
+                    });
+
+            // Lưu vào database
+            List<Location> savedLocations = locationRepository.saveAll(locations);
+
+            logger.info("Successfully seeded {} locations to database!", savedLocations.size());
+
+        } catch (Exception e) {
+            logger.error("Error seeding locations: {}", e.getMessage(), e);
         }
     }
 }

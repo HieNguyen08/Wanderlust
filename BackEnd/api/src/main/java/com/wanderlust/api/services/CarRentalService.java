@@ -2,11 +2,11 @@ package com.wanderlust.api.services;
 
 import com.wanderlust.api.dto.carRental.CarPriceCalculationDTO;
 import com.wanderlust.api.dto.carRental.CarPriceResponseDTO;
-import com.wanderlust.api.entity.Booking; // Thêm import
+import com.wanderlust.api.entity.Booking;
 import com.wanderlust.api.entity.CarRental;
-import com.wanderlust.api.entity.types.BookingStatus; // Thêm import
+import com.wanderlust.api.entity.types.BookingStatus;
 import com.wanderlust.api.entity.types.CarStatus;
-import com.wanderlust.api.repository.BookingRepository; // Thêm import
+import com.wanderlust.api.repository.BookingRepository;
 import com.wanderlust.api.repository.CarRentalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -17,17 +17,17 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.time.LocalDate; // Thêm import
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List; // Thêm import
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class CarRentalService {
 
     private final CarRentalRepository carRentalRepository;
-    private final BookingRepository bookingRepository; // Thêm dependency
+    private final BookingRepository bookingRepository;
     private final MongoTemplate mongoTemplate;
 
     // --- Basic CRUD ---
@@ -60,9 +60,18 @@ public class CarRentalService {
         carRentalRepository.deleteById(id);
     }
 
+    public List<CarRental> findByLocationId(String locationId) {
+        return carRentalRepository.findByLocationId(locationId);
+    }
+
+    public List<CarRental> findByVendorId(String vendorId) {
+        return carRentalRepository.findByVendorId(vendorId);
+    }
+
     // --- Advanced Features ---
 
-    public List<CarRental> searchCars(String locationId, String brand, String type, BigDecimal minPrice, BigDecimal maxPrice) {
+    public List<CarRental> searchCars(String locationId, String brand, String type, BigDecimal minPrice,
+            BigDecimal maxPrice) {
         Query query = new Query();
         List<Criteria> criteriaList = new ArrayList<>();
         criteriaList.add(Criteria.where("status").is(CarStatus.AVAILABLE));
@@ -114,16 +123,14 @@ public class CarRentalService {
         // 3. Định nghĩa các trạng thái booking "chặn" lịch
         List<BookingStatus> activeStatuses = List.of(
                 BookingStatus.PENDING,
-                BookingStatus.CONFIRMED
-        );
+                BookingStatus.CONFIRMED);
 
         // 4. Query các booking bị trùng lặp
         List<Booking> conflicts = bookingRepository.findConflictingCarBookings(
                 carId,
                 requestedStartDate,
                 requestedEndDate,
-                activeStatuses
-        );
+                activeStatuses);
 
         // 5. Nếu list rỗng -> không có trùng lặp -> Available
         return conflicts.isEmpty();
@@ -137,7 +144,8 @@ public class CarRentalService {
 
         // Tính toán dựa trên LocalDateTime
         long days = Duration.between(calcRequest.getStartDate(), calcRequest.getEndDate()).toDays();
-        if (days < 1) days = 1; // Tối thiểu 1 ngày
+        if (days < 1)
+            days = 1; // Tối thiểu 1 ngày
 
         BigDecimal baseTotal = car.getPricePerDay().multiply(BigDecimal.valueOf(days));
 

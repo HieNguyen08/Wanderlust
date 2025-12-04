@@ -43,7 +43,6 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
     stripeEnabled: true,
     stripePublicKey: "pk_test_...",
     paypalEnabled: false,
-    momoEnabled: true,
     vnpayEnabled: true,
   });
 
@@ -347,31 +346,6 @@ export default function AdminSettingsPage({ onNavigate }: AdminSettingsPageProps
                   <div>
                     <Label htmlFor="vnpayHashSecret">Hash Secret</Label>
                     <Input id="vnpayHashSecret" type="password" className="mt-1" />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* MoMo */}
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-semibold text-gray-900">MoMo</h4>
-                <Switch
-                  checked={settings.momoEnabled}
-                  onCheckedChange={(checked) =>
-                    setSettings({ ...settings, momoEnabled: checked })
-                  }
-                />
-              </div>
-              {settings.momoEnabled && (
-                <div className="space-y-3">
-                  <div>
-                    <Label htmlFor="momoPartnerCode">Partner Code</Label>
-                    <Input id="momoPartnerCode" className="mt-1" />
-                  </div>
-                  <div>
-                    <Label htmlFor="momoAccessKey">Access Key</Label>
-                    <Input id="momoAccessKey" type="password" className="mt-1" />
                   </div>
                 </div>
               )}

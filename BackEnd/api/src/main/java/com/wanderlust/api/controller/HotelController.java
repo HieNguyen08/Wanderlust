@@ -3,7 +3,6 @@ package com.wanderlust.api.controller;
 import com.wanderlust.api.dto.hotelDTO.HotelDTO;
 import com.wanderlust.api.dto.hotelDTO.HotelSearchCriteria;
 import com.wanderlust.api.dto.hotelDTO.RoomDTO;
-import com.wanderlust.api.entity.Hotel;
 import com.wanderlust.api.services.CustomOAuth2User;
 import com.wanderlust.api.services.CustomUserDetails;
 import com.wanderlust.api.services.HotelService;
@@ -62,6 +61,12 @@ public class HotelController {
         return ResponseEntity.ok(hotelService.findFeatured());
     }
 
+    // GET /api/hotels/location/{locationId}
+    @GetMapping("/hotels/location/{locationId}")
+    public ResponseEntity<List<HotelDTO>> getHotelsByLocation(@PathVariable String locationId) {
+        return ResponseEntity.ok(hotelService.findByLocationId(locationId));
+    }
+
     // GET /api/hotels/:id
     @GetMapping("/hotels/{id}")
     public ResponseEntity<HotelDTO> getHotelById(@PathVariable String id) {
@@ -79,17 +84,17 @@ public class HotelController {
     public ResponseEntity<String> getHotelReviews(@PathVariable String id) {
         return ResponseEntity.ok("Review list placeholder for hotel " + id);
     }
-    
+
     // POST /api/hotels/:id/check-availability
     @PostMapping("/hotels/{id}/check-availability")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> checkHotelAvailability(@PathVariable String id) {
-         // Logic check tổng thể khách sạn
+        // Logic check tổng thể khách sạn
         return ResponseEntity.ok("Availability checked");
     }
 
     // --- VENDOR / ADMIN MANAGEMENT ENDPOINTS ---
-    
+
     // GET /api/vendor/hotels
     @GetMapping("/vendor/hotels")
     @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
@@ -101,13 +106,13 @@ public class HotelController {
         } else {
             hotels = hotelService.findByVendorId(userId);
         }
-        
+
         return ResponseEntity.ok(hotels);
     }
 
     @PostMapping("/vendor/hotels")
     @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
-    public ResponseEntity<HotelDTO> createHotel(@RequestBody HotelDTO hotelDto, Authentication authentication) { // <-- BỔ SUNG
+    public ResponseEntity<HotelDTO> createHotel(@RequestBody HotelDTO hotelDto, Authentication authentication) {
         String userId = getUserIdFromAuthentication(authentication);
         hotelDto.setVendorId(userId);
         HotelDTO created = hotelService.create(hotelDto);

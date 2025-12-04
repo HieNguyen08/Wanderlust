@@ -1,6 +1,5 @@
 package com.wanderlust.api.configure;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,9 +16,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
@@ -51,6 +52,8 @@ public class SecurityConfig {
                     
                     // B. Webhooks & Callbacks (Từ hệ thống bên ngoài)
                     auth.requestMatchers(HttpMethod.POST, "/api/payments/callback/**").permitAll();
+                    auth.requestMatchers(HttpMethod.POST, "/api/payments/webhook/**").permitAll(); // Stripe Webhook
+                    auth.requestMatchers(HttpMethod.GET, "/api/payments/webhook/stripe/test").permitAll(); // Test endpoint
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/wallet/topup/callback").permitAll();
 
                     // C. Tracking quảng cáo (Public)

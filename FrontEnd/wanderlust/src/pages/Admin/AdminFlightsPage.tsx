@@ -1,62 +1,64 @@
 import {
-    Calendar, DollarSign,
-    Edit,
-    MoreVertical,
-    Plane,
-    Plus,
-    Search,
-    Trash2,
-    TrendingUp
+  Calendar, DollarSign,
+  Edit,
+  Grid3x3,
+  MoreVertical,
+  Plane,
+  Plus,
+  Search,
+  Trash2,
+  TrendingUp
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import { toast } from "sonner";
 import { AdminFlight, adminFlightApi } from "../../api/adminFlightApi";
+import SeatConfigurationDialog from "../../components/admin/SeatConfigurationDialog";
 import { AdminLayout } from "../../components/AdminLayout";
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "../../components/ui/alert-dialog";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "../../components/ui/dialog";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "../../components/ui/select";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "../../components/ui/table";
 import type { PageType } from "../../MainApp";
 
@@ -72,6 +74,8 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
   const [isAddFlightOpen, setIsAddFlightOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isSeatConfigDialogOpen, setIsSeatConfigDialogOpen] = useState(false);
+  const [selectedFlightForSeats, setSelectedFlightForSeats] = useState<AdminFlight | null>(null);
   const [editingFlight, setEditingFlight] = useState<AdminFlight | null>(null);
   const [flightToDelete, setFlightToDelete] = useState<AdminFlight | null>(null);
 
@@ -656,6 +660,13 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
                               <Edit className="w-4 h-4" />
                               {t('common.edit')}
                             </DropdownMenuItem>
+                            <DropdownMenuItem className="gap-2" onClick={() => {
+                              setSelectedFlightForSeats(flight);
+                              setIsSeatConfigDialogOpen(true);
+                            }}>
+                              <Grid3x3 className="w-4 h-4" />
+                              Cấu hình ghế
+                            </DropdownMenuItem>
                             <DropdownMenuItem className="gap-2 text-red-600" onClick={() => handleDelete(flight)}>
                               <Trash2 className="w-4 h-4" />
                               {t('common.delete')}
@@ -712,6 +723,18 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Seat Configuration Dialog */}
+      {selectedFlightForSeats && (
+        <SeatConfigurationDialog
+          open={isSeatConfigDialogOpen}
+          onOpenChange={setIsSeatConfigDialogOpen}
+          flightId={selectedFlightForSeats.id}
+          onSuccess={() => {
+            fetchFlights();
+          }}
+        />
+      )}
     </AdminLayout>
   );
 }

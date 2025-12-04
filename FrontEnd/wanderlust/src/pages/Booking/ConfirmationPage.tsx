@@ -1,21 +1,18 @@
+import {
+    Car,
+    CheckCircle2,
+    CreditCard,
+    FileText,
+    Home,
+    Hotel,
+    Mail,
+    PartyPopper,
+    Plane
+} from "lucide-react";
 import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Separator } from "../../components/ui/separator";
-import { 
-  CheckCircle2, 
-  Plane, 
-  Hotel, 
-  Car, 
-  PartyPopper,
-  Mail,
-  Calendar,
-  MapPin,
-  Users,
-  CreditCard,
-  Home,
-  FileText
-} from "lucide-react";
 import type { PageType } from "../../MainApp";
 
 interface ConfirmationPageProps {
@@ -178,12 +175,8 @@ export default function ConfirmationPage({ onNavigate, type, paymentInfo, ...boo
                 <span className="text-gray-900">
                   {paymentInfo.paymentMethod === "wallet" 
                     ? "Ví Wanderlust" 
-                    : paymentInfo.paymentMethod === "momo"
-                    ? "Ví MoMo"
-                    : paymentInfo.paymentMethod === "vnpay"
-                    ? "VNPay"
-                    : paymentInfo.paymentMethod === "zalopay"
-                    ? "ZaloPay"
+                    : paymentInfo.paymentMethod === "stripe"
+                    ? "Stripe"
                     : "Thẻ tín dụng/ghi nợ"}
                 </span>
               </div>

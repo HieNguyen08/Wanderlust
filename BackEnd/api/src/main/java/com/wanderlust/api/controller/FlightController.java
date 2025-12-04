@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wanderlust.api.entity.Flight;
+import com.wanderlust.api.entity.types.FlightStatus;
 import com.wanderlust.api.services.FlightService;
 
 @RestController
@@ -70,6 +71,19 @@ public class FlightController {
         return ResponseEntity.ok(flights);
     }
 
+    @GetMapping("/by-airline/{airlineCode}")
+    public ResponseEntity<List<Flight>> getFlightsByAirline(@PathVariable String airlineCode) {
+        List<Flight> flights = flightService.getFlightsByAirline(airlineCode);
+        return ResponseEntity.ok(flights);
+    }
+
+    @GetMapping("/by-type")
+    public ResponseEntity<List<Flight>> getFlightsByType(
+            @RequestParam Boolean isInternational) {
+        List<Flight> flights = flightService.getFlightsByType(isInternational);
+        return ResponseEntity.ok(flights);
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Flight> createFlight(@RequestBody Flight flight) {
@@ -89,5 +103,28 @@ public class FlightController {
     public ResponseEntity<Void> deleteFlight(@PathVariable String id) {
         flightService.deleteFlight(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/available-seats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Flight> updateAvailableSeats(
+            @PathVariable String id,
+            @RequestParam Integer seatsBooked) {
+        Flight updatedFlight = flightService.updateAvailableSeats(id, seatsBooked);
+        return ResponseEntity.ok(updatedFlight);
+    }
+
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Flight> updateStatus(
+            @PathVariable String id,
+            @RequestParam String status) {
+        try {
+            FlightStatus flightStatus = FlightStatus.valueOf(status.toUpperCase());
+            Flight updatedFlight = flightService.updateStatus(id, flightStatus);
+            return ResponseEntity.ok(updatedFlight);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

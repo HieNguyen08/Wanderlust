@@ -11,7 +11,7 @@ import { Label } from "../../components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { PageType } from "../../MainApp"; // Import PageType
-import { authApi, tokenService } from "../../utils/api";
+import { API_BASE_URL, authApi, tokenService } from "../../utils/api";
 import { mapBackendRoleToFrontend, type FrontendRole } from "../../utils/roleMapper";
 
 interface LoginPageProps {
@@ -51,7 +51,7 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  
+
   // Password visibility states
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -60,12 +60,12 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
     console.log("🔐 Redirecting to Google OAuth...");
     console.log("📍 Current URL before redirect:", window.location.href);
     // Redirect đến backend OAuth2 endpoint
-    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/google`;
   };
 
   const handleFacebookLogin = () => {
     // Redirect đến backend OAuth2 endpoint
-    window.location.href = 'http://localhost:8080/oauth2/authorization/facebook';
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/facebook`;
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -82,10 +82,10 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
 
       // Lưu token và thông tin user
       tokenService.setToken(response.token);
-      
+
       // Map backend role to frontend role
       const mappedRole = mapBackendRoleToFrontend(response.role);
-      
+
       tokenService.setUserData({
         firstName: response.firstName,
         lastName: response.lastName,

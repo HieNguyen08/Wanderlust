@@ -5,7 +5,7 @@ export interface PaymentDTO {
     bookingId: string;
     userId: string;
     amount: number;
-    method: "CREDIT_CARD" | "BANK_TRANSFER" | "WALLET" | "MOMO" | "ZALOPAY" | "STRIPE";
+    method: "CREDIT_CARD" | "BANK_TRANSFER" | "WALLET" | "ZALOPAY" | "STRIPE";
     status?: string;
     transactionId?: string;
     metadata?: Record<string, any>;

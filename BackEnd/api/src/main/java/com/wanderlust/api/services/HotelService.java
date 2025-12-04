@@ -30,7 +30,7 @@ public class HotelService {
     // 1. Search Hotels (Location, filters)
     public List<HotelDTO> searchHotels(HotelSearchCriteria criteria) {
         List<Hotel> hotels;
-        
+
         // Bước 1: Lọc theo location
         if (criteria.getLocation() != null && !criteria.getLocation().isEmpty()) {
             // Kiểm tra xem location có phải là locationId không
@@ -43,26 +43,30 @@ public class HotelService {
         } else {
             hotels = hotelRepository.findAll();
         }
-        
+
         // Bước 2: Áp dụng các bộ lọc nâng cao
         return hotels.stream()
                 // Lọc theo hạng sao
                 .filter(h -> {
                     if (criteria.getMinStar() != null && h.getStarRating() != null) {
-                        if (h.getStarRating() < criteria.getMinStar()) return false;
+                        if (h.getStarRating() < criteria.getMinStar())
+                            return false;
                     }
                     if (criteria.getMaxStar() != null && h.getStarRating() != null) {
-                        if (h.getStarRating() > criteria.getMaxStar()) return false;
+                        if (h.getStarRating() > criteria.getMaxStar())
+                            return false;
                     }
                     return true;
                 })
                 // Lọc theo giá (lowestPrice)
                 .filter(h -> {
                     if (criteria.getMinPrice() != null && h.getLowestPrice() != null) {
-                        if (h.getLowestPrice().compareTo(criteria.getMinPrice()) < 0) return false;
+                        if (h.getLowestPrice().compareTo(criteria.getMinPrice()) < 0)
+                            return false;
                     }
                     if (criteria.getMaxPrice() != null && h.getLowestPrice() != null) {
-                        if (h.getLowestPrice().compareTo(criteria.getMaxPrice()) > 0) return false;
+                        if (h.getLowestPrice().compareTo(criteria.getMaxPrice()) > 0)
+                            return false;
                     }
                     return true;
                 })
@@ -80,7 +84,8 @@ public class HotelService {
                     }
                     return true;
                 })
-                // Lọc theo tiện ích (amenities) - hotel phải có TẤT CẢ các amenities được yêu cầu
+                // Lọc theo tiện ích (amenities) - hotel phải có TẤT CẢ các amenities được yêu
+                // cầu
                 .filter(h -> {
                     if (criteria.getAmenities() != null && !criteria.getAmenities().isEmpty()) {
                         if (h.getAmenities() == null || h.getAmenities().isEmpty()) {
@@ -117,52 +122,53 @@ public class HotelService {
     // 2.1. Get Unique Locations from Hotels
     public List<Map<String, Object>> getUniqueLocations() {
         List<Hotel> allHotels = hotelRepository.findAll();
-        
+
         // Group by locationId và đếm số hotels
         Map<String, Long> locationCounts = allHotels.stream()
-            .filter(h -> h.getLocationId() != null && !h.getLocationId().isEmpty())
-            .collect(Collectors.groupingBy(Hotel::getLocationId, Collectors.counting()));
-        
+                .filter(h -> h.getLocationId() != null && !h.getLocationId().isEmpty())
+                .collect(Collectors.groupingBy(Hotel::getLocationId, Collectors.counting()));
+
         // Tạo danh sách locations với thông tin đầy đủ
         return locationCounts.entrySet().stream()
-            .map(entry -> {
-                String locationId = entry.getKey();
-                Long hotelCount = entry.getValue();
-                
-                // Lấy hotel đầu tiên của location này để lấy thông tin địa chỉ
-                Hotel sampleHotel = allHotels.stream()
-                    .filter(h -> locationId.equals(h.getLocationId()))
-                    .findFirst()
-                    .orElse(null);
-                
-                if (sampleHotel == null) return null;
-                
-                // Extract city từ address 
-                // Format address: "Street, District, City" -> chỉ lấy City (phần cuối cùng)
-                String address = sampleHotel.getAddress();
-                String city = locationId.replace("location_", "");
-                
-                if (address != null && address.contains(",")) {
-                    String[] parts = address.split(",");
-                    // Lấy phần cuối cùng = tên thành phố/tỉnh
-                    if (parts.length >= 1) {
-                        city = parts[parts.length - 1].trim();
+                .map(entry -> {
+                    String locationId = entry.getKey();
+                    Long hotelCount = entry.getValue();
+
+                    // Lấy hotel đầu tiên của location này để lấy thông tin địa chỉ
+                    Hotel sampleHotel = allHotels.stream()
+                            .filter(h -> locationId.equals(h.getLocationId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (sampleHotel == null)
+                        return null;
+
+                    // Extract city từ address
+                    // Format address: "Street, District, City" -> chỉ lấy City (phần cuối cùng)
+                    String address = sampleHotel.getAddress();
+                    String city = locationId.replace("location_", "");
+
+                    if (address != null && address.contains(",")) {
+                        String[] parts = address.split(",");
+                        // Lấy phần cuối cùng = tên thành phố/tỉnh
+                        if (parts.length >= 1) {
+                            city = parts[parts.length - 1].trim();
+                        }
                     }
-                }
-                
-                // Use HashMap instead of Map.of() to avoid type inference issues
-                Map<String, Object> location = new HashMap<>();
-                location.put("id", locationId);
-                location.put("location_ID", locationId);
-                location.put("city", city);
-                location.put("country", "Việt Nam");
-                location.put("airport_Code", locationId.replace("location_", "").substring(0, 3).toUpperCase());
-                location.put("hotelCount", hotelCount);
-                
-                return location;
-            })
-            .filter(loc -> loc != null)
-            .collect(Collectors.toList());
+
+                    // Use HashMap instead of Map.of() to avoid type inference issues
+                    Map<String, Object> location = new HashMap<>();
+                    location.put("id", locationId);
+                    location.put("location_ID", locationId);
+                    location.put("city", city);
+                    location.put("country", "Việt Nam");
+                    location.put("airport_Code", locationId.replace("location_", "").substring(0, 3).toUpperCase());
+                    location.put("hotelCount", hotelCount);
+
+                    return location;
+                })
+                .filter(loc -> loc != null)
+                .collect(Collectors.toList());
     }
 
     // 3. Find by ID
@@ -181,7 +187,7 @@ public class HotelService {
     }
 
     // --- CRUD cho Admin/Vendor ---
-    
+
     public List<HotelDTO> findAll() {
         return hotelMapper.toDTOs(hotelRepository.findAll());
     }
@@ -190,6 +196,9 @@ public class HotelService {
         return hotelMapper.toDTOs(hotelRepository.findByVendorId(vendorId));
     }
 
+    public List<HotelDTO> findByLocationId(String locationId) {
+        return hotelMapper.toDTOs(hotelRepository.findByLocationId(locationId));
+    }
 
     public HotelDTO create(HotelDTO hotelDTO) {
         // Convert DTO -> Entity
@@ -203,10 +212,10 @@ public class HotelService {
     public HotelDTO update(String id, HotelDTO hotelDTO) {
         Hotel existing = hotelRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Hotel not found"));
-        
+
         // MapStruct tự động update các trường non-null từ DTO vào Entity cũ
         hotelMapper.updateEntityFromDTO(hotelDTO, existing);
-        
+
         Hotel savedHotel = hotelRepository.save(existing);
         return hotelMapper.toDTO(savedHotel);
     }

@@ -41,8 +41,7 @@ public class AuthController {
                     user.getEmail(),
                     user.getAvatar(),
                     user.getRole(),
-                    user.getGender()
-            );
+                    user.getGender());
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(401).body("Invalid email or password");
@@ -56,16 +55,16 @@ public class AuthController {
         if (existingUser.isPresent()) {
             return ResponseEntity.status(400).body("Email already exists");
         }
-        
+
         // Đăng ký user mới
         User newUser = userService.registerUser(user);
 
         // Tạo ví cho user mới
         walletService.createWalletForNewUser(newUser.getUserId());
-        
+
         // Tạo JWT token
         String token = jwtService.generateToken(newUser);
-        
+
         // Trả về response giống login
         AuthResponseDTO response = new AuthResponseDTO(
                 token,
@@ -74,9 +73,8 @@ public class AuthController {
                 newUser.getEmail(),
                 newUser.getAvatar(),
                 newUser.getRole(),
-                newUser.getGender()
-        );
-        
+                newUser.getGender());
+
         return ResponseEntity.ok(response);
     }
 }

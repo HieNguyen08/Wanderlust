@@ -1,30 +1,31 @@
 import {
-    CheckCircle,
-    Clock,
-    Dumbbell,
-    Eye,
-    Heart, MapPin,
-    ParkingCircle,
-    Share2,
-    Star,
-    Utensils,
-    Wifi,
-    X
+  CheckCircle,
+  Clock,
+  Dumbbell,
+  Eye,
+  Heart, MapPin,
+  ParkingCircle,
+  Share2,
+  Star,
+  Utensils,
+  Wifi,
+  X
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { ProfileLayout } from "../../components/ProfileLayout";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "../../components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import type { PageType } from "../../MainApp";
@@ -62,153 +63,32 @@ export default function SavedItemsPage({ onNavigate, userRole, onLogout }: Saved
   const [activeTab, setActiveTab] = useState("all");
   const [selectedItem, setSelectedItem] = useState<SavedItem | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [savedItems, setSavedItems] = useState<SavedItem[]>([
-    {
-      id: "1",
-      type: "hotel",
-      title: "JW Marriott Phu Quoc",
-      location: "Phú Quốc, Việt Nam",
-      image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&h=600&fit=crop",
-      images: [
-        "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&h=600&fit=crop",
-      ],
-      price: 3500000,
-      rating: 4.9,
-      reviews: 234,
-      savedDate: "2025-10-01",
-      description: "Khu nghỉ dưỡng 5 sao sang trọng với view biển tuyệt đẹp, spa cao cấp và nhiều hoạt động giải trí",
-      amenities: ["Wifi miễn phí", "Bể bơi", "Spa & Massage", "Nhà hàng", "Gym", "Bãi đỗ xe"],
-      availability: true,
-    },
-    {
-      id: "2",
-      type: "hotel",
-      title: "InterContinental Danang",
-      location: "Đà Nẵng, Việt Nam",
-      image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&h=600&fit=crop",
-      images: [
-        "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&h=600&fit=crop",
-      ],
-      price: 2800000,
-      rating: 4.8,
-      reviews: 456,
-      savedDate: "2025-09-28",
-      description: "Resort 5 sao đẳng cấp quốc tế tại bãi biển Mỹ Khê, với kiến trúc độc đáo và dịch vụ hoàn hảo",
-      amenities: ["Wifi miễn phí", "Bể bơi vô cực", "Spa", "3 Nhà hàng", "Kids Club", "Bãi biển riêng"],
-      availability: true,
-    },
-    {
-      id: "3",
-      type: "activity",
-      title: "Vé VinWonders Nha Trang",
-      location: "Nha Trang, Việt Nam",
-      image: "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&h=600&fit=crop",
-      images: [
-        "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1594623930572-300a3011d9ae?w=800&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1566737236500-c8ac43014a67?w=800&h=600&fit=crop",
-      ],
-      price: 550000,
-      rating: 4.8,
-      reviews: 2345,
-      description: "Công viên giải trí hàng đầu Việt Nam với hơn 100 trò chơi và hoạt động giải trí",
-      savedDate: "2025-09-25",
-      duration: "Cả ngày",
-      included: [
-        "Vé vào cổng VinWonders",
-        "Tất cả trò chơi trong công viên",
-        "Xem show biểu diễn",
-        "Khu vui chơi nước",
-      ],
-      excluded: [
-        "Đồ ăn & thức uống",
-        "Vé cáp treo",
-        "Các hoạt động phụ thu",
-      ],
-      availability: true,
-    },
-    {
-      id: "4",
-      type: "activity",
-      title: "Tour Thái Lan trọn gói",
-      location: "Bangkok, Pattaya",
-      image: "https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&h=600&fit=crop",
-      images: [
-        "https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1528181304800-259b08848526?w=800&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1563492065273-888e9400e87e?w=800&h=600&fit=crop",
-      ],
-      price: 6690000,
-      rating: 4.6,
-      reviews: 987,
-      description: "Trải nghiệm văn hóa Thái Lan với tour 4 ngày 3 đêm đầy đủ tiện nghi",
-      savedDate: "2025-09-20",
-      duration: "4 ngày 3 đêm",
-      included: [
-        "Vé máy bay khứ hồi",
-        "Khách sạn 4 sao",
-        "Ăn sáng hàng ngày",
-        "HDV tiếng Việt",
-        "Vé tham quan theo chương trình",
-        "Bảo hiểm du lịch",
-      ],
-      excluded: [
-        "Chi phí cá nhân",
-        "Tip HDV & tài xế",
-        "Các bữa ăn không nằm trong chương trình",
-      ],
-      availability: true,
-    },
-    {
-      id: "5",
-      type: "destination",
-      title: "Nhật Bản",
-      location: "Châu Á",
-      image: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=800&h=600&fit=crop",
-      images: [
-        "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=800&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1528164344705-47542687000d?w=800&h=600&fit=crop",
-      ],
-      description: "Xứ sở hoa anh đào với văn hóa độc đáo, ẩm thực phong phú và phong cảnh tuyệt vời",
-      savedDate: "2025-09-15",
-      highlights: [
-        "Tokyo - Thủ đô năng động với công nghệ hiện đại",
-        "Kyoto - Cố đô với hàng nghìn đền chùa cổ kính",
-        "Osaka - Thiên đường ẩm thực Nhật Bản",
-        "Mount Fuji - Biểu tượng của đất nước mặt trời mọc",
-        "Hokkaido - Vùng đất tuyết trắng và onsen nổi tiếng",
-      ],
-    },
-    {
-      id: "6",
-      type: "destination",
-      title: "Paris",
-      location: "Pháp, Châu Âu",
-      image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&h=600&fit=crop",
-      images: [
-        "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=800&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=800&h=600&fit=crop",
-      ],
-      description: "Kinh đô ánh sáng với kiến trúc lãng mạn, nghệ thuật đỉnh cao và ẩm thực tinh tế",
-      savedDate: "2025-09-10",
-      highlights: [
-        "Tháp Eiffel - Biểu tượng của Paris",
-        "Bảo tàng Louvre - Kho báu nghệ thuật thế giới",
-        "Khải Hoàn Môn - Kiến trúc vĩ đại",
-        "Notre-Dame - Nhà thờ Đức Bà Paris",
-        "Montmartre - Khu phố nghệ thuật lãng mạn",
-      ],
-    },
-  ]);
+  const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
+
+  useEffect(() => {
+    const loadSavedItems = () => {
+      try {
+        const stored = localStorage.getItem('saved_items');
+        if (stored) {
+          setSavedItems(JSON.parse(stored));
+        }
+      } catch (error) {
+        console.error('Failed to load saved items:', error);
+      }
+    };
+
+    loadSavedItems();
+
+    // Listen for storage events
+    window.addEventListener('storage', loadSavedItems);
+    return () => window.removeEventListener('storage', loadSavedItems);
+  }, []);
 
   const handleRemove = (id: string) => {
-    setSavedItems(savedItems.filter(item => item.id !== id));
+    const newItems = savedItems.filter(item => item.id !== id);
+    setSavedItems(newItems);
+    localStorage.setItem('saved_items', JSON.stringify(newItems));
+    toast.success(t('profile.savedItems.removed', 'Đã xóa khỏi danh sách đã lưu'));
   };
 
   const handleViewDetails = (item: SavedItem) => {
@@ -221,12 +101,12 @@ export default function SavedItemsPage({ onNavigate, userRole, onLogout }: Saved
     alert(`Chia sẻ: ${item.title}`);
   };
 
-  const filteredItems = activeTab === "all" 
-    ? savedItems 
+  const filteredItems = activeTab === "all"
+    ? savedItems
     : savedItems.filter(item => item.type === activeTab);
 
   const getTypeLabel = (type: string) => {
-    switch(type) {
+    switch (type) {
       case "hotel": return t('profile.savedItems.hotel', 'Khách sạn');
       case "activity": return t('profile.savedItems.activity', 'Hoạt động');
       case "destination": return t('profile.savedItems.destination', 'Điểm đến');
@@ -329,14 +209,14 @@ export default function SavedItemsPage({ onNavigate, userRole, onLogout }: Saved
                           )}
 
                           <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               onClick={() => handleShare(item)}
                             >
                               <Share2 className="w-4 h-4" />
                             </Button>
-                            <Button 
+                            <Button
                               size="sm"
                               onClick={() => handleViewDetails(item)}
                             >
@@ -443,10 +323,10 @@ export default function SavedItemsPage({ onNavigate, userRole, onLogout }: Saved
                         "Kids Club": <span>👶</span>,
                         "Bãi biển": <span>🏖️</span>,
                       };
-                      
+
                       const IconComponent = Object.keys(icons).find(key => amenity.includes(key));
                       const Icon = IconComponent ? icons[IconComponent] : CheckCircle;
-                      
+
                       return (
                         <div key={idx} className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
                           {typeof Icon === 'object' ? Icon : <Icon className="w-5 h-5 text-blue-600" />}
@@ -488,7 +368,7 @@ export default function SavedItemsPage({ onNavigate, userRole, onLogout }: Saved
                       </ul>
                     </Card>
                   )}
-                  
+
                   {selectedItem.excluded && selectedItem.excluded.length > 0 && (
                     <Card className="p-4 bg-red-50 border-red-200">
                       <h4 className="mb-3 flex items-center gap-2 text-red-900">
@@ -545,15 +425,15 @@ export default function SavedItemsPage({ onNavigate, userRole, onLogout }: Saved
           )}
 
           <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => selectedItem && handleRemove(selectedItem.id)}
               className="gap-2"
             >
               <Heart className="w-4 h-4 fill-red-500 text-red-500" />
               {t('profile.savedItems.unsave')}
             </Button>
-            <Button 
+            <Button
               variant="outline"
               onClick={() => selectedItem && handleShare(selectedItem)}
               className="gap-2"

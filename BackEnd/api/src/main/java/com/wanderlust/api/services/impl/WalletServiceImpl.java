@@ -4,9 +4,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.wanderlust.api.dto.payment.PaymentDTO;
 import com.wanderlust.api.dto.walletDTO.PaymentCallbackDTO;
 import com.wanderlust.api.dto.walletDTO.PaymentResponseDTO;
 import com.wanderlust.api.dto.walletDTO.TopUpRequestDTO;
@@ -30,22 +32,38 @@ import com.wanderlust.api.exception.ResourceNotFoundException;
 import com.wanderlust.api.repository.PaymentRepository;
 import com.wanderlust.api.repository.WalletRepository;
 import com.wanderlust.api.services.BookingService;
+import com.wanderlust.api.services.PaymentService;
 import com.wanderlust.api.services.TransactionService;
 import com.wanderlust.api.services.WalletService;
 
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
-@RequiredArgsConstructor
+@Slf4j
 public class WalletServiceImpl implements WalletService {
 
     private final WalletRepository walletRepository;
     private final TransactionService transactionService;
     private final ModelMapper modelMapper;
-    private final PaymentRepository paymentRepository; 
-    
-    // === TIÊM BOOKING SERVICE ===
+    private final PaymentRepository paymentRepository;
     private final BookingService bookingService;
+    private final PaymentService paymentService;
+
+    // Constructor với @Lazy để tránh circular dependency
+    public WalletServiceImpl(
+            WalletRepository walletRepository,
+            TransactionService transactionService,
+            ModelMapper modelMapper,
+            PaymentRepository paymentRepository,
+            BookingService bookingService,
+            @Lazy PaymentService paymentService) {
+        this.walletRepository = walletRepository;
+        this.transactionService = transactionService;
+        this.modelMapper = modelMapper;
+        this.paymentRepository = paymentRepository;
+        this.bookingService = bookingService;
+        this.paymentService = paymentService;
+    }
 
     @Override
     public WalletResponseDTO getWalletByUserId(String userId) {
@@ -57,6 +75,7 @@ public class WalletServiceImpl implements WalletService {
                 });
         return modelMapper.map(wallet, WalletResponseDTO.class);
     }
+
     @Override
     @Transactional
     public Wallet createWalletForNewUser(String userId) {
@@ -71,12 +90,14 @@ public class WalletServiceImpl implements WalletService {
                 .build();
         return walletRepository.save(newWallet);
     }
+
     @Override
     public boolean hasSufficientBalance(String userId, BigDecimal amount) {
         Wallet wallet = walletRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
         return wallet.getBalance().compareTo(amount) >= 0;
     }
+
     @Override
     @Transactional
     public void recalculateWalletStatistics(String walletId) {
@@ -98,25 +119,56 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public TopUpResponseDTO initiateTopUp(String userId, TopUpRequestDTO topUpRequest) {
-        // (Giữ nguyên logic từ file gốc)
         if (topUpRequest.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Top-up amount must be positive.");
         }
+
+        // 1. Tạo Transaction Pending trong ví
         WalletTransaction transaction = transactionService.createTransaction(
                 userId, TransactionType.CREDIT, TransactionStatus.PENDING,
                 topUpRequest.getAmount(), "Top-up wallet via " + topUpRequest.getPaymentMethod(),
-                null, topUpRequest.getPaymentMethod()
-        );
-        String paymentUrl = "https://simulated-payment-gateway.com/pay?tx_id=" + transaction.getTransactionId();
+                null, topUpRequest.getPaymentMethod());
+
+        // 2. Tạo Payment request gửi sang PaymentService (để gọi Stripe)
+        PaymentDTO paymentDTO = new PaymentDTO();
+        paymentDTO.setUserId(userId);
+        paymentDTO.setAmount(topUpRequest.getAmount());
+        paymentDTO.setCurrency("VND");
+        
+        // Map phương thức thanh toán từ string sang Enum
+        try {
+            paymentDTO.setPaymentMethod(PaymentMethod.valueOf(topUpRequest.getPaymentMethod())); 
+        } catch (Exception e) {
+            paymentDTO.setPaymentMethod(PaymentMethod.STRIPE); // Mặc định fallback
+        }
+        
+        // QUAN TRỌNG: Tạo ID đặc biệt để PaymentService nhận diện đây là TopUp, không phải Booking
+        String topUpRefId = "TOPUP-" + transaction.getTransactionId();
+        paymentDTO.setBookingId(topUpRefId); 
+
+        // 3. Gọi PaymentService để lấy link thanh toán
+        PaymentDTO initiatedPayment = paymentService.initiatePayment(paymentDTO);
+        
+        // 4. Lấy URL từ metadata
+        String paymentUrl = "";
+        if (initiatedPayment.getMetadata() != null && initiatedPayment.getMetadata().containsKey("paymentUrl")) {
+            paymentUrl = (String) initiatedPayment.getMetadata().get("paymentUrl");
+        } else {
+            // Fallback nếu không lấy được URL (hiếm khi xảy ra nếu config đúng)
+             paymentUrl = "error-generating-link";
+        }
+
         return TopUpResponseDTO.builder()
                 .transactionId(transaction.getTransactionId())
                 .paymentUrl(paymentUrl)
                 .build();
     }
+
     @Override
     @Transactional
     public void processTopUpCallback(PaymentCallbackDTO callbackDTO) {
-        // (Giữ nguyên logic từ file gốc)
+        // Hàm này có thể giữ lại làm fallback, nhưng luồng chính giờ sẽ được 
+        // xử lý tự động trong PaymentService.handleGatewayCallback
         String transactionId = callbackDTO.getOrderId();
         TransactionDetailDTO transactionDetail = transactionService.getTransactionDetail(transactionId);
         if (transactionDetail.getStatus() != TransactionStatus.PENDING) {
@@ -124,15 +176,13 @@ public class WalletServiceImpl implements WalletService {
         }
         if ("00".equals(callbackDTO.getStatus())) {
             transactionService.updateTransactionStatus(
-                    transactionId, TransactionStatus.COMPLETED, callbackDTO.getPaymentCode()
-            );
+                    transactionId, TransactionStatus.COMPLETED, callbackDTO.getPaymentCode());
             Wallet wallet = walletRepository.findByUserId(transactionDetail.getUserId())
                     .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
             updateBalance(wallet.getWalletId(), transactionDetail.getAmount(), TransactionType.CREDIT);
         } else {
             transactionService.updateTransactionStatus(
-                    transactionId, TransactionStatus.FAILED, callbackDTO.getPaymentCode()
-            );
+                    transactionId, TransactionStatus.FAILED, callbackDTO.getPaymentCode());
         }
     }
 
@@ -151,12 +201,11 @@ public class WalletServiceImpl implements WalletService {
         WalletTransaction transaction = transactionService.createTransaction(
                 userId, TransactionType.DEBIT, TransactionStatus.COMPLETED,
                 paymentRequest.getAmount(), paymentRequest.getDescription(),
-                paymentRequest.getOrderId(), "WALLET_PAYMENT"
-        );
+                paymentRequest.getOrderId(), "WALLET_PAYMENT");
 
         // 3. Cập nhật số dư (truyền số âm)
         updateBalance(wallet.getWalletId(), paymentRequest.getAmount().negate(), TransactionType.DEBIT);
-        
+
         // 4. Tạo bản ghi Payment log
         Payment paymentLog = new Payment();
         paymentLog.setBookingId(paymentRequest.getOrderId());
@@ -171,7 +220,7 @@ public class WalletServiceImpl implements WalletService {
         paymentLog.setCreatedAt(LocalDateTime.now());
         paymentLog.setUpdatedAt(LocalDateTime.now());
         paymentRepository.save(paymentLog);
-        
+
         // === TÍCH HỢP: GỌI BOOKING SERVICE ===
         // Tự động xác nhận đơn hàng khi thanh toán thành công
         try {
@@ -195,7 +244,7 @@ public class WalletServiceImpl implements WalletService {
     // Logic này đã đúng: gọi TransactionService [cite: 30]
     @Override
     @Transactional
-    public void processRefund(String userId, WalletRefundRequestDTO refundRequest) { // 
+    public void processRefund(String userId, WalletRefundRequestDTO refundRequest) { //
         Wallet wallet = walletRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
 
@@ -204,8 +253,7 @@ public class WalletServiceImpl implements WalletService {
                 refundRequest.getOrderId(),
                 userId,
                 refundRequest.getAmount(),
-                refundRequest.getReason()
-        );
+                refundRequest.getReason());
 
         // 2. Cập nhật số dư (cộng tiền vào ví)
         updateBalance(wallet.getWalletId(), refundRequest.getAmount(), TransactionType.REFUND);
@@ -221,17 +269,22 @@ public class WalletServiceImpl implements WalletService {
         wallet.setBalance(wallet.getBalance().add(amount));
         switch (type) {
             case CREDIT:
-                wallet.setTotalTopUp(wallet.getTotalTopUp().add(amount)); break;
+                wallet.setTotalTopUp(wallet.getTotalTopUp().add(amount));
+                break;
             case DEBIT:
-                wallet.setTotalSpent(wallet.getTotalSpent().add(amount.abs())); break;
+                wallet.setTotalSpent(wallet.getTotalSpent().add(amount.abs()));
+                break;
             case REFUND:
-                wallet.setTotalRefund(wallet.getTotalRefund().add(amount)); break;
+                wallet.setTotalRefund(wallet.getTotalRefund().add(amount));
+                break;
             case WITHDRAW:
-                wallet.setTotalSpent(wallet.getTotalSpent().add(amount.abs())); break;
+                wallet.setTotalSpent(wallet.getTotalSpent().add(amount.abs()));
+                break;
         }
         wallet.setUpdatedAt(LocalDateTime.now());
         walletRepository.save(wallet);
     }
+
     @Override
     @Transactional
     public WithdrawResponseDTO requestWithdraw(String userId, WithdrawRequestDTO withdrawRequest) {
@@ -244,13 +297,11 @@ public class WalletServiceImpl implements WalletService {
         }
         String description = String.format("Withdraw to bank %s - Account: %s (%s)",
                 withdrawRequest.getBankCode(), withdrawRequest.getBankAccountNumber(),
-                withdrawRequest.getAccountName()
-        );
+                withdrawRequest.getAccountName());
         WalletTransaction transaction = transactionService.createTransaction(
                 userId, TransactionType.WITHDRAW, TransactionStatus.PENDING,
                 withdrawRequest.getAmount(), description,
-                null, withdrawRequest.getBankCode()
-        );
+                null, withdrawRequest.getBankCode());
         return WithdrawResponseDTO.builder()
                 .withdrawId(transaction.getTransactionId())
                 .status("PENDING")

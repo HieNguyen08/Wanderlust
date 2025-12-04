@@ -4,6 +4,7 @@ package com.wanderlust.api.controller;
 import com.wanderlust.api.dto.walletDTO.TransactionResponseDTO;
 import com.wanderlust.api.dto.walletDTO.TransactionDetailDTO;
 import com.wanderlust.api.dto.walletDTO.TransactionSummaryDTO;
+import com.wanderlust.api.dto.PageResponse;
 
 import com.wanderlust.api.entity.types.TransactionStatus;
 import com.wanderlust.api.entity.types.TransactionType;
@@ -29,25 +30,24 @@ public class TransactionController {
      */
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<TransactionResponseDTO>> getTransactions(
+    public ResponseEntity<PageResponse<TransactionResponseDTO>> getTransactions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) TransactionType type,
-            @RequestParam(required = false) TransactionStatus status
-    ) {
+            @RequestParam(required = false) TransactionStatus status) {
         String userId = getCurrentUserId();
-        Page<TransactionResponseDTO> transactionPage = transactionService.getUserTransactions(userId, page, size, type, status);
-        return ResponseEntity.ok(transactionPage);
+        Page<TransactionResponseDTO> transactionPage = transactionService.getUserTransactions(userId, page, size, type,
+                status);
+        return ResponseEntity.ok(new PageResponse<>(transactionPage));
     }
 
     /**
-     * [cite_start]2. LẤY CHI TIẾT MỘT GIAO DỊCH [cite: 24]
+     * 2. LẤY CHI TIẾT MỘT GIAO DỊCH
      */
     @GetMapping("/{transactionId}")
     @PreAuthorize("hasRole('ADMIN') or @webSecurity.isTransactionOwner(authentication, #transactionId)")
     public ResponseEntity<TransactionDetailDTO> getTransactionDetail(
-            @PathVariable String transactionId
-    ) {
+            @PathVariable String transactionId) {
         TransactionDetailDTO detail = transactionService.getTransactionDetail(transactionId);
         return ResponseEntity.ok(detail);
     }

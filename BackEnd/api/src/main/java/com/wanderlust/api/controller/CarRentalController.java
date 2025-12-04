@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication; // Thêm import
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -51,8 +51,7 @@ public class CarRentalController {
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice
-    ) {
+            @RequestParam(required = false) BigDecimal maxPrice) {
         List<CarRental> cars = carRentalService.searchCars(locationId, brand, type, minPrice, maxPrice);
         return ResponseEntity.ok(carRentalMapper.toDTOs(cars));
     }
@@ -60,6 +59,12 @@ public class CarRentalController {
     @GetMapping("/popular")
     public ResponseEntity<List<CarRentalDTO>> getPopularCars() {
         List<CarRental> cars = carRentalService.findPopularCars();
+        return ResponseEntity.ok(carRentalMapper.toDTOs(cars));
+    }
+
+    @GetMapping("/location/{locationId}")
+    public ResponseEntity<List<CarRentalDTO>> getCarsByLocation(@PathVariable String locationId) {
+        List<CarRental> cars = carRentalService.findByLocationId(locationId);
         return ResponseEntity.ok(carRentalMapper.toDTOs(cars));
     }
 
@@ -73,8 +78,7 @@ public class CarRentalController {
     public ResponseEntity<?> checkAvailability(
             @PathVariable String id,
             @RequestParam String startDate,
-            @RequestParam String endDate
-    ) {
+            @RequestParam String endDate) {
         try {
             LocalDateTime start = LocalDateTime.parse(startDate);
             LocalDateTime end = LocalDateTime.parse(endDate);
@@ -89,8 +93,7 @@ public class CarRentalController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CarPriceResponseDTO> calculatePrice(
             @PathVariable String id,
-            @RequestBody CarPriceCalculationDTO request
-    ) {
+            @RequestBody CarPriceCalculationDTO request) {
         CarPriceResponseDTO response = carRentalService.calculatePrice(id, request);
         return ResponseEntity.ok(response);
     }
@@ -101,8 +104,7 @@ public class CarRentalController {
     @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
     public ResponseEntity<CarRentalDTO> createCarRental(
             @RequestBody CarRentalDTO carRentalDTO,
-            Authentication authentication // Thêm Authentication
-    ) {
+            Authentication authentication) {
         CarRental entity = carRentalMapper.toEntity(carRentalDTO);
 
         // Tự động gán vendorId bằng ID của user (partner) đang đăng nhập
@@ -117,8 +119,7 @@ public class CarRentalController {
     @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isCarRentalOwner(authentication, #id))")
     public ResponseEntity<CarRentalDTO> updateCarRental(
             @PathVariable String id,
-            @RequestBody CarRentalDTO carRentalDTO
-    ) {
+            @RequestBody CarRentalDTO carRentalDTO) {
         CarRental existingCar = carRentalService.findById(id);
         carRentalMapper.updateEntityFromDTO(carRentalDTO, existingCar);
         CarRental updated = carRentalService.save(existingCar);

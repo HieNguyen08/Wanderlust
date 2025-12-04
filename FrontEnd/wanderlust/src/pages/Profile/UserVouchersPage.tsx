@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 import type { PageType } from "../../MainApp";
 import { tokenService, userVoucherApi } from "../../utils/api";
 import { type FrontendRole } from "../../utils/roleMapper";
+import { useNotification } from "../../contexts/NotificationContext";
 
 interface UserVouchersPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -21,11 +22,12 @@ interface UserVouchersPageProps {
 
 export default function UserVouchersPage({ onNavigate, userRole, onLogout }: UserVouchersPageProps) {
   const { t } = useTranslation();
+  const { addNotification } = useNotification();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [addCodeInput, setAddCodeInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+
   // Real data from backend
   const [myVouchers, setMyVouchers] = useState<any[]>([]);
   const [usedVouchers, setUsedVouchers] = useState<any[]>([]);
@@ -40,7 +42,7 @@ export default function UserVouchersPage({ onNavigate, userRole, onLogout }: Use
   const loadVouchers = async () => {
     try {
       setLoading(true);
-      
+
       if (!tokenService.isAuthenticated()) {
         onNavigate('login');
         return;
@@ -50,12 +52,34 @@ export default function UserVouchersPage({ onNavigate, userRole, onLogout }: Use
       const available = await userVoucherApi.getAvailable();
       setMyVouchers(available);
 
+      // Check for new gifted vouchers
+      const giftedVouchers = available.filter((v: any) => v.giftedBy);
+      if (giftedVouchers.length > 0) {
+        const sortedGifted = [...giftedVouchers].sort((a: any, b: any) => {
+          return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+        });
+        const latestGifted = sortedGifted[0];
+        const latestDate = new Date(latestGifted.startDate).getTime();
+        const lastCheck = parseInt(localStorage.getItem('last_voucher_check') || '0');
+
+        if (latestDate > lastCheck) {
+          addNotification({
+            type: 'voucher',
+            title: t('notifications.newGift', 'Bạn nhận được quà tặng!'),
+            message: t('notifications.newGiftDesc', 'Bạn nhận được voucher từ {{name}}', { name: latestGifted.giftedBy }),
+            link: '/vouchers',
+            data: { voucherId: latestGifted.id }
+          });
+          localStorage.setItem('last_voucher_check', latestDate.toString());
+        }
+      }
+
       // Load used vouchers
       const used = await userVoucherApi.getUsed();
       setUsedVouchers(used);
-      
+
       // Filter expired vouchers from available (status === 'EXPIRED' or endDate passed)
-      const expired = available.filter((v: any) => 
+      const expired = available.filter((v: any) =>
         v.status === 'EXPIRED' || (v.endDate && new Date(v.endDate) < new Date())
       );
       setExpiredVouchers(expired);
@@ -112,16 +136,16 @@ export default function UserVouchersPage({ onNavigate, userRole, onLogout }: Use
 
     try {
       setSaving(true);
-      
+
       // Call backend API to save voucher
       await userVoucherApi.saveToWallet(code);
-      
+
       toast.success(t('vouchers.addSuccess'));
       setAddCodeInput("");
-      
+
       // Reload vouchers list
       await loadVouchers();
-      
+
     } catch (error: any) {
       // Show specific error message from backend
       toast.error(error.message || t('vouchers.addError', 'Không thể thêm voucher'));
@@ -147,10 +171,10 @@ export default function UserVouchersPage({ onNavigate, userRole, onLogout }: Use
             <div className="text-sm opacity-90">{t('profile.vouchers.discountCode')}</div>
             <code className="text-lg font-mono mt-1 block">{voucher.voucherCode || voucher.code}</code>
           </div>
-          
+
           {/* Decorative circles */}
           <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full"></div>
-          
+
           {voucher.giftedBy && (
             <Badge className="mt-3 bg-yellow-400 text-yellow-900 hover:bg-yellow-400">
               <Gift className="w-3 h-3 mr-1" />
@@ -171,7 +195,7 @@ export default function UserVouchersPage({ onNavigate, userRole, onLogout }: Use
                 </Badge>
               </div>
             </div>
-            
+
             {voucher.status === 'AVAILABLE' && (
               <Button
                 variant="outline"

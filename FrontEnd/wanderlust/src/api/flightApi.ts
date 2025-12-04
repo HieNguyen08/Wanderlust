@@ -130,4 +130,34 @@ export const flightApi = {
 
         return response.json();
     },
+
+    /**
+     * Lấy danh sách chuyến bay theo hãng
+     */
+    getFlightsByAirline: async (airlineCode: string): Promise<Flight[]> => {
+        const response = await authenticatedFetch(`/api/flights/by-airline/${airlineCode}`);
+        
+        if (!response.ok) {
+            throw new Error("Không thể tải chuyến bay của hãng");
+        }
+
+        return response.json();
+    },
+
+    /**
+     * Lấy danh sách chuyến bay quốc tế hoặc nội địa
+     */
+    getFlightsByType: async (isInternational: boolean): Promise<Flight[]> => {
+        const queryParams = new URLSearchParams({
+            isInternational: isInternational.toString(),
+        });
+
+        const response = await authenticatedFetch(`/api/flights/by-type?${queryParams.toString()}`);
+        
+        if (!response.ok) {
+            throw new Error("Không thể tải chuyến bay");
+        }
+
+        return response.json();
+    },
 };

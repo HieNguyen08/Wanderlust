@@ -1,14 +1,16 @@
 import {
-    ArrowLeft,
-    CheckCircle,
-    CreditCard,
-    Shield,
-    Smartphone,
-    TrendingUp,
-    Zap
+  ArrowLeft,
+  CheckCircle,
+  CreditCard,
+  Loader2,
+  Shield,
+  TrendingUp,
+  Zap
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import { topUpWallet } from "../../api/paymentApi";
 import { ProfileLayout } from "../../components/ProfileLayout";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
@@ -16,6 +18,7 @@ import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Separator } from "../../components/ui/separator";
 import type { PageType } from "../../MainApp";
+import { walletApi } from "../../utils/api";
 import { type FrontendRole } from "../../utils/roleMapper";
 
 interface TopUpWalletPageProps {
@@ -27,8 +30,21 @@ interface TopUpWalletPageProps {
 export default function TopUpWalletPage({ onNavigate, userRole, onLogout }: TopUpWalletPageProps) {
   const { t } = useTranslation();
   const [amount, setAmount] = useState("");
-  const [selectedMethod, setSelectedMethod] = useState<"card" | "momo" | "vnpay" | null>(null);
-  const [currentBalance] = useState(2450000);
+  const [selectedMethod, setSelectedMethod] = useState<"stripe" | null>(null);
+  const [currentBalance, setCurrentBalance] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const wallet = await walletApi.getWallet();
+        setCurrentBalance(wallet.balance || 0);
+      } catch (error) {
+        console.error('Failed to fetch wallet balance:', error);
+      }
+    };
+    fetchBalance();
+  }, []);
 
   const quickAmounts = [
     { value: 100000, label: "100.000đ" },
@@ -41,56 +57,79 @@ export default function TopUpWalletPage({ onNavigate, userRole, onLogout }: TopU
 
   const paymentMethods = [
     {
-      id: "card",
-      name: t('profile.topUp.creditCard'),
+      id: "stripe",
+      name: "Stripe Demo",
       description: "Visa, Mastercard, JCB",
       icon: CreditCard,
-      badge: t('profile.topUp.popular'),
-    },
-    {
-      id: "momo",
-      name: t('profile.topUp.momo'),
-      description: t('profile.topUp.momoDesc', 'Thanh toán qua ứng dụng MoMo'),
-      icon: Smartphone,
-      badge: t('profile.topUp.fastest'),
-    },
-    {
-      id: "vnpay",
-      name: t('profile.topUp.vnpay'),
-      description: t('profile.topUp.vnpayDesc', 'Quét mã QR để thanh toán'),
-      icon: Smartphone,
-      badge: null,
+      badge: "Demo",
     },
   ];
+
 
   const handleQuickAmount = (value: number) => {
     setAmount(value.toString());
   };
 
-  const handleTopUp = () => {
+  const handleTopUp = async () => {
+    console.log('🔵 handleTopUp called');
+    console.log('📊 State:', { amount, selectedMethod, isLoading });
+    
     if (!amount || !selectedMethod) {
-      alert(t('profile.topUp.selectAmountAndMethod', 'Vui lòng nhập số tiền và chọn phương thức thanh toán'));
+      console.log('❌ Validation failed: missing amount or method');
+      toast.error(t('profile.topUp.selectAmountAndMethod', 'Vui lòng nhập số tiền và chọn phương thức thanh toán'));
       return;
     }
 
     const numAmount = parseInt(amount);
+    console.log('💰 Amount to top-up:', numAmount);
+    
     if (numAmount < 10000) {
-      alert(t('profile.topUp.minAmountError', 'Số tiền nạp tối thiểu là 10.000đ'));
+      console.log('❌ Amount too small:', numAmount);
+      toast.error(t('profile.topUp.minAmountError', 'Số tiền nạp tối thiểu là 10.000đ'));
       return;
     }
     if (numAmount > 50000000) {
-      alert(t('profile.topUp.maxAmountError', 'Số tiền nạp tối đa là 50.000.000đ'));
+      console.log('❌ Amount too large:', numAmount);
+      toast.error(t('profile.topUp.maxAmountError', 'Số tiền nạp tối đa là 50.000.000đ'));
       return;
     }
 
-    // Simulate payment processing
-    alert(`✅ ${t('profile.topUp.processingPayment', 'Đang xử lý nạp')} ${numAmount.toLocaleString('vi-VN')}đ ${t('profile.topUp.toWalletVia', 'vào ví qua')} ${selectedMethod}...`);
+    setIsLoading(true);
+    console.log('⏳ Loading started...');
     
-    // In real app, redirect to payment gateway
-    // Then return to wallet page with success message
-    setTimeout(() => {
-      onNavigate("wallet");
-    }, 1000);
+    try {
+      console.log('📤 Calling topUpWallet API...');
+      const response = await topUpWallet({
+        amount: numAmount,
+        paymentMethod: selectedMethod.toUpperCase() as 'STRIPE'
+      });
+
+      console.log('✅ API Response:', response);
+
+      if (response.paymentUrl) {
+        console.log('🔗 Redirecting to:', response.paymentUrl);
+        toast.success('Đang chuyển đến trang thanh toán...');
+        // Redirect to payment gateway
+        window.location.href = response.paymentUrl;
+      } else {
+        console.log('⚠️ No paymentUrl in response');
+        toast.success(t('profile.topUp.processing', 'Đang xử lý nạp tiền...'));
+        setTimeout(() => {
+          onNavigate("wallet");
+        }, 2000);
+      }
+    } catch (error: any) {
+      console.error('❌ Error during top-up:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response
+      });
+      toast.error(error.message || t('profile.topUp.error', 'Lỗi nạp tiền'));
+    } finally {
+      setIsLoading(false);
+      console.log('✅ Loading finished');
+    }
   };
 
   const newBalance = amount ? currentBalance + parseInt(amount) : currentBalance;
@@ -108,7 +147,7 @@ export default function TopUpWalletPage({ onNavigate, userRole, onLogout }: TopU
             <ArrowLeft className="w-4 h-4" />
             {t('profile.topUp.backToWallet')}
           </Button>
-          
+
           <h1 className="text-3xl text-gray-900 mb-2">{t('profile.topUp.title')}</h1>
           <p className="text-gray-600">
             {t('profile.topUp.subtitle')}
@@ -121,7 +160,7 @@ export default function TopUpWalletPage({ onNavigate, userRole, onLogout }: TopU
             {/* Amount Input */}
             <Card className="p-6 border-0 shadow-lg">
               <h2 className="text-xl text-gray-900 mb-4">{t('profile.topUp.amount')}</h2>
-              
+
               <div className="mb-4">
                 <Input
                   type="number"
@@ -152,29 +191,27 @@ export default function TopUpWalletPage({ onNavigate, userRole, onLogout }: TopU
             {/* Payment Method */}
             <Card className="p-6 border-0 shadow-lg">
               <h2 className="text-xl text-gray-900 mb-4">{t('profile.topUp.paymentMethod')}</h2>
-              
+
               <div className="space-y-3">
                 {paymentMethods.map((method) => {
                   const Icon = method.icon;
                   const isSelected = selectedMethod === method.id;
-                  
+
                   return (
                     <button
                       key={method.id}
                       onClick={() => setSelectedMethod(method.id as any)}
-                      className={`w-full p-4 border-2 rounded-lg transition-all ${
-                        isSelected
-                          ? "border-blue-600 bg-blue-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
+                      className={`w-full p-4 border-2 rounded-lg transition-all ${isSelected
+                        ? "border-blue-600 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
+                        }`}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          isSelected ? "bg-blue-600" : "bg-gray-100"
-                        }`}>
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isSelected ? "bg-blue-600" : "bg-gray-100"
+                          }`}>
                           <Icon className={`w-6 h-6 ${isSelected ? "text-white" : "text-gray-600"}`} />
                         </div>
-                        
+
                         <div className="flex-1 text-left">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="text-gray-900">{method.name}</h3>
@@ -272,13 +309,20 @@ export default function TopUpWalletPage({ onNavigate, userRole, onLogout }: TopU
               </div>
 
               {/* Action Button */}
-              <Button 
+              <Button
                 onClick={handleTopUp}
-                disabled={!amount || !selectedMethod}
+                disabled={!amount || !selectedMethod || isLoading}
                 className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 size="lg"
               >
-                {t('profile.topUp.topUpNow')}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {t('profile.topUp.processing', 'Đang xử lý...')}
+                  </>
+                ) : (
+                  t('profile.topUp.topUpNow')
+                )}
               </Button>
 
               <p className="text-xs text-center text-gray-500 mt-4">
@@ -292,7 +336,7 @@ export default function TopUpWalletPage({ onNavigate, userRole, onLogout }: TopU
         {/* FAQ */}
         <Card className="p-6 border-0 shadow-lg">
           <h2 className="text-xl text-gray-900 mb-4">{t('profile.topUp.faqTitle')}</h2>
-          
+
           <div className="space-y-4">
             <div>
               <h3 className="text-gray-900 mb-2">{t('profile.topUp.faq1Question', '💳 Mất bao lâu để tiền vào ví?')}</h3>
@@ -300,21 +344,21 @@ export default function TopUpWalletPage({ onNavigate, userRole, onLogout }: TopU
                 {t('profile.topUp.faq1Answer', 'Tiền sẽ được cộng vào ví')} <strong>{t('profile.topUp.instantly', 'NGAY LẬP TỨC')}</strong> {t('profile.topUp.afterSuccess', 'sau khi giao dịch thành công')}.
               </p>
             </div>
-            
+
             <div>
               <h3 className="text-gray-900 mb-2">{t('profile.topUp.faq2Question', '💰 Có mất phí khi nạp tiền không?')}</h3>
               <p className="text-gray-700">
                 <strong>{t('profile.topUp.no', 'KHÔNG')}</strong>. {t('profile.topUp.faq2Answer', 'Wanderlust hoàn toàn miễn phí mọi giao dịch nạp tiền vào ví')}.
               </p>
             </div>
-            
+
             <div>
               <h3 className="text-gray-900 mb-2">{t('profile.topUp.faq3Question', '🔄 Có thể rút tiền từ ví không?')}</h3>
               <p className="text-gray-700">
                 {t('profile.topUp.faq3Answer', 'Có. Bạn có thể yêu cầu rút tiền về tài khoản ngân hàng trong mục "Ví của tôi" → "Rút tiền". Thời gian xử lý 1-3 ngày làm việc')}.
               </p>
             </div>
-            
+
             <div>
               <h3 className="text-gray-900 mb-2">{t('profile.topUp.faq4Question', '🛡️ Tiền trong ví có an toàn không?')}</h3>
               <p className="text-gray-700">

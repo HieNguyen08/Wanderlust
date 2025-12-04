@@ -1,5 +1,5 @@
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import type { PageType } from "../../MainApp";
 
@@ -15,7 +15,6 @@ export default function PaymentCallbackPage({ onNavigate }: PaymentCallbackPageP
         const verify = async () => {
             const urlParams = new URLSearchParams(window.location.search);
             // Assuming the backend redirects with some ID or we use session_id from Stripe
-            // For MoMo, we might get requestId or orderId.
             // Ideally, the backend redirect URL should include the payment ID or transaction ID.
             // Let's assume the backend redirects to /payment/callback/:gateway?paymentId=... or similar.
             // Or we can just grab the query params and send them to backend for verification.
@@ -23,7 +22,7 @@ export default function PaymentCallbackPage({ onNavigate }: PaymentCallbackPageP
             // Since we don't have a specific payment ID in the URL standardly from all gateways without config,
             // let's assume we passed it in the redirect URL or we use the transaction ID.
 
-            // For this implementation, let's assume we verify based on the 'orderId' (MoMo) or 'client_reference_id' (Stripe) 
+            // For this implementation, let's assume we verify based on 'client_reference_id' (Stripe) 
             // if they are present, OR if we saved a pending payment ID in local storage.
 
             // However, a cleaner way is to have the backend handle the callback and then redirect to frontend with a status.
@@ -42,7 +41,7 @@ export default function PaymentCallbackPage({ onNavigate }: PaymentCallbackPageP
                     // If we don't have the ID, we might need to rely on the backend callback having already processed it.
                     // Let's just wait a bit and check status?
 
-                    // SIMPLIFICATION: Just show success if query param success=true (Stripe) or errorCode=0 (MoMo)
+                    // SIMPLIFICATION: Just show success if query param success=true (Stripe)
                     const isSuccess = urlParams.get("success") === "true" || urlParams.get("errorCode") === "0";
 
                     if (isSuccess) {

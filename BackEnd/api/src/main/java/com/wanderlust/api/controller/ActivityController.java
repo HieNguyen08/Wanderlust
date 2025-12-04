@@ -27,14 +27,12 @@ public class ActivityController {
     private final ActivityService activityService;
     private final ReviewCommentService reviewCommentService;
 
-
     @GetMapping
     public ResponseEntity<List<Activity>> searchActivities(
             @RequestParam(required = false) String locationId,
             @RequestParam(required = false) ActivityCategory category,
             @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice
-    ) {
+            @RequestParam(required = false) BigDecimal maxPrice) {
         List<Activity> activities = activityService.searchActivities(locationId, category, minPrice, maxPrice);
         return new ResponseEntity<>(activities, HttpStatus.OK);
     }
@@ -47,6 +45,16 @@ public class ActivityController {
     public ResponseEntity<List<Activity>> getFeaturedActivities() {
         List<Activity> featured = activityService.getFeatured();
         return new ResponseEntity<>(featured, HttpStatus.OK);
+    }
+
+    /**
+     * GET /api/activities/location/{locationId}
+     * Get activities by location
+     */
+    @GetMapping("/location/{locationId}")
+    public ResponseEntity<List<Activity>> getActivitiesByLocation(@PathVariable String locationId) {
+        List<Activity> activities = activityService.findByLocationId(locationId);
+        return new ResponseEntity<>(activities, HttpStatus.OK);
     }
 
     /**
@@ -68,12 +76,12 @@ public class ActivityController {
         Activity activity = activityService.findById(id);
         // Trả về thông tin cơ bản về số lượng
         return ResponseEntity.ok(Map.of(
-            "activityId", id,
-            "maxParticipants", activity.getMaxParticipants() != null ? activity.getMaxParticipants() : 0,
-            "status", "AVAILABLE" // Placeholder logic
+                "activityId", id,
+                "maxParticipants", activity.getMaxParticipants() != null ? activity.getMaxParticipants() : 0,
+                "status", "AVAILABLE" // Placeholder logic
         ));
     }
-    
+
     /**
      * GET /api/activities/{id}/reviews
      * Get reviews for an activity
@@ -95,18 +103,17 @@ public class ActivityController {
     public ResponseEntity<Map<String, Object>> checkSpecificAvailability(
             @PathVariable String id,
             @RequestBody Map<String, Object> requestBody) {
-        
+
         String dateStr = (String) requestBody.get("date");
         Integer guests = (Integer) requestBody.get("guests");
-        
+
         LocalDate date = LocalDate.parse(dateStr); // Format YYYY-MM-DD
         boolean isAvailable = activityService.checkAvailability(id, date, guests);
-        
+
         return ResponseEntity.ok(Map.of(
-            "available", isAvailable,
-            "date", date,
-            "guests", guests
-        ));
+                "available", isAvailable,
+                "date", date,
+                "guests", guests));
     }
 
     // ==========================================
@@ -131,7 +138,7 @@ public class ActivityController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isActivityOwner(authentication, #id))")
     public ResponseEntity<Activity> updateActivity(
-            @PathVariable String id, 
+            @PathVariable String id,
             @RequestBody ActivityRequestDTO activityDTO) {
         Activity updatedEntity = activityService.update(id, activityDTO);
         return new ResponseEntity<>(updatedEntity, HttpStatus.OK);

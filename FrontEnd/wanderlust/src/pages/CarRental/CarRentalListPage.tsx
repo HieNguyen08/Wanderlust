@@ -23,6 +23,7 @@ interface CarRentalListPageProps {
   onNavigate: (page: PageType, data?: any) => void;
   userRole?: any;
   onLogout?: () => void;
+  searchParams?: any;
 }
 
 interface LocationItem {
@@ -41,7 +42,7 @@ const timeSlots = [
   "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30",
 ];
 
-export default function CarRentalListPage({ onNavigate, userRole, onLogout }: CarRentalListPageProps) {
+export default function CarRentalListPage({ onNavigate, userRole, onLogout, searchParams }: CarRentalListPageProps) {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedCapacities, setSelectedCapacities] = useState<string[]>([]);
   const [maxPrice, setMaxPrice] = useState(100);

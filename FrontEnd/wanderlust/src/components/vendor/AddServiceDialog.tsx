@@ -1,4 +1,9 @@
-import { useState } from "react";
+import { Plus, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { locationApi } from "../../utils/api";
+import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
@@ -7,15 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { Upload, X, Plus } from "lucide-react";
-import { toast } from "sonner";
+import { Tabs, TabsContent } from "../ui/tabs";
+import { Textarea } from "../ui/textarea";
 
 interface AddServiceDialogProps {
   open: boolean;
@@ -33,19 +34,20 @@ export function AddServiceDialog({ open, onOpenChange, onSuccess }: AddServiceDi
     description: "",
     price: "",
     images: [] as string[],
-    
+    locationId: "",
+
     // Hotel specific
     roomType: "",
     capacity: "",
     amenities: "",
-    
+
     // Activity specific
     duration: "",
     groupSize: "",
     includes: "",
     excludes: "",
     itinerary: "",
-    
+
     // Car specific
     brand: "",
     model: "",
@@ -55,6 +57,19 @@ export function AddServiceDialog({ open, onOpenChange, onSuccess }: AddServiceDi
   });
 
   const [imageUrl, setImageUrl] = useState("");
+  const [locations, setLocations] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const data = await locationApi.getLocationsByType('CITY');
+        setLocations(data);
+      } catch (error) {
+        console.error("Error fetching locations:", error);
+      }
+    };
+    fetchLocations();
+  }, []);
 
   const handleAddImage = () => {
     if (imageUrl && formData.images.length < 5) {
@@ -74,7 +89,7 @@ export function AddServiceDialog({ open, onOpenChange, onSuccess }: AddServiceDi
 
   const handleSubmit = () => {
     // Validation
-    if (!formData.name || !formData.description || !formData.price) {
+    if (!formData.name || !formData.description || !formData.price || !formData.locationId) {
       toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
       return;
     }
@@ -111,6 +126,21 @@ export function AddServiceDialog({ open, onOpenChange, onSuccess }: AddServiceDi
                 <SelectItem value="hotel">Khách sạn / Phòng</SelectItem>
                 <SelectItem value="activity">Hoạt động / Tour</SelectItem>
                 <SelectItem value="car">Thuê xe</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Location Selection */}
+          <div>
+            <Label>Địa điểm <span className="text-red-600">*</span></Label>
+            <Select value={formData.locationId} onValueChange={(v) => setFormData({ ...formData, locationId: v })}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Chọn địa điểm" />
+              </SelectTrigger>
+              <SelectContent>
+                {locations.map((loc) => (
+                  <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

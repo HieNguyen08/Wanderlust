@@ -1,17 +1,17 @@
+import {
+    ArrowLeft,
+    CreditCard,
+    Loader2,
+    ShieldCheck,
+    Wallet
+} from "lucide-react";
 import { useState } from "react";
+import { initiatePayment } from "../../api/paymentApi";
+import { Footer } from "../../components/Footer";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Separator } from "../../components/ui/separator";
-import {
-    CreditCard,
-    Wallet,
-    ArrowLeft,
-    ShieldCheck,
-    Loader2
-} from "lucide-react";
-import { Footer } from "../../components/Footer";
 import type { PageType } from "../../MainApp";
-import { initiatePayment } from "../../utils/paymentApi";
 import { tokenService } from "../../utils/api";
 
 interface CheckoutPageProps {
@@ -20,7 +20,7 @@ interface CheckoutPageProps {
 }
 
 export default function CheckoutPage({ onNavigate, bookingData }: CheckoutPageProps) {
-    const [selectedMethod, setSelectedMethod] = useState<"WALLET" | "MOMO" | "STRIPE" | "CREDIT_CARD">("WALLET");
+    const [selectedMethod, setSelectedMethod] = useState<"WALLET" | "STRIPE">("WALLET");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +36,7 @@ export default function CheckoutPage({ onNavigate, bookingData }: CheckoutPagePr
                 bookingId: bookingData.id || "TEMP_ID", // Assuming booking is created before or we pass temp ID
                 userId: user?.id || "",
                 amount: totalAmount,
-                method: selectedMethod,
+                paymentMethod: selectedMethod,
                 // Add other necessary fields from bookingData
             };
 
@@ -98,25 +98,6 @@ export default function CheckoutPage({ onNavigate, bookingData }: CheckoutPagePr
                                     <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "WALLET" ? "border-blue-600" : "border-gray-300"
                                         }`}>
                                         {selectedMethod === "WALLET" && <div className="w-3 h-3 bg-blue-600 rounded-full" />}
-                                    </div>
-                                </div>
-
-                                {/* MoMo */}
-                                <div
-                                    className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${selectedMethod === "MOMO" ? "border-pink-600 bg-pink-50" : "hover:border-gray-300"
-                                        }`}
-                                    onClick={() => setSelectedMethod("MOMO")}
-                                >
-                                    <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center mr-4">
-                                        <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="MoMo" className="w-6 h-6 object-contain" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="font-medium">Ví MoMo</p>
-                                        <p className="text-sm text-gray-500">Thanh toán qua ứng dụng MoMo</p>
-                                    </div>
-                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "MOMO" ? "border-pink-600" : "border-gray-300"
-                                        }`}>
-                                        {selectedMethod === "MOMO" && <div className="w-3 h-3 bg-pink-600 rounded-full" />}
                                     </div>
                                 </div>
 

@@ -1,5 +1,5 @@
 import { Award, ChevronLeft, ChevronRight, Clock, Compass, DollarSign, Heart, Landmark, MapPinned, Mountain, Plane, Shield, Sparkles, Star, Utensils, Waves } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
@@ -7,6 +7,7 @@ import { HeroSearchHub } from "../../components/HeroSearchHub";
 import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
 import { Button } from "../../components/ui/button";
 import type { PageType } from "../../MainApp";
+import { locationApi } from "../../utils/api";
 
 interface HomePageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -18,6 +19,21 @@ export default function HomePage({ onNavigate }: HomePageProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchType, setSearchType] = useState<"flight" | "hotel" | "car" | "activity">("hotel");
   const [destinationsPage, setDestinationsPage] = useState(0);
+  const [featuredLocations, setFeaturedLocations] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        // Fetch featured locations or just all locations for now
+        // Assuming we want to show popular cities
+        const data = await locationApi.getLocationsByType('CITY');
+        setFeaturedLocations(data);
+      } catch (error) {
+        console.error("Error fetching locations:", error);
+      }
+    };
+    fetchLocations();
+  }, []);
 
   const handleSearch = (data: any) => {
     // Determine search type and set loading
@@ -27,7 +43,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       car: "car",
       activities: "activity",
     };
-    
+
     setSearchType(typeMap[data.type] || "hotel");
     setIsSearching(true);
 
@@ -43,19 +59,19 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       <div className="relative w-full h-[600px] md:h-[700px]">
         {/* Hero Image */}
         <div className="absolute inset-0">
-          <ImageWithFallback 
-            alt="Beautiful tropical beach" 
-            className="w-full h-full object-cover" 
-            src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&h=800&fit=crop" 
+          <ImageWithFallback
+            alt="Beautiful tropical beach"
+            className="w-full h-full object-cover"
+            src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&h=800&fit=crop"
           />
           <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/50" />
         </div>
-        
+
         {/* Hero Content Container */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8">
           {/* Header Spacer */}
           <div className="h-[60px]" />
-          
+
           {/* Hero Text */}
           <div className="mt-12 md:mt-20 max-w-4xl">
             <h2 className="text-white text-3xl md:text-5xl lg:text-6xl leading-tight drop-shadow-2xl">
@@ -69,7 +85,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
           </div>
         </div>
       </div>
-      
+
       {/* Search Hub - Overlapping Hero */}
       <div className="-mt-20 relative z-20">
         <HeroSearchHub onNavigate={onNavigate} onSearch={handleSearch} />
@@ -104,106 +120,59 @@ export default function HomePage({ onNavigate }: HomePageProps) {
               </button>
             </div>
           </div>
-          
+
           <div className="relative overflow-hidden">
-            <div 
+            <div
               className="flex transition-transform duration-500 ease-in-out gap-6"
               style={{ transform: `translateX(-${destinationsPage * 100}%)` }}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-w-full">
-            {[
-              {
-                nameKey: "home.destinations.santorini",
-                descKey: "home.destinations.santoriniDesc",
-                price: "từ 35.000.000đ",
-                image: "https://images.unsplash.com/photo-1669203408570-4140ee21f211?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYW50b3JpbmklMjBncmVlY2UlMjBzdW5zZXR8ZW58MXx8fHwxNzYxOTc1NzQ3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-                badgeKey: "home.badges.hot",
-                destination: "Santorini"
-              },
-              {
-                nameKey: "home.destinations.maldives",
-                descKey: "home.destinations.maldivesDesc",
-                price: "từ 45.000.000đ",
-                image: "https://images.unsplash.com/photo-1614505241347-7f4765c1035e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYWxkaXZlcyUyMGx1eHVyeSUyMHJlc29ydHxlbnwxfHx8fDE3NjE5MzU0NjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-                badgeKey: "home.badges.luxury",
-                destination: "Maldives"
-              },
-              {
-                nameKey: "home.destinations.swissAlps",
-                descKey: "home.destinations.swissAlpsDesc",
-                price: "từ 50.000.000đ",
-                image: "https://images.unsplash.com/photo-1633942515749-f93dddbbcff9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzd2lzcyUyMGFscHMlMjBtb3VudGFpbnxlbnwxfHx8fDE3NjE4OTMxNDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-                badgeKey: "home.badges.adventure",
-                destination: "Switzerland"
-              },
-              {
-                nameKey: "home.destinations.dubai",
-                descKey: "home.destinations.dubaiDesc",
-                price: "từ 28.000.000đ",
-                image: "https://images.unsplash.com/photo-1657106251952-2d584ebdf886?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkdWJhaSUyMHNreWxpbmUlMjBuaWdodHxlbnwxfHx8fDE3NjE5ODkxMjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
-                badgeKey: "home.badges.trending",
-                destination: "Dubai"
-              },
-              {
-                nameKey: "home.destinations.bali",
-                descKey: "home.destinations.baliDesc",
-                price: "từ 12.000.000đ",
-                image: "https://images.unsplash.com/photo-1656247203824-3d6f99461ba4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWxpJTIwcmljZSUyMHRlcnJhY2VzfGVufDF8fHx8MTc2MTkwMDA4Nnww&ixlib=rb-4.1.0&q=80&w=1080",
-                badgeKey: "home.badges.bestValue",
-                destination: "Bali"
-              },
-              {
-                nameKey: "home.destinations.newYork",
-                descKey: "home.destinations.newYorkDesc",
-                price: "từ 40.000.000đ",
-                image: "https://images.unsplash.com/photo-1517176344182-95050758d384?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxuZXclMjB5b3JrJTIwY2l0eSUyMG1hbmhhdHRhbnxlbnwxfHx8fDE3NjE5MTIyODl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-                badgeKey: "home.badges.cityBreak",
-                destination: "New York"
-              }
-            ].map((destination, index) => (
-              <div 
-                key={index} 
-                className="group cursor-pointer rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2"
-                onClick={() => onNavigate("hotel-list", { destination: destination.destination })}
-              >
-                <div className="relative h-64 overflow-hidden">
-                  <ImageWithFallback 
-                    src={destination.image}
-                    alt={t(destination.nameKey)}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute top-4 right-4">
-                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs">{t(destination.badgeKey)}</span>
-                  </div>
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="text-xl mb-1">{t(destination.nameKey)}</h3>
-                        <p className="text-sm text-gray-200">{t(destination.descKey)}</p>
+                {featuredLocations.slice(0, 6).map((destination, index) => (
+                  <div
+                    key={index}
+                    className="group cursor-pointer rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2"
+                    onClick={() => onNavigate("location-detail", { id: destination.id })}
+                  >
+                    <div className="relative h-64 overflow-hidden">
+                      <ImageWithFallback
+                        src={destination.image || "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"}
+                        alt={destination.name}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+                      {destination.featured && (
+                        <div className="absolute top-4 right-4">
+                          <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs">Featured</span>
+                        </div>
+                      )}
+                      <div className="absolute bottom-4 left-4 right-4 text-white">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="text-xl mb-1">{destination.name}</h3>
+                            <p className="text-sm text-gray-200 line-clamp-2">{destination.description}</p>
+                          </div>
+                          <MapPinned className="w-5 h-5 shrink-0 mt-1" />
+                        </div>
                       </div>
-                      <MapPinned className="w-5 h-5 shrink-0 mt-1" />
+                    </div>
+                    <div className="p-4 bg-white">
+                      <div className="flex items-center justify-between">
+                        <p className="text-blue-600 text-lg">Explore</p>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onNavigate("location-detail", { id: destination.id });
+                          }}
+                        >
+                          {t('common.viewDetails')} →
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="p-4 bg-white">
-                  <div className="flex items-center justify-between">
-                    <p className="text-blue-600 text-lg">{destination.price}</p>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onNavigate("hotel-list", { destination: destination.destination });
-                      }}
-                    >
-                      {t('common.viewDetails')} →
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                ))}
               </div>
             </div>
           </div>
@@ -282,15 +251,15 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                   reviews: tour.reviews,
                   duration: tour.duration
                 };
-                
+
                 return (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group cursor-pointer"
                     onClick={() => onNavigate("tour-detail", tourData)}
                   >
                     <div className="relative h-48 overflow-hidden">
-                      <ImageWithFallback 
+                      <ImageWithFallback
                         src={tour.image}
                         alt={t(tour.titleKey)}
                         className="w-full h-full object-cover transition-transform group-hover:scale-110"
@@ -311,8 +280,8 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                           <p className="text-xs text-gray-500">{t('common.from')}</p>
                           <p className="text-blue-600 text-lg">{tour.price}</p>
                         </div>
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           className="bg-blue-600 hover:bg-blue-700"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -377,13 +346,13 @@ export default function HomePage({ onNavigate }: HomePageProps) {
             ].map((experience, index) => {
               const Icon = experience.icon;
               return (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="group cursor-pointer"
                   onClick={() => onNavigate("activities", { category: experience.category })}
                 >
                   <div className="relative h-56 rounded-xl overflow-hidden mb-4 shadow-lg hover:shadow-xl transition-all">
-                    <ImageWithFallback 
+                    <ImageWithFallback
                       src={experience.image}
                       alt={t(experience.titleKey)}
                       className="w-full h-full object-cover transition-transform group-hover:scale-110"
@@ -414,7 +383,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
               </div>
               <p className="text-gray-600 text-base md:text-lg">{t('home.whyChooseUsDesc')}</p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
                 {
@@ -450,7 +419,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                   purple: "bg-purple-100 text-purple-600"
                 };
                 return (
-                  <div 
+                  <div
                     key={index}
                     className="text-center p-6 bg-white rounded-xl shadow-md hover:shadow-xl transition-all transform hover:-translate-y-2"
                   >
@@ -475,7 +444,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
             </div>
             <p className="text-gray-600 text-base md:text-lg">{t('home.testimonialsDesc')}</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
@@ -500,7 +469,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                 comment: "Tôi đã đặt tour Nhật Bản cho gia đình. Mọi thứ đều hoàn hảo từ A-Z. Chắc chắn sẽ quay lại!"
               }
             ].map((testimonial, index) => (
-              <div 
+              <div
                 key={index}
                 className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
               >
@@ -515,13 +484,13 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                     <p className="text-sm text-gray-500">{testimonial.location}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex mb-3">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                
+
                 <p className="text-gray-600 text-sm italic">"{testimonial.comment}"</p>
               </div>
             ))}
@@ -533,8 +502,8 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       <Footer />
 
       {/* Search Loading Overlay */}
-      <SearchLoadingOverlay 
-        isLoading={isSearching} 
+      <SearchLoadingOverlay
+        isLoading={isSearching}
         searchType={searchType}
       />
     </div>

@@ -5,7 +5,7 @@ import com.wanderlust.api.entity.Activity;
 import com.wanderlust.api.entity.types.ActivityCategory;
 import com.wanderlust.api.mapper.ActivityMapper;
 import com.wanderlust.api.repository.ActivityRepository;
-import com.wanderlust.api.services.CustomUserDetails; // Đảm bảo import đúng CustomUserDetails
+import com.wanderlust.api.services.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -34,13 +34,14 @@ public class ActivityService {
         if (principal instanceof CustomUserDetails) {
             return ((CustomUserDetails) principal).getUserID();
         } else {
-            return authentication.getName(); 
+            return authentication.getName();
         }
     }
 
     // --- Public Get Methods ---
 
-    public List<Activity> searchActivities(String locationId, ActivityCategory category, BigDecimal minPrice, BigDecimal maxPrice) {
+    public List<Activity> searchActivities(String locationId, ActivityCategory category, BigDecimal minPrice,
+            BigDecimal maxPrice) {
         Query query = new Query();
 
         if (locationId != null && !locationId.isEmpty()) {
@@ -56,7 +57,7 @@ public class ActivityService {
         } else if (maxPrice != null) {
             query.addCriteria(Criteria.where("price").lte(maxPrice));
         }
-        
+
         query.addCriteria(Criteria.where("status").is("ACTIVE"));
 
         return mongoTemplate.find(query, Activity.class);
@@ -82,27 +83,28 @@ public class ActivityService {
 
     public Activity create(ActivityRequestDTO dto) {
         String vendorId = getCurrentUserId();
-        
+
         // MapStruct tự động set Default values (Status, CreatedAt...)
         Activity activity = activityMapper.toEntity(dto);
-        
+
         activity.setVendorId(vendorId);
         // Tạo slug từ name (hoặc xử lý logic trùng lặp nếu cần)
         if (activity.getName() != null) {
             activity.setSlug(activity.getName().toLowerCase().replace(" ", "-"));
         }
-        
+
         return activityRepository.save(activity);
     }
 
     public Activity update(String id, ActivityRequestDTO dto) {
         Activity existingActivity = findById(id);
-        
+
         // MapStruct tự động update các trường khác null và update 'updatedAt'
         activityMapper.updateEntityFromDTO(dto, existingActivity);
-        
+
         // Nếu muốn update Slug khi đổi tên, mở comment dòng dưới:
-        if (dto.getName() != null) existingActivity.setSlug(dto.getName().toLowerCase().replace(" ", "-"));
+        if (dto.getName() != null)
+            existingActivity.setSlug(dto.getName().toLowerCase().replace(" ", "-"));
 
         return activityRepository.save(existingActivity);
     }
@@ -114,7 +116,11 @@ public class ActivityService {
             throw new RuntimeException("Activity not found with id " + id);
         }
     }
-    
+
+    public List<Activity> findByLocationId(String locationId) {
+        return activityRepository.findByLocationId(locationId);
+    }
+
     public void deleteAll() {
         activityRepository.deleteAll();
     }

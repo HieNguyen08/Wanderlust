@@ -8,6 +8,7 @@ import '../i18n';
 import type { PageType } from "../MainApp";
 import { tokenService, walletApi } from "../utils/api";
 import { isAdmin, isVendor, type FrontendRole } from "../utils/roleMapper";
+import { useNotification } from "../contexts/NotificationContext";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 
@@ -20,6 +21,7 @@ interface HeaderProps {
 
 export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderProps) {
   const { t, i18n } = useTranslation();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotification();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -387,8 +389,10 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                       `}
                     >
                       <Bell className={`w-4 h-4 ${isWhiteHeader ? 'text-gray-700' : 'text-white'}`} />
-                      {/* Notification badge - mock count, will be replaced with real data */}
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                      {/* Notification badge */}
+                      {unreadCount > 0 && (
+                        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                      )}
                     </button>
 
                     {notificationDropdownOpen && (
@@ -398,31 +402,53 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                           onClick={() => setNotificationDropdownOpen(false)}
                         />
                         <div className="absolute top-full mt-2 right-0 bg-white rounded-lg shadow-xl py-2 min-w-[320px] max-w-[400px] z-20">
-                          <div className="px-4 py-2 border-b">
+                          <div className="px-4 py-2 border-b flex justify-between items-center">
                             <h3 className="font-semibold text-gray-900">Notifications</h3>
+                            {unreadCount > 0 && (
+                              <button
+                                onClick={markAllAsRead}
+                                className="text-xs text-blue-600 hover:text-blue-800"
+                              >
+                                Mark all as read
+                              </button>
+                            )}
                           </div>
                           <div className="max-h-[400px] overflow-y-auto">
-                            {/* Mock notification - will be replaced with real data */}
-                            <div className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b">
-                              <p className="text-sm text-gray-900 mb-1">
-                                Your trip to Hanoi has ended
-                              </p>
-                              <p className="text-xs text-gray-600 mb-2">
-                                Please confirm completion or request a refund
-                              </p>
-                              <button
-                                onClick={() => {
-                                  setNotificationDropdownOpen(false);
-                                  onNavigate("booking-history");
-                                }}
-                                className="text-xs text-blue-600 hover:text-blue-700"
-                              >
-                                View booking →
-                              </button>
-                            </div>
-                            <div className="px-4 py-3 text-center text-sm text-gray-500">
-                              No more notifications
-                            </div>
+                            {notifications.length > 0 ? (
+                              notifications.map((notification) => (
+                                <div
+                                  key={notification.id}
+                                  className={`px-4 py-3 hover:bg-gray-50 cursor-pointer border-b ${!notification.read ? 'bg-blue-50/50' : ''}`}
+                                  onClick={() => {
+                                    markAsRead(notification.id);
+                                    if (notification.link) {
+                                      setNotificationDropdownOpen(false);
+                                      // Handle navigation based on link or type
+                                      if (notification.type === 'booking') onNavigate("booking-history");
+                                      else if (notification.type === 'voucher') onNavigate("vouchers");
+                                      else if (notification.type === 'wallet') onNavigate("wallet");
+                                    }
+                                  }}
+                                >
+                                  <div className="flex justify-between items-start mb-1">
+                                    <p className={`text-sm ${!notification.read ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
+                                      {notification.title}
+                                    </p>
+                                    {!notification.read && <span className="w-2 h-2 bg-blue-500 rounded-full mt-1.5"></span>}
+                                  </div>
+                                  <p className="text-xs text-gray-600 mb-2">
+                                    {notification.message}
+                                  </p>
+                                  <p className="text-[10px] text-gray-400">
+                                    {new Date(notification.date).toLocaleString()}
+                                  </p>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-4 py-8 text-center text-sm text-gray-500">
+                                No notifications
+                              </div>
+                            )}
                           </div>
                         </div>
                       </>

@@ -23,6 +23,8 @@ public abstract class BookingMapper { // <-- THAY ĐỔI: Chuyển thành abstra
      */
     @Mapping(target = "guestInfo", source = "guestInfo", qualifiedByName = "guestInfoToMap")
     @Mapping(target = "numberOfGuests", source = "numberOfGuests", qualifiedByName = "guestCountToMap")
+    @Mapping(target = "userConfirmed", source = "userConfirmed")
+    @Mapping(target = "autoCompleted", source = "autoCompleted")
     public abstract BookingDTO toDTO(Booking booking);
 
     /**
@@ -43,6 +45,8 @@ public abstract class BookingMapper { // <-- THAY ĐỔI: Chuyển thành abstra
     @Mapping(target = "metadata", ignore = true)
     @Mapping(target = "guestInfo", source = "guestInfo", qualifiedByName = "mapToGuestInfo")
     @Mapping(target = "numberOfGuests", source = "numberOfGuests", qualifiedByName = "mapToGuestCount")
+    @Mapping(target = "userConfirmed", source = "userConfirmed")
+    @Mapping(target = "autoCompleted", source = "autoCompleted")
     public abstract Booking toEntity(BookingDTO dto);
 
     /**
@@ -58,6 +62,8 @@ public abstract class BookingMapper { // <-- THAY ĐỔI: Chuyển thành abstra
     @Mapping(target = "metadata", ignore = true)
     @Mapping(target = "guestInfo", source = "guestInfo", qualifiedByName = "mapToGuestInfo")
     @Mapping(target = "numberOfGuests", source = "numberOfGuests", qualifiedByName = "mapToGuestCount")
+    @Mapping(target = "userConfirmed", source = "userConfirmed")
+    @Mapping(target = "autoCompleted", source = "autoCompleted")
     public abstract void updateEntityFromDTO(BookingDTO dto, @MappingTarget Booking booking);
 
     // =======================================================

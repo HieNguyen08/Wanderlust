@@ -41,6 +41,7 @@ import { Textarea } from "../../components/ui/textarea";
 import type { PageType } from "../../MainApp";
 import { bookingApi, tokenService } from "../../utils/api";
 import { type FrontendRole } from "../../utils/roleMapper";
+import { useNotification } from "../../contexts/NotificationContext";
 
 interface BookingHistoryPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -88,6 +89,7 @@ interface Booking {
 
 export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: BookingHistoryPageProps) {
   const { t } = useTranslation();
+  const { addNotification } = useNotification();
   const [activeTab, setActiveTab] = useState<"upcoming" | "completed" | "cancelled">("upcoming");
   const [serviceFilter, setServiceFilter] = useState<"all" | "flight" | "hotel" | "car" | "activity">("all");
 
@@ -227,6 +229,31 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
           : [];
 
         setBookings(transformedBookings);
+
+        // Check for new bookings
+        if (transformedBookings.length > 0) {
+          // Sort by bookingDate descending
+          const sortedByDate = [...transformedBookings].sort((a, b) => {
+            const dateA = new Date(a.rawData.bookingDate || 0).getTime();
+            const dateB = new Date(b.rawData.bookingDate || 0).getTime();
+            return dateB - dateA;
+          });
+
+          const latestBooking = sortedByDate[0];
+          const latestDate = new Date(latestBooking.rawData.bookingDate || 0).getTime();
+          const lastCheck = parseInt(localStorage.getItem('last_booking_check') || '0');
+
+          if (latestDate > lastCheck) {
+            addNotification({
+              type: 'booking',
+              title: t('notifications.newBooking', 'Đặt chỗ mới thành công'),
+              message: t('notifications.newBookingDesc', 'Bạn có đơn đặt chỗ mới: {{title}}', { title: latestBooking.title }),
+              link: '/booking-history',
+              data: { bookingId: latestBooking.id }
+            });
+            localStorage.setItem('last_booking_check', latestDate.toString());
+          }
+        }
       } catch (error: any) {
         console.error('Failed to load bookings:', error);
 
