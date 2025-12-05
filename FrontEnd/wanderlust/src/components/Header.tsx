@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import avatarMan from '../assets/images/avatarman.jpeg';
 import avatarOther from '../assets/images/avatarother.jpeg';
 import avatarWoman from '../assets/images/avatarwoman.jpeg';
+import { useNotification } from "../contexts/NotificationContext";
 import '../i18n';
 import type { PageType } from "../MainApp";
 import { tokenService, walletApi } from "../utils/api";
 import { isAdmin, isVendor, type FrontendRole } from "../utils/roleMapper";
-import { useNotification } from "../contexts/NotificationContext";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 
@@ -72,25 +72,38 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
   // Wallet balance
   const [walletBalance, setWalletBalance] = useState(0);
 
-  useEffect(() => {
-    // Chỉ gọi API khi đã đăng nhập VÀ có token hợp lệ
+  // Function to refresh wallet balance
+  const refreshWalletBalance = () => {
     if (isLoggedIn && tokenService.getToken()) {
       walletApi.getWallet()
         .then(data => setWalletBalance(data.balance || 0))
         .catch(err => {
-          // Không log lỗi UNAUTHORIZED nữa vì đó là trạng thái bình thường khi chưa đăng nhập
-          // Cũng không log lỗi kết nối khi backend chưa chạy
-          if (err.message !== 'UNAUTHORIZED' && !err.message?.includes('ERR_CONNECTION_REFUSED') && !err.message?.includes('NETWORK_ERROR')) {
+          // Chỉ log lỗi nếu không phải các trường hợp expected
+          const errorMessage = err?.message || '';
+          if (errorMessage !== 'UNAUTHORIZED' && 
+              !errorMessage.includes('ERR_CONNECTION_REFUSED') && 
+              !errorMessage.includes('NETWORK_ERROR')) {
             console.error("Failed to fetch wallet balance", err);
           }
-          // Set default balance nếu API thất bại
           setWalletBalance(0);
         });
     } else {
-      // Reset wallet balance khi logout hoặc không có token
       setWalletBalance(0);
     }
+  };
+
+  useEffect(() => {
+    refreshWalletBalance();
   }, [isLoggedIn]);
+
+  // Listen for wallet notifications to refresh balance
+  useEffect(() => {
+    const walletNotifications = notifications.filter(n => n.type === 'wallet' && !n.read);
+    if (walletNotifications.length > 0) {
+      // Refresh wallet balance when there's a new wallet notification
+      refreshWalletBalance();
+    }
+  }, [notifications]);
 
   // Language options
   const languages = [

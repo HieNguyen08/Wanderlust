@@ -31,6 +31,7 @@ import com.wanderlust.api.entity.Payment;
 import com.wanderlust.api.entity.Wallet;
 import com.wanderlust.api.entity.types.PaymentMethod;
 import com.wanderlust.api.entity.types.PaymentStatus;
+import com.wanderlust.api.entity.types.TransactionStatus;
 import com.wanderlust.api.entity.types.TransactionType;
 import com.wanderlust.api.exception.ResourceNotFoundException;
 import com.wanderlust.api.mapper.PaymentMapper;
@@ -48,6 +49,7 @@ public class PaymentService {
     private final WalletService walletService;
     private final BookingService bookingService;
     private final WalletRepository walletRepository;
+    private final TransactionService transactionService;
 
     // Constructor với @Lazy để tránh circular dependency
     public PaymentService(
@@ -55,12 +57,14 @@ public class PaymentService {
             PaymentMapper paymentMapper,
             @Lazy WalletService walletService,
             BookingService bookingService,
-            WalletRepository walletRepository) {
+            WalletRepository walletRepository,
+            TransactionService transactionService) {
         this.paymentRepository = paymentRepository;
         this.paymentMapper = paymentMapper;
         this.walletService = walletService;
         this.bookingService = bookingService;
         this.walletRepository = walletRepository;
+        this.transactionService = transactionService;
     }
 
     private final Sort defaultSort = Sort.by(Sort.Direction.DESC, "createdAt");
@@ -284,6 +288,20 @@ public class PaymentService {
                     
                     // Gọi updateBalance của WalletService
                     walletService.updateBalance(wallet.getWalletId(), payment.getAmount(), TransactionType.CREDIT);
+                    
+                    // CẬP NHẬT TRANSACTION STATUS: PENDING -> COMPLETED
+                    // Extract transaction ID từ bookingId (format: "TOPUP-{transactionId}")
+                    String bookingId = payment.getBookingId();
+                    if (bookingId != null && bookingId.startsWith("TOPUP-")) {
+                        String transactionId = bookingId.substring(6); // Bỏ prefix "TOPUP-"
+                        transactionService.updateTransactionStatus(
+                            transactionId, 
+                            TransactionStatus.COMPLETED, 
+                            gatewayTxId
+                        );
+                        System.out.println("✅ Transaction updated to COMPLETED: " + transactionId);
+                    }
+                    
                     System.out.println("✅ Wallet topped up successfully for User: " + payment.getUserId());
                 } catch (Exception e) {
                     System.err.println("❌ Failed to update wallet balance: " + e.getMessage());

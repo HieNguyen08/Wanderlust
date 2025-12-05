@@ -1,13 +1,13 @@
 import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  CheckCircle,
-  Clock,
-  Plus,
-  RefreshCw,
-  TrendingUp,
-  Wallet,
-  XCircle
+    ArrowDownLeft,
+    ArrowUpRight,
+    CheckCircle,
+    Clock,
+    Plus,
+    RefreshCw,
+    TrendingUp,
+    Wallet,
+    XCircle
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -64,7 +64,7 @@ export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserW
       const urlParams = new URLSearchParams(window.location.search);
       const fromPayment = urlParams.get('from_payment');
       if (fromPayment === 'success') {
-        toast.success('Giao dịch đã được xử lý thành công!');
+        // Đã có notification từ PaymentSuccess page rồi, không cần toast ở đây nữa
         // Clear URL params
         window.history.replaceState({}, '', window.location.pathname);
       }

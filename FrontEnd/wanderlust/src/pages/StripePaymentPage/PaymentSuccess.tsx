@@ -1,6 +1,7 @@
 import { CheckCircle, Home, Wallet } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { useNotification } from '../../contexts/NotificationContext';
 import { transactionApi } from '../../utils/api';
 
 interface TransactionInfo {
@@ -11,6 +12,7 @@ interface TransactionInfo {
 }
 
 const PaymentSuccess: React.FC = () => {
+  const { addNotification } = useNotification();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
   const [transactionInfo, setTransactionInfo] = useState<TransactionInfo | null>(null);
@@ -35,6 +37,23 @@ const PaymentSuccess: React.FC = () => {
               description: latestTxn.description,
               status: latestTxn.status
             });
+
+            // Tạo notification khi nạp tiền thành công
+            if (latestTxn.type === 'CREDIT' && latestTxn.status === 'COMPLETED') {
+              addNotification({
+                type: 'wallet',
+                title: 'Nạp Tiền Thành Công',
+                message: `Bạn đã nạp ${latestTxn.amount.toLocaleString('vi-VN')}đ vào ví thành công!`,
+                link: '/profile/wallet',
+                data: {
+                  transactionId: latestTxn.transactionId,
+                  amount: latestTxn.amount
+                }
+              });
+              
+              // Update last transaction check
+              localStorage.setItem('last_transaction_check', new Date().toISOString());
+            }
           }
         } catch (error) {
           console.error('Failed to verify transaction:', error);
