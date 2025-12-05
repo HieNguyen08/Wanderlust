@@ -69,7 +69,21 @@ public class UserService implements BaseServices<User> {
             updatedUser.setPassword(passwordEncoder.encode(user.getPassword())); // Encode password
             updatedUser.setPasswordChangeAt(LocalDateTime.now()); // **Ghi lại thời gian**
         }
-        if (user.getRole() != null) updatedUser .setRole(user.getRole()); 
+        // **BẢO VỆ ROLE ADMIN: Chỉ cho phép đổi giữa USER và PARTNER**
+        if (user.getRole() != null) {
+            // Không cho phép đổi sang ADMIN
+            if (user.getRole() == Role.ADMIN) {
+                throw new RuntimeException("Không thể thay đổi role thành ADMIN. Role ADMIN được bảo vệ.");
+            }
+            // Không cho phép đổi role nếu user hiện tại đang là ADMIN
+            if (updatedUser.getRole() == Role.ADMIN) {
+                throw new RuntimeException("Không thể thay đổi role của tài khoản ADMIN.");
+            }
+            // Chỉ cho phép đổi giữa USER và PARTNER
+            if (user.getRole() == Role.USER || user.getRole() == Role.PARTNER) {
+                updatedUser.setRole(user.getRole());
+            }
+        }
         if (user.getAddress() != null) updatedUser .setAddress(user.getAddress());
         if (user.getIsBlocked() != null) updatedUser .setIsBlocked(user.getIsBlocked());
         

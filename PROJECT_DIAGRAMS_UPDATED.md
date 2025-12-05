@@ -499,48 +499,277 @@ flowchart TD
 
 ---
 
-## Use Case Diagram
 
-This high-level diagram illustrates the primary actors and their interactions with the system, based on the implemented Controllers.
+This section details the Use Cases for each major module of the Wanderlust platform.
+
+### 8.1. Flight Booking Module
 
 ```mermaid
-graph LR
-    User((User))
-    Admin((Admin))
-    System((System))
+usecaseDiagram
+    actor "Customer" as User
+    actor "Admin/Staff" as Admin
 
-    subgraph "Wanderlust Platform"
-        UC_Search(Search Flights/Hotels/Activities)
-        UC_Auth(Register/Login)
-        UC_Profile(View Profile & Wallet)
-        UC_Book(Create Booking)
-        UC_Pay(Process Payment)
-        UC_View(View Booking History)
-        UC_Cancel(Cancel Booking)
-        UC_Review(Write Review)
+    package "Flight System" {
+        usecase "Search Flights" as UC1
+        usecase "Select Flight" as UC2
+        usecase "Book Flight" as UC3
+        usecase "Pay for Flight" as UC4
+        usecase "Cancel Flight Booking" as UC5
+        usecase "View Booking History" as UC6
         
-        UC_ManageUsers(Manage Users)
-        UC_Stats(View Statistics)
-        UC_Auto(Auto-Complete Bookings)
-        UC_Refund(Refund Processing)
-    end
+        usecase "Manage Flights" as UC_Admin1
+        usecase "Manage Passengers" as UC_Admin2
+    }
 
-    User --> UC_Search
-    User --> UC_Auth
-    User --> UC_Profile
-    User --> UC_Book
-    User --> UC_View
-    User --> UC_Cancel
-    User --> UC_Review
+    User --> UC1
+    User --> UC2
+    User --> UC3
+    User --> UC4
+    User --> UC5
+    User --> UC6
 
-    UC_Book -.-> UC_Pay
-    
-    Admin --> UC_ManageUsers
-    Admin --> UC_Stats
-    Admin --> UC_Refund
-    
-    System --> UC_Auto
+    Admin --> UC_Admin1
+    Admin --> UC_Admin2
 ```
+
+| Use Case Name | Select Flight |
+| :--- | :--- |
+| **Actor** | Customer |
+| **Description** | Customer searches and selects a flight suitable for their needs. |
+| **Trigger** | Customer wants to find and select a flight. |
+| **Main Flow** | 1. Customer selects origin and destination.<br>2. System displays available flights.<br>3. Customer selects a flight from the list. |
+| **Alternative Flow** | Customer does not find a suitable flight. |
+| **Exception Flow** | System error preventing flight display. |
+| **Post Condition** | Customer has selected a flight. |
+
+| Use Case Name | Register Flight Information |
+| :--- | :--- |
+| **Actor** | Customer |
+| **Description** | Customer enters passenger details for the selected flight. |
+| **Trigger** | Customer has selected a flight and proceeds to book. |
+| **Main Flow** | 1. Customer enters personal info (name, phone, email).<br>2. Customer selects seat and baggage info.<br>3. System saves info and confirms registration. |
+| **Alternative Flow** | Customer enters invalid info; system requests correction. |
+| **Post Condition** | Flight information is registered successfully. |
+
+| Use Case Name | Pay for Flight |
+| :--- | :--- |
+| **Actor** | Customer |
+| **Description** | Customer proceeds to pay for the booked flight. |
+| **Main Flow** | 1. Customer selects payment method.<br>2. Customer enters payment details.<br>3. System confirms payment. |
+| **Post Condition** | Payment completed; Ticket issued. |
+
+| Use Case Name | Cancel Flight |
+| :--- | :--- |
+| **Actor** | Customer |
+| **Description** | Customer cancels a booked flight. |
+| **Main Flow** | 1. Customer requests cancellation.<br>2. System shows conditions and fees.<br>3. Customer confirms.<br>4. System updates status. |
+| **Post Condition** | Flight cancelled; Notification sent. |
+
+| Use Case Name | Manage Flight List |
+| :--- | :--- |
+| **Actor** | Manager/Admin |
+| **Description** | Admin manages flight schedules and statuses. |
+| **Main Flow** | 1. Admin logs in.<br>2. Accesses Flight Management.<br>3. Checks and updates flight info. |
+| **Post Condition** | Flight list updated. |
+
+### 8.2. Hotel Booking Module
+
+```mermaid
+usecaseDiagram
+    actor "Customer" as User
+    actor "Partner/Admin" as Vendor
+
+    package "Hotel System" {
+        usecase "Search Hotels" as UC_H1
+        usecase "Filter & Sort" as UC_H2
+        usecase "View Details" as UC_H3
+        usecase "Book Room" as UC_H4
+        usecase "Pay for Room" as UC_H5
+        usecase "Cancel Booking" as UC_H6
+        
+        usecase "Manage Hotels" as UC_V1
+        usecase "Manage Bookings" as UC_V2
+    }
+
+    User --> UC_H1
+    User --> UC_H2
+    User --> UC_H3
+    User --> UC_H4
+    User --> UC_H5
+    User --> UC_H6
+
+    Vendor --> UC_V1
+    Vendor --> UC_V2
+```
+
+| Use Case Name | Book Room |
+| :--- | :--- |
+| **Actor** | Customer |
+| **Description** | Customer reserves a hotel room. |
+| **Main Flow** | 1. Customer selects hotel and room type.<br>2. System shows details and price.<br>3. Customer confirms booking. |
+| **Post Condition** | Room booked successfully. |
+
+| Use Case Name | Cancel Room Booking |
+| :--- | :--- |
+| **Actor** | Customer |
+| **Description** | Customer cancels a reservation. |
+| **Main Flow** | 1. Customer requests cancellation.<br>2. System checks policy.<br>3. System confirms cancellation. |
+| **Post Condition** | Reservation cancelled. |
+
+| Use Case Name | Search Hotel |
+| :--- | :--- |
+| **Actor** | Customer |
+| **Description** | Customer searches for hotels. |
+| **Main Flow** | 1. Customer inputs location, dates, guests.<br>2. System displays matching hotels. |
+| **Post Condition** | Customer finds suitable hotels. |
+
+### 8.3. Car Rental Module
+
+```mermaid
+usecaseDiagram
+    actor "Customer" as User
+    actor "Partner/Admin" as Vendor
+
+    package "Car Rental System" {
+        usecase "Select Car" as UC_C1
+        usecase "Register Rental Info" as UC_C2
+        usecase "Pay Rental" as UC_C3
+        usecase "Cancel Selection" as UC_C4
+        usecase "Manage Cars" as UC_V_C1
+    }
+
+    User --> UC_C1
+    User --> UC_C2
+    User --> UC_C3
+    User --> UC_C4
+
+    Vendor --> UC_V_C1
+```
+
+| Use Case Name | Select Rental Car |
+| :--- | :--- |
+| **Actor** | Customer |
+| **Description** | Customer selects a car for rent. |
+| **Main Flow** | 1. Customer selects car type and dates.<br>2. System shows available cars.<br>3. Customer selects a car.<br>4. Registers info and pays. |
+| **Post Condition** | Car selected and registered. |
+
+### 8.4. Activity Booking Module
+
+```mermaid
+usecaseDiagram
+    actor "Customer" as User
+    actor "Partner/Admin" as Vendor
+
+    package "Activity System" {
+        usecase "Search Activities" as UC_A1
+        usecase "Book Spot" as UC_A2
+        usecase "Cancel Spot" as UC_A3
+        usecase "Apply Promotion" as UC_A4
+        
+        usecase "Manage Activities" as UC_V_A1
+    }
+
+    User --> UC_A1
+    User --> UC_A2
+    User --> UC_A3
+    User --> UC_A4
+    
+    Vendor --> UC_V_A1
+```
+
+| Use Case Name | Book Activity Spot |
+| :--- | :--- |
+| **Actor** | Customer |
+| **Description** | Customer books a spot for an activity. |
+| **Main Flow** | 1. Customer selects activity.<br>2. System shows info.<br>3. Customer confirms booking. |
+| **Post Condition** | Spot booked successfully. |
+
+### 8.5. Promotions & Travel Guide
+
+#### Promotions Module
+
+```mermaid
+usecaseDiagram
+    actor "Customer" as User
+    actor "Manager" as Vendor
+
+    package "Promotion System" {
+        usecase "Filter Promotions" as UC_P1
+        usecase "Select Promotion" as UC_P2
+        usecase "Apply Promo Code" as UC_P3
+        
+        usecase "Create Promotion" as UC_V_P1
+        usecase "Update Promotion" as UC_V_P2
+        usecase "Delete Promotion" as UC_V_P3
+    }
+
+    User --> UC_P1
+    User --> UC_P2
+    User --> UC_P3
+
+    Vendor --> UC_V_P1
+    Vendor --> UC_V_P2
+    Vendor --> UC_V_P3
+```
+
+| Use Case Name | Filter Promotions |
+| :--- | :--- |
+| **Actor** | Customer |
+| **Main Flow** | 1. Customer selects filter criteria.<br>2. System displays matching promotions. |
+
+#### Travel Guide Module
+
+```mermaid
+usecaseDiagram
+    actor "Customer" as User
+    actor "Manager" as Vendor
+
+    package "Travel Guide System" {
+        usecase "Search Guides" as UC_TG1
+        usecase "Filter Guides" as UC_TG2
+        usecase "View Article" as UC_TG3
+        
+        usecase "Manage Guides" as UC_V_TG1
+    }
+
+    User --> UC_TG1
+    User --> UC_TG2
+    User --> UC_TG3
+
+    Vendor --> UC_V_TG1
+```
+
+| Use Case Name | Search Travel Guide |
+| :--- | :--- |
+| **Actor** | Customer |
+| **Main Flow** | 1. Customer enters keywords.<br>2. System shows relevant articles. |
+
+### 8.6. Company Info
+
+```mermaid
+usecaseDiagram
+    actor "Customer" as User
+    actor "Manager" as Admin
+
+    package "Company Info" {
+        usecase "View Company Info" as UC_CI1
+        usecase "Edit Company Info" as UC_CI2
+    }
+
+    User --> UC_CI1
+    Admin --> UC_CI2
+```
+
+| Use Case Name | View Company Info |
+| :--- | :--- |
+| **Actor** | Customer |
+| **Main Flow** | 1. Customer selects "About Us".<br>2. System displays company details. |
+
+| Use Case Name | Manage Company Info |
+| :--- | :--- |
+| **Actor** | Admin |
+| **Main Flow** | 1. Admin accesses company info settings.<br>2. Updates details.<br>3. Saves changes. |
+
 
 ---
 

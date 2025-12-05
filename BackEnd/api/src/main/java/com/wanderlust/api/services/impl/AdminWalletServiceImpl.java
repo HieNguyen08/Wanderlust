@@ -1,47 +1,5 @@
 package com.wanderlust.api.services.impl;
 
-// Import các DTOs đã có
-import com.wanderlust.api.dto.walletDTO.TransactionResponseDTO;
-import com.wanderlust.api.dto.walletDTO.TransactionSummaryDTO; // Import DTO tóm tắt
-import com.wanderlust.api.dto.admin.WalletAdminDTO;
-import com.wanderlust.api.dto.admin.WalletDetailAdminDTO;
-import com.wanderlust.api.dto.admin.PendingRefundDTO;
-import com.wanderlust.api.dto.admin.AdminRefundRequestDTO;
-
-// Import Entities
-import com.wanderlust.api.entity.Wallet;
-import com.wanderlust.api.entity.WalletTransaction;
-import com.wanderlust.api.entity.User; // Đã import User Entity
-
-// Import Enums
-import com.wanderlust.api.entity.types.TransactionStatus;
-import com.wanderlust.api.entity.types.TransactionType;
-import com.wanderlust.api.entity.types.WalletStatus;
-
-// Import Exceptions
-import com.wanderlust.api.exception.ResourceNotFoundException;
-
-// Import Repositories
-import com.wanderlust.api.repository.WalletRepository;
-import com.wanderlust.api.repository.WalletTransactionRepository;
-import com.wanderlust.api.repository.UserRepository; // Đã import User Repository
-
-// Import Services
-import com.wanderlust.api.services.AdminWalletService;
-import com.wanderlust.api.services.TransactionService;
-import com.wanderlust.api.services.WalletService;
-
-// Import các thư viện khác
-import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -50,9 +8,38 @@ import java.util.Map;
 import java.util.Optional; // Cần cho logic search
 import java.util.stream.Collectors;
 
+import org.modelmapper.ModelMapper;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.wanderlust.api.dto.admin.AdminRefundRequestDTO;
+import com.wanderlust.api.dto.admin.PendingRefundDTO;
+import com.wanderlust.api.dto.admin.WalletAdminDTO;
+import com.wanderlust.api.dto.admin.WalletDetailAdminDTO;
+import com.wanderlust.api.dto.walletDTO.TransactionResponseDTO;
+import com.wanderlust.api.dto.walletDTO.TransactionSummaryDTO; // Import DTO tóm tắt
+import com.wanderlust.api.entity.User; // Đã import User Entity
+import com.wanderlust.api.entity.Wallet;
+import com.wanderlust.api.entity.WalletTransaction;
+import com.wanderlust.api.entity.types.TransactionStatus;
+import com.wanderlust.api.entity.types.TransactionType;
+import com.wanderlust.api.entity.types.WalletStatus;
+import com.wanderlust.api.exception.ResourceNotFoundException;
+import com.wanderlust.api.repository.UserRepository; // Đã import User Repository
+import com.wanderlust.api.repository.WalletRepository;
+import com.wanderlust.api.repository.WalletTransactionRepository;
+import com.wanderlust.api.services.AdminWalletService;
+import com.wanderlust.api.services.TransactionService;
+import com.wanderlust.api.services.WalletService;
+
 
 @Service
-@RequiredArgsConstructor
 public class AdminWalletServiceImpl implements AdminWalletService {
 
     private final WalletRepository walletRepository;
@@ -62,7 +49,22 @@ public class AdminWalletServiceImpl implements AdminWalletService {
     private final ModelMapper modelMapper;
 
     // Đã inject UserRepository
-    private final UserRepository userRepository; 
+    private final UserRepository userRepository;
+
+    public AdminWalletServiceImpl(
+            WalletRepository walletRepository,
+            WalletTransactionRepository transactionRepository,
+            TransactionService transactionService,
+            @Lazy WalletService walletService,
+            ModelMapper modelMapper,
+            UserRepository userRepository) {
+        this.walletRepository = walletRepository;
+        this.transactionRepository = transactionRepository;
+        this.transactionService = transactionService;
+        this.walletService = walletService;
+        this.modelMapper = modelMapper;
+        this.userRepository = userRepository;
+    } 
 
     @Override
     @Transactional
