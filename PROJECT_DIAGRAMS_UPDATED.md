@@ -425,7 +425,7 @@ flowchart TD
     CreateRequest --> API_Call[POST /api/bookings]
     API_Call --> BookingService_Create{BookingService.create}
     
-    BookingService_Create --> GenerateCode[Generate Booking Code "WL..."]
+    BookingService_Create --> GenerateCode["Generate Booking Code 'WL...'"]
     GenerateCode --> SetPending[Set Status = PENDING]
     SetPending --> FindVendor[Determine Vendor ID]
     FindVendor --> SaveBooking[Save to Database]
@@ -458,7 +458,7 @@ This diagram mirrors the `PaymentService.java` logic, handling both Stripe and W
 ```mermaid
 flowchart TD
     Start([Initiate Payment]) --> PaymentCall[POST /api/payments/initiate]
-    PaymentCall --> CreatePayment[Create Payment Record (PENDING)]
+    PaymentCall --> CreatePayment["Create Payment Record (PENDING)"]
     CreatePayment --> CheckMethod{Payment Method?}
     
     CheckMethod -->|STRIPE| StripeInit[Create Stripe Session]
@@ -504,26 +504,26 @@ flowchart TD
 This high-level diagram illustrates the primary actors and their interactions with the system, based on the implemented Controllers.
 
 ```mermaid
-usecaseDiagram
-    actor "User (Guest/Member)" as User
-    actor "System Admin" as Admin
-    actor "Timer/Job" as System
+graph LR
+    User((User))
+    Admin((Admin))
+    System((System))
 
-    package "Wanderlust Platform" {
-        usecase "Search Flights/Hotels/Activities" as UC_Search
-        usecase "Register/Login" as UC_Auth
-        usecase "View Profile & Wallet" as UC_Profile
-        usecase "Create Booking" as UC_Book
-        usecase "Process Payment" as UC_Pay
-        usecase "View Booking History" as UC_View
-        usecase "Cancel Booking" as UC_Cancel
-        usecase "Write Review" as UC_Review
+    subgraph "Wanderlust Platform"
+        UC_Search(Search Flights/Hotels/Activities)
+        UC_Auth(Register/Login)
+        UC_Profile(View Profile & Wallet)
+        UC_Book(Create Booking)
+        UC_Pay(Process Payment)
+        UC_View(View Booking History)
+        UC_Cancel(Cancel Booking)
+        UC_Review(Write Review)
         
-        usecase "Manage Users" as UC_ManageUsers
-        usecase "View Statistics" as UC_Stats
-        usecase "Auto-Complete Bookings" as UC_Auto
-        usecase "Refund Processing" as UC_Refund
-    }
+        UC_ManageUsers(Manage Users)
+        UC_Stats(View Statistics)
+        UC_Auto(Auto-Complete Bookings)
+        UC_Refund(Refund Processing)
+    end
 
     User --> UC_Search
     User --> UC_Auth
@@ -533,7 +533,7 @@ usecaseDiagram
     User --> UC_Cancel
     User --> UC_Review
 
-    UC_Book ..> UC_Pay : <<include>>
+    UC_Book -.-> UC_Pay
     
     Admin --> UC_ManageUsers
     Admin --> UC_Stats
@@ -584,7 +584,7 @@ Updated to reflect the actual project structure.
 graph TB
     subgraph "Frontend (React + Vite)"
         UI[Pages & Components]
-        API[API Client (Axios)]
+        API["API Client (Axios)"]
         Router[React Router]
     end
 
@@ -851,7 +851,7 @@ Illustrates the flow of a user requesting a refund and the administrative approv
 flowchart TD
     Start([User Requests Refund]) --> CheckWindow{Is Refundable?}
     
-    CheckWindow -->|No (Too late/early)| Deny([Reject Request Immediately])
+    CheckWindow -->|"No (Too late/early)"| Deny([Reject Request Immediately])
     
     CheckWindow -->|Yes| SetRequested[Set BookingStatus = REFUND_REQUESTED]
     SetRequested --> CreateRefund[Create Refund Record (PENDING)]
@@ -929,7 +929,7 @@ Visualizes how a request flows through the Spring Security filters.
 ```mermaid
 flowchart TD
     Req([Incoming Request]) --> Cors[CORS Filter]
-    Cors --> Csrf[CSRF Filter (Disabled)]
+    Cors --> Csrf["CSRF Filter (Disabled)"]
     Csrf --> JwtFilter[JwtAuthenticationFilter]
     
     JwtFilter --> CheckJWT{Has Valid JWT?}
