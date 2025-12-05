@@ -505,21 +505,21 @@ This section details the Use Cases for each major module of the Wanderlust platf
 ### 8.1. Flight Booking Module
 
 ```mermaid
-usecaseDiagram
-    actor "Customer" as User
-    actor "Admin/Staff" as Admin
+graph LR
+    User(("Customer"))
+    Admin(("Admin/Staff"))
 
-    package "Flight System" {
-        usecase "Search Flights" as UC1
-        usecase "Select Flight" as UC2
-        usecase "Book Flight" as UC3
-        usecase "Pay for Flight" as UC4
-        usecase "Cancel Flight Booking" as UC5
-        usecase "View Booking History" as UC6
+    subgraph "Flight System"
+        UC1("Search Flights")
+        UC2("Select Flight")
+        UC3("Book Flight")
+        UC4("Pay for Flight")
+        UC5("Cancel Flight Booking")
+        UC6("View Booking History")
         
-        usecase "Manage Flights" as UC_Admin1
-        usecase "Manage Passengers" as UC_Admin2
-    }
+        UC_Admin1("Manage Flights")
+        UC_Admin2("Manage Passengers")
+    end
 
     User --> UC1
     User --> UC2
@@ -575,21 +575,21 @@ usecaseDiagram
 ### 8.2. Hotel Booking Module
 
 ```mermaid
-usecaseDiagram
-    actor "Customer" as User
-    actor "Partner/Admin" as Vendor
+graph LR
+    User(("Customer"))
+    Vendor(("Partner/Admin"))
 
-    package "Hotel System" {
-        usecase "Search Hotels" as UC_H1
-        usecase "Filter & Sort" as UC_H2
-        usecase "View Details" as UC_H3
-        usecase "Book Room" as UC_H4
-        usecase "Pay for Room" as UC_H5
-        usecase "Cancel Booking" as UC_H6
+    subgraph "Hotel System"
+        UC_H1("Search Hotels")
+        UC_H2("Filter & Sort")
+        UC_H3("View Details")
+        UC_H4("Book Room")
+        UC_H5("Pay for Room")
+        UC_H6("Cancel Booking")
         
-        usecase "Manage Hotels" as UC_V1
-        usecase "Manage Bookings" as UC_V2
-    }
+        UC_V1("Manage Hotels")
+        UC_V2("Manage Bookings")
+    end
 
     User --> UC_H1
     User --> UC_H2
@@ -626,17 +626,17 @@ usecaseDiagram
 ### 8.3. Car Rental Module
 
 ```mermaid
-usecaseDiagram
-    actor "Customer" as User
-    actor "Partner/Admin" as Vendor
+graph LR
+    User(("Customer"))
+    Vendor(("Partner/Admin"))
 
-    package "Car Rental System" {
-        usecase "Select Car" as UC_C1
-        usecase "Register Rental Info" as UC_C2
-        usecase "Pay Rental" as UC_C3
-        usecase "Cancel Selection" as UC_C4
-        usecase "Manage Cars" as UC_V_C1
-    }
+    subgraph "Car Rental System"
+        UC_C1("Select Car")
+        UC_C2("Register Rental Info")
+        UC_C3("Pay Rental")
+        UC_C4("Cancel Selection")
+        UC_V_C1("Manage Cars")
+    end
 
     User --> UC_C1
     User --> UC_C2
@@ -656,18 +656,18 @@ usecaseDiagram
 ### 8.4. Activity Booking Module
 
 ```mermaid
-usecaseDiagram
-    actor "Customer" as User
-    actor "Partner/Admin" as Vendor
+graph LR
+    User(("Customer"))
+    Vendor(("Partner/Admin"))
 
-    package "Activity System" {
-        usecase "Search Activities" as UC_A1
-        usecase "Book Spot" as UC_A2
-        usecase "Cancel Spot" as UC_A3
-        usecase "Apply Promotion" as UC_A4
+    subgraph "Activity System"
+        UC_A1("Search Activities")
+        UC_A2("Book Spot")
+        UC_A3("Cancel Spot")
+        UC_A4("Apply Promotion")
         
-        usecase "Manage Activities" as UC_V_A1
-    }
+        UC_V_A1("Manage Activities")
+    end
 
     User --> UC_A1
     User --> UC_A2
@@ -689,19 +689,19 @@ usecaseDiagram
 #### Promotions Module
 
 ```mermaid
-usecaseDiagram
-    actor "Customer" as User
-    actor "Manager" as Vendor
+graph LR
+    User(("Customer"))
+    Vendor(("Manager"))
 
-    package "Promotion System" {
-        usecase "Filter Promotions" as UC_P1
-        usecase "Select Promotion" as UC_P2
-        usecase "Apply Promo Code" as UC_P3
+    subgraph "Promotion System"
+        UC_P1("Filter Promotions")
+        UC_P2("Select Promotion")
+        UC_P3("Apply Promo Code")
         
-        usecase "Create Promotion" as UC_V_P1
-        usecase "Update Promotion" as UC_V_P2
-        usecase "Delete Promotion" as UC_V_P3
-    }
+        UC_V_P1("Create Promotion")
+        UC_V_P2("Update Promotion")
+        UC_V_P3("Delete Promotion")
+    end
 
     User --> UC_P1
     User --> UC_P2
@@ -720,17 +720,17 @@ usecaseDiagram
 #### Travel Guide Module
 
 ```mermaid
-usecaseDiagram
-    actor "Customer" as User
-    actor "Manager" as Vendor
+graph LR
+    User(("Customer"))
+    Vendor(("Manager"))
 
-    package "Travel Guide System" {
-        usecase "Search Guides" as UC_TG1
-        usecase "Filter Guides" as UC_TG2
-        usecase "View Article" as UC_TG3
+    subgraph "Travel Guide System"
+        UC_TG1("Search Guides")
+        UC_TG2("Filter Guides")
+        UC_TG3("View Article")
         
-        usecase "Manage Guides" as UC_V_TG1
-    }
+        UC_V_TG1("Manage Guides")
+    end
 
     User --> UC_TG1
     User --> UC_TG2
@@ -747,14 +747,14 @@ usecaseDiagram
 ### 8.6. Company Info
 
 ```mermaid
-usecaseDiagram
-    actor "Customer" as User
-    actor "Manager" as Admin
+graph LR
+    User(("Customer"))
+    Admin(("Manager"))
 
-    package "Company Info" {
-        usecase "View Company Info" as UC_CI1
-        usecase "Edit Company Info" as UC_CI2
-    }
+    subgraph "Company Info"
+        UC_CI1("View Company Info")
+        UC_CI2("Edit Company Info")
+    end
 
     User --> UC_CI1
     Admin --> UC_CI2
