@@ -430,7 +430,7 @@ flowchart TD
     SetPending --> FindVendor[Determine Vendor ID]
     FindVendor --> SaveBooking[Save to Database]
     
-    SaveBooking --> ReturnPending[Return BookingDTO (PENDING)]
+    SaveBooking --> ReturnPending["Return BookingDTO (PENDING)"]
     ReturnPending --> UserPayment[User Proceeds to Payment]
     
     UserPayment --> PaymentFlow[[Payment Process]]
@@ -484,7 +484,7 @@ flowchart TD
     
     UpdatePaid --> DetermineType{Payment Type?}
     
-    DetermineType -->|WALLET_TOPUP| TopUpWallet[WalletService.updateBalance (+)]
+    DetermineType -->|WALLET_TOPUP| TopUpWallet["WalletService.updateBalance (+)"]
     DetermineType -->|BOOKING| ConfirmBook[BookingService.confirmBooking]
     
     TopUpWallet --> End([End])
@@ -593,7 +593,7 @@ graph TB
         Service[Services]
         Repository[Repositories]
         Security[Spring Security + JWT]
-        Entities[Entities (Domain Model)]
+        Entities["Entities (Domain Model)"]
     end
 
     subgraph "Database"
@@ -626,7 +626,7 @@ graph TB
     subgraph "Main Application"
         App[App.tsx]
         MainApp[MainApp.tsx]
-        Router[Router Logic (State Based)]
+        Router["Router Logic (State Based)"]
     end
 
     subgraph "Core Components"
@@ -854,7 +854,7 @@ flowchart TD
     CheckWindow -->|"No (Too late/early)"| Deny([Reject Request Immediately])
     
     CheckWindow -->|Yes| SetRequested[Set BookingStatus = REFUND_REQUESTED]
-    SetRequested --> CreateRefund[Create Refund Record (PENDING)]
+    SetRequested --> CreateRefund["Create Refund Record (PENDING)"]
     
     CreateRefund --> AdminReview[[Admin Review Process]]
     
