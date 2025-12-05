@@ -680,9 +680,9 @@ graph TB
     Header --> Notify
     Home --> Hero
     
-    Hero --> API : Search Requests
-    Booking --> API : Create Booking
-    Auth --> API : Login/Register
+    Hero -->|"Search Requests"| API
+    Booking -->|"Create Booking"| API
+    Auth -->|"Login/Register"| API
 ```
 
 ### Detailed Component Information
