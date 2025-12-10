@@ -1,36 +1,27 @@
 package com.wanderlust.api.services;
 
-import com.wanderlust.api.dto.BookingDTO;
-import com.wanderlust.api.entity.Booking;
-import com.wanderlust.api.entity.types.BookingStatus;
-import com.wanderlust.api.mapper.BookingMapper;
-import com.wanderlust.api.repository.BookingRepository;
-import com.wanderlust.api.dto.BookingStatisticsDTO;
-
-// === CÁC IMPORT ĐỂ LẤY VENDOR ID ===
-import com.wanderlust.api.entity.Activity;
-import com.wanderlust.api.entity.CarRental;
-import com.wanderlust.api.entity.Hotel;
-import com.wanderlust.api.entity.Room;
-import com.wanderlust.api.entity.types.BookingType;
-import com.wanderlust.api.repository.HotelRepository;
-import com.wanderlust.api.repository.RoomRepository;
-import com.wanderlust.api.services.ActivityService;
-import com.wanderlust.api.services.CarRentalService;
-
-// === IMPORT EXCEPTION MỚI ===
-import com.wanderlust.api.exception.ResourceNotFoundException;
-
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import com.wanderlust.api.dto.BookingDTO;
+import com.wanderlust.api.dto.BookingStatisticsDTO;
+import com.wanderlust.api.entity.Booking;
+import com.wanderlust.api.entity.types.BookingStatus;
+import com.wanderlust.api.entity.types.BookingType;
+import com.wanderlust.api.exception.ResourceNotFoundException;
+import com.wanderlust.api.mapper.BookingMapper;
+import com.wanderlust.api.repository.BookingRepository;
+import com.wanderlust.api.repository.HotelRepository;
+import com.wanderlust.api.repository.RoomRepository;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @AllArgsConstructor
@@ -44,6 +35,7 @@ public class BookingService {
     private final RoomRepository roomRepository;
     private final ActivityService activityService;
     private final CarRentalService carRentalService;
+    private final MoneyTransferService moneyTransferService;
 
     private final Sort defaultSort = Sort.by(Sort.Direction.DESC, "createdAt");
 
@@ -206,12 +198,61 @@ public class BookingService {
     }
 
     // --- ACTION: Yêu cầu hoàn tiền (User) ---
-    public BookingDTO requestRefund(String id) {
+    public BookingDTO requestRefund(String id, String reason) {
         Booking booking = bookingRepository.findById(id)
                 // THAY ĐỔI TẠI ĐÂY
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", id));
 
+        // Kiểm tra thời gian cho phép refund: trước endDate + 24h
+        LocalDateTime refundDeadline = booking.getEndDate().plusHours(24);
+        if (LocalDateTime.now().isAfter(refundDeadline)) {
+            throw new RuntimeException("Refund deadline has passed. You can only request refund within 24 hours after booking end date.");
+        }
+
         booking.setStatus(BookingStatus.REFUND_REQUESTED);
+        booking.setCancellationReason(reason);
+
+        return bookingMapper.toDTO(bookingRepository.save(booking));
+    }
+
+    // --- ACTION: Admin/Vendor approve refund ---
+    public BookingDTO approveRefund(String id, String approvedBy, boolean isVendorApproval) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", id));
+
+        if (booking.getStatus() != BookingStatus.REFUND_REQUESTED) {
+            throw new RuntimeException("Booking is not in refund requested status");
+        }
+
+        // Xử lý hoàn tiền qua MoneyTransferService
+        try {
+            moneyTransferService.processRefund(booking.getId(), approvedBy, isVendorApproval);
+            log.info("✅ Refund approved and processed for booking: {}", booking.getBookingCode());
+        } catch (Exception e) {
+            log.error("❌ Failed to process refund for booking {}: {}", booking.getBookingCode(), e.getMessage());
+            throw new RuntimeException("Failed to process refund: " + e.getMessage());
+        }
+
+        // Cập nhật status booking
+        booking.setStatus(BookingStatus.CANCELLED);
+        booking.setCancelledBy(approvedBy);
+        booking.setCancelledAt(LocalDateTime.now());
+
+        return bookingMapper.toDTO(bookingRepository.save(booking));
+    }
+
+    // --- ACTION: Admin/Vendor reject refund ---
+    public BookingDTO rejectRefund(String id, String rejectedBy, String reason) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", id));
+
+        if (booking.getStatus() != BookingStatus.REFUND_REQUESTED) {
+            throw new RuntimeException("Booking is not in refund requested status");
+        }
+
+        // Trở về trạng thái CONFIRMED
+        booking.setStatus(BookingStatus.CONFIRMED);
+        booking.setCancellationReason("Refund rejected: " + reason);
 
         return bookingMapper.toDTO(bookingRepository.save(booking));
     }
@@ -264,7 +305,17 @@ public class BookingService {
         booking.setUserConfirmed(true);
         booking.setAutoCompleted(false);
 
-        return bookingMapper.toDTO(bookingRepository.save(booking));
+        Booking savedBooking = bookingRepository.save(booking);
+
+        // Chuyển tiền cho vendor/admin sau khi user confirm
+        try {
+            moneyTransferService.processBookingCompletionTransfer(booking.getId());
+            log.info("✅ Money transferred for user-confirmed booking: {}", booking.getBookingCode());
+        } catch (Exception e) {
+            log.error("❌ Failed to transfer money for booking {}: {}", booking.getBookingCode(), e.getMessage());
+        }
+
+        return bookingMapper.toDTO(savedBooking);
     }
 
     // --- DELETE: Xóa cứng (Admin) ---

@@ -43,15 +43,18 @@ public class FlightService {
 
     /**
      * Tìm kiếm chuyến bay (Core function cho frontend) - Nâng cao
-     * @param from - Mã sân bay đi (VD: "SGN")
-     * @param to - Mã sân bay đến (VD: "HAN")
-     * @param date - Ngày bay (LocalDate)
-     * @param directOnly - Chỉ tìm chuyến bay thẳng?
-     * @param airlineCodes - Lọc theo hãng bay (optional)
-     * @param minPrice - Giá tối thiểu (optional)
-     * @param maxPrice - Giá tối đa (optional)
-     * @param cabinClass - Hạng vé: "economy", "premiumEconomy", "business" (optional)
-     * @param departureTimeRange - Khung giờ khởi hành: "morning" (6-12h), "afternoon" (12-18h), "evening" (18-24h) (optional)
+     * 
+     * @param from               - Mã sân bay đi (VD: "SGN")
+     * @param to                 - Mã sân bay đến (VD: "HAN")
+     * @param date               - Ngày bay (LocalDate)
+     * @param directOnly         - Chỉ tìm chuyến bay thẳng?
+     * @param airlineCodes       - Lọc theo hãng bay (optional)
+     * @param minPrice           - Giá tối thiểu (optional)
+     * @param maxPrice           - Giá tối đa (optional)
+     * @param cabinClass         - Hạng vé: "economy", "premiumEconomy", "business"
+     *                           (optional)
+     * @param departureTimeRange - Khung giờ khởi hành: "morning" (6-12h),
+     *                           "afternoon" (12-18h), "evening" (18-24h) (optional)
      * @return Danh sách chuyến bay phù hợp
      */
     public List<Flight> searchFlights(
@@ -63,8 +66,7 @@ public class FlightService {
             java.math.BigDecimal minPrice,
             java.math.BigDecimal maxPrice,
             String cabinClass,
-            String departureTimeRange
-    ) {
+            String departureTimeRange) {
         // Tạo khoảng thời gian cho cả ngày
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
@@ -74,8 +76,7 @@ public class FlightService {
                 from,
                 to,
                 startOfDay,
-                endOfDay
-        );
+                endOfDay);
 
         // Lọc theo direct flight nếu cần
         if (directOnly != null && directOnly) {
@@ -97,12 +98,12 @@ public class FlightService {
                     .filter(f -> {
                         // Lấy giá thấp nhất của cabin class được chọn (hoặc economy nếu không chọn)
                         String targetCabin = (cabinClass != null && !cabinClass.isEmpty()) ? cabinClass : "economy";
-                        
+
                         if (f.getCabinClasses() != null && f.getCabinClasses().containsKey(targetCabin)) {
                             Flight.CabinClassInfo cabinInfo = f.getCabinClasses().get(targetCabin);
                             if (cabinInfo != null && cabinInfo.getFromPrice() != null) {
                                 java.math.BigDecimal price = cabinInfo.getFromPrice();
-                                
+
                                 // Kiểm tra khoảng giá
                                 if (minPrice != null && price.compareTo(minPrice) < 0) {
                                     return false;
@@ -121,10 +122,11 @@ public class FlightService {
         if (departureTimeRange != null && !departureTimeRange.isEmpty()) {
             flights = flights.stream()
                     .filter(f -> {
-                        if (f.getDepartureTime() == null) return true;
-                        
+                        if (f.getDepartureTime() == null)
+                            return true;
+
                         int hour = f.getDepartureTime().getHour();
-                        
+
                         switch (departureTimeRange.toLowerCase()) {
                             case "morning":
                             case "early":
@@ -159,22 +161,34 @@ public class FlightService {
     }
 
     /**
+     * Lấy các chuyến bay gần nhất sắp khởi hành
+     */
+    public List<Flight> getNearestFlights(int limit) {
+        LocalDateTime now = LocalDateTime.now();
+        // Lấy chuyến bay từ thời điểm hiện tại trở đi
+        return flightRepository.findByDepartureTimeAfterOrderByDepartureTimeAsc(now)
+                .stream()
+                .filter(f -> f.getStatus() == FlightStatus.SCHEDULED)
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Lấy chuyến bay theo nhiều ngày (cho lịch giá 7 ngày)
      */
     public List<Flight> getFlightsByDateRange(
             String from,
             String to,
             LocalDate startDate,
-            LocalDate endDate
-    ) {
+            LocalDate endDate) {
         LocalDateTime start = startDate.atStartOfDay();
         LocalDateTime end = endDate.atTime(LocalTime.MAX);
 
         return flightRepository.findByDepartureTimeBetween(start, end)
                 .stream()
                 .filter(f -> f.getDepartureAirportCode().equals(from) &&
-                             f.getArrivalAirportCode().equals(to) &&
-                             f.getStatus() == FlightStatus.SCHEDULED)
+                        f.getArrivalAirportCode().equals(to) &&
+                        f.getStatus() == FlightStatus.SCHEDULED)
                 .collect(Collectors.toList());
     }
 
@@ -203,7 +217,7 @@ public class FlightService {
         if (flight.getIsDirect() == null) {
             flight.setIsDirect(flight.getStops() == null || flight.getStops() == 0);
         }
-        
+
         return flightRepository.save(flight);
     }
 

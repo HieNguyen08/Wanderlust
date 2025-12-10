@@ -4,13 +4,15 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+
+import com.wanderlust.api.entity.types.PromotionCategory;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Document(collection = "promotions")
 @Data
@@ -52,7 +54,13 @@ public class Promotion {
     private LocalDate endDate;
 
     @Field("category")
-    private String category; // hotel, flight, car, activity, all
+    private PromotionCategory category; // Enum: HOTEL, FLIGHT, CAR, ACTIVITY, ALL
+
+    @Field("vendorId")
+    private String vendorId; // ID của vendor tạo promotion (null nếu admin tạo)
+
+    @Field("adminCreateCheck")
+    private Boolean adminCreateCheck; // true = admin tạo, false = vendor tạo
 
     @Field("destination")
     private String destination;

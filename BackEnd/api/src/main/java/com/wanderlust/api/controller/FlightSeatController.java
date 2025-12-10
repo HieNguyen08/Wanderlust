@@ -128,4 +128,15 @@ public class FlightSeatController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    // Get available seats count by cabin class for a flight
+    @GetMapping("/flight/{flightId}/available")
+    public ResponseEntity<?> getAvailableSeatsByClass(@PathVariable String flightId) {
+        try {
+            java.util.Map<String, Long> availableSeats = flightSeatService.getAvailableSeatsByClass(flightId);
+            return new ResponseEntity<>(availableSeats, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

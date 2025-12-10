@@ -68,6 +68,7 @@ public class SecurityConfig {
                         "/api/hotels", "/api/hotels/**",
                         "/api/locations", "/api/locations/**",
                         "/api/promotions", "/api/promotions/**",
+                        "/api/promotions/active/category/**", // Cho phép khách xem khuyến mãi theo danh mục
                         "/api/reviews", "/api/reviews/{id}", // Cho xem list & chi tiết
                         "/api/rooms/{id}", "/api/rooms/{id}/availability", // Cho xem chi tiết phòng
                         "/api/travelguides", "/api/travelguides/**",

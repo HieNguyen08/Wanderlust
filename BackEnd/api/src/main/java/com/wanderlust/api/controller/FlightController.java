@@ -53,9 +53,9 @@ public class FlightController {
             @RequestParam(required = false) java.math.BigDecimal maxPrice,
             @RequestParam(required = false) String cabinClass,
             @RequestParam(required = false) String departureTimeRange) {
-        
+
         List<Flight> flights = flightService.searchFlights(
-                from, to, date, directOnly, airlines, 
+                from, to, date, directOnly, airlines,
                 minPrice, maxPrice, cabinClass, departureTimeRange);
         return ResponseEntity.ok(flights);
     }
@@ -66,8 +66,15 @@ public class FlightController {
             @RequestParam String to,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        
+
         List<Flight> flights = flightService.getFlightsByDateRange(from, to, startDate, endDate);
+        return ResponseEntity.ok(flights);
+    }
+
+    @GetMapping("/nearest")
+    public ResponseEntity<List<Flight>> getNearestFlights(
+            @RequestParam(defaultValue = "50") int limit) {
+        List<Flight> flights = flightService.getNearestFlights(limit);
         return ResponseEntity.ok(flights);
     }
 

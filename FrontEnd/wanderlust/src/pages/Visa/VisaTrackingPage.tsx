@@ -1,13 +1,13 @@
 import {
-    ArrowLeft,
-    Calendar,
-    CheckCircle2,
-    FileText,
-    Mail,
-    MapPin,
-    MessageSquare,
-    Phone,
-    User
+  ArrowLeft,
+  Calendar,
+  CheckCircle2,
+  FileText,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Phone,
+  User
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Footer } from "../../components/Footer";
@@ -32,7 +32,7 @@ interface VisaTrackingPageProps {
 }
 
 export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrackingPageProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   if (!trackingData) {
     return null;
   }
@@ -59,7 +59,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
         {/* What's Next */}
         <Card className="p-8 mb-8">
           <h2 className="text-3xl mb-6 text-center">{t('visa.nextSteps')}</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -166,7 +166,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
                 <div>
                   <p className="text-sm text-gray-600">{t('visa.departureDatePlan')}</p>
                   <p className="font-medium">
-                    {new Date(trackingData.expectedDate).toLocaleDateString('vi-VN')}
+                    {new Date(trackingData.expectedDate).toLocaleDateString(i18n.language)}
                   </p>
                 </div>
               </div>
@@ -189,7 +189,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
         {/* Contact Info */}
         <Card className="p-8 bg-linear-to-br from-blue-50 to-blue-100">
           <h2 className="text-2xl mb-6">{t('common.contactInfo')}</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white rounded-lg p-6">
               <div className="flex items-start gap-3">
@@ -225,7 +225,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
 
         {/* Actions */}
         <div className="flex gap-4 justify-center mt-8">
-          <Button 
+          <Button
             size="lg"
             onClick={() => onNavigate("visa")}
             className="gap-2"
@@ -233,7 +233,7 @@ export default function VisaTrackingPage({ onNavigate, trackingData }: VisaTrack
             <ArrowLeft className="w-5 h-5" />
             {t('visa.backToVisaPage')}
           </Button>
-          <Button 
+          <Button
             size="lg"
             variant="outline"
             onClick={() => onNavigate("home")}

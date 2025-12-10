@@ -250,15 +250,15 @@ export const profileApi = {
     return response.json();
   },
 
-  // POST /api/v1/users/me/request-partner-role - Yêu cầu nâng cấp vai trò
-  requestPartnerRole: async () => {
-    const response = await authenticatedFetch('/api/v1/users/me/request-partner-role', {
+  // POST /api/v1/users/me/request-vendor-role - Yêu cầu nâng cấp vai trò
+  requestVendorRole: async () => {
+    const response = await authenticatedFetch('/api/v1/users/me/request-vendor-role', {
       method: 'POST',
     });
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(error || 'Failed to request partner role');
+      throw new Error(error || 'Failed to request vendor role');
     }
 
     return response.text();
@@ -337,46 +337,25 @@ export const walletApi = {
 
 // Transaction API endpoints
 export const transactionApi = {
-  // GET /api/v1/transactions - Lấy lịch sử giao dịch
+  // GET /api/v1/wallet/transactions - Lấy lịch sử giao dịch từ wallet_transaction
   getTransactions: async (params?: {
     page?: number;
     size?: number;
-    type?: string; // "CREDIT", "DEBIT", "REFUND", "WITHDRAW"
-    status?: string; // "PENDING", "COMPLETED", "FAILED"
   }) => {
     const queryParams = new URLSearchParams();
     if (params?.page !== undefined) queryParams.append('page', params.page.toString());
     if (params?.size !== undefined) queryParams.append('size', params.size.toString());
-    if (params?.type) queryParams.append('type', params.type);
-    if (params?.status) queryParams.append('status', params.status);
 
-    const url = `/api/v1/transactions${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
-    const response = await authenticatedFetch(url);
-
+    const response = await authenticatedFetch(`/api/v1/wallet/transactions?${queryParams.toString()}`);
+    
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+      }
       const error = await response.text();
       throw new Error(error || 'Failed to fetch transactions');
     }
-    return response.json();
-  },
 
-  // GET /api/v1/transactions/{transactionId} - Lấy chi tiết giao dịch
-  getTransactionDetail: async (transactionId: string) => {
-    const response = await authenticatedFetch(`/api/v1/transactions/${transactionId}`);
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || 'Failed to fetch transaction detail');
-    }
-    return response.json();
-  },
-
-  // GET /api/v1/transactions/summary - Lấy tổng quan giao dịch
-  getSummary: async () => {
-    const response = await authenticatedFetch('/api/v1/transactions/summary');
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || 'Failed to fetch transaction summary');
-    }
     return response.json();
   },
 };
@@ -792,6 +771,15 @@ export const flightApi = {
     const response = await fetch(`${API_BASE_URL}/api/flights`);
     if (!response.ok) {
       throw new Error('Failed to fetch flights');
+    }
+    return response.json();
+  },
+
+  // Lấy các chuyến bay gần nhất
+  getNearestFlights: async (limit: number = 50) => {
+    const response = await fetch(`${API_BASE_URL}/api/flights/nearest?limit=${limit}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch nearest flights');
     }
     return response.json();
   },
@@ -2030,6 +2018,27 @@ export const vendorApi = {
     const response = await authenticatedFetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch ${serviceType}`);
+    }
+    return response.json();
+  },
+};
+
+// Flight Seat API endpoints
+export const flightSeatApi = {
+  // Lấy ghế của chuyến bay
+  getSeatsByFlight: async (flightId: string) => {
+    const response = await authenticatedFetch(`/api/flight-seats/flight/${flightId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch flight seats');
+    }
+    return response.json();
+  },
+
+  // Lấy số ghế còn trống theo hạng vé
+  getAvailableSeatsByClass: async (flightId: string) => {
+    const response = await fetch(`${API_BASE_URL}/api/flight-seats/flight/${flightId}/available`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch available seats count');
     }
     return response.json();
   },

@@ -32,8 +32,18 @@ export function PaymentMethodSelector({
 
   const loadWalletBalance = async () => {
     try {
-      const wallet = await walletApi.getMyWallet();
-      setWalletBalance(wallet.balance || 0);
+      const getter =
+        walletApi.getWallet ||
+        // Backwards compatibility for older naming still referenced in some builds
+        (walletApi as any).getMyWallet;
+
+      if (!getter) {
+        throw new Error('walletApi.getWallet is not available');
+      }
+
+      const wallet = await getter();
+      const balance = Number(wallet.balance ?? wallet.amount ?? 0);
+      setWalletBalance(Number.isFinite(balance) ? balance : 0);
     } catch (error) {
       console.error('Failed to load wallet balance:', error);
     } finally {
@@ -69,7 +79,7 @@ export function PaymentMethodSelector({
             </div>
             <div className="flex-1">
               <p className="font-medium">
-                {t('payment.wallet', 'Ví Wanderlust')}
+                {t('payment.wallet', 'Ví của tôi')}
               </p>
               <p className="text-sm text-gray-500">
                 {loadingWallet
@@ -96,49 +106,6 @@ export function PaymentMethodSelector({
           </div>
         </Card>
       )}
-
-      {/* MoMo */}
-      <Card
-        className={`p-4 cursor-pointer transition-all ${
-          selectedMethod === 'MOMO'
-            ? 'border-pink-600 bg-pink-50 ring-2 ring-pink-200'
-            : 'hover:border-gray-300'
-        } ${disabled ? 'pointer-events-none opacity-60' : ''}`}
-        onClick={() => !disabled && onMethodChange('MOMO')}
-      >
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8" viewBox="0 0 48 48" fill="none">
-              <circle cx="24" cy="24" r="20" fill="#A50064" />
-              <text
-                x="24"
-                y="30"
-                fontSize="16"
-                fontWeight="bold"
-                fill="white"
-                textAnchor="middle"
-              >
-                M
-              </text>
-            </svg>
-          </div>
-          <div className="flex-1">
-            <p className="font-medium">{t('payment.momo', 'MoMo E-Wallet')}</p>
-            <p className="text-sm text-gray-500">
-              {t('payment.momoDesc', 'Thanh toán qua ví MoMo (Test Mode)')}
-            </p>
-          </div>
-          <div
-            className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-              selectedMethod === 'MOMO' ? 'border-pink-600' : 'border-gray-300'
-            }`}
-          >
-            {selectedMethod === 'MOMO' && (
-              <div className="w-3 h-3 bg-pink-600 rounded-full" />
-            )}
-          </div>
-        </div>
-      </Card>
 
       {/* Stripe */}
       <Card
@@ -185,17 +152,6 @@ export function PaymentMethodSelector({
         </div>
       )}
 
-      {/* Test Info for MoMo */}
-      {selectedMethod === 'MOMO' && process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-4 bg-pink-50 border border-pink-200 rounded-lg">
-          <p className="text-sm font-medium text-pink-800 mb-2">
-            ⚠️ {t('payment.testMode', 'Chế độ Test')}
-          </p>
-          <p className="text-xs text-pink-700">
-            {t('payment.testMomoInfo', 'Đây là môi trường test MoMo. Giao dịch sẽ được giả lập.')}
-          </p>
-        </div>
-      )}
     </div>
   );
 }

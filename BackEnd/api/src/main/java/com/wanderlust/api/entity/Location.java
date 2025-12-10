@@ -46,7 +46,7 @@ public class Location {
     
     // Quan trọng: Dùng Map<String, Object> để lưu JSON động
     // Ví dụ: { "weather": "tropical", "bestTimeToVisit": "May-Aug" }
-    private Map<String, Object> metadata; 
+    private Map<String, Object> metadata;
 
     @CreatedDate
     private LocalDateTime createdAt;

@@ -36,6 +36,7 @@ import com.wanderlust.api.entity.types.TransactionType;
 import com.wanderlust.api.exception.ResourceNotFoundException;
 import com.wanderlust.api.mapper.PaymentMapper;
 import com.wanderlust.api.repository.PaymentRepository;
+import com.wanderlust.api.repository.UserRepository;
 import com.wanderlust.api.repository.WalletRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +51,8 @@ public class PaymentService {
     private final BookingService bookingService;
     private final WalletRepository walletRepository;
     private final TransactionService transactionService;
+    private final MoneyTransferService moneyTransferService;
+    private final UserRepository userRepository;
 
     // Constructor với @Lazy để tránh circular dependency
     public PaymentService(
@@ -58,13 +61,17 @@ public class PaymentService {
             @Lazy WalletService walletService,
             BookingService bookingService,
             WalletRepository walletRepository,
-            TransactionService transactionService) {
+            TransactionService transactionService,
+            MoneyTransferService moneyTransferService,
+            UserRepository userRepository) {
         this.paymentRepository = paymentRepository;
         this.paymentMapper = paymentMapper;
         this.walletService = walletService;
         this.bookingService = bookingService;
         this.walletRepository = walletRepository;
         this.transactionService = transactionService;
+        this.moneyTransferService = moneyTransferService;
+        this.userRepository = userRepository;
     }
 
     private final Sort defaultSort = Sort.by(Sort.Direction.DESC, "createdAt");
@@ -107,6 +114,17 @@ public class PaymentService {
 
     @Transactional
     public PaymentDTO initiatePayment(PaymentDTO paymentDTO) {
+        // Resolve userId from email when missing (token only holds email)
+        if ((paymentDTO.getUserId() == null || paymentDTO.getUserId().isBlank())
+                && paymentDTO.getUserEmail() != null) {
+            userRepository.findByEmail(paymentDTO.getUserEmail())
+                    .ifPresent(user -> paymentDTO.setUserId(user.getUserId()));
+        }
+
+        if (paymentDTO.getUserId() == null || paymentDTO.getUserId().isBlank()) {
+            throw new ResourceNotFoundException("User not found for payment");
+        }
+
         Payment payment = paymentMapper.toEntity(paymentDTO);
         payment.setStatus(PaymentStatus.PENDING);
         payment.setCreatedAt(LocalDateTime.now());
@@ -118,16 +136,57 @@ public class PaymentService {
 
         String paymentUrl = "";
 
-        if (payment.getPaymentMethod() == PaymentMethod.STRIPE) {
+        if (payment.getPaymentMethod() == PaymentMethod.WALLET) {
+            // Thanh toán bằng ví - xử lý ngay lập tức
+            processWalletPayment(payment);
+            // Không có paymentUrl vì thanh toán trực tiếp
+            payment.setMetadata(Map.of("message", "Payment processed via wallet"));
+        } else if (payment.getPaymentMethod() == PaymentMethod.STRIPE) {
+            // Thanh toán bằng Stripe - tạo session và trả về URL
             paymentUrl = initiateStripePayment(payment);
+            payment.setMetadata(Map.of("paymentUrl", paymentUrl));
         } else {
             // Default simulated payment for other methods
             paymentUrl = "https://simulated-payment-gateway.com/pay?tx=" + payment.getTransactionId();
+            payment.setMetadata(Map.of("paymentUrl", paymentUrl));
         }
 
-        payment.setMetadata(Map.of("paymentUrl", paymentUrl));
         Payment savedPayment = paymentRepository.save(payment);
         return paymentMapper.toDTO(savedPayment);
+    }
+
+    /**
+     * Xử lý thanh toán bằng ví
+     */
+    private void processWalletPayment(Payment payment) {
+        try {
+            String userId = payment.getUserId();
+            String bookingId = payment.getBookingId();
+            BigDecimal amount = payment.getAmount();
+
+            // Kiểm tra số dư
+            if (!walletService.hasSufficientBalance(userId, amount)) {
+                payment.setStatus(PaymentStatus.FAILED);
+                payment.setErrorMessage("Insufficient balance in wallet");
+                payment.setFailedAt(LocalDateTime.now());
+                throw new RuntimeException("Insufficient balance in wallet");
+            }
+
+            // Chuyển tiền từ user -> admin
+            moneyTransferService.processBookingPayment(bookingId, userId, "WALLET");
+
+            // Cập nhật trạng thái payment
+            payment.setStatus(PaymentStatus.COMPLETED);
+            payment.setPaidAt(LocalDateTime.now());
+
+            log.info("✅ Wallet payment completed for booking {}", bookingId);
+        } catch (Exception e) {
+            payment.setStatus(PaymentStatus.FAILED);
+            payment.setErrorMessage(e.getMessage());
+            payment.setFailedAt(LocalDateTime.now());
+            log.error("❌ Wallet payment failed: {}", e.getMessage());
+            throw new RuntimeException("Wallet payment failed: " + e.getMessage());
+        }
     }
 
     private String initiateStripePayment(Payment payment) {
@@ -307,8 +366,9 @@ public class PaymentService {
                     System.err.println("❌ Failed to update wallet balance: " + e.getMessage());
                 }
             } else {
-                // 2. Logic Booking: Xác nhận đơn hàng
+                // 2. Logic Booking: chuyển tiền về admin và xác nhận đơn hàng
                 try {
+                    moneyTransferService.processBookingPayment(payment.getBookingId(), payment.getUserId(), payment.getPaymentMethod().name());
                     bookingService.confirmBooking(payment.getBookingId());
                     System.out.println("✅ Booking confirmed: " + payment.getBookingId());
                 } catch (Exception e) {

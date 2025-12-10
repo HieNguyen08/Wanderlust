@@ -572,7 +572,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
                               </button>
                             </>
                           )}
-                          {/* Vendor Panel - chỉ hiển thị nếu role === 'vendor' (backend PARTNER) */}
+                          {/* Vendor Panel - chỉ hiển thị nếu role === 'vendor' (backend VENDOR) */}
                           {isVendorUser && (
                             <>
                               <div className="my-1 border-t border-gray-200"></div>

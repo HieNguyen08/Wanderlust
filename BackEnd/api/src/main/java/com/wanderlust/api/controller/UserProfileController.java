@@ -1,22 +1,24 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.dto.ChangePasswordDTO;
-import com.wanderlust.api.dto.MembershipInfoDTO;
-import com.wanderlust.api.dto.UserProfileResponseDTO;
-import com.wanderlust.api.dto.UserProfileUpdateDTO;
-import com.wanderlust.api.dto.UserStatsDTO;
-import com.wanderlust.api.dto.NotificationSettingsDTO;
-import com.wanderlust.api.services.UserProfileService;
-import com.wanderlust.api.services.CustomUserDetails;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import lombok.RequiredArgsConstructor;
+import com.wanderlust.api.dto.ChangePasswordDTO;
+import com.wanderlust.api.dto.MembershipInfoDTO;
+import com.wanderlust.api.dto.NotificationSettingsDTO;
+import com.wanderlust.api.dto.UserProfileResponseDTO;
+import com.wanderlust.api.dto.UserProfileUpdateDTO;
+import com.wanderlust.api.dto.UserStatsDTO;
+import com.wanderlust.api.services.CustomUserDetails;
+import com.wanderlust.api.services.UserProfileService;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -159,16 +161,16 @@ public class UserProfileController {
     }
     
     // 9. YÊU CẦU NÂNG CẤP VAI TRÒ
-    @PostMapping("/me/request-partner-role")
+    @PostMapping("/me/request-vendor-role")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> requestPartnerRole(
+    public ResponseEntity<String> requestVendorRole(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
         }
         try {
-            userProfileService.requestPartnerRole(userDetails.getUserID());
-            return new ResponseEntity<>("Partner role request submitted. An admin will review it.", HttpStatus.OK);
+            userProfileService.requestVendorRole(userDetails.getUserID());
+            return new ResponseEntity<>("Vendor role request submitted. An admin will review it.", HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

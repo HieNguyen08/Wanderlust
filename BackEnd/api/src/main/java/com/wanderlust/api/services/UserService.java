@@ -69,7 +69,7 @@ public class UserService implements BaseServices<User> {
             updatedUser.setPassword(passwordEncoder.encode(user.getPassword())); // Encode password
             updatedUser.setPasswordChangeAt(LocalDateTime.now()); // **Ghi lại thời gian**
         }
-        // **BẢO VỆ ROLE ADMIN: Chỉ cho phép đổi giữa USER và PARTNER**
+        // **BẢO VỆ ROLE ADMIN: Chỉ cho phép đổi giữa USER và VENDOR**
         if (user.getRole() != null) {
             // Không cho phép đổi sang ADMIN
             if (user.getRole() == Role.ADMIN) {
@@ -79,8 +79,8 @@ public class UserService implements BaseServices<User> {
             if (updatedUser.getRole() == Role.ADMIN) {
                 throw new RuntimeException("Không thể thay đổi role của tài khoản ADMIN.");
             }
-            // Chỉ cho phép đổi giữa USER và PARTNER
-            if (user.getRole() == Role.USER || user.getRole() == Role.PARTNER) {
+            // Chỉ cho phép đổi giữa USER và VENDOR
+            if (user.getRole() == Role.USER || user.getRole() == Role.VENDOR) {
                 updatedUser.setRole(user.getRole());
             }
         }
@@ -96,7 +96,7 @@ public class UserService implements BaseServices<User> {
 		if (user.getLoyaltyPoints() != null) updatedUser.setLoyaltyPoints(user.getLoyaltyPoints());
 		if (user.getTotalTrips() != null) updatedUser.setTotalTrips(user.getTotalTrips());
 		if (user.getTotalReviews() != null) updatedUser.setTotalReviews(user.getTotalReviews());
-        if (user.getPartnerRequestStatus() != null) updatedUser.setPartnerRequestStatus(user.getPartnerRequestStatus());
+        if (user.getVendorRequestStatus() != null) updatedUser.setVendorRequestStatus(user.getVendorRequestStatus());
 
         updatedUser.setUpdatedAt(LocalDateTime.now());
         return userRepository.save(updatedUser );

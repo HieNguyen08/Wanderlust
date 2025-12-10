@@ -127,9 +127,9 @@ export default function HomePage({ onNavigate }: HomePageProps) {
               style={{ transform: `translateX(-${destinationsPage * 100}%)` }}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-w-full">
-                {featuredLocations.slice(0, 6).map((destination, index) => (
+                {featuredLocations.slice(0, 6).map((destination) => (
                   <div
-                    key={index}
+                    key={destination.id || destination.code}
                     className="group cursor-pointer rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2"
                     onClick={() => onNavigate("location-detail", { id: destination.id })}
                   >

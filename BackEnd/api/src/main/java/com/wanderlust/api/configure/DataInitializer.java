@@ -78,8 +78,8 @@ public class DataInitializer implements CommandLineRunner {
         // Tạo User admin
         User admin = User.builder()
                 .userId(ADMIN_USER_ID)
-                .firstName("Quản")
-                .lastName("Trị Viên Admin")
+                .firstName("Trị Viên Admin")
+                .lastName("Quản")
                 .gender(Gender.OTHER)
                 .email(ADMIN_EMAIL)
                 .mobile("0906482890")

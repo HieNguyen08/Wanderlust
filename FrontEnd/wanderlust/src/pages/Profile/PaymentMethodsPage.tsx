@@ -9,7 +9,7 @@ import {
   Tag,
   Users
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
@@ -21,7 +21,10 @@ import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Separator } from "../../components/ui/separator";
-import { bookingApi, tokenService } from "../../utils/api";
+import { useNavigationProps } from "../../router/withPageProps";
+import { bookingApi, promotionApi, tokenService } from "../../utils/api";
+
+const PENDING_PAYMENT_KEY = "wanderlust_pending_payment";
 
 interface PaymentMethodsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -36,42 +39,72 @@ interface VoucherType {
   minOrderValue: number;
   maxDiscount?: number;
   description: string;
+  vendorId?: string;
+  adminCreateCheck?: boolean;
 }
 
 export default function PaymentMethodsPage({
   onNavigate,
-  bookingData
+  bookingData: bookingDataProp
 }: PaymentMethodsPageProps) {
   const { t } = useTranslation();
+  const { pageData, onNavigate: navigateFromHook } = useNavigationProps();
+  const bookingData = bookingDataProp ?? pageData;
+  const goTo = onNavigate ?? navigateFromHook;
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("WALLET");
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<VoucherType | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [availableVouchers, setAvailableVouchers] = useState<VoucherType[]>([]);
+  const [loadingVouchers, setLoadingVouchers] = useState(false);
 
   // Extract booking info
   const bookingType = bookingData?.type || "flight";
-  const totalAmount = bookingData?.totalPrice || 0;
+  const totalAmount = bookingData?.totalPrice || bookingData?.amount || 0;
 
-  // Mock vouchers (replace with API call in production)
-  const availableVouchers: VoucherType[] = [
-    {
-      id: "1",
-      code: "SALE100K",
-      discount: 100000,
-      type: "FIXED_AMOUNT",
-      minOrderValue: 500000,
-      description: t('payment.voucher1Desc', "Giảm 100.000đ cho đơn từ 500.000đ")
-    },
-    {
-      id: "2",
-      code: "DISCOUNT10",
-      discount: 10,
-      type: "PERCENTAGE",
-      minOrderValue: 1000000,
-      maxDiscount: 200000,
-      description: t('payment.voucher2Desc', "Giảm 10% cho đơn từ 1.000.000đ (tối đa 200.000đ)")
-    }
-  ];
+  // Load vouchers from promotions API based on booking type
+  useEffect(() => {
+    const loadVouchers = async () => {
+      try {
+        setLoadingVouchers(true);
+
+        const categoryMap: Record<string, string> = {
+          flight: "FLIGHT",
+          hotel: "HOTEL",
+          "car-rental": "CAR",
+          car: "CAR",
+          activity: "ACTIVITY",
+          all: "ALL"
+        };
+
+        const category = categoryMap[bookingType] || "ALL";
+        const promos = category === "ALL"
+          ? await promotionApi.getActive()
+          : await promotionApi.getActiveByCategory(category);
+
+        const normalized = (promos || []).map((p: any, idx: number) => ({
+          id: p.id || p._id || `${p.code || 'promo'}-${idx}`,
+          code: p.code,
+          discount: p.discountValue ?? p.discount ?? 0,
+          type: (p.discountType || p.type || "FIXED_AMOUNT") as VoucherType["type"],
+          minOrderValue: p.minOrderValue ?? 0,
+          maxDiscount: p.maxDiscount,
+          description: p.description || p.title || p.code,
+          vendorId: p.vendorId,
+          adminCreateCheck: p.adminCreateCheck
+        })) as VoucherType[];
+
+        setAvailableVouchers(normalized);
+      } catch (error: any) {
+        console.error("Failed to load vouchers", error);
+        toast.error(t('payment.cannotLoadVouchers', 'Không thể tải mã giảm giá'));
+      } finally {
+        setLoadingVouchers(false);
+      }
+    };
+
+    loadVouchers();
+  }, [bookingType, t]);
 
   // Calculate discount
   const calculateDiscount = (): number => {
@@ -95,7 +128,8 @@ export default function PaymentMethodsPage({
 
   // Apply voucher
   const handleApplyVoucher = () => {
-    const voucher = availableVouchers.find((v) => v.code === voucherCode.toUpperCase());
+    const targetCode = voucherCode.trim().toUpperCase();
+    const voucher = availableVouchers.find((v) => v.code?.toUpperCase() === targetCode);
 
     if (!voucher) {
       toast.error(t('payment.invalidVoucher', "Mã giảm giá không hợp lệ"));
@@ -120,10 +154,24 @@ export default function PaymentMethodsPage({
     try {
       setIsProcessingPayment(true);
 
+      const isAuthenticated = tokenService.isAuthenticated?.() || !!tokenService.getToken?.();
       const user = tokenService.getUserData();
-      if (!user?.id) {
+
+      if (!isAuthenticated) {
         toast.error(t('common.loginRequired', "Vui lòng đăng nhập"));
-        onNavigate("login");
+        goTo("login");
+        return;
+      }
+
+      const userId = user?.id || bookingData?.userId;
+      const userEmail = user?.email || user?.sub || tokenService.getUserData?.()?.email;
+      if (!userId && !userEmail) {
+        toast.error(t('payment.userMissing', "Không tìm thấy thông tin người dùng"));
+        return;
+      }
+
+      if (finalAmount <= 0) {
+        toast.error(t('payment.invalidAmount', "Số tiền thanh toán không hợp lệ"));
         return;
       }
 
@@ -147,26 +195,40 @@ export default function PaymentMethodsPage({
       // Step 2: Initiate payment
       const paymentRequest = {
         bookingId,
-        userId: user.id,
+        userId,
+        userEmail,
         amount: finalAmount,
         currency: "VND",
         paymentMethod: selectedMethod
-      };
+      } as any;
 
       const paymentResponse = await paymentApi.initiatePayment(paymentRequest);
+
+      // Persist pending payment info for callback pages (Stripe)
+      sessionStorage.setItem(
+        PENDING_PAYMENT_KEY,
+        JSON.stringify({
+          bookingId,
+          paymentId: paymentResponse?.id,
+          amount: finalAmount,
+          method: selectedMethod
+        })
+      );
 
       // Step 3: Handle payment response
       if (selectedMethod === "WALLET") {
         // Wallet payment completes immediately
         toast.success(t('payment.walletPaymentSuccess', "Thanh toán ví thành công!"));
-        onNavigate("payment-success", {
+        sessionStorage.removeItem(PENDING_PAYMENT_KEY);
+        goTo("payment-success", {
           bookingId,
           paymentId: paymentResponse.id
         });
-      } else if (paymentResponse.metadata?.paymentUrl) {
+      } else if (paymentResponse?.metadata?.paymentUrl || (paymentResponse as any)?.paymentUrl) {
         // Redirect to payment gateway (Stripe)
         toast.success(t('payment.redirectingToStripe', "Đang chuyển đến Stripe..."));
-        window.location.href = paymentResponse.metadata.paymentUrl;
+        const redirectUrl = paymentResponse.metadata?.paymentUrl || (paymentResponse as any)?.paymentUrl;
+        window.location.href = redirectUrl;
       } else {
         console.error('Payment response missing paymentUrl:', paymentResponse);
         toast.error(t('payment.noPaymentUrl', "Không nhận được URL thanh toán"));
@@ -226,20 +288,70 @@ export default function PaymentMethodsPage({
     const passengers = bookingData?.passengers || [];
     const contactInfo = bookingData?.contactInfo || {};
     const flightData = bookingData?.flightData || {};
+    const selectedSeats = bookingData?.flightData?.selectedSeats || { outbound: [], return: [] };
+
+    const passengerCounts = bookingData?.passengersCount || bookingData?.passengers || { adults: passengers.length || 1, children: 0, infants: 0 };
+
+    const cabinClass = bookingData?.flightData?.cabinClass || bookingData?.cabinClass || 'economy';
+    const outboundBasePrice = flightData?.outbound?.cabinClasses?.[cabinClass]?.fromPrice || 1500000;
+    const returnBasePrice = flightData?.return?.cabinClasses?.[cabinClass]?.fromPrice || 0;
+    const basePriceTotal = (outboundBasePrice + returnBasePrice) * (passengers.length || 1);
+    const taxesTotal = Math.round((outboundBasePrice + returnBasePrice) * 0.1) * (passengers.length || 1);
+    const seatFees = (selectedSeats.outbound?.reduce((acc: number, seat: any) => acc + (seat.price || 0), 0) || 0)
+      + (selectedSeats.return?.reduce((acc: number, seat: any) => acc + (seat.price || 0), 0) || 0);
+    const discount = voucherDiscount || 0;
+    const totalWithFees = basePriceTotal + taxesTotal + seatFees - discount;
+
+    // Collect all seat IDs
+    const flightSeatIds = [
+      ...(selectedSeats.outbound?.map((seat: any) => seat.id) || []),
+      ...(selectedSeats.return?.map((seat: any) => seat.id) || [])
+    ];
 
     return {
       productType: "FLIGHT",
-      productId: flightData?.outbound?.flightNumber || "FLIGHT001",
-      startDate: flightData?.outbound?.date || new Date().toISOString(),
-      endDate: flightData?.return?.date || undefined,
+      bookingType: "FLIGHT",
+      productId: flightData?.outbound?.id || flightData?.outbound?.flightNumber || "FLIGHT001",
+      flightId: flightData?.outbound?.flightNumber || flightData?.outbound?.id,
+      flightSeatIds: flightSeatIds, // Add seat IDs to booking
+      seatCount: flightSeatIds.length,
+      amount: totalWithFees,
+      basePrice: basePriceTotal,
+      taxes: taxesTotal,
+      fees: seatFees,
+      discount,
+      totalPrice: totalWithFees,
+      currency: "VND",
+      startDate: flightData?.outbound?.departureTime || flightData?.outbound?.date || new Date().toISOString(),
+      endDate: flightData?.return?.arrivalTime || flightData?.return?.date || undefined,
       quantity: passengers.length || 1,
+      numberOfGuests: {
+        adults: passengerCounts?.adults || passengers.length || 1,
+        children: passengerCounts?.children || 0,
+        infants: passengerCounts?.infants || 0
+      },
       guestInfo: {
         firstName: contactInfo?.fullName?.split(" ")[0] || "Guest",
         lastName: contactInfo?.fullName?.split(" ").slice(1).join(" ") || "User",
         email: contactInfo?.email || "guest@example.com",
         phone: contactInfo?.phone || ""
       },
-      specialRequests: `Flight: ${flightData?.outbound?.from} to ${flightData?.outbound?.to}. Passengers: ${passengers.length}`
+      specialRequests: `Flight: ${flightData?.outbound?.from || flightData?.outbound?.departureAirportCode} to ${flightData?.outbound?.to || flightData?.outbound?.arrivalAirportCode}. Passengers: ${passengers.length}. Seats: ${flightSeatIds.join(", ")}`,
+      voucherCode: appliedVoucher?.code,
+      voucherDiscount: discount,
+      paymentStatus: "PENDING",
+      status: "PENDING",
+      metadata: {
+        passengers,
+        contactInfo,
+        selectedSeats,
+        cabinClass,
+        basePriceTotal,
+        taxesTotal,
+        seatFees,
+        discount,
+        finalAmount: totalWithFees
+      }
     };
   };
 
@@ -253,6 +365,7 @@ export default function PaymentMethodsPage({
     return {
       productType: "HOTEL",
       productId: hotel?.id || "HOTEL001",
+      amount: finalAmount,
       startDate: booking?.checkIn || new Date().toISOString(),
       endDate: booking?.checkOut || undefined,
       quantity: booking?.roomCount || 1,
@@ -282,6 +395,7 @@ export default function PaymentMethodsPage({
     return {
       productType: "CAR_RENTAL",
       productId: car?.id || "CAR001",
+      amount: finalAmount,
       startDate: rental?.pickup || new Date().toISOString(),
       endDate: rental?.dropoff || undefined,
       quantity: 1,
@@ -305,6 +419,7 @@ export default function PaymentMethodsPage({
     return {
       productType: "ACTIVITY",
       productId: activity?.id || "ACTIVITY001",
+      amount: finalAmount,
       startDate: booking?.date || new Date().toISOString(),
       endDate: undefined,
       quantity: booking?.participants || 1,
@@ -414,48 +529,44 @@ export default function PaymentMethodsPage({
               )}
 
               {/* Available Vouchers */}
-              {!appliedVoucher && availableVouchers.length > 0 && (
+              {!appliedVoucher && (
                 <div className="mt-4">
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-sm text-gray-600 mb-2 flex items-center gap-2">
                     {t('payment.availableVouchers', "Mã giảm giá có sẵn:")}
+                    {loadingVouchers && (
+                      <span className="text-xs text-gray-400">{t('common.loading', 'Đang tải...')}</span>
+                    )}
                   </p>
-                  <div className="space-y-2">
-                    {availableVouchers.map((voucher) => (
-                      <div
-                        key={voucher.id}
-                        className="p-3 border rounded-lg cursor-pointer hover:border-blue-500 transition-colors"
-                        onClick={() => {
-                          setVoucherCode(voucher.code);
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{voucher.code}</p>
-                            <p className="text-sm text-gray-600">
-                              {voucher.description}
-                            </p>
+                  {availableVouchers.length === 0 && !loadingVouchers ? (
+                    <p className="text-xs text-gray-400">{t('payment.noVoucher', 'Không có mã giảm giá khả dụng')}</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {availableVouchers.map((voucher) => (
+                        <div
+                          key={voucher.id}
+                          className="p-3 border rounded-lg cursor-pointer hover:border-blue-500 transition-colors"
+                          onClick={() => {
+                            setVoucherCode(voucher.code);
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">{voucher.code}</p>
+                              <p className="text-sm text-gray-600">{voucher.description}</p>
+                            </div>
+                            <Button size="sm" variant="outline">
+                              {t('payment.apply', 'Áp dụng')}
+                            </Button>
                           </div>
-                          <Button variant="ghost" size="sm">
-                            {t('payment.select', "Chọn")}
-                          </Button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </Card>
 
-            {/* Security Note */}
-            <div className="flex items-center gap-2 text-sm text-gray-600 p-4 bg-blue-50 rounded-lg">
-              <Shield className="w-5 h-5 text-blue-600" />
-              <p>
-                {t(
-                  'payment.securityNote',
-                  "Thông tin thanh toán của bạn được bảo mật và mã hóa"
-                )}
-              </p>
-            </div>
+            {/* Additional content can go here if needed */}
           </div>
 
           {/* Right Column - Order Summary */}
@@ -665,7 +776,7 @@ function ActivitySummary({ data }: { data: any }) {
   );
 }
 
-function DefaultSummary({ data }: { data: any }) {
+function DefaultSummary({ data: _data }: { data: any }) {
   const { t } = useTranslation();
 
   return (

@@ -1,597 +1,597 @@
 [
-    {
-        "id": "loc_vn_001",
-        "name": "Vietnam",
-        "slug": "vietnam",
-        "type": "CONTRY",
-        "latitude": 14.0583,
-        "longitude": 108.2772,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A country in Southeast Asia known for its beaches, rivers, Buddhist pagodas and bustling cities.",
-        "image": "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b",
-        "featured": true,
-        "popularity": 100,
-        "metadata": {
-            "currency": "VND",
-            "language": "Vietnamese"
-        }
-    },
-    {
-        "id": "loc_hanoi_001",
-        "name": "Hanoi",
-        "slug": "hanoi",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 21.0285,
-        "longitude": 105.8542,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "The capital of Vietnam, known for its centuries-old architecture and a rich culture with Southeast Asian, Chinese and French influences.",
-        "image": "https://images.unsplash.com/photo-1555921015-5532091f6026",
-        "featured": true,
-        "popularity": 95,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_hcm_001",
-        "name": "Ho Chi Minh City",
-        "slug": "ho-chi-minh-city",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 10.8231,
-        "longitude": 106.6297,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A high-octane city of commerce and culture that has driven the country forward with its pulsating energy.",
-        "image": "https://images.unsplash.com/photo-1583417319070-4a69db38a482",
-        "featured": true,
-        "popularity": 98,
-        "metadata": {
-            "climate": "Tropical savanna"
-        }
-    },
-    {
-        "id": "loc_danang_001",
-        "name": "Da Nang",
-        "slug": "da-nang",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 16.0544,
-        "longitude": 108.2022,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A coastal city in central Vietnam known for its sandy beaches and history as a French colonial port.",
-        "image": "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b",
-        "featured": true,
-        "popularity": 90,
-        "metadata": {
-            "climate": "Tropical monsoon"
-        }
-    },
-    {
-        "id": "loc_haiphong_001",
-        "name": "Hai Phong",
-        "slug": "hai-phong",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 20.8449,
-        "longitude": 106.6881,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A major industrial city and the third largest in Vietnam, known for its colonial-era opera house and cathedral.",
-        "image": "https://images.unsplash.com/photo-1625409893382-355994246239",
-        "featured": false,
-        "popularity": 80,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_cantho_001",
-        "name": "Can Tho",
-        "slug": "can-tho",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 10.0452,
-        "longitude": 105.7469,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "The largest city in the Mekong Delta, known for its floating markets, rice paper-making villages, and picturesque rural canals.",
-        "image": "https://images.unsplash.com/photo-1605806616949-1e87b487bc2a",
-        "featured": true,
-        "popularity": 85,
-        "metadata": {
-            "climate": "Tropical savanna"
-        }
-    },
-    {
-        "id": "loc_hoian_001",
-        "name": "Hoi An",
-        "slug": "hoi-an",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 15.8801,
-        "longitude": 108.3380,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A city on Vietnam’s central coast known for its well-preserved Ancient Town, cut through with canals.",
-        "image": "https://images.unsplash.com/photo-1552353617-3bfd679b3bdd",
-        "featured": true,
-        "popularity": 92,
-        "metadata": {
-            "climate": "Tropical monsoon"
-        }
-    },
-    {
-        "id": "loc_nhatrang_001",
-        "name": "Nha Trang",
-        "slug": "nha-trang",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 12.2388,
-        "longitude": 109.1967,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A coastal resort city in southern Vietnam known for its beaches, diving sites and offshore islands.",
-        "image": "https://images.unsplash.com/photo-1575986767340-5d17ae767ab0",
-        "featured": true,
-        "popularity": 88,
-        "metadata": {
-            "climate": "Tropical savanna"
-        }
-    },
-    {
-        "id": "loc_phuquoc_001",
-        "name": "Phu Quoc",
-        "slug": "phu-quoc",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 10.2899,
-        "longitude": 103.9840,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A Vietnamese island off the coast of Cambodia in the Gulf of Thailand, known for white-sand beaches and resorts.",
-        "image": "https://images.unsplash.com/photo-1540202404-a6f296f52c6d",
-        "featured": true,
-        "popularity": 94,
-        "metadata": {
-            "climate": "Tropical monsoon"
-        }
-    },
-    {
-        "id": "loc_hue_001",
-        "name": "Hue",
-        "slug": "hue",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 16.4637,
-        "longitude": 107.5909,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A city in central Vietnam that was the seat of Nguyen Dynasty emperors and the national capital from 1802 to 1945.",
-        "image": "https://images.unsplash.com/photo-1584650548401-152934a5d208",
-        "featured": false,
-        "popularity": 85,
-        "metadata": {
-            "climate": "Tropical monsoon"
-        }
-    },
-    {
-        "id": "loc_halong_001",
-        "name": "Ha Long",
-        "slug": "ha-long",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 20.9599,
-        "longitude": 107.0425,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A city on Vietnam’s northern coast, a jumping-off point for Ha Long Bay.",
-        "image": "https://images.unsplash.com/photo-1528127220108-5362b6b6864d",
-        "featured": true,
-        "popularity": 93,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_dalat_001",
-        "name": "Da Lat",
-        "slug": "da-lat",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 11.9404,
-        "longitude": 108.4583,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "The capital of Lam Dong Province in southern Vietnam’s Central Highlands, centered around a lake and golf course.",
-        "image": "https://images.unsplash.com/photo-1558618006-25983777594d",
-        "featured": true,
-        "popularity": 89,
-        "metadata": {
-            "climate": "Subtropical highland"
-        }
-    },
-    {
-        "id": "loc_vungtau_001",
-        "name": "Vung Tau",
-        "slug": "vung-tau",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 10.3460,
-        "longitude": 107.0843,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A port city and the capital of Ba Ria-Vung Tau Province, on a peninsula in southern Vietnam.",
-        "image": "https://images.unsplash.com/photo-1623596706248-6a2061033134",
-        "featured": false,
-        "popularity": 82,
-        "metadata": {
-            "climate": "Tropical savanna"
-        }
-    },
-    {
-        "id": "loc_quynhon_001",
-        "name": "Quy Nhon",
-        "slug": "quy-nhon",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 13.7830,
-        "longitude": 109.2197,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A coastal city in Binh Dinh Province in central Vietnam, known for its long beaches.",
-        "image": "https://images.unsplash.com/photo-1616486029423-aaa278f2e295",
-        "featured": false,
-        "popularity": 78,
-        "metadata": {
-            "climate": "Tropical savanna"
-        }
-    },
-    {
-        "id": "loc_phanthiet_001",
-        "name": "Phan Thiet",
-        "slug": "phan-thiet",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 10.9805,
-        "longitude": 108.2615,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A port city and capital of Binh Thuan Province, known for its fishing harbor and nearby Mui Ne beach.",
-        "image": "https://images.unsplash.com/photo-1605705658744-968692f6b406",
-        "featured": false,
-        "popularity": 81,
-        "metadata": {
-            "climate": "Tropical savanna"
-        }
-    },
-    {
-        "id": "loc_buonmathuot_001",
-        "name": "Buon Ma Thuot",
-        "slug": "buon-ma-thuot",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 12.6667,
-        "longitude": 108.0500,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "The capital city of Dak Lak Province in the Central Highlands of Vietnam, known as the 'Coffee Capital'.",
-        "image": "https://images.unsplash.com/photo-1629814596133-28c29666c543",
-        "featured": false,
-        "popularity": 75,
-        "metadata": {
-            "climate": "Tropical savanna"
-        }
-    },
-    {
-        "id": "loc_vinh_001",
-        "name": "Vinh",
-        "slug": "vinh",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 18.6734,
-        "longitude": 105.6871,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "The biggest city and economic center of North Central Vietnam, capital of Nghe An Province.",
-        "image": "https://images.unsplash.com/photo-1634546648722-2d4e13876106",
-        "featured": false,
-        "popularity": 70,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_thanhhoa_001",
-        "name": "Thanh Hoa",
-        "slug": "thanh-hoa",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 19.8000,
-        "longitude": 105.7667,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "The capital of Thanh Hoa Province, a rapidly growing city in North Central Vietnam.",
-        "image": "https://images.unsplash.com/photo-1617170788803-36423372f722",
-        "featured": false,
-        "popularity": 68,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_haiduong_001",
-        "name": "Hai Duong",
-        "slug": "hai-duong",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 20.9409,
-        "longitude": 106.3330,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A city in the Red River Delta of northern Vietnam, known for its green bean cakes.",
-        "image": "https://images.unsplash.com/photo-1600180758360-1798304965cc",
-        "featured": false,
-        "popularity": 65,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_namdinh_001",
-        "name": "Nam Dinh",
-        "slug": "nam-dinh",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 20.4167,
-        "longitude": 106.1667,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A city in the Red River Delta, known for its traditional architecture and churches.",
-        "image": "https://images.unsplash.com/photo-1610986701777-6c8465602324",
-        "featured": false,
-        "popularity": 66,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_thainguyen_001",
-        "name": "Thai Nguyen",
-        "slug": "thai-nguyen",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 21.5942,
-        "longitude": 105.8482,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A major city in northeastern Vietnam, famous for its tea production.",
-        "image": "https://images.unsplash.com/photo-1627546626756-34863004840e",
-        "featured": false,
-        "popularity": 67,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_viettri_001",
-        "name": "Viet Tri",
-        "slug": "viet-tri",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 21.3228,
-        "longitude": 105.3975,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "The capital of Phu Tho Province, known as the ancestral land of the Vietnamese kings.",
-        "image": "https://images.unsplash.com/photo-1618212624515-565860d26781",
-        "featured": false,
-        "popularity": 64,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_hagiang_001",
-        "name": "Ha Giang",
-        "slug": "ha-giang",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 22.8233,
-        "longitude": 104.9836,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A city in the far north of Vietnam, known for its dramatic mountain landscapes and ethnic minority cultures.",
-        "image": "https://images.unsplash.com/photo-1596627885934-874852d43102",
-        "featured": true,
-        "popularity": 85,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_caobang_001",
-        "name": "Cao Bang",
-        "slug": "cao-bang",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 22.6667,
-        "longitude": 106.2500,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A city in northern Vietnam, near the Chinese border, known for Ban Gioc Waterfall.",
-        "image": "https://images.unsplash.com/photo-1565019056589-18151805406f",
-        "featured": true,
-        "popularity": 83,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_langson_001",
-        "name": "Lang Son",
-        "slug": "lang-son",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 21.8477,
-        "longitude": 106.7543,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A strategic city in northern Vietnam, a major trading post on the Chinese border.",
-        "image": "https://images.unsplash.com/photo-1626013689360-642838383636",
-        "featured": false,
-        "popularity": 69,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_laocai_001",
-        "name": "Lao Cai",
-        "slug": "lao-cai",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 22.4852,
-        "longitude": 103.9748,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A border city in northwest Vietnam, the gateway to Sapa.",
-        "image": "https://images.unsplash.com/photo-1566373822286-9a0082999489",
-        "featured": false,
-        "popularity": 72,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_dienbienphu_001",
-        "name": "Dien Bien Phu",
-        "slug": "dien-bien-phu",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 21.3861,
-        "longitude": 103.0219,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A city in northwestern Vietnam, famous for the decisive battle in 1954.",
-        "image": "https://images.unsplash.com/photo-1614764475476-c2901968566a",
-        "featured": true,
-        "popularity": 76,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_sonla_001",
-        "name": "Son La",
-        "slug": "son-la",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 21.3268,
-        "longitude": 103.9187,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A city in the Northwest region of Vietnam, known for its hydroelectric dam and prison museum.",
-        "image": "https://images.unsplash.com/photo-1628608260486-58831966276d",
-        "featured": false,
-        "popularity": 63,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_hoabinh_001",
-        "name": "Hoa Binh",
-        "slug": "hoa-binh",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 20.8167,
-        "longitude": 105.3333,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A mountainous province in northern Vietnam, home to the Muong ethnic group.",
-        "image": "https://images.unsplash.com/photo-1619515980064-071986616091",
-        "featured": false,
-        "popularity": 62,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_ninhbinh_001",
-        "name": "Ninh Binh",
-        "slug": "ninh-binh",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 20.2539,
-        "longitude": 105.9750,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A city in the Red River Delta, famous for nearby Tam Coc and Trang An landscapes.",
-        "image": "https://images.unsplash.com/photo-1590664216212-62e7637d163b",
-        "featured": true,
-        "popularity": 87,
-        "metadata": {
-            "climate": "Humid subtropical"
-        }
-    },
-    {
-        "id": "loc_donghoi_001",
-        "name": "Dong Hoi",
-        "slug": "dong-hoi",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 17.4765,
-        "longitude": 106.5984,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "The capital of Quang Binh Province, the gateway to Phong Nha-Ke Bang National Park.",
-        "image": "https://images.unsplash.com/photo-1620033095037-1249575225a6",
-        "featured": true,
-        "popularity": 79,
-        "metadata": {
-            "climate": "Tropical monsoon"
-        }
-    },
-    {
-        "id": "loc_pleiku_001",
-        "name": "Pleiku",
-        "slug": "pleiku",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 13.9833,
-        "longitude": 108.0000,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A city in the Central Highlands, known for the Bien Ho (Sea Lake) crater lake.",
-        "image": "https://images.unsplash.com/photo-1603704627123-575514618753",
-        "featured": false,
-        "popularity": 71,
-        "metadata": {
-            "climate": "Tropical savanna"
-        }
-    },
-    {
-        "id": "loc_tuyhoa_001",
-        "name": "Tuy Hoa",
-        "slug": "tuy-hoa",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 13.0833,
-        "longitude": 109.3000,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A coastal city in Phu Yen Province, known for its beaches and Champa towers.",
-        "image": "https://images.unsplash.com/photo-1615887023596-9318350d2681",
-        "featured": false,
-        "popularity": 74,
-        "metadata": {
-            "climate": "Tropical savanna"
-        }
-    },
-    {
-        "id": "loc_camau_001",
-        "name": "Ca Mau",
-        "slug": "ca-mau",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 9.1769,
-        "longitude": 105.1500,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "The southernmost city of Vietnam, known for its mangrove forests and swamps.",
-        "image": "https://images.unsplash.com/photo-1627894483216-2138af692e32",
-        "featured": false,
-        "popularity": 73,
-        "metadata": {
-            "climate": "Tropical monsoon"
-        }
-    },
-    {
-        "id": "loc_soctrang_001",
-        "name": "Soc Trang",
-        "slug": "soc-trang",
-        "type": "CITY",
-        "parentLocationId": "loc_vn_001",
-        "latitude": 9.6033,
-        "longitude": 105.9722,
-        "timezone": "Asia/Ho_Chi_Minh",
-        "description": "A city in the Mekong Delta, known for its Khmer pagodas and culture.",
-        "image": "https://images.unsplash.com/photo-1620802051782-726fa21a826c",
-        "featured": false,
-        "popularity": 68,
-        "metadata": {
-            "climate": "Tropical savanna"
-        }
+  {
+    "id": "loc_vn_001",
+    "name": "Vietnam",
+    "slug": "vietnam",
+    "type": "CONTRY",
+    "latitude": 14.0583,
+    "longitude": 108.2772,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A country in Southeast Asia known for its beaches, rivers, Buddhist pagodas and bustling cities.",
+    "image": "https://images.unsplash.com/photo-1586100866229-5749c821a61d?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 100,
+    "metadata": {
+      "currency": "VND",
+      "language": "Vietnamese"
     }
+  },
+  {
+    "id": "loc_hanoi_001",
+    "name": "Hanoi",
+    "slug": "hanoi",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 21.0285,
+    "longitude": 105.8542,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "The capital of Vietnam, known for its centuries-old architecture and a rich culture with Southeast Asian, Chinese and French influences.",
+    "image": "https://images.unsplash.com/photo-1592202178023-2dbb4527b006?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 95,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_hcm_001",
+    "name": "Ho Chi Minh City",
+    "slug": "ho-chi-minh-city",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 10.8231,
+    "longitude": 106.6297,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A high-octane city of commerce and culture that has driven the country forward with its pulsating energy.",
+    "image": "https://images.unsplash.com/photo-1717337099059-d8574925f672?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 98,
+    "metadata": {
+      "climate": "Tropical savanna"
+    }
+  },
+  {
+    "id": "loc_danang_001",
+    "name": "Da Nang",
+    "slug": "da-nang",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 16.0544,
+    "longitude": 108.2022,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A coastal city in central Vietnam known for its sandy beaches and history as a French colonial port.",
+    "image": "https://images.unsplash.com/photo-1571713343936-b27b7bedddab?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 90,
+    "metadata": {
+      "climate": "Tropical monsoon"
+    }
+  },
+  {
+    "id": "loc_haiphong_001",
+    "name": "Hai Phong",
+    "slug": "hai-phong",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 20.8449,
+    "longitude": 106.6881,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A major industrial city and the third largest in Vietnam, known for its colonial-era opera house and cathedral.",
+    "image": "https://images.unsplash.com/photo-1570559120097-e6c3388329e6?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 80,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_cantho_001",
+    "name": "Can Tho",
+    "slug": "can-tho",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 10.0452,
+    "longitude": 105.7469,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "The largest city in the Mekong Delta, known for its floating markets, rice paper-making villages, and picturesque rural canals.",
+    "image": "https://images.unsplash.com/photo-1637544590300-bb15a5b7c07f?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 85,
+    "metadata": {
+      "climate": "Tropical savanna"
+    }
+  },
+  {
+    "id": "loc_hoian_001",
+    "name": "Hoi An",
+    "slug": "hoi-an",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 15.8801,
+    "longitude": 108.338,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A city on Vietnam’s central coast known for its well-preserved Ancient Town, cut through with canals.",
+    "image": "https://images.unsplash.com/photo-1563354860-799d15199ac3?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 92,
+    "metadata": {
+      "climate": "Tropical monsoon"
+    }
+  },
+  {
+    "id": "loc_nhatrang_001",
+    "name": "Nha Trang",
+    "slug": "nha-trang",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 12.2388,
+    "longitude": 109.1967,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A coastal resort city in southern Vietnam known for its beaches, diving sites and offshore islands.",
+    "image": "https://images.unsplash.com/photo-1653611136846-7c67d6746638?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 88,
+    "metadata": {
+      "climate": "Tropical savanna"
+    }
+  },
+  {
+    "id": "loc_phuquoc_001",
+    "name": "Phu Quoc",
+    "slug": "phu-quoc",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 10.2899,
+    "longitude": 103.984,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A Vietnamese island off the coast of Cambodia in the Gulf of Thailand, known for white-sand beaches and resorts.",
+    "image": "https://images.unsplash.com/photo-1693294603830-f44c9511d643?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 94,
+    "metadata": {
+      "climate": "Tropical monsoon"
+    }
+  },
+  {
+    "id": "loc_hue_001",
+    "name": "Hue",
+    "slug": "hue",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 16.4637,
+    "longitude": 107.5909,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A city in central Vietnam that was the seat of Nguyen Dynasty emperors and the national capital from 1802 to 1945.",
+    "image": "https://images.unsplash.com/photo-1568775791746-bcc117bcb312?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 85,
+    "metadata": {
+      "climate": "Tropical monsoon"
+    }
+  },
+  {
+    "id": "loc_halong_001",
+    "name": "Ha Long",
+    "slug": "ha-long",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 20.9599,
+    "longitude": 107.0425,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A city on Vietnam’s northern coast, a jumping-off point for Ha Long Bay.",
+    "image": "https://images.unsplash.com/photo-1586100866229-5749c821a61d?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 93,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_dalat_001",
+    "name": "Da Lat",
+    "slug": "da-lat",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 11.9404,
+    "longitude": 108.4583,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "The capital of Lam Dong Province in southern Vietnam’s Central Highlands, centered around a lake and golf course.",
+    "image": "https://images.unsplash.com/photo-1765089189056-3890d8a704ff?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 89,
+    "metadata": {
+      "climate": "Subtropical highland"
+    }
+  },
+  {
+    "id": "loc_vungtau_001",
+    "name": "Vung Tau",
+    "slug": "vung-tau",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 10.346,
+    "longitude": 107.0843,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A port city and the capital of Ba Ria-Vung Tau Province, on a peninsula in southern Vietnam.",
+    "image": "https://images.unsplash.com/photo-1623596711744-c10ed15581d9?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 82,
+    "metadata": {
+      "climate": "Tropical savanna"
+    }
+  },
+  {
+    "id": "loc_quynhon_001",
+    "name": "Quy Nhon",
+    "slug": "quy-nhon",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 13.783,
+    "longitude": 109.2197,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A coastal city in Binh Dinh Province in central Vietnam, known for its long beaches.",
+    "image": "https://images.unsplash.com/photo-1671891775117-43b0207ac5c7?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 78,
+    "metadata": {
+      "climate": "Tropical savanna"
+    }
+  },
+  {
+    "id": "loc_phanthiet_001",
+    "name": "Phan Thiet",
+    "slug": "phan-thiet",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 10.9805,
+    "longitude": 108.2615,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A port city and capital of Binh Thuan Province, known for its fishing harbor and nearby Mui Ne beach.",
+    "image": "https://images.unsplash.com/photo-1621972360216-4405e0a05a47?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 81,
+    "metadata": {
+      "climate": "Tropical savanna"
+    }
+  },
+  {
+    "id": "loc_buonmathuot_001",
+    "name": "Buon Ma Thuot",
+    "slug": "buon-ma-thuot",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 12.6667,
+    "longitude": 108.05,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "The capital city of Dak Lak Province in the Central Highlands of Vietnam, known as the 'Coffee Capital'.",
+    "image": "https://images.unsplash.com/photo-1707834796463-e80c2aa533de?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 75,
+    "metadata": {
+      "climate": "Tropical savanna"
+    }
+  },
+  {
+    "id": "loc_vinh_001",
+    "name": "Vinh",
+    "slug": "vinh",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 18.6734,
+    "longitude": 105.6871,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "The biggest city and economic center of North Central Vietnam, capital of Nghe An Province.",
+    "image": "https://images.unsplash.com/photo-1721544386625-3e506e32c27d?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 70,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_thanhhoa_001",
+    "name": "Thanh Hoa",
+    "slug": "thanh-hoa",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 19.8,
+    "longitude": 105.7667,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "The capital of Thanh Hoa Province, a rapidly growing city in North Central Vietnam.",
+    "image": "https://images.unsplash.com/photo-1695572755064-97bfd8244fa9?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 68,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_haiduong_001",
+    "name": "Hai Duong",
+    "slug": "hai-duong",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 20.9409,
+    "longitude": 106.333,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A city in the Red River Delta of northern Vietnam, known for its green bean cakes.",
+    "image": "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 65,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_namdinh_001",
+    "name": "Nam Dinh",
+    "slug": "nam-dinh",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 20.4167,
+    "longitude": 106.1667,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A city in the Red River Delta, known for its traditional architecture and churches.",
+    "image": "https://images.unsplash.com/photo-1708082103969-221ac71ff67e?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 66,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_thainguyen_001",
+    "name": "Thai Nguyen",
+    "slug": "thai-nguyen",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 21.5942,
+    "longitude": 105.8482,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A major city in northeastern Vietnam, famous for its tea production.",
+    "image": "https://images.unsplash.com/photo-1624380619810-b4733866f98c?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 67,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_viettri_001",
+    "name": "Viet Tri",
+    "slug": "viet-tri",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 21.3228,
+    "longitude": 105.3975,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "The capital of Phu Tho Province, known as the ancestral land of the Vietnamese kings.",
+    "image": "https://images.unsplash.com/photo-1697288870019-5a632d6d0bf0?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 64,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_hagiang_001",
+    "name": "Ha Giang",
+    "slug": "ha-giang",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 22.8233,
+    "longitude": 104.9836,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A city in the far north of Vietnam, known for its dramatic mountain landscapes and ethnic minority cultures.",
+    "image": "https://images.unsplash.com/photo-1462688681110-15bc88b1497c?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 85,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_caobang_001",
+    "name": "Cao Bang",
+    "slug": "cao-bang",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 22.6667,
+    "longitude": 106.25,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A city in northern Vietnam, near the Chinese border, known for Ban Gioc Waterfall.",
+    "image": "https://images.unsplash.com/photo-1705733070896-4aaca1ab464d?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 83,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_langson_001",
+    "name": "Lang Son",
+    "slug": "lang-son",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 21.8477,
+    "longitude": 106.7543,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A strategic city in northern Vietnam, a major trading post on the Chinese border.",
+    "image": "https://images.unsplash.com/photo-1708082103969-221ac71ff67e?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 69,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_laocai_001",
+    "name": "Lao Cai",
+    "slug": "lao-cai",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 22.4852,
+    "longitude": 103.9748,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A border city in northwest Vietnam, the gateway to Sapa.",
+    "image": "https://images.unsplash.com/photo-1693757133820-a21f9de63d0f?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 72,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_dienbienphu_001",
+    "name": "Dien Bien Phu",
+    "slug": "dien-bien-phu",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 21.3861,
+    "longitude": 103.0219,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A city in northwestern Vietnam, famous for the decisive battle in 1954.",
+    "image": "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 76,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_sonla_001",
+    "name": "Son La",
+    "slug": "son-la",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 21.3268,
+    "longitude": 103.9187,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A city in the Northwest region of Vietnam, known for its hydroelectric dam and prison museum.",
+    "image": "https://images.unsplash.com/photo-1747625119727-05ed172af729?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 63,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_hoabinh_001",
+    "name": "Hoa Binh",
+    "slug": "hoa-binh",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 20.8167,
+    "longitude": 105.3333,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A mountainous province in northern Vietnam, home to the Muong ethnic group.",
+    "image": "https://images.unsplash.com/photo-1702570526021-0cff7de9b439?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 62,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_ninhbinh_001",
+    "name": "Ninh Binh",
+    "slug": "ninh-binh",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 20.2539,
+    "longitude": 105.975,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A city in the Red River Delta, famous for nearby Tam Coc and Trang An landscapes.",
+    "image": "https://images.unsplash.com/photo-1587233606800-1302fdd0a433?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 87,
+    "metadata": {
+      "climate": "Humid subtropical"
+    }
+  },
+  {
+    "id": "loc_donghoi_001",
+    "name": "Dong Hoi",
+    "slug": "dong-hoi",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 17.4765,
+    "longitude": 106.5984,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "The capital of Quang Binh Province, the gateway to Phong Nha-Ke Bang National Park.",
+    "image": "https://images.unsplash.com/photo-1732088869445-55ac2df0b355?auto=format&fit=crop&w=800&q=80",
+    "featured": true,
+    "popularity": 79,
+    "metadata": {
+      "climate": "Tropical monsoon"
+    }
+  },
+  {
+    "id": "loc_pleiku_001",
+    "name": "Pleiku",
+    "slug": "pleiku",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 13.9833,
+    "longitude": 108,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A city in the Central Highlands, known for the Bien Ho (Sea Lake) crater lake.",
+    "image": "https://images.unsplash.com/photo-1679065057366-6b26c5449b02?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 71,
+    "metadata": {
+      "climate": "Tropical savanna"
+    }
+  },
+  {
+    "id": "loc_tuyhoa_001",
+    "name": "Tuy Hoa",
+    "slug": "tuy-hoa",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 13.0833,
+    "longitude": 109.3,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A coastal city in Phu Yen Province, known for its beaches and Champa towers.",
+    "image": "https://images.unsplash.com/photo-1716479852357-a71a74d81537?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 74,
+    "metadata": {
+      "climate": "Tropical savanna"
+    }
+  },
+  {
+    "id": "loc_camau_001",
+    "name": "Ca Mau",
+    "slug": "ca-mau",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 9.1769,
+    "longitude": 105.15,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "The southernmost city of Vietnam, known for its mangrove forests and swamps.",
+    "image": "https://images.unsplash.com/photo-1666649329240-62bfb0f213a3?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 73,
+    "metadata": {
+      "climate": "Tropical monsoon"
+    }
+  },
+  {
+    "id": "loc_soctrang_001",
+    "name": "Soc Trang",
+    "slug": "soc-trang",
+    "type": "CITY",
+    "parentLocationId": "loc_vn_001",
+    "latitude": 9.6033,
+    "longitude": 105.9722,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "description": "A city in the Mekong Delta, known for its Khmer pagodas and culture.",
+    "image": "https://images.unsplash.com/photo-1636384919179-d936e55c5cca?auto=format&fit=crop&w=800&q=80",
+    "featured": false,
+    "popularity": 68,
+    "metadata": {
+      "climate": "Tropical savanna"
+    }
+  }
 ]

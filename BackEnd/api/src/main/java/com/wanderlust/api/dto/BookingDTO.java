@@ -1,15 +1,17 @@
 package com.wanderlust.api.dto;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map; // Cho guestInfo, numberOfGuests
+
 import com.wanderlust.api.entity.types.BookingStatus;
 import com.wanderlust.api.entity.types.BookingType;
 import com.wanderlust.api.entity.types.PaymentMethod;
 import com.wanderlust.api.entity.types.PaymentStatus;
-import lombok.Data;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Map; // Cho guestInfo, numberOfGuests
+import lombok.Data;
 
 @Data
 public class BookingDTO {
@@ -25,6 +27,8 @@ public class BookingDTO {
 
     // --- ID Dịch vụ liên quan (Polymorphic) ---
     private String flightId;
+    private List<String> flightSeatIds;
+    private Integer seatCount;
     private String hotelId;
     private String roomId;
     private String carRentalId;
@@ -47,6 +51,10 @@ public class BookingDTO {
     private BigDecimal totalPrice;
     private String currency;
 
+    // --- Voucher ---
+    private String voucherCode;
+    private BigDecimal voucherDiscount;
+
     // --- Thanh toán & Hủy ---
     private PaymentStatus paymentStatus; // "pending", "paid", "failed"
     private PaymentMethod paymentMethod; // "credit_card", "momo"
@@ -58,4 +66,7 @@ public class BookingDTO {
     // --- Completion Tracking ---
     private Boolean userConfirmed;  // Người dùng xác nhận hoàn thành
     private Boolean autoCompleted;  // Tự động hoàn thành bởi hệ thống
+
+    // --- Additional ---
+    private Map<String, Object> metadata;
 }

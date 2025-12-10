@@ -1,23 +1,23 @@
 import {
-  Activity,
-  AlertCircle,
-  Ban,
-  Calendar,
-  Car,
-  CheckCircle,
-  CreditCard,
-  Download, Eye,
-  FileText,
-  Hotel,
-  Mail,
-  MapPin,
-  Phone,
-  Plane,
-  Printer,
-  QrCode,
-  Star,
-  Users,
-  XCircle
+    Activity,
+    AlertCircle,
+    Ban,
+    Calendar,
+    Car,
+    CheckCircle,
+    CreditCard,
+    Download, Eye,
+    FileText,
+    Hotel,
+    Mail,
+    MapPin,
+    Phone,
+    Plane,
+    Printer,
+    QrCode,
+    Star,
+    Users,
+    XCircle
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,20 +28,20 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "../../components/ui/dialog";
 import { Label } from "../../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Textarea } from "../../components/ui/textarea";
+import { useNotification } from "../../contexts/NotificationContext";
 import type { PageType } from "../../MainApp";
 import { bookingApi, tokenService } from "../../utils/api";
 import { type FrontendRole } from "../../utils/roleMapper";
-import { useNotification } from "../../contexts/NotificationContext";
 
 interface BookingHistoryPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -362,12 +362,18 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
     }
   };
 
-  // Filter bookings by tab and service type
-  const filteredBookings = bookings.filter(b => {
-    const matchStatus = b.status === activeTab;
-    const matchService = serviceFilter === "all" || b.type === serviceFilter;
-    return matchStatus && matchService;
-  });
+  // Filter bookings by tab and service type, then sort newest first
+  const filteredBookings = bookings
+    .filter(b => {
+      const matchStatus = b.status === activeTab;
+      const matchService = serviceFilter === "all" || b.type === serviceFilter;
+      return matchStatus && matchService;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.rawData?.bookingDate || a.rawData?.createdAt || 0).getTime();
+      const dateB = new Date(b.rawData?.bookingDate || b.rawData?.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
 
   const stats = [
     {

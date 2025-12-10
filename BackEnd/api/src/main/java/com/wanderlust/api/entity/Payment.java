@@ -4,19 +4,18 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-    
-// Import các Enum
+
 import com.wanderlust.api.entity.types.PaymentMethod;
 import com.wanderlust.api.entity.types.PaymentStatus;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Document(collection = "payment")
 @Data
@@ -28,6 +27,7 @@ public class Payment {
 
     private String bookingId; // Sửa booking_ID -> bookingId
     private String userId;
+    private String userEmail; // Optional: for lookups when only email is known
 
     // --- Amount Details ---
     private BigDecimal amount; // Sửa payment_Amount (Float) -> amount (BigDecimal)

@@ -1,11 +1,12 @@
-import MainApp from "./MainApp";
+import { RouterProvider } from "react-router-dom";
 import { Toaster } from "sonner";
+import { router } from "./router";
 import "./styles/globals.css";
 
 function App() {
   return (
     <>
-      <MainApp />
+      <RouterProvider router={router} />
       <Toaster 
         position="top-right"
         richColors

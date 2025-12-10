@@ -130,4 +130,20 @@ public class FlightSeatService implements BaseServices<FlightSeat> {
     public List<FlightSeat> getSeatsForFlight(String flightId) {
         return flightSeatRepository.findByFlightId(flightId);
     }
+
+    /**
+     * Đếm số ghế còn trống theo từng hạng vé
+     * 
+     * @param flightId ID của chuyến bay
+     * @return Map với key là cabinClass và value là số ghế còn trống
+     */
+    public java.util.Map<String, Long> getAvailableSeatsByClass(String flightId) {
+        List<FlightSeat> seats = flightSeatRepository.findByFlightId(flightId);
+        return seats.stream()
+            .filter(seat -> seat.getStatus() == SeatStatus.AVAILABLE)
+            .collect(java.util.stream.Collectors.groupingBy(
+                seat -> seat.getCabinClass().name(),
+                java.util.stream.Collectors.counting()
+            ));
+    }
 }

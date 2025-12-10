@@ -43,6 +43,7 @@ public class FlightSeat {
     private BigDecimal price; // Extra fee (Dùng BigDecimal cho tiền)
 
     private SeatStatus status; // Enum thay cho Boolean availability
+    
 
     // JSON features: ["power", "reclining"] -> Map thành List String
     private List<String> features;

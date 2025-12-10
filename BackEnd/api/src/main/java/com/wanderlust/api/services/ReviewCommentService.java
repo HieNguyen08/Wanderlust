@@ -192,27 +192,27 @@ public class ReviewCommentService {
     }
 
     // ==========================================
-    // PARTNER METHODS (VENDOR)
+    // VENDOR METHODS
     // ==========================================
 
     /**
-     * [PARTNER] Thêm phản hồi cho review
+     * [VENDOR] Thêm phản hồi cho review
      */
-    public ReviewCommentDTO addVendorResponse(String id, ReviewCommentVendorResponseDTO responseDTO, String partnerId) {
+    public ReviewCommentDTO addVendorResponse(String id, ReviewCommentVendorResponseDTO responseDTO, String vendorId) {
         ReviewComment review = findByIdOrThrow(id);
 
-        User partner = userRepository.findByUserId(partnerId)
-                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy Partner (User) với ID: " + partnerId));
+        User vendor = userRepository.findByUserId(vendorId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy Vendor (User) với ID: " + vendorId));
 
-        if (partner.getRole() != Role.PARTNER) {
-            throw new SecurityException("User này không phải là Partner và không có quyền phản hồi.");
+        if (vendor.getRole() != Role.VENDOR) {
+            throw new SecurityException("User này không phải là Vendor và không có quyền phản hồi.");
         }
 
         Booking booking = bookingRepository.findById(review.getBookingId())
                 .orElseThrow(() -> new NoSuchElementException(
                         "Không tìm thấy Booking của review này: " + review.getBookingId()));
 
-        if (booking.getVendorId() == null || !booking.getVendorId().equals(partnerId)) {
+        if (booking.getVendorId() == null || !booking.getVendorId().equals(vendorId)) {
             throw new SecurityException(
                     "Bạn không phải là chủ sở hữu (vendor) của booking này nên không có quyền phản hồi.");
         }
@@ -230,7 +230,7 @@ public class ReviewCommentService {
     }
 
     /**
-     * [PARTNER] Lấy tất cả review cho các dịch vụ của Vendor
+     * [VENDOR] Lấy tất cả review cho các dịch vụ của Vendor
      */
     public List<ReviewCommentDTO> getReviewsByVendor(String vendorId) {
         List<String> targetIds = new ArrayList<>();
@@ -253,14 +253,14 @@ public class ReviewCommentService {
     }
 
     /**
-     * [PARTNER] Alias method for getReviewsByVendor
+     * [VENDOR] Alias method for getReviewsByVendor
      */
     public List<ReviewCommentDTO> findAllByVendorId(String vendorId) {
         return getReviewsByVendor(vendorId);
     }
 
     /**
-     * [PARTNER] Respond to a review
+     * [VENDOR] Respond to a review
      */
     public ReviewCommentDTO respondToReview(String reviewId, String responseText, String vendorId) {
         ReviewCommentVendorResponseDTO responseDTO = new ReviewCommentVendorResponseDTO();

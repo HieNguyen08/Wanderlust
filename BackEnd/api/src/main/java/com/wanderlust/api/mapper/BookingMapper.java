@@ -1,14 +1,19 @@
 package com.wanderlust.api.mapper;
 
+import java.util.List;
+import java.util.Map; // Thêm import
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.springframework.beans.factory.annotation.Autowired; // Thêm import
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wanderlust.api.dto.BookingDTO;
 import com.wanderlust.api.entity.Booking;
-import org.mapstruct.*;
-import org.springframework.beans.factory.annotation.Autowired; // Thêm import
-
-import java.util.List;
-import java.util.Map; // Thêm import
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public abstract class BookingMapper { // <-- THAY ĐỔI: Chuyển thành abstract class
@@ -40,13 +45,14 @@ public abstract class BookingMapper { // <-- THAY ĐỔI: Chuyển thành abstra
     @Mapping(target = "bookingCode", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "voucherCode", ignore = true)
-    @Mapping(target = "voucherDiscount", ignore = true)
-    @Mapping(target = "metadata", ignore = true)
+    @Mapping(target = "voucherCode", source = "voucherCode")
+    @Mapping(target = "voucherDiscount", source = "voucherDiscount")
+    @Mapping(target = "metadata", source = "metadata")
     @Mapping(target = "guestInfo", source = "guestInfo", qualifiedByName = "mapToGuestInfo")
     @Mapping(target = "numberOfGuests", source = "numberOfGuests", qualifiedByName = "mapToGuestCount")
     @Mapping(target = "userConfirmed", source = "userConfirmed")
     @Mapping(target = "autoCompleted", source = "autoCompleted")
+    @Mapping(target = "roomIds", ignore = true)
     public abstract Booking toEntity(BookingDTO dto);
 
     /**
@@ -57,13 +63,14 @@ public abstract class BookingMapper { // <-- THAY ĐỔI: Chuyển thành abstra
     @Mapping(target = "bookingCode", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "voucherCode", ignore = true)
-    @Mapping(target = "voucherDiscount", ignore = true)
-    @Mapping(target = "metadata", ignore = true)
+    @Mapping(target = "voucherCode", source = "voucherCode")
+    @Mapping(target = "voucherDiscount", source = "voucherDiscount")
+    @Mapping(target = "metadata", source = "metadata")
     @Mapping(target = "guestInfo", source = "guestInfo", qualifiedByName = "mapToGuestInfo")
     @Mapping(target = "numberOfGuests", source = "numberOfGuests", qualifiedByName = "mapToGuestCount")
     @Mapping(target = "userConfirmed", source = "userConfirmed")
     @Mapping(target = "autoCompleted", source = "autoCompleted")
+    @Mapping(target = "roomIds", ignore = true)
     public abstract void updateEntityFromDTO(BookingDTO dto, @MappingTarget Booking booking);
 
     // =======================================================

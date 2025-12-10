@@ -26,6 +26,7 @@ public class HotelService {
     private final RoomRepository roomRepository;
     private final HotelMapper hotelMapper;
     private final RoomMapper roomMapper;
+    private final com.wanderlust.api.repository.LocationRepository locationRepository;
 
     // 1. Search Hotels (Location, filters)
     public List<HotelDTO> searchHotels(HotelSearchCriteria criteria) {
@@ -203,6 +204,22 @@ public class HotelService {
     public HotelDTO create(HotelDTO hotelDTO) {
         // Convert DTO -> Entity
         Hotel hotel = hotelMapper.toEntity(hotelDTO);
+
+        // Populate City & Country
+        if (hotel.getLocationId() != null) {
+            com.wanderlust.api.entity.Location loc = locationRepository.findById(hotel.getLocationId()).orElse(null);
+            if (loc != null) {
+                hotel.setCity(loc.getName());
+                if (loc.getParentLocationId() != null) {
+                    com.wanderlust.api.entity.Location parent = locationRepository.findById(loc.getParentLocationId())
+                            .orElse(null);
+                    if (parent != null) {
+                        hotel.setCountry(parent.getName());
+                    }
+                }
+            }
+        }
+
         // Save
         Hotel savedHotel = hotelRepository.save(hotel);
         // Return DTO
@@ -215,6 +232,21 @@ public class HotelService {
 
         // MapStruct tự động update các trường non-null từ DTO vào Entity cũ
         hotelMapper.updateEntityFromDTO(hotelDTO, existing);
+
+        // Populate City & Country (if changed or missing)
+        if (existing.getLocationId() != null) {
+            com.wanderlust.api.entity.Location loc = locationRepository.findById(existing.getLocationId()).orElse(null);
+            if (loc != null) {
+                existing.setCity(loc.getName());
+                if (loc.getParentLocationId() != null) {
+                    com.wanderlust.api.entity.Location parent = locationRepository.findById(loc.getParentLocationId())
+                            .orElse(null);
+                    if (parent != null) {
+                        existing.setCountry(parent.getName());
+                    }
+                }
+            }
+        }
 
         Hotel savedHotel = hotelRepository.save(existing);
         return hotelMapper.toDTO(savedHotel);

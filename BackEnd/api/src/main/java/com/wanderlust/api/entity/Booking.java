@@ -3,11 +3,8 @@ package com.wanderlust.api.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -15,11 +12,14 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-// Import các Enum
-import com.wanderlust.api.entity.types.BookingType;
 import com.wanderlust.api.entity.types.BookingStatus;
-import com.wanderlust.api.entity.types.PaymentStatus;
+import com.wanderlust.api.entity.types.BookingType;
 import com.wanderlust.api.entity.types.PaymentMethod;
+import com.wanderlust.api.entity.types.PaymentStatus;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Document(collection = "booking")
 @Data
@@ -39,8 +39,10 @@ public class Booking {
     // --- Polymorphic Relationships (Nullable IDs) ---
     // Tùy vào bookingType mà 1 trong các trường này sẽ có dữ liệu
     private String flightId;
+    private List<String> flightSeatIds; // Danh sách ghế đã chọn cho chuyến bay
+    private Integer seatCount;          // Số lượng ghế đã đặt (cho flight booking)
     private String hotelId;
-    private String roomId;      // Thêm roomId
+    private List<String> roomIds;       // Danh sách phòng đã book (có thể book nhiều phòng)
     private String carRentalId; // Sửa car_Rental_ID -> carRentalId
     private String activityId;  // Thêm activityId
 

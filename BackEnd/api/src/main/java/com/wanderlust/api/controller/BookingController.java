@@ -1,5 +1,6 @@
 package com.wanderlust.api.controller;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -141,6 +142,14 @@ public class BookingController {
             }
         }
 
+        // Parse seats
+        @SuppressWarnings("unchecked")
+        List<String> flightSeatIds = (List<String>) payload.get("flightSeatIds");
+        if (flightSeatIds != null) {
+            bookingDTO.setFlightSeatIds(flightSeatIds);
+            bookingDTO.setSeatCount(flightSeatIds.size());
+        }
+
         // Parse dates
         String startDateStr = (String) payload.get("startDate");
         if (startDateStr != null) {
@@ -159,6 +168,13 @@ public class BookingController {
             @SuppressWarnings("unchecked")
             Map<String, Object> guestInfoObj = (Map<String, Object>) (Map<?, ?>) guestInfo;
             bookingDTO.setGuestInfo(guestInfoObj);
+        }
+
+        // Parse numberOfGuests
+        @SuppressWarnings("unchecked")
+        Map<String, Integer> numberOfGuests = (Map<String, Integer>) payload.get("numberOfGuests");
+        if (numberOfGuests != null) {
+            bookingDTO.setNumberOfGuests(numberOfGuests);
         }
 
         // Parse quantity
@@ -182,6 +198,29 @@ public class BookingController {
             }
         }
 
+        // Parse pricing fields
+        bookingDTO.setBasePrice(readBigDecimal(payload.get("basePrice")));
+        bookingDTO.setTaxes(readBigDecimal(payload.get("taxes")));
+        bookingDTO.setFees(readBigDecimal(payload.get("fees")));
+        bookingDTO.setDiscount(readBigDecimal(payload.get("discount")));
+        BigDecimal totalPrice = readBigDecimal(payload.get("totalPrice"));
+        if (totalPrice == null) {
+            totalPrice = readBigDecimal(payload.get("amount"));
+        }
+        bookingDTO.setTotalPrice(totalPrice);
+        bookingDTO.setCurrency((String) payload.getOrDefault("currency", "VND"));
+
+        // Voucher
+        bookingDTO.setVoucherCode((String) payload.get("voucherCode"));
+        bookingDTO.setVoucherDiscount(readBigDecimal(payload.get("voucherDiscount")));
+
+        // Metadata
+        @SuppressWarnings("unchecked")
+        Map<String, Object> metadata = (Map<String, Object>) payload.get("metadata");
+        if (metadata != null) {
+            bookingDTO.setMetadata(metadata);
+        }
+
         // Parse specialRequests
         String specialRequests = (String) payload.get("specialRequests");
         if (specialRequests != null) {
@@ -195,6 +234,19 @@ public class BookingController {
 
         BookingDTO newBooking = bookingService.create(bookingDTO);
         return new ResponseEntity<>(newBooking, HttpStatus.CREATED);
+    }
+
+    private BigDecimal readBigDecimal(Object value) {
+        if (value == null) return null;
+        if (value instanceof Number) {
+            return BigDecimal.valueOf(((Number) value).doubleValue());
+        }
+        if (value instanceof String) {
+            try {
+                return new BigDecimal((String) value);
+            } catch (NumberFormatException ignored) { }
+        }
+        return null;
     }
 
     @PutMapping("/{id}/cancel")
@@ -213,8 +265,46 @@ public class BookingController {
 
     @PostMapping("/{id}/request-refund")
     @PreAuthorize("@webSecurity.isBookingOwner(authentication, #id)")
-    public ResponseEntity<BookingDTO> requestRefund(@PathVariable String id) {
-        BookingDTO result = bookingService.requestRefund(id);
+    public ResponseEntity<BookingDTO> requestRefund(
+            @PathVariable String id,
+            @RequestBody(required = false) Map<String, String> payload) {
+        String reason = payload != null ? payload.get("reason") : "User requested refund";
+        BookingDTO result = bookingService.requestRefund(id, reason);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    /**
+     * Admin or Vendor approve refund request
+     */
+    @PostMapping("/{id}/approve-refund")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('VENDOR')")
+    public ResponseEntity<BookingDTO> approveRefund(
+            @PathVariable String id,
+            Authentication authentication) {
+        String approvedBy = getUserIdFromAuthentication(authentication);
+        
+        // Check if approver is vendor (by checking if user owns the booking's vendor)
+        // For now, we'll determine based on role
+        boolean isVendorApproval = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_VENDOR"));
+        
+        BookingDTO result = bookingService.approveRefund(id, approvedBy, isVendorApproval);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    /**
+     * Admin or Vendor reject refund request
+     */
+    @PostMapping("/{id}/reject-refund")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('VENDOR')")
+    public ResponseEntity<BookingDTO> rejectRefund(
+            @PathVariable String id,
+            @RequestBody(required = false) Map<String, String> payload,
+            Authentication authentication) {
+        String rejectedBy = getUserIdFromAuthentication(authentication);
+        String reason = payload != null ? payload.get("reason") : "No reason provided";
+        
+        BookingDTO result = bookingService.rejectRefund(id, rejectedBy, reason);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

@@ -1,20 +1,19 @@
 package com.wanderlust.api.entity;
 
-import com.wanderlust.api.entity.types.Gender;
-import com.wanderlust.api.entity.types.Role;
-import com.wanderlust.api.entity.types.MembershipLevel;
-import com.wanderlust.api.entity.NotificationSettings;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Builder;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.wanderlust.api.entity.types.Gender;
+import com.wanderlust.api.entity.types.MembershipLevel;
+import com.wanderlust.api.entity.types.Role;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 @Document(collection = "users")
@@ -54,6 +53,6 @@ public class User {
     private LocalDateTime passwordChangeAt;
     private String passwordResetToken;
     private String registerToken;
-    private String partnerRequestStatus; // Ví dụ: "NONE", "PENDING", "APPROVED"
+    private String vendorRequestStatus; // Ví dụ: "NONE", "PENDING", "APPROVED"
 
 }

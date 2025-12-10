@@ -1,15 +1,13 @@
 package com.wanderlust.api.services;
 
-import com.wanderlust.api.dto.NotificationSettingsDTO;
-
 import java.math.BigDecimal;
 
-
+import com.wanderlust.api.dto.ChangePasswordDTO;
+import com.wanderlust.api.dto.MembershipInfoDTO;
+import com.wanderlust.api.dto.NotificationSettingsDTO;
 import com.wanderlust.api.dto.UserProfileResponseDTO;
 import com.wanderlust.api.dto.UserProfileUpdateDTO;
 import com.wanderlust.api.dto.UserStatsDTO;
-import com.wanderlust.api.dto.MembershipInfoDTO;
-import com.wanderlust.api.dto.ChangePasswordDTO;
 
 public interface UserProfileService {
 
@@ -43,5 +41,5 @@ public interface UserProfileService {
     // Auto-update membership level dựa trên points
     void updateMembershipLevel(String userId);
 
-    void requestPartnerRole(String userId);
+    void requestVendorRole(String userId);
 }

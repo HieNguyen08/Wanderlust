@@ -264,12 +264,12 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
-    public void requestPartnerRole(String userId) {
+    public void requestVendorRole(String userId) {
         User user = findUserById(userId);
 
         if (user.getRole() != Role.USER) {
-            if (user.getRole() == Role.PARTNER) {
-                throw new RuntimeException("Bạn đã là Đối tác (Partner).");
+            if (user.getRole() == Role.VENDOR) {
+                throw new RuntimeException("Bạn đã là Đối tác (Vendor).");
             }
             if (user.getRole() == Role.ADMIN) {
                 throw new RuntimeException("Quản trị viên (Admin) không thể thực hiện yêu cầu này.");
@@ -277,11 +277,11 @@ public class UserProfileServiceImpl implements UserProfileService {
             throw new RuntimeException("Chỉ người dùng (User) mới có thể yêu cầu nâng cấp lên Đối tác.");
         }
         
-        if ("PENDING".equals(user.getPartnerRequestStatus())) {
+        if ("PENDING".equals(user.getVendorRequestStatus())) {
             throw new RuntimeException("Yêu cầu của bạn đã được gửi và đang chờ duyệt.");
         }
 
-        user.setPartnerRequestStatus("PENDING");
+        user.setVendorRequestStatus("PENDING");
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
     }

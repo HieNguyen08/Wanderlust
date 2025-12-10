@@ -29,6 +29,7 @@ public class CarRentalService {
     private final CarRentalRepository carRentalRepository;
     private final BookingRepository bookingRepository;
     private final MongoTemplate mongoTemplate;
+    private final com.wanderlust.api.repository.LocationRepository locationRepository;
 
     // --- Basic CRUD ---
 
@@ -45,12 +46,35 @@ public class CarRentalService {
         carRental.setCreatedAt(LocalDateTime.now());
         carRental.setUpdatedAt(LocalDateTime.now());
         carRental.setStatus(CarStatus.AVAILABLE);
+
+        enrichLocation(carRental);
+
         return carRentalRepository.save(carRental);
     }
 
     public CarRental save(CarRental carRental) {
         carRental.setUpdatedAt(LocalDateTime.now());
+
+        enrichLocation(carRental);
+
         return carRentalRepository.save(carRental);
+    }
+
+    private void enrichLocation(CarRental carRental) {
+        if (carRental.getLocationId() != null) {
+            com.wanderlust.api.entity.Location loc = locationRepository.findById(carRental.getLocationId())
+                    .orElse(null);
+            if (loc != null) {
+                carRental.setCity(loc.getName());
+                if (loc.getParentLocationId() != null) {
+                    com.wanderlust.api.entity.Location parent = locationRepository.findById(loc.getParentLocationId())
+                            .orElse(null);
+                    if (parent != null) {
+                        carRental.setCountry(parent.getName());
+                    }
+                }
+            }
+        }
     }
 
     public void delete(String id) {

@@ -1,15 +1,15 @@
 package com.wanderlust.api.dto.payment;
 
-import com.wanderlust.api.entity.types.PaymentMethod;
-import com.wanderlust.api.entity.types.PaymentStatus;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import com.wanderlust.api.entity.types.PaymentMethod;
+import com.wanderlust.api.entity.types.PaymentStatus;
+
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -18,6 +18,7 @@ public class PaymentDTO {
     private String id;
     private String bookingId;
     private String userId;
+    private String userEmail; // fallback when token only provides email
 
     // Amount
     private BigDecimal amount;

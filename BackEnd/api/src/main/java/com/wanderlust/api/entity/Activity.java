@@ -26,8 +26,10 @@ public class Activity {
     @Id
     private String id;
 
-    private String vendorId;   // Thay cho userId cũ
+    private String vendorId; // Thay cho userId cũ
     private String locationId; // FK to Location
+    private String city;
+    private String country;
 
     private String name;
     private String slug;
@@ -38,8 +40,8 @@ public class Activity {
     private String description;
 
     // --- Lists & JSON ---
-    private List<String> highlights;  // ["Visit temples", "Local food"]
-    private List<String> included;    // ["Guide", "Transport"]
+    private List<String> highlights; // ["Visit temples", "Local food"]
+    private List<String> included; // ["Guide", "Transport"]
     private List<String> notIncluded; // ["Personal expenses"]
 
     private String duration; // "4 hours", "Full day"
@@ -58,7 +60,7 @@ public class Activity {
     private List<ActivityImage> images;
 
     // --- Pricing ---
-    private BigDecimal price;         // Sửa float -> BigDecimal
+    private BigDecimal price; // Sửa float -> BigDecimal
     private BigDecimal originalPrice; // Optional
 
     private String cancellationPolicy;

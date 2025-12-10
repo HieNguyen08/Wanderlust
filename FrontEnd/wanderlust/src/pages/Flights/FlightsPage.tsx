@@ -85,6 +85,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
   const [loadingPromotions, setLoadingPromotions] = useState(true);
   const [savedVouchers, setSavedVouchers] = useState<string[]>([]);
   const [savingVoucher, setSavingVoucher] = useState(false);
+  const [todayFlights, setTodayFlights] = useState<any[]>([]);
 
   // Load saved vouchers from backend
   useEffect(() => {
@@ -110,7 +111,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
     const fetchFlightPromotions = async () => {
       try {
         setLoadingPromotions(true);
-        const data = await promotionApi.getActiveByCategory('flight');
+        const data = await promotionApi.getActiveByCategory('FLIGHT');
         setPromotions(data);
       } catch (error) {
         console.error('Error fetching flight promotions:', error);
@@ -121,6 +122,19 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
     };
 
     fetchFlightPromotions();
+  }, []);
+
+  // Fetch today's flights
+  useEffect(() => {
+    const fetchTodayFlights = async () => {
+      try {
+        const flights = await flightApi.getNearestFlights(8);
+        setTodayFlights(flights);
+      } catch (error) {
+        console.error("Error fetching today's flights:", error);
+      }
+    };
+    fetchTodayFlights();
   }, []);
 
   const handleSaveVoucher = async (voucher: any) => {
@@ -732,6 +746,70 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
         </div>
       </section>
 
+
+
+      {/* Today's Flights Section */}
+      <section className="max-w-7xl mx-auto px-4 md:px-8 py-20 bg-blue-50/50">
+        <div className="mb-8">
+          <h2 className="text-3xl mb-2">{t('flights.todayFlights') || "Chuyến bay hôm nay"}</h2>
+          <p className="text-gray-600">{t('flights.upcomingFlights') || "Các chuyến bay sắp khởi hành gần bạn"}</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {todayFlights.length > 0 ? (
+            todayFlights.map((flight) => (
+              <div
+                key={flight.id}
+                className="bg-white rounded-xl shadow-md p-4 hover:shadow-xl transition-all cursor-pointer border border-gray-100"
+                onClick={() => {
+                  // Fill search form with this flight's route
+                  const fromAp = airports.find(a => a.code === flight.departureAirportCode);
+                  const toAp = airports.find(a => a.code === flight.arrivalAirportCode);
+                  if (fromAp) setFromAirport(fromAp);
+                  if (toAp) setToAirport(toAp);
+                  setDepartDate(new Date(flight.departureTime));
+                  // Scroll to top
+                  heroSearchRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-semibold text-blue-600">{flight.airlineName}</span>
+                  <span className="text-xs text-gray-500">{flight.flightNumber}</span>
+                </div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-center">
+                    <div className="text-lg font-bold">{format(new Date(flight.departureTime), "HH:mm")}</div>
+                    <div className="text-xs text-gray-500">{flight.departureAirportCode}</div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs text-gray-400">{flight.durationDisplay}</span>
+                    <div className="w-16 h-px bg-gray-300 my-1 relative">
+                      <PlaneTakeoff className="w-3 h-3 absolute -top-1.5 left-1/2 -translate-x-1/2 text-gray-400" />
+                    </div>
+                    <span className="text-xs text-green-600">{flight.isDirect ? t('flights.direct') : `${flight.stops} stop`}</span>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold">{format(new Date(flight.arrivalTime), "HH:mm")}</div>
+                    <div className="text-xs text-gray-500">{flight.arrivalAirportCode}</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <span className="text-xs text-gray-500">{format(new Date(flight.departureTime), "dd/MM/yyyy")}</span>
+                  {/* Min price display if available */}
+                  <span className="text-sm font-bold text-blue-600">
+                    {t('common.viewDetails') || "Xem chi tiết"}
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full h-40 flex items-center justify-center text-gray-500">
+              {t('flights.noUpcomingFlights') || "Không có chuyến bay nào sắp khởi hành trong hôm nay."}
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Popular Flights */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-20 bg-gray-50">
         <div className="mb-8">
@@ -890,93 +968,95 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       </section>
 
       {/* Voucher Detail Modal */}
-      {selectedVoucher && (
-        <Dialog open={!!selectedVoucher} onOpenChange={() => setSelectedVoucher(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{t('flights.voucherDetails')}</DialogTitle>
-              <DialogDescription>
-                {t('flights.promotionInfo')}
-              </DialogDescription>
-            </DialogHeader>
+      {
+        selectedVoucher && (
+          <Dialog open={!!selectedVoucher} onOpenChange={() => setSelectedVoucher(null)}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>{t('flights.voucherDetails')}</DialogTitle>
+                <DialogDescription>
+                  {t('flights.promotionInfo')}
+                </DialogDescription>
+              </DialogHeader>
 
-            <div className="space-y-6">
-              <div className="relative h-48 rounded-lg overflow-hidden">
-                <ImageWithFallback
-                  src={selectedVoucher.image}
-                  alt={selectedVoucher.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-full">
-                  {selectedVoucher.type === 'PERCENTAGE'
-                    ? `${selectedVoucher.value}%`
-                    : `${(selectedVoucher.value / 1000).toFixed(0)}K`}
+              <div className="space-y-6">
+                <div className="relative h-48 rounded-lg overflow-hidden">
+                  <ImageWithFallback
+                    src={selectedVoucher.image}
+                    alt={selectedVoucher.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-full">
+                    {selectedVoucher.type === 'PERCENTAGE'
+                      ? `${selectedVoucher.value}%`
+                      : `${(selectedVoucher.value / 1000).toFixed(0)}K`}
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <h3 className="text-2xl mb-2">{selectedVoucher.title}</h3>
-                <p className="text-gray-600">{selectedVoucher.description}</p>
-              </div>
+                <div>
+                  <h3 className="text-2xl mb-2">{selectedVoucher.title}</h3>
+                  <p className="text-gray-600">{selectedVoucher.description}</p>
+                </div>
 
-              <div className="bg-linear-to-r from-blue-50 to-purple-50 p-6 rounded-lg">
-                <p className="text-sm text-gray-600 mb-2">{t('flights.voucherCode')}</p>
-                <div className="flex items-center gap-3">
-                  <code className="text-2xl font-mono flex-1">{selectedVoucher.code}</code>
-                  <Button
-                    onClick={() => handleCopyCode(selectedVoucher.code)}
-                    variant="outline"
-                    className="gap-2"
-                  >
-                    {copiedCode === selectedVoucher.code ? (
-                      <>
-                        <Check className="w-4 h-4" />
-                        {t('flights.copied')}
-                      </>
+                <div className="bg-linear-to-r from-blue-50 to-purple-50 p-6 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-2">{t('flights.voucherCode')}</p>
+                  <div className="flex items-center gap-3">
+                    <code className="text-2xl font-mono flex-1">{selectedVoucher.code}</code>
+                    <Button
+                      onClick={() => handleCopyCode(selectedVoucher.code)}
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      {copiedCode === selectedVoucher.code ? (
+                        <>
+                          <Check className="w-4 h-4" />
+                          {t('flights.copied')}
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          {t('flights.copyCode')}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="mb-3">{t('flights.conditions')}</h4>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    {selectedVoucher.conditions && Array.isArray(selectedVoucher.conditions) && selectedVoucher.conditions.length > 0 ? (
+                      selectedVoucher.conditions.map((condition: string, index: number) => (
+                        <li key={index}>• {condition}</li>
+                      ))
                     ) : (
                       <>
-                        <Copy className="w-4 h-4" />
-                        {t('flights.copyCode')}
+                        <li>• {t('flights.voucherConditions.flight')}</li>
+                        <li>• {t('flights.voucherConditions.noCombine')}</li>
+                        <li>• {t('flights.voucherConditions.oneTime')}</li>
                       </>
                     )}
-                  </Button>
+                  </ul>
                 </div>
-              </div>
 
-              <div className="border-t pt-4">
-                <h4 className="mb-3">{t('flights.conditions')}</h4>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  {selectedVoucher.conditions && Array.isArray(selectedVoucher.conditions) && selectedVoucher.conditions.length > 0 ? (
-                    selectedVoucher.conditions.map((condition: string, index: number) => (
-                      <li key={index}>• {condition}</li>
-                    ))
-                  ) : (
-                    <>
-                      <li>• {t('flights.voucherConditions.flight')}</li>
-                      <li>• {t('flights.voucherConditions.noCombine')}</li>
-                      <li>• {t('flights.voucherConditions.oneTime')}</li>
-                    </>
-                  )}
-                </ul>
+                <Button
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  onClick={() => handleSaveVoucher(selectedVoucher)}
+                  disabled={savedVouchers.includes(selectedVoucher.code) || savingVoucher}
+                >
+                  <Tag className="w-4 h-4 mr-2" />
+                  {savingVoucher
+                    ? t('flights.savingVoucher')
+                    : savedVouchers.includes(selectedVoucher.code)
+                      ? t('flights.savedVoucher')
+                      : t('flights.saveVoucher')
+                  }
+                </Button>
               </div>
-
-              <Button
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                onClick={() => handleSaveVoucher(selectedVoucher)}
-                disabled={savedVouchers.includes(selectedVoucher.code) || savingVoucher}
-              >
-                <Tag className="w-4 h-4 mr-2" />
-                {savingVoucher
-                  ? t('flights.savingVoucher')
-                  : savedVouchers.includes(selectedVoucher.code)
-                    ? t('flights.savedVoucher')
-                    : t('flights.saveVoucher')
-                }
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+            </DialogContent>
+          </Dialog>
+        )
+      }
 
       <Footer />
 
@@ -986,6 +1066,6 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
         searchType="flight"
         message={t('flights.searchingMessage')}
       />
-    </div>
+    </div >
   );
 }

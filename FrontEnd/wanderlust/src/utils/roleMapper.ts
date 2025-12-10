@@ -1,18 +1,18 @@
 /**
  * Role Mapping Utilities
  * 
- * Backend uses: USER, PARTNER, ADMIN
+ * Backend uses: USER, VENDOR, ADMIN
  * Frontend uses: user, admin, vendor
  * 
  * This file provides consistent role mapping between backend and frontend.
  */
 
 export type FrontendRole = "user" | "admin" | "vendor";
-export type BackendRole = "USER" | "PARTNER" | "ADMIN";
+export type BackendRole = "USER" | "VENDOR" | "ADMIN";
 
 /**
  * Maps backend role to frontend role
- * Backend PARTNER → Frontend vendor
+ * Backend VENDOR → Frontend vendor
  * Backend ADMIN → Frontend admin
  * Backend USER → Frontend user
  */
@@ -23,8 +23,8 @@ export function mapBackendRoleToFrontend(backendRole: string | undefined | null)
   switch (roleUpper) {
     case 'ADMIN':
       return 'admin';
-    case 'PARTNER':
-      return 'vendor'; // Backend PARTNER = Frontend vendor
+    case 'VENDOR':
+      return 'vendor'; // Backend VENDOR = Frontend vendor
     case 'USER':
     default:
       return 'user';
@@ -33,7 +33,7 @@ export function mapBackendRoleToFrontend(backendRole: string | undefined | null)
 
 /**
  * Maps frontend role to backend role
- * Frontend vendor → Backend PARTNER
+ * Frontend vendor → Backend VENDOR
  * Frontend admin → Backend ADMIN
  * Frontend user → Backend USER
  */
@@ -42,7 +42,7 @@ export function mapFrontendRoleToBackend(frontendRole: FrontendRole): BackendRol
     case 'admin':
       return 'ADMIN';
     case 'vendor':
-      return 'PARTNER'; // Frontend vendor = Backend PARTNER
+      return 'VENDOR'; // Frontend vendor = Backend VENDOR
     case 'user':
     default:
       return 'USER';

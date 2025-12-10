@@ -1,10 +1,11 @@
 import { API_BASE_URL, tokenService } from '../utils/api';
 
-export type PaymentMethod = 'STRIPE';
+export type PaymentMethod = 'STRIPE' | 'WALLET';
 
 export interface CreatePaymentRequest {
   bookingId: string;
   userId: string;
+  userEmail?: string;
   amount: number;
   currency?: string;
   paymentMethod: PaymentMethod;

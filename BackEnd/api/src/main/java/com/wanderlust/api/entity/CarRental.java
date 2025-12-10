@@ -28,8 +28,10 @@ public class CarRental {
     @Id
     private String id; // Sửa rental_ID -> id
 
-    private String vendorId;  // Sửa userId -> vendorId
+    private String vendorId; // Sửa userId -> vendorId
     private String locationId; // FK to Location
+    private String city;
+    private String country;
 
     // --- Car Details ---
     private String brand; // "Toyota"
@@ -37,7 +39,7 @@ public class CarRental {
     private Integer year;
 
     private CarType type; // Enum (Sửa car_Type -> type)
-    
+
     private TransmissionType transmission; // Enum
     private FuelType fuelType; // Enum
 
@@ -50,13 +52,13 @@ public class CarRental {
 
     // --- Images & Features ---
     // images: json -> List Object
-    private List<CarImage> images; 
-    
+    private List<CarImage> images;
+
     // features: ["GPS", "Camera"] -> List String
-    private List<String> features; 
+    private List<String> features;
 
     // --- Pricing (BigDecimal) ---
-    private BigDecimal pricePerDay;  // Sửa rental_Cost -> pricePerDay
+    private BigDecimal pricePerDay; // Sửa rental_Cost -> pricePerDay
     private BigDecimal pricePerHour; // Optional
 
     // --- Driver Option ---
@@ -68,18 +70,18 @@ public class CarRental {
 
     // --- Rental Policy ---
     private BigDecimal deposit; // Tiền cọc
-    
+
     private FuelPolicy fuelPolicy; // Enum
-    
+
     private Integer mileageLimit; // km/day (null = unlimited)
     private Integer minRentalDays;
-    
+
     private Boolean deliveryAvailable;
     private BigDecimal deliveryFee;
 
     // --- Status & Stats ---
     private CarStatus status; // Enum
-    
+
     private BigDecimal averageRating;
     private Integer totalReviews;
     private Integer totalTrips;
@@ -107,7 +109,7 @@ public class CarRental {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class InsuranceInfo {
-        private String type;     // "Basic", "Premium"
+        private String type; // "Basic", "Premium"
         private String coverage; // Mô tả bảo hiểm
         private BigDecimal price; // Giá bảo hiểm
     }

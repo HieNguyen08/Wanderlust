@@ -1,13 +1,13 @@
 import {
-    ArrowDownLeft,
-    ArrowUpRight,
-    CheckCircle,
-    Clock,
-    Plus,
-    RefreshCw,
-    TrendingUp,
-    Wallet,
-    XCircle
+  ArrowDownLeft,
+  ArrowUpRight,
+  CheckCircle,
+  Clock,
+  Plus,
+  RefreshCw,
+  TrendingUp,
+  Wallet,
+  XCircle
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,14 +28,19 @@ interface UserWalletPageProps {
 }
 
 interface WalletTransaction {
-  id: string;
-  type: "credit" | "debit" | "refund";
+  transactionId: string;
+  type: "CREDIT" | "DEBIT" | "REFUND" | "WITHDRAW";
   amount: number;
   description: string;
-  status: "completed" | "pending" | "failed";
-  date: string;
-  orderId?: string;
-  vendorName?: string;
+  status: "COMPLETED" | "PENDING" | "FAILED";
+  createdAt: string;
+  bookingId?: string;
+  relatedUserId?: string;
+  fromWalletId?: string;
+  toWalletId?: string;
+  commissionAmount?: number;
+  voucherCode?: string;
+  voucherDiscount?: number;
 }
 
 export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserWalletPageProps) {
@@ -101,15 +106,21 @@ export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserW
             size: 10,
           });
 
-          // Map backend data to frontend format
+          // Map backend data to frontend format - transactions are already in correct format
           const mappedTransactions = transactionData.content.map((txn: any) => ({
-            id: txn.transactionId,
-            type: txn.type.toLowerCase(),
+            transactionId: txn.transactionId,
+            type: txn.type, // CREDIT, DEBIT, REFUND, WITHDRAW
             amount: txn.amount,
             description: txn.description,
-            status: txn.status.toLowerCase(),
-            date: new Date(txn.createdAt).toLocaleString('vi-VN'),
-            orderId: txn.bookingId,
+            status: txn.status, // COMPLETED, PENDING, FAILED
+            createdAt: txn.createdAt,
+            bookingId: txn.bookingId,
+            relatedUserId: txn.relatedUserId,
+            fromWalletId: txn.fromWalletId,
+            toWalletId: txn.toWalletId,
+            commissionAmount: txn.commissionAmount,
+            voucherCode: txn.voucherCode,
+            voucherDiscount: txn.voucherDiscount,
           }));
 
           setTransactions(mappedTransactions);
@@ -164,10 +175,11 @@ export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserW
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case "credit":
-      case "refund":
+      case "CREDIT":
+      case "REFUND":
         return <ArrowDownLeft className="w-5 h-5 text-green-600" />;
-      case "debit":
+      case "DEBIT":
+      case "WITHDRAW":
         return <ArrowUpRight className="w-5 h-5 text-red-600" />;
       default:
         return <RefreshCw className="w-5 h-5 text-gray-600" />;
@@ -176,20 +188,21 @@ export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserW
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case "credit": return t('profile.wallet.deposit');
-      case "debit": return t('profile.wallet.payment');
-      case "refund": return t('profile.wallet.refund');
+      case "CREDIT": return t('profile.wallet.deposit');
+      case "DEBIT": return t('profile.wallet.payment');
+      case "REFUND": return t('profile.wallet.refund');
+      case "WITHDRAW": return t('profile.wallet.withdraw');
       default: return type;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "completed":
+      case "COMPLETED":
         return <Badge className="bg-green-100 text-green-700 hover:bg-green-100"><CheckCircle className="w-3 h-3 mr-1" />{t('profile.wallet.completed')}</Badge>;
-      case "pending":
+      case "PENDING":
         return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100"><Clock className="w-3 h-3 mr-1" />{t('profile.wallet.pending')}</Badge>;
-      case "failed":
+      case "FAILED":
         return <Badge className="bg-red-100 text-red-700 hover:bg-red-100"><XCircle className="w-3 h-3 mr-1" />{t('profile.wallet.failed')}</Badge>;
       default:
         return null;
@@ -319,12 +332,12 @@ export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserW
               <div className="space-y-4">
                 {transactions.map((transaction) => (
                   <Card
-                    key={transaction.id}
+                    key={transaction.transactionId}
                     className="p-4 hover:shadow-md transition-shadow border border-gray-200"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 flex-1">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${transaction.type === 'debit' ? 'bg-red-50' : 'bg-green-50'
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${transaction.type === 'DEBIT' || transaction.type === 'WITHDRAW' ? 'bg-red-50' : 'bg-green-50'
                           }`}>
                           {getTypeIcon(transaction.type)}
                         </div>
@@ -332,20 +345,35 @@ export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserW
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="text-gray-900">{transaction.description}</h3>
-                            {transaction.orderId && (
+                            {transaction.bookingId && (
                               <Badge variant="outline" className="text-xs">
-                                {transaction.orderId}
+                                {transaction.bookingId}
+                              </Badge>
+                            )}
+                            {transaction.voucherCode && (
+                              <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700">
+                                {transaction.voucherCode}
                               </Badge>
                             )}
                           </div>
                           <div className="flex items-center gap-3 text-sm text-gray-600">
                             <span>{getTypeLabel(transaction.type)}</span>
                             <span>•</span>
-                            <span>{transaction.date}</span>
-                            {transaction.vendorName && (
+                            <span>{new Date(transaction.createdAt).toLocaleString('vi-VN')}</span>
+                            {transaction.voucherDiscount && (
                               <>
                                 <span>•</span>
-                                <span>{transaction.vendorName}</span>
+                                <span className="text-purple-600">
+                                  Giảm {transaction.voucherDiscount.toLocaleString('vi-VN')}đ
+                                </span>
+                              </>
+                            )}
+                            {transaction.commissionAmount && (
+                              <>
+                                <span>•</span>
+                                <span className="text-orange-600">
+                                  Hoa hồng: {transaction.commissionAmount.toLocaleString('vi-VN')}đ
+                                </span>
                               </>
                             )}
                           </div>
@@ -355,16 +383,16 @@ export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserW
                       <div className="flex items-center gap-4">
                         {getStatusBadge(transaction.status)}
                         <div className="text-right">
-                          <p className={`text-xl ${transaction.type === 'debit' ? 'text-red-600' : 'text-green-600'
+                          <p className={`text-xl ${transaction.type === 'DEBIT' || transaction.type === 'WITHDRAW' ? 'text-red-600' : 'text-green-600'
                             }`}>
-                            {transaction.type === 'debit' ? '-' : '+'}
+                            {transaction.type === 'DEBIT' || transaction.type === 'WITHDRAW' ? '-' : '+'}
                             {transaction.amount.toLocaleString('vi-VN')}đ
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    {transaction.type === 'refund' && transaction.status === 'pending' && (
+                    {transaction.type === 'REFUND' && transaction.status === 'PENDING' && (
                       <div className="mt-3 pt-3 border-t">
                         <div className="flex items-center gap-2 text-sm text-yellow-700 bg-yellow-50 p-3 rounded-lg">
                           <Clock className="w-4 h-4" />

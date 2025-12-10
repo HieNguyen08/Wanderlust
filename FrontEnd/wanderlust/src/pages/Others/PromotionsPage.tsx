@@ -1,16 +1,16 @@
 import {
-    Activity,
-    Calendar,
-    Car,
-    Check, ChevronLeft, ChevronRight,
-    Clock,
-    Copy,
-    Filter,
-    Hotel, Plane,
-    Sparkles,
-    Tag,
-    Ticket,
-    TrendingUp
+  Activity,
+  Calendar,
+  Car,
+  Check, ChevronLeft, ChevronRight,
+  Clock,
+  Copy,
+  Filter,
+  Hotel, Plane,
+  Sparkles,
+  Tag,
+  Ticket,
+  TrendingUp
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner@2.0.3";
@@ -36,11 +36,11 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
   const [showFilters, setShowFilters] = useState(true);
   const [allVouchers, setAllVouchers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Load saved vouchers from backend
   const [savedVouchers, setSavedVouchers] = useState<string[]>([]);
   const [savingVoucher, setSavingVoucher] = useState(false);
-  
+
   // Filters
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedDestinations, setSelectedDestinations] = useState<string[]>([]);
@@ -71,7 +71,7 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
       try {
         setLoading(true);
         const data = await promotionApi.getAll();
-        
+
         // Transform backend data to match frontend structure
         const transformedData = data.map((promo: any) => ({
           id: promo.id,
@@ -87,10 +87,10 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
           endDate: promo.endDate,
           category: promo.category,
           destination: promo.destination,
-          badge: promo.type === 'PERCENTAGE' 
-            ? `GIẢM ${promo.value}%` 
-            : `${promo.value.toLocaleString('vi-VN')}Đ`,
-          badgeColor: getCategoryColor(promo.category),
+          badge: promo.badge || (promo.type === 'PERCENTAGE'
+            ? `GIẢM ${promo.value}%`
+            : `${promo.value.toLocaleString('vi-VN')}Đ`),
+          badgeColor: promo.badgeColor || getCategoryColor(promo.category),
           isFeatured: promo.isFeatured,
           daysLeft: calculateDaysLeft(promo.endDate),
           totalUsesLimit: promo.totalUsesLimit,
@@ -98,7 +98,7 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
           conditions: promo.conditions || [],
           applicableServices: []
         }));
-        
+
         setAllVouchers(transformedData);
       } catch (error) {
         console.error('Error fetching promotions:', error);
@@ -141,7 +141,7 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
         "from-blue-900/70 via-cyan-900/70 to-transparent",
         "from-green-900/70 via-teal-900/70 to-transparent"
       ];
-      
+
       return {
         id: voucher.id,
         title: voucher.title.toUpperCase(),
@@ -205,14 +205,14 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
       toast.info("Bạn đã lưu voucher này rồi!");
       return;
     }
-    
+
     try {
       setSavingVoucher(true);
       await userVoucherApi.saveToWallet(voucherCode);
-      
+
       // Update saved vouchers list
       setSavedVouchers([...savedVouchers, voucherCode]);
-      
+
       toast.success(`Đã lưu mã ${voucherCode} vào Ví Voucher của bạn!`);
     } catch (error: any) {
       if (error.message?.includes("đã lưu")) {
@@ -251,11 +251,11 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
 
   const PromotionCard = ({ voucher }: { voucher: any }) => {
     const collected = isCollected(voucher.id);
-    
+
     return (
       <Card className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300">
         {/* Image */}
-        <div 
+        <div
           className="relative h-48 overflow-hidden"
           onClick={() => setSelectedPromo(voucher)}
         >
@@ -265,7 +265,7 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
           <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
-          
+
           {/* Badge */}
           <Badge className={`absolute top-3 right-3 ${voucher.badgeColor} text-white border-0`}>
             {voucher.badge}
@@ -282,7 +282,7 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
 
         {/* Content */}
         <div className="p-4">
-          <h3 
+          <h3
             className="text-lg text-gray-900 mb-2 line-clamp-2 cursor-pointer hover:text-blue-600"
             onClick={() => setSelectedPromo(voucher)}
           >
@@ -314,7 +314,7 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
                 <span>{Math.round((voucher.usedCount / voucher.totalUsesLimit) * 100)}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className="bg-blue-600 h-2 rounded-full transition-all"
                   style={{ width: `${(voucher.usedCount / voucher.totalUsesLimit) * 100}%` }}
                 />
@@ -375,109 +375,106 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
         ) : (
           <>
             {heroBanners.map((banner, index) => (
-          <div
-            key={banner.id}
-            className={`absolute inset-0 transition-opacity duration-700 ${
-              index === currentSlide ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            <ImageWithFallback
-              src={banner.image}
-              alt={banner.title}
-              className="w-full h-full object-cover"
-            />
-            <div className={`absolute inset-0 bg-linear-to-r ${banner.gradient}`} />
-            <div className="absolute inset-0 flex items-center">
-              <div className="max-w-7xl mx-auto px-4 md:px-8 w-full">
-                <div className="max-w-2xl text-white">
-                  <Badge className="bg-yellow-500 text-gray-900 mb-4">
-                    ƯU ĐÃI HOT
-                  </Badge>
-                  <h1 className="text-5xl md:text-7xl mb-4">{banner.title}</h1>
-                  <p className="text-xl md:text-2xl mb-6 text-white/90">
-                    {banner.subtitle}
-                  </p>
-                  <div className="flex items-center gap-4 flex-wrap">
-                    <code className="bg-white text-gray-900 px-4 py-2 rounded text-lg">
-                      {banner.code}
-                    </code>
-                    <Button 
-                      size="lg"
-                      onClick={() => handleCopyCode(banner.code)}
-                      className="bg-yellow-500 hover:bg-yellow-600 text-gray-900"
-                    >
-                      {copiedCode === banner.code ? (
-                        <>
-                          <Check className="w-5 h-5 mr-2" />
-                          Đã sao chép
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-5 h-5 mr-2" />
-                          Sao chép mã
-                        </>
-                      )}
-                    </Button>
-                    <Button 
-                      size="lg"
-                      onClick={() => banner.voucher && handleCollectVoucher(banner.voucher.id, banner.code)}
-                      disabled={banner.voucher && isCollected(banner.voucher.id)}
-                      className={`${
-                        banner.voucher && isCollected(banner.voucher.id)
-                          ? 'bg-white/20 cursor-not-allowed' 
-                          : 'bg-white hover:bg-white/90'
-                      } text-gray-900`}
-                    >
-                      {banner.voucher && isCollected(banner.voucher.id) ? (
-                        <>
-                          <Check className="w-5 h-5 mr-2" />
-                          Đã lấy mã
-                        </>
-                      ) : (
-                        <>
-                          <Ticket className="w-5 h-5 mr-2" />
-                          Lấy mã
-                        </>
-                      )}
-                    </Button>
+              <div
+                key={banner.id}
+                className={`absolute inset-0 transition-opacity duration-700 ${index === currentSlide ? 'opacity-100' : 'opacity-0'
+                  }`}
+              >
+                <ImageWithFallback
+                  src={banner.image}
+                  alt={banner.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className={`absolute inset-0 bg-linear-to-r ${banner.gradient}`} />
+                <div className="absolute inset-0 flex items-center">
+                  <div className="max-w-7xl mx-auto px-4 md:px-8 w-full">
+                    <div className="max-w-2xl text-white">
+                      <Badge className="bg-yellow-500 text-gray-900 mb-4">
+                        ƯU ĐÃI HOT
+                      </Badge>
+                      <h1 className="text-5xl md:text-7xl mb-4">{banner.title}</h1>
+                      <p className="text-xl md:text-2xl mb-6 text-white/90">
+                        {banner.subtitle}
+                      </p>
+                      <div className="flex items-center gap-4 flex-wrap">
+                        <code className="bg-white text-gray-900 px-4 py-2 rounded text-lg">
+                          {banner.code}
+                        </code>
+                        <Button
+                          size="lg"
+                          onClick={() => handleCopyCode(banner.code)}
+                          className="bg-yellow-500 hover:bg-yellow-600 text-gray-900"
+                        >
+                          {copiedCode === banner.code ? (
+                            <>
+                              <Check className="w-5 h-5 mr-2" />
+                              Đã sao chép
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-5 h-5 mr-2" />
+                              Sao chép mã
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          size="lg"
+                          onClick={() => banner.voucher && handleCollectVoucher(banner.voucher.id, banner.code)}
+                          disabled={banner.voucher && isCollected(banner.voucher.id)}
+                          className={`${banner.voucher && isCollected(banner.voucher.id)
+                              ? 'bg-white/20 cursor-not-allowed'
+                              : 'bg-white hover:bg-white/90'
+                            } text-gray-900`}
+                        >
+                          {banner.voucher && isCollected(banner.voucher.id) ? (
+                            <>
+                              <Check className="w-5 h-5 mr-2" />
+                              Đã lấy mã
+                            </>
+                          ) : (
+                            <>
+                              <Ticket className="w-5 h-5 mr-2" />
+                              Lấy mã
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        ))}
+            ))}
 
-        {/* Navigation Arrows */}
-        {!loading && heroBanners.length > 0 && (
-          <>
-            <button
-              onClick={() => setCurrentSlide((currentSlide - 1 + heroBanners.length) % heroBanners.length)}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all z-10"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <button
-              onClick={() => setCurrentSlide((currentSlide + 1) % heroBanners.length)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all z-10"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-
-            {/* Dots Indicator */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-              {heroBanners.map((_, index) => (
+            {/* Navigation Arrows */}
+            {!loading && heroBanners.length > 0 && (
+              <>
                 <button
-                  key={index}
-                  onClick={() => setCurrentSlide(index)}
-                  className={`h-2 rounded-full transition-all ${
-                    index === currentSlide ? 'w-8 bg-white' : 'w-2 bg-white/50'
-                  }`}
-                />
-              ))}
-            </div>
+                  onClick={() => setCurrentSlide((currentSlide - 1 + heroBanners.length) % heroBanners.length)}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all z-10"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={() => setCurrentSlide((currentSlide + 1) % heroBanners.length)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all z-10"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+
+                {/* Dots Indicator */}
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                  {heroBanners.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`h-2 rounded-full transition-all ${index === currentSlide ? 'w-8 bg-white' : 'w-2 bg-white/50'
+                        }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </>
-        )}
-        </>
         )}
       </section>
 
@@ -755,8 +752,8 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Giá trị</p>
                   <p className="text-gray-900">
-                    {selectedPromo.type === 'PERCENTAGE' 
-                      ? `Giảm ${selectedPromo.value}%` 
+                    {selectedPromo.type === 'PERCENTAGE'
+                      ? `Giảm ${selectedPromo.value}%`
                       : `Giảm ${selectedPromo.value.toLocaleString('vi-VN')}đ`}
                   </p>
                 </div>

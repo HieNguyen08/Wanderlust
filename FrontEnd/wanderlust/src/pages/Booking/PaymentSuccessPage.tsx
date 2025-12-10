@@ -6,6 +6,8 @@ import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import type { PageType } from "../../MainApp";
 
+const PENDING_PAYMENT_KEY = "wanderlust_pending_payment";
+
 interface PaymentSuccessPageProps {
   onNavigate: (page: PageType, data?: any) => void;
   sessionId?: string; // From URL query param
@@ -25,25 +27,40 @@ export default function PaymentSuccessPage({
   useEffect(() => {
     // Get query params from URL
     const params = new URLSearchParams(window.location.search);
-    const urlSessionId = params.get('session_id') || sessionId;
     const urlBookingId = params.get('booking_id') || bookingId;
+    const urlPaymentId = params.get('payment_id') || params.get('paymentId');
 
-    if (urlBookingId) {
-      verifyPayment(urlBookingId);
+    const pendingRaw = sessionStorage.getItem(PENDING_PAYMENT_KEY);
+    const pending = pendingRaw ? JSON.parse(pendingRaw) : {};
+
+    const resolvedBookingId = urlBookingId || pending?.bookingId;
+    const resolvedPaymentId = urlPaymentId || pending?.paymentId;
+
+    if (resolvedBookingId) {
+      verifyPayment(resolvedBookingId, resolvedPaymentId);
+    } else if (resolvedPaymentId) {
+      verifyPayment(undefined, resolvedPaymentId);
     } else {
       setLoading(false);
     }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, bookingId]);
 
-  const verifyPayment = async (bookingId: string) => {
+  const verifyPayment = async (bookingId?: string, paymentId?: string) => {
     try {
-      const payment = await paymentApi.getPaymentByBookingId(bookingId);
+      const payment = bookingId
+        ? await paymentApi.getPaymentByBookingId(bookingId)
+        : paymentId
+        ? await paymentApi.getPaymentStatus(paymentId)
+        : null;
       setPaymentInfo(payment);
     } catch (err: any) {
       console.error('Failed to verify payment:', err);
       setError(err.message || 'Không thể xác minh thanh toán');
     } finally {
       setLoading(false);
+      sessionStorage.removeItem(PENDING_PAYMENT_KEY);
     }
   };
 
@@ -72,7 +89,7 @@ export default function PaymentSuccessPage({
           </h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <div className="flex gap-3 justify-center">
-            <Button onClick={() => onNavigate('profile-bookings')}>
+            <Button onClick={() => onNavigate('profile-bookings' as PageType)}>
               {t('payment.viewBookings', 'Xem đặt chỗ')}
             </Button>
             <Button variant="outline" onClick={() => onNavigate('home')}>
@@ -94,15 +111,12 @@ export default function PaymentSuccessPage({
 
         {/* Title */}
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {t('payment.success', 'Thanh toán thành công!')} 🎉
+          {t('payment.success', 'Thanh toán dịch vụ thành công!')} 🎉
         </h1>
 
         {/* Description */}
         <p className="text-gray-600 mb-6">
-          {t(
-            'payment.successDesc',
-            'Đặt chỗ của bạn đã được xác nhận. Bạn sẽ nhận được email xác nhận trong giây lát.'
-          )}
+          {t('payment.successDesc', 'Đặt chỗ của bạn đã được xác nhận. Bạn sẽ nhận được email xác nhận trong giây lát.')}
         </p>
 
         {/* Payment Details */}
@@ -132,6 +146,12 @@ export default function PaymentSuccessPage({
                   {paymentInfo.paymentMethod === 'WALLET' && 'Ví Wanderlust'}
                 </span>
               </div>
+              {paymentInfo.bookingId && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">{t('payment.bookingCode', 'Mã đặt chỗ')}:</span>
+                  <span className="font-medium">{paymentInfo.bookingId}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -151,16 +171,7 @@ export default function PaymentSuccessPage({
             <li className="flex items-start gap-2">
               <span className="text-blue-600 mt-0.5">•</span>
               <span>
-                {t('payment.step2', 'Chuẩn bị giấy tờ cần thiết theo yêu cầu')}
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-0.5">•</span>
-              <span>
-                {t(
-                  'payment.step3',
-                  'Theo dõi trạng thái đặt chỗ trong mục "Lịch sử đặt chỗ"'
-                )}
+                {t('payment.step3', 'Theo dõi trạng thái đặt chỗ trong mục "Lịch sử đặt chỗ"')}
               </span>
             </li>
           </ul>
@@ -170,7 +181,7 @@ export default function PaymentSuccessPage({
         <div className="flex flex-col sm:flex-row gap-3">
           <Button
             className="flex-1"
-            onClick={() => onNavigate('profile-bookings')}
+            onClick={() => onNavigate('profile-bookings' as PageType)}
           >
             <Receipt className="w-4 h-4 mr-2" />
             {t('payment.viewBookings', 'Xem đặt chỗ của tôi')}

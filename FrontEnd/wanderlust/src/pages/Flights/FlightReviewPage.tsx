@@ -1,5 +1,5 @@
-import { AlertCircle, Clock, Plane } from "lucide-react";
-import { useEffect, useState } from "react";
+import { AlertCircle, Plane } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Footer } from "../../components/Footer";
@@ -11,7 +11,8 @@ import { Label } from "../../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Separator } from "../../components/ui/separator";
 import type { PageType } from "../../MainApp";
-import { profileApi, tokenService } from "../../utils/api";
+import { useNavigationProps } from "../../router/withPageProps";
+import { bookingApi, profileApi, tokenService } from "../../utils/api";
 
 interface FlightReviewPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -32,6 +33,9 @@ interface PassengerForm {
 
 export default function FlightReviewPage({ onNavigate, flightData }: FlightReviewPageProps) {
   const { t } = useTranslation();
+  const { pageData, onNavigate: navigateFromHook } = useNavigationProps();
+  const resolvedFlightData = useMemo(() => flightData ?? pageData, [flightData, pageData]);
+  const goTo = onNavigate ?? navigateFromHook;
   const [contactInfo, setContactInfo] = useState({
     fullName: "",
     email: "",
@@ -57,6 +61,17 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
 
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isEditingContact, setIsEditingContact] = useState(false);
+  const [isCreatingBooking, setIsCreatingBooking] = useState(false);
+
+  // If navigation passed contact info, pre-fill the form
+  useEffect(() => {
+    if (resolvedFlightData?.contactInfo) {
+      setContactInfo((prev) => ({
+        ...prev,
+        ...resolvedFlightData.contactInfo
+      }));
+    }
+  }, [resolvedFlightData]);
 
   // Load user info when component mounts
   useEffect(() => {
@@ -91,30 +106,97 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
     loadUserData();
   }, [t]);
 
-  // Mock data - in real app, this comes from previous page
-  const isInternational = flightData?.isInternational || false;
-  const outboundFlight = flightData?.outbound || {
-    airline: "Vietnam Airlines",
-    flightNumber: "VN210",
-    from: "SGN",
-    to: "HAN",
-    departure: "08:00",
-    arrival: "10:15",
-    date: "08/11/2025",
-    class: "Phổ thông Linh hoạt"
+  // Get actual flight data from previous page (location.state or prop)
+  const isInternational = resolvedFlightData?.isInternational || false;
+  const tripType = resolvedFlightData?.tripType || 'one-way';
+  
+  // Debug: Log received flight data
+  useEffect(() => {
+    console.log('=== FlightReviewPage Data ===');
+    console.log('Full flightData:', resolvedFlightData);
+    console.log('outboundFlight:', resolvedFlightData?.outboundFlight);
+    console.log('returnFlight:', resolvedFlightData?.returnFlight);
+    console.log('selectedSeats:', resolvedFlightData?.selectedSeats);
+    console.log('cabinClass:', resolvedFlightData?.cabinClass);
+  }, [resolvedFlightData]);
+  
+  // Outbound flight data from SearchPage
+  const outboundFlightData = resolvedFlightData?.outboundFlight;
+  const returnFlightData = resolvedFlightData?.returnFlight;
+
+  // Format flight info for display
+  const formatTime = (dateTimeString: string) => {
+    if (!dateTimeString) return '';
+    const date = new Date(dateTimeString);
+    return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
   };
 
-  const returnFlight = flightData?.return;
+  const formatDate = (dateTimeString: string) => {
+    if (!dateTimeString) return '';
+    const date = new Date(dateTimeString);
+    return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
+
+  // Map cabin class for display
+  const getCabinClassName = (cabinClass: string) => {
+    const mapping: Record<string, string> = {
+      'economy': t('flights.economy') || 'Phổ thông',
+      'business': t('flights.business') || 'Thương gia',
+      'first': t('flights.firstClass') || 'Hạng nhất'
+    };
+    return mapping[cabinClass?.toLowerCase()] || cabinClass;
+  };
 
   // Extract passenger counts from object or use default
-  const passengerInfo = flightData?.passengers || { adults: 1, children: 0, infants: 0 };
+  const passengerInfo = resolvedFlightData?.passengers || { adults: 1, children: 0, infants: 0 };
   const numPassengers = typeof passengerInfo === 'number'
     ? passengerInfo
     : (passengerInfo.adults || 0) + (passengerInfo.children || 0) + (passengerInfo.infants || 0);
 
-  const basePrice = 1500000;
-  const taxAndFees = 500000;
-  const totalPrice = (basePrice + taxAndFees) * numPassengers;
+  // Ensure passenger form count matches passenger quantity
+  useEffect(() => {
+    const count = numPassengers || 1;
+    setPassengers((prev) => {
+      if (prev.length === count) return prev;
+
+      const buildEmptyPassenger = (): PassengerForm => ({
+        title: "",
+        firstName: "",
+        middleName: "",
+        lastName: "",
+        dateOfBirth: "",
+        nationality: "",
+        passportNumber: "",
+        passportIssuingCountry: "",
+        passportExpiry: ""
+      });
+
+      const next = Array.from({ length: count }, (_, idx) => prev[idx] ?? buildEmptyPassenger());
+      return next;
+    });
+  }, [numPassengers]);
+
+  // Selected Seats from previous page
+  const selectedSeats = resolvedFlightData?.selectedSeats || { outbound: [], return: [] };
+
+  // Calculate base price from cabin class
+  const cabinClass = resolvedFlightData?.cabinClass || 'economy';
+  
+  // Get cabin class price from flight data
+  const outboundBasePrice = outboundFlightData?.cabinClasses?.[cabinClass]?.fromPrice || 1500000;
+  const returnBasePrice = returnFlightData?.cabinClasses?.[cabinClass]?.fromPrice || 0;
+  const basePrice = outboundBasePrice + returnBasePrice;
+  
+  // Calculate taxes and fees (10% of base price per passenger)
+  const taxAndFees = Math.round((outboundBasePrice + returnBasePrice) * 0.1);
+
+  // Calculate total seat price from selected seats
+  const outboundSeatPrice = selectedSeats.outbound?.reduce((acc: number, seat: any) => acc + (seat.price || 0), 0) || 0;
+  const returnSeatPrice = selectedSeats.return?.reduce((acc: number, seat: any) => acc + (seat.price || 0), 0) || 0;
+  const totalSeatPrice = outboundSeatPrice + returnSeatPrice;
+
+  // Total = (Base price + Taxes) * Passengers + Seat fees
+  const totalPrice = (basePrice + taxAndFees) * numPassengers + totalSeatPrice;
 
   const handleUpdatePassenger = (index: number, field: keyof PassengerForm, value: string) => {
     const updated = [...passengers];
@@ -122,7 +204,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
     setPassengers(updated);
   };
 
-  const handleContinueToPayment = () => {
+  const handleContinueToPayment = async () => {
     // Validation
     if (!contactInfo.fullName || !contactInfo.email || !contactInfo.phone) {
       alert(t('flights.pleaseFillContactInfo'));
@@ -149,12 +231,105 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
       return;
     }
 
+    if (!resolvedFlightData?.outboundFlight) {
+      toast.error(t('flights.missingFlightData') || 'Thiếu dữ liệu chuyến bay, vui lòng chọn lại');
+      goTo('search');
+      return;
+    }
+
+    // Require login before creating booking
+    if (!tokenService.isAuthenticated?.()) {
+      toast.error(t('common.loginRequired') || 'Vui lòng đăng nhập');
+      goTo('login');
+      return;
+    }
+
+    try {
+      setIsCreatingBooking(true);
+
+      // Collect seat IDs
+      const selectedSeatsData = resolvedFlightData?.selectedSeats || { outbound: [], return: [] };
+      const flightSeatIds = [
+        ...(selectedSeatsData.outbound?.map((s: any) => s.id) || []),
+        ...(selectedSeatsData.return?.map((s: any) => s.id) || [])
+      ];
+
+      const bookingPayload = {
+        productType: "FLIGHT",
+        bookingType: "FLIGHT",
+        productId: resolvedFlightData?.outboundFlight?.id
+          || resolvedFlightData?.outboundFlight?.flightNumber
+          || "FLIGHT001",
+        flightId: resolvedFlightData?.outboundFlight?.flightNumber || resolvedFlightData?.outboundFlight?.id,
+        flightSeatIds,
+        seatCount: flightSeatIds.length,
+        userId: tokenService.getUserData()?.id,
+        amount: totalPrice,
+        basePrice: (basePrice * numPassengers),
+        taxes: (taxAndFees * numPassengers),
+        fees: totalSeatPrice,
+        discount: 0,
+        totalPrice,
+        currency: "VND",
+        startDate: resolvedFlightData?.outboundFlight?.departureTime || new Date().toISOString(),
+        endDate: resolvedFlightData?.returnFlight?.arrivalTime || undefined,
+        quantity: passengers.length || numPassengers || 1,
+        numberOfGuests: {
+          adults: passengerInfo?.adults || numPassengers || 1,
+          children: passengerInfo?.children || 0,
+          infants: passengerInfo?.infants || 0
+        },
+        guestInfo: {
+          fullName: contactInfo.fullName,
+          firstName: contactInfo.fullName?.split(" ")[0] || "Guest",
+          lastName: contactInfo.fullName?.split(" ").slice(1).join(" ") || "User",
+          email: contactInfo.email,
+          phone: contactInfo.phone
+        },
+        specialRequests: `Cabin: ${resolvedFlightData?.cabinClass || 'economy'} | Seats: ${flightSeatIds.join(', ')} | Pax: ${passengers.length || numPassengers}`,
+        paymentStatus: "PENDING",
+        status: "PENDING",
+        metadata: {
+          passengers,
+          contactInfo,
+          selectedSeats: selectedSeatsData,
+          tripType,
+          cabinClass,
+          basePricePerPassenger: basePrice,
+          taxesPerPassenger: taxAndFees,
+          seatFees: totalSeatPrice,
+          voucherDiscount: 0,
+          finalAmount: totalPrice
+        }
+      } as any;
+
+      const createdBooking = await bookingApi.createBooking(bookingPayload);
+
+      // Navigate to payment with persisted booking
+      goTo("payment-methods", {
+        type: "flight",
+        contactInfo,
+        passengers,
+        flightData: resolvedFlightData,
+        totalPrice,
+        bookingId: createdBooking?.id,
+        booking: createdBooking,
+        userId: tokenService.getUserData()?.id,
+        flightSeatIds
+      });
+    } catch (error: any) {
+      console.error('Failed to create booking before payment', error);
+      toast.error(error.message || t('payment.bookingFailed') || 'Không thể tạo đặt chỗ, vui lòng thử lại');
+    } finally {
+      setIsCreatingBooking(false);
+    }
+
     // Navigate to payment page with all data
-    onNavigate("payment-methods", {
+    goTo("payment-methods", {
       type: "flight",
       contactInfo,
       passengers,
-      flightData,
+      flightData: resolvedFlightData,
       totalPrice
     });
   };
@@ -164,11 +339,11 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
       {/* Breadcrumb */}
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-gray-600">
-          <button onClick={() => onNavigate("flights")} className="hover:text-blue-600">
+          <button onClick={() => goTo("flights")} className="hover:text-blue-600">
             {t('flights.flightTickets')}
           </button>
           <span>/</span>
-          <button onClick={() => onNavigate("search")} className="hover:text-blue-600">
+          <button onClick={() => goTo("search")} className="hover:text-blue-600">
             {t('common.search')}
           </button>
           <span>/</span>
@@ -483,9 +658,9 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
             size="lg"
             className="w-full"
             onClick={handleContinueToPayment}
-            disabled={!agreeToTerms}
+            disabled={!agreeToTerms || isCreatingBooking}
           >
-            {t('flights.continueToPayment')}
+            {isCreatingBooking ? t('common.loading') || 'Đang xử lý...' : t('flights.continueToPayment')}
           </Button>
         </div>
 
@@ -493,126 +668,247 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
         <div className="lg:col-span-1">
           <div className="sticky top-24">
             <Card className="p-6">
-              <h2 className="text-xl text-gray-900 mb-6">{t('flights.yourFlight')}</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">{t('flights.yourFlight') || 'Chuyến bay của bạn'}</h2>
+
+              {/* Debug Info (remove in production) */}
+              {!outboundFlightData && (
+                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-yellow-800">
+                  ⚠️ Không tìm thấy thông tin chuyến bay. Vui lòng quay lại trang tìm kiếm.
+                </div>
+              )}
 
               {/* Outbound Flight */}
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <Plane className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm text-gray-600">{t('flights.outbound')}</span>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                      <span className="text-white text-xs">VN</span>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-900">{outboundFlight.airline}</p>
-                      <p className="text-xs text-gray-600">{outboundFlight.flightNumber}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <p className="text-2xl text-gray-900">{outboundFlight.departure}</p>
-                      <p className="text-sm text-gray-600">{outboundFlight.from}</p>
-                    </div>
-                    <div className="flex-1 mx-4">
-                      <div className="border-t border-gray-300 relative">
-                        <Clock className="w-4 h-4 text-gray-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-50" />
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl text-gray-900">{outboundFlight.arrival}</p>
-                      <p className="text-sm text-gray-600">{outboundFlight.to}</p>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-gray-600">{outboundFlight.date}</p>
-                  <p className="text-xs text-gray-600">{outboundFlight.class}</p>
-                </div>
-              </div>
-
-              {/* Return Flight */}
-              {returnFlight && (
+              {outboundFlightData ? (
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <Plane className="w-4 h-4 text-blue-600 rotate-180" />
-                    <span className="text-sm text-gray-600">{t('flights.return')}</span>
+                    <Plane className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-700">{t('flights.outbound') || 'Chiều đi'}</span>
                   </div>
 
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-gray-50 rounded-lg p-4 border border-blue-100">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                        <span className="text-white text-xs">VN</span>
+                      <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                        <span className="text-white text-xs font-bold">{outboundFlightData.airlineCode || 'VN'}</span>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-900">{returnFlight.airline}</p>
-                        <p className="text-xs text-gray-600">{returnFlight.flightNumber}</p>
+                        <p className="text-sm font-semibold text-gray-900">{outboundFlightData.airlineName}</p>
+                        <p className="text-xs text-gray-600">{outboundFlightData.flightNumber}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-3">
                       <div>
-                        <p className="text-2xl text-gray-900">{returnFlight.departure}</p>
-                        <p className="text-sm text-gray-600">{returnFlight.from}</p>
+                        <p className="text-2xl font-bold text-gray-900">{formatTime(outboundFlightData.departureTime)}</p>
+                        <p className="text-sm text-gray-600">{outboundFlightData.departureAirportCode}</p>
                       </div>
-                      <div className="flex-1 mx-4">
-                        <div className="border-t border-gray-300 relative">
-                          <Clock className="w-4 h-4 text-gray-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-50" />
+                      <div className="flex-1 mx-4 flex flex-col items-center">
+                        <div className="w-full border-t-2 border-dashed border-blue-300 relative">
+                          <Plane className="w-4 h-4 text-blue-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-blue-50 to-gray-50" />
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl text-gray-900">{returnFlight.arrival}</p>
-                        <p className="text-sm text-gray-600">{returnFlight.to}</p>
+                        <p className="text-2xl font-bold text-gray-900">{formatTime(outboundFlightData.arrivalTime)}</p>
+                        <p className="text-sm text-gray-600">{outboundFlightData.arrivalAirportCode}</p>
                       </div>
                     </div>
 
-                    <p className="text-xs text-gray-600">{returnFlight.date}</p>
-                    <p className="text-xs text-gray-600">{returnFlight.class}</p>
+                    <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
+                      <span>{formatDate(outboundFlightData.departureTime)}</span>
+                      <span className="font-medium text-blue-700">{getCabinClassName(cabinClass)}</span>
+                    </div>
+                    
+                    {/* Selected Seats for Outbound */}
+                    {selectedSeats.outbound && selectedSeats.outbound.length > 0 ? (
+                      <div className="mt-3 pt-3 border-t border-blue-200">
+                        <p className="text-xs font-semibold text-gray-700 mb-2">💺 {t('flights.selectedSeats') || "Ghế đã chọn"}:</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedSeats.outbound.map((seat: any) => (
+                            <div key={seat.id} className="flex flex-col items-center">
+                              <span className="text-xs bg-blue-600 text-white px-2.5 py-1 rounded-md font-bold shadow-sm">
+                                {seat.row}{seat.position}
+                              </span>
+                              {seat.price > 0 && (
+                                <span className="text-[10px] text-gray-600 mt-0.5 font-medium">
+                                  +{(seat.price / 1000).toFixed(0)}K
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-blue-700 font-bold mt-2 bg-blue-100 px-2 py-1 rounded inline-block">
+                          {t('flights.seatsFee') || 'Phí ghế'}: +{outboundSeatPrice.toLocaleString('vi-VN')}đ
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mt-3 pt-3 border-t border-blue-200">
+                        <p className="text-xs text-gray-500 italic">ℹ️ Chưa chọn ghế ngồi</p>
+                      </div>
+                    )}
                   </div>
                 </div>
+              ) : (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                  <p className="text-sm text-gray-500 text-center">🛩️ Chưa có thông tin chuyến bay</p>
+                </div>
               )}
+
+              {/* Return Flight */}
+              {returnFlightData && tripType === 'round-trip' ? (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Plane className="w-4 h-4 text-blue-600 rotate-180" />
+                    <span className="text-sm font-medium text-gray-700">{t('flights.return') || 'Chiều về'}</span>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-green-50 to-gray-50 rounded-lg p-4 border border-green-100">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center shadow-md">
+                        <span className="text-white text-xs font-bold">{returnFlightData.airlineCode || 'VN'}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{returnFlightData.airlineName}</p>
+                        <p className="text-xs text-gray-600">{returnFlightData.flightNumber}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-2xl font-bold text-gray-900">{formatTime(returnFlightData.departureTime)}</p>
+                        <p className="text-sm text-gray-600">{returnFlightData.departureAirportCode}</p>
+                      </div>
+                      <div className="flex-1 mx-4 flex flex-col items-center">
+                        <div className="w-full border-t-2 border-dashed border-green-300 relative">
+                          <Plane className="w-4 h-4 text-green-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-green-50 to-gray-50 rotate-180" />
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-gray-900">{formatTime(returnFlightData.arrivalTime)}</p>
+                        <p className="text-sm text-gray-600">{returnFlightData.arrivalAirportCode}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
+                      <span>{formatDate(returnFlightData.departureTime)}</span>
+                      <span className="font-medium text-green-700">{getCabinClassName(cabinClass)}</span>
+                    </div>
+                    
+                    {/* Selected Seats for Return */}
+                    {selectedSeats.return && selectedSeats.return.length > 0 ? (
+                      <div className="mt-3 pt-3 border-t border-green-200">
+                        <p className="text-xs font-semibold text-gray-700 mb-2">💺 {t('flights.selectedSeats') || "Ghế đã chọn"}:</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedSeats.return.map((seat: any) => (
+                            <div key={seat.id} className="flex flex-col items-center">
+                              <span className="text-xs bg-green-600 text-white px-2.5 py-1 rounded-md font-bold shadow-sm">
+                                {seat.row}{seat.position}
+                              </span>
+                              {seat.price > 0 && (
+                                <span className="text-[10px] text-gray-600 mt-0.5 font-medium">
+                                  +{(seat.price / 1000).toFixed(0)}K
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-green-700 font-bold mt-2 bg-green-100 px-2 py-1 rounded inline-block">
+                          {t('flights.seatsFee') || 'Phí ghế'}: +{returnSeatPrice.toLocaleString('vi-VN')}đ
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mt-3 pt-3 border-t border-green-200">
+                        <p className="text-xs text-gray-500 italic">ℹ️ Chưa chọn ghế ngồi</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : tripType === 'round-trip' ? (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                  <p className="text-sm text-gray-500 text-center">🛩️ Chưa có thông tin chuyến bay về</p>
+                </div>
+              ) : null}
 
               <Separator className="my-6" />
 
               {/* Price Details */}
               <div className="space-y-3">
-                <h3 className="text-gray-900 mb-3">{t('flights.priceDetails')}</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">{t('flights.priceDetails') || 'Chi tiết giá'}</h3>
 
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">
-                    {t('flights.ticketPrice')} ({numPassengers} {t('flights.adult')})
-                  </span>
-                  <span className="text-gray-900">
-                    {(basePrice * numPassengers).toLocaleString('vi-VN')}đ
-                  </span>
-                </div>
+                {/* Show summary if no flight data */}
+                {!outboundFlightData ? (
+                  <div className="text-sm text-gray-600 text-center py-4">
+                    <p>🔄 Đang tải thông tin giá...</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Base Ticket Price */}
+                    <div className="flex justify-between text-sm items-center">
+                      <span className="text-gray-600">
+                        {t('flights.ticketPrice') || 'Giá vé'} ({numPassengers} {numPassengers === 1 ? (t('flights.adult') || 'người lớn') : (t('flights.passengers') || 'khách')})
+                      </span>
+                      <span className="text-gray-900 font-semibold">
+                        {(basePrice * numPassengers).toLocaleString('vi-VN')}đ
+                      </span>
+                    </div>
 
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('flights.taxesAndFees')}</span>
-                  <span className="text-gray-900">
-                    {(taxAndFees * numPassengers).toLocaleString('vi-VN')}đ
-                  </span>
-                </div>
+                    {/* Taxes and Fees */}
+                    <div className="flex justify-between text-sm items-center">
+                      <span className="text-gray-600">{t('flights.taxesAndFees') || 'Thuế và phí'}</span>
+                      <span className="text-gray-900 font-semibold">
+                        {(taxAndFees * numPassengers).toLocaleString('vi-VN')}đ
+                      </span>
+                    </div>
 
-                <Separator />
+                    {/* Seat Selection Fee - Only show if seats are selected */}
+                    {totalSeatPrice > 0 && (
+                      <>
+                        <Separator className="my-2" />
+                        <div className="flex justify-between text-sm items-center bg-blue-50 p-2 rounded">
+                          <span className="text-gray-700 font-medium">💺 {t('flights.seatSelectionFee') || "Phí chọn ghế"}</span>
+                          <span className="text-blue-700 font-bold">
+                            +{totalSeatPrice.toLocaleString('vi-VN')}đ
+                          </span>
+                        </div>
+                        {outboundSeatPrice > 0 && (
+                          <div className="flex justify-between text-xs ml-4 items-center">
+                            <span className="text-gray-500">• {t('flights.outbound') || 'Chiều đi'} ({selectedSeats.outbound?.length || 0} ghế)</span>
+                            <span className="text-gray-600 font-medium">
+                              {outboundSeatPrice.toLocaleString('vi-VN')}đ
+                            </span>
+                          </div>
+                        )}
+                        {returnSeatPrice > 0 && (
+                          <div className="flex justify-between text-xs ml-4 items-center">
+                            <span className="text-gray-500">• {t('flights.return') || 'Chiều về'} ({selectedSeats.return?.length || 0} ghế)</span>
+                            <span className="text-gray-600 font-medium">
+                              {returnSeatPrice.toLocaleString('vi-VN')}đ
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    )}
 
-                <div className="flex justify-between">
-                  <span className="text-gray-900">{t('flights.totalPrice')}</span>
-                  <span className="text-2xl text-blue-600">
-                    {totalPrice.toLocaleString('vi-VN')}đ
-                  </span>
-                </div>
+                    <Separator className="my-4" />
+
+                    {/* Total Price */}
+                    <div className="flex justify-between items-center pt-2 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-200">
+                      <span className="font-bold text-gray-900 text-lg">{t('flights.totalPrice') || 'Tổng cộng'}</span>
+                      <div className="text-right">
+                        <span className="text-3xl font-bold text-blue-600">
+                          {totalPrice.toLocaleString('vi-VN')}đ
+                        </span>
+                        <p className="text-xs text-gray-500 mt-1">(Đã bao gồm thuế và phí)</p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </Card>
           </div>
         </div>
       </div>
-    </div>
+    </div >
 
       <Footer />
-    </div>
+    </div >
   );
 }

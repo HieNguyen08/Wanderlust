@@ -25,6 +25,8 @@ public class Hotel {
     private String hotelID; // id
     private String vendorId;
     private String locationId;
+    private String city;
+    private String country;
     private String name;
     private String slug;
     private HotelType hotelType; // type

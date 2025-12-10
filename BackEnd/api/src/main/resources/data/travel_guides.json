@@ -1,0 +1,1770 @@
+[
+  {
+    "title": "Complete Travel Guide to Hanoi",
+    "destination": "Hanoi",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "food",
+    "description": "Discover the best of Hanoi with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Hanoi</h2><p>Hanoi is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Hanoi has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1598790193169-5841a2d75d04?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1599708153386-62bf3f035c78?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1616486410185-81af2d32a2af?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1509030450996-dd1a26dda07a?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "hanoi",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1565,
+    "likes": 328,
+    "duration": 16,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Hanoi Center",
+        "image": "https://images.unsplash.com/photo-1616438096679-620332ede3a2?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Hanoi with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-09-24T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Ho Chi Minh City",
+    "destination": "Ho Chi Minh City",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "food",
+    "description": "Discover the best of Ho Chi Minh City with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Ho Chi Minh City</h2><p>Ho Chi Minh City is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Ho Chi Minh City has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1603852452440-b383ac720729?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1536086845112-89de23aa4772?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1700500790259-a2527558c3f2?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1580835267732-2d232d3d2655?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "ho-chi-minh-city",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1967,
+    "likes": 142,
+    "duration": 8,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Ho Chi Minh City Center",
+        "image": "https://images.unsplash.com/photo-1700500790259-a2527558c3f2?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Ho Chi Minh City with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": true,
+    "createdAt": "2025-06-26T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Da Nang",
+    "destination": "Da Nang",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "adventure",
+    "description": "Discover the best of Da Nang with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Da Nang</h2><p>Da Nang is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Da Nang has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1558002890-c0b30998d1e6?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1660562925534-3f6948ac654f?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1558002890-c0b30998d1e6?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1693282815001-0471e68d3bc0?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "da-nang",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 4630,
+    "likes": 449,
+    "duration": 14,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Da Nang Center",
+        "image": "https://images.unsplash.com/photo-1602646993875-70bc0ba52c87?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Da Nang with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-11-06T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Hai Phong",
+    "destination": "Hai Phong",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "family",
+    "description": "Discover the best of Hai Phong with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Hai Phong</h2><p>Hai Phong is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Hai Phong has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1494526996888-a3e6e92fba01?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1745750003547-03a5434239aa?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1672069001612-5aa1f50de74b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1744169490646-ec0efa3088b1?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "hai-phong",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1737,
+    "likes": 448,
+    "duration": 9,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Hai Phong Center",
+        "image": "https://images.unsplash.com/photo-1558793352-650e06787237?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Hai Phong with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": true,
+    "createdAt": "2025-09-08T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Can Tho",
+    "destination": "Can Tho",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "adventure",
+    "description": "Discover the best of Can Tho with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Can Tho</h2><p>Can Tho is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Can Tho has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1460056560479-46cf73637e6e?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1637544590300-bb15a5b7c07f?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1460056560479-46cf73637e6e?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1637544590300-bb15a5b7c07f?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "can-tho",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 2816,
+    "likes": 345,
+    "duration": 18,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Can Tho Center",
+        "image": "https://images.unsplash.com/photo-1690120266607-9c6bd834428f?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Can Tho with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": true,
+    "createdAt": "2025-10-28T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Hoi An",
+    "destination": "Hoi An",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "food",
+    "description": "Discover the best of Hoi An with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Hoi An</h2><p>Hoi An is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Hoi An has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1664650440553-ab53804814b3?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1568824788192-544bb51ced34?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1701397955118-79059690ef50?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1701397955118-79059690ef50?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "hoi-an",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 4426,
+    "likes": 445,
+    "duration": 20,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Hoi An Center",
+        "image": "https://images.unsplash.com/photo-1621559240466-90b7e3156f4f?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Hoi An with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-10-28T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Nha Trang",
+    "destination": "Nha Trang",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "food",
+    "description": "Discover the best of Nha Trang with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Nha Trang</h2><p>Nha Trang is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Nha Trang has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1580140204263-0adff7dc519f?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1588966252454-348e77254bc6?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1689326232193-d55f0b7965eb?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "nha-trang",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 2914,
+    "likes": 298,
+    "duration": 9,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Nha Trang Center",
+        "image": "https://images.unsplash.com/photo-1503188991764-408493f288b9?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Nha Trang with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-10-18T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Phu Quoc",
+    "destination": "Phu Quoc",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "family",
+    "description": "Discover the best of Phu Quoc with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Phu Quoc</h2><p>Phu Quoc is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Phu Quoc has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1746362725289-a56f2d93a49a?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1636009493436-89f482df18fc?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1693282814784-649be45a459b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1746362725779-7583e04fc05b?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "phu-quoc",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1398,
+    "likes": 87,
+    "duration": 17,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Phu Quoc Center",
+        "image": "https://images.unsplash.com/photo-1704765707896-f0aaab64d7b2?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Phu Quoc with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": true,
+    "createdAt": "2025-10-03T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Hue",
+    "destination": "Hue",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "culture",
+    "description": "Discover the best of Hue with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Hue</h2><p>Hue is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Hue has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1713685714933-21df445dd6a5?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1713685714770-384c5654f6be?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1724533815121-ca09833513ee?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1664332624953-4b9689627a5a?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "hue",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1893,
+    "likes": 436,
+    "duration": 10,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Hue Center",
+        "image": "https://images.unsplash.com/photo-1713685714933-21df445dd6a5?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Hue with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-09-07T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Ha Long",
+    "destination": "Ha Long",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "food",
+    "description": "Discover the best of Ha Long with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Ha Long</h2><p>Ha Long is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Ha Long has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1584227039542-1871579a7d16?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1561461221-959c3f16234b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1652540755628-47f6c1480f0b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1675111066042-9baa4c343157?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "ha-long",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 4353,
+    "likes": 152,
+    "duration": 8,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Ha Long Center",
+        "image": "https://images.unsplash.com/photo-1561461221-959c3f16234b?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Ha Long with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-06-12T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Da Lat",
+    "destination": "Da Lat",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "family",
+    "description": "Discover the best of Da Lat with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Da Lat</h2><p>Da Lat is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Da Lat has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1608627772204-98defaf6d20e?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1765089189056-3890d8a704ff?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1603070330378-0b8f3bf07f9d?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1703835184351-c4dd13ba087d?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "da-lat",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1110,
+    "likes": 378,
+    "duration": 10,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Da Lat Center",
+        "image": "https://images.unsplash.com/photo-1765089189056-3890d8a704ff?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Da Lat with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-07-11T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Vung Tau",
+    "destination": "Vung Tau",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "family",
+    "description": "Discover the best of Vung Tau with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Vung Tau</h2><p>Vung Tau is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Vung Tau has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1704699932557-75c96360685d?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1663159935147-da0e30a19a4b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1764948106027-e3248db8eb2b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1689289270364-8c94840201b8?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "vung-tau",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 4012,
+    "likes": 472,
+    "duration": 15,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Vung Tau Center",
+        "image": "https://images.unsplash.com/photo-1689289270800-cc53caf13a9e?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Vung Tau with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": true,
+    "createdAt": "2025-10-11T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Quy Nhon",
+    "destination": "Quy Nhon",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "family",
+    "description": "Discover the best of Quy Nhon with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Quy Nhon</h2><p>Quy Nhon is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Quy Nhon has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1594478851981-65de6e4d0bfd?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1664931984578-fa4cde424ca0?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1584162031057-223bec5b7f81?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1594478851981-65de6e4d0bfd?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "quy-nhon",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 4444,
+    "likes": 144,
+    "duration": 12,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Quy Nhon Center",
+        "image": "https://images.unsplash.com/photo-1671891776683-296359fd49ff?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Quy Nhon with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-06-12T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Phan Thiet",
+    "destination": "Phan Thiet",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "culture",
+    "description": "Discover the best of Phan Thiet with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Phan Thiet</h2><p>Phan Thiet is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Phan Thiet has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1530547429276-0b6e470c90b8?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1715407843715-6096d7f95c95?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1738758978980-54f80d316e0f?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1617620217902-5a6eefe41fa7?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "phan-thiet",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1245,
+    "likes": 408,
+    "duration": 19,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Phan Thiet Center",
+        "image": "https://images.unsplash.com/photo-1667131706690-a1b6faa7f633?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Phan Thiet with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": true,
+    "createdAt": "2025-10-25T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Buon Ma Thuot",
+    "destination": "Buon Ma Thuot",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "culture",
+    "description": "Discover the best of Buon Ma Thuot with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Buon Ma Thuot</h2><p>Buon Ma Thuot is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Buon Ma Thuot has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1707834793159-47e6cc431b0f?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1707834796463-e80c2aa533de?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1707834789125-a54ab82a7c67?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1688997586881-f8cc978804c6?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "buon-ma-thuot",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1141,
+    "likes": 129,
+    "duration": 19,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Buon Ma Thuot Center",
+        "image": "https://images.unsplash.com/photo-1764920285361-6d159cf5d830?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Buon Ma Thuot with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": true,
+    "createdAt": "2025-06-25T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Vinh",
+    "destination": "Vinh",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "family",
+    "description": "Discover the best of Vinh with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Vinh</h2><p>Vinh is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Vinh has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1736628137227-845c55a26f67?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1531579797967-8a246a9395a9?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1736628137227-845c55a26f67?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1652368561580-98220706f907?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "vinh",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1395,
+    "likes": 265,
+    "duration": 6,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Vinh Center",
+        "image": "https://images.unsplash.com/photo-1652368561580-98220706f907?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Vinh with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-08-03T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Thanh Hoa",
+    "destination": "Thanh Hoa",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "adventure",
+    "description": "Discover the best of Thanh Hoa with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Thanh Hoa</h2><p>Thanh Hoa is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Thanh Hoa has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1626586402998-f683f437137f?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1665718397020-a8a609578225?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1695572754759-39d0c7523276?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1708275537568-e2195d3cff67?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "thanh-hoa",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1053,
+    "likes": 489,
+    "duration": 18,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Thanh Hoa Center",
+        "image": "https://images.unsplash.com/photo-1549609096-0f05e9d4d53d?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Thanh Hoa with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-08-24T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Hai Duong",
+    "destination": "Hai Duong",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "culture",
+    "description": "Discover the best of Hai Duong with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Hai Duong</h2><p>Hai Duong is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Hai Duong has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "hai-duong",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1915,
+    "likes": 472,
+    "duration": 5,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Hai Duong Center",
+        "image": "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Hai Duong with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": true,
+    "createdAt": "2025-07-24T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Nam Dinh",
+    "destination": "Nam Dinh",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "culture",
+    "description": "Discover the best of Nam Dinh with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Nam Dinh</h2><p>Nam Dinh is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Nam Dinh has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1747625119730-5e46501418b5?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1672069001612-5aa1f50de74b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1630381101984-b9160e71b45a?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1614267034756-9523a9910f69?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "nam-dinh",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1876,
+    "likes": 414,
+    "duration": 19,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Nam Dinh Center",
+        "image": "https://images.unsplash.com/photo-1619977102593-7b7604df3ca7?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Nam Dinh with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": true,
+    "createdAt": "2025-07-06T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Thai Nguyen",
+    "destination": "Thai Nguyen",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "family",
+    "description": "Discover the best of Thai Nguyen with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Thai Nguyen</h2><p>Thai Nguyen is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Thai Nguyen has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1615561077263-46606685fc59?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1649866715705-872e25883ed9?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1624380697240-a819b90e56e9?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1608050523507-5c2edb62c45e?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "thai-nguyen",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 4501,
+    "likes": 284,
+    "duration": 8,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Thai Nguyen Center",
+        "image": "https://images.unsplash.com/photo-1624380652971-ff765ab07b20?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Thai Nguyen with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": true,
+    "createdAt": "2025-06-12T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Viet Tri",
+    "destination": "Viet Tri",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "culture",
+    "description": "Discover the best of Viet Tri with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Viet Tri</h2><p>Viet Tri is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Viet Tri has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1588142400319-fe3e6e19db48?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1732784257991-0cd6028b22a5?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1676438860374-6990ad1d5945?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1697886563814-b7de1769be91?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "viet-tri",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1758,
+    "likes": 479,
+    "duration": 12,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Viet Tri Center",
+        "image": "https://images.unsplash.com/photo-1732784257991-0cd6028b22a5?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Viet Tri with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-06-12T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Ha Giang",
+    "destination": "Ha Giang",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "adventure",
+    "description": "Discover the best of Ha Giang with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Ha Giang</h2><p>Ha Giang is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Ha Giang has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1764920285361-6d159cf5d830?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1562920618-c427d9252d7a?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1536511671359-849531c0a576?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1462688681110-15bc88b1497c?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "ha-giang",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1220,
+    "likes": 388,
+    "duration": 11,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Ha Giang Center",
+        "image": "https://images.unsplash.com/photo-1591815595153-ace4f4f5464c?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Ha Giang with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": true,
+    "createdAt": "2025-06-27T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Cao Bang",
+    "destination": "Cao Bang",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "culture",
+    "description": "Discover the best of Cao Bang with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Cao Bang</h2><p>Cao Bang is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Cao Bang has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1713552048419-5867acd194da?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1713552048432-960426cbbcd6?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1695098449022-cdf33144a727?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1695098447975-5460f993c01f?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "cao-bang",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1781,
+    "likes": 161,
+    "duration": 5,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Cao Bang Center",
+        "image": "https://images.unsplash.com/photo-1697015556424-756b0f152f0c?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Cao Bang with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-11-08T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Lang Son",
+    "destination": "Lang Son",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "adventure",
+    "description": "Discover the best of Lang Son with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Lang Son</h2><p>Lang Son is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Lang Son has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1747625119727-05ed172af729?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1750231211707-e2cd6e304584?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1725031854270-6833fadb5a09?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1750231211707-e2cd6e304584?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "lang-son",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 4064,
+    "likes": 52,
+    "duration": 13,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Lang Son Center",
+        "image": "https://images.unsplash.com/photo-1750231211707-e2cd6e304584?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Lang Son with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-06-13T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Lao Cai",
+    "destination": "Lao Cai",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "family",
+    "description": "Discover the best of Lao Cai with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Lao Cai</h2><p>Lao Cai is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Lao Cai has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1579613174245-c4bb5e8833d4?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1731050865265-657b6161b269?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1598690419800-8100e015ff2c?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1731051083752-400d9df485e9?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "lao-cai",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 3342,
+    "likes": 256,
+    "duration": 7,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Lao Cai Center",
+        "image": "https://images.unsplash.com/photo-1625989775494-c54cc0d80cd8?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Lao Cai with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": true,
+    "createdAt": "2025-09-25T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Dien Bien Phu",
+    "destination": "Dien Bien Phu",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "food",
+    "description": "Discover the best of Dien Bien Phu with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Dien Bien Phu</h2><p>Dien Bien Phu is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Dien Bien Phu has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "dien-bien-phu",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 5000,
+    "likes": 438,
+    "duration": 16,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Dien Bien Phu Center",
+        "image": "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Dien Bien Phu with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-08-21T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Son La",
+    "destination": "Son La",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "food",
+    "description": "Discover the best of Son La with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Son La</h2><p>Son La is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Son La has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1747625119727-05ed172af729?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1671468158321-93fa8aa3fdf2?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1708082103969-221ac71ff67e?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1687866918715-c7caf7c42a7e?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "son-la",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 2928,
+    "likes": 191,
+    "duration": 6,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Son La Center",
+        "image": "https://images.unsplash.com/photo-1708082103969-221ac71ff67e?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Son La with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-10-11T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Hoa Binh",
+    "destination": "Hoa Binh",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "family",
+    "description": "Discover the best of Hoa Binh with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Hoa Binh</h2><p>Hoa Binh is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Hoa Binh has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1745267652627-53935b6d45f8?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1702570526021-0cff7de9b439?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1702570508391-ea87ce78d795?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1765089189056-3890d8a704ff?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "hoa-binh",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 709,
+    "likes": 458,
+    "duration": 7,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Hoa Binh Center",
+        "image": "https://images.unsplash.com/photo-1702570516166-0c9c5b75a6cb?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Hoa Binh with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": true,
+    "createdAt": "2025-09-24T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Ninh Binh",
+    "destination": "Ninh Binh",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "adventure",
+    "description": "Discover the best of Ninh Binh with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Ninh Binh</h2><p>Ninh Binh is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Ninh Binh has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1725209276479-59220882e9b0?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1557750255-c76072a7aad1?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1686766219304-5e2fb0df9d2d?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1587233606800-1302fdd0a433?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "ninh-binh",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 3239,
+    "likes": 92,
+    "duration": 19,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Ninh Binh Center",
+        "image": "https://images.unsplash.com/photo-1656692197297-cb1340b4d538?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Ninh Binh with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-10-17T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Dong Hoi",
+    "destination": "Dong Hoi",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "family",
+    "description": "Discover the best of Dong Hoi with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Dong Hoi</h2><p>Dong Hoi is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Dong Hoi has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1765021562103-3199500925fa?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1758378197600-13db70b38a6e?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1695891982334-288a50489059?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1695891963327-85678303ae73?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "dong-hoi",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1828,
+    "likes": 235,
+    "duration": 7,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Dong Hoi Center",
+        "image": "https://images.unsplash.com/photo-1758298134993-743b156eb23a?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Dong Hoi with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-06-26T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Pleiku",
+    "destination": "Pleiku",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "adventure",
+    "description": "Discover the best of Pleiku with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Pleiku</h2><p>Pleiku is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Pleiku has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1679065055389-fc624a1d5371?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1464844537320-9d99b67d0a45?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1497504264883-854aff4f6005?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1465973441631-c1ded0a3c6a6?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "pleiku",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 3342,
+    "likes": 158,
+    "duration": 14,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Pleiku Center",
+        "image": "https://images.unsplash.com/photo-1464844537320-9d99b67d0a45?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Pleiku with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-10-14T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Tuy Hoa",
+    "destination": "Tuy Hoa",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "adventure",
+    "description": "Discover the best of Tuy Hoa with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Tuy Hoa</h2><p>Tuy Hoa is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Tuy Hoa has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1700572677447-94850541bf94?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1619977102593-7b7604df3ca7?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1696654351858-35c78ce6b32e?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1659026968411-b018a8789052?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "tuy-hoa",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 1913,
+    "likes": 324,
+    "duration": 13,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Tuy Hoa Center",
+        "image": "https://images.unsplash.com/photo-1701398690557-5f51adfbbc1e?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Tuy Hoa with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-10-15T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Ca Mau",
+    "destination": "Ca Mau",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "food",
+    "description": "Discover the best of Ca Mau with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Ca Mau</h2><p>Ca Mau is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Ca Mau has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1601106835242-df0921bad4f3?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1601106835242-df0921bad4f3?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1666649329240-62bfb0f213a3?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1601106835242-df0921bad4f3?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "ca-mau",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 3115,
+    "likes": 266,
+    "duration": 13,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Ca Mau Center",
+        "image": "https://images.unsplash.com/photo-1601106835242-df0921bad4f3?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Ca Mau with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-09-22T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  },
+  {
+    "title": "Complete Travel Guide to Soc Trang",
+    "destination": "Soc Trang",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "category": "adventure",
+    "description": "Discover the best of Soc Trang with our comprehensive travel guide covering attractions, food, culture, and practical tips.",
+    "content": "<h2>Welcome to Soc Trang</h2><p>Soc Trang is one of Vietnam's most captivating destinations. This guide will help you make the most of your visit.</p><h3>Top Attractions</h3><p>Explore the best sights and experiences Soc Trang has to offer.</p>",
+    "readTime": "15 phút đọc",
+    "coverImage": "https://images.unsplash.com/photo-1639907353487-72e0f6e10940?auto=format&fit=crop&w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1764920285361-6d159cf5d830?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1636384961730-9b99d4934076?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1639907353487-72e0f6e10940?auto=format&fit=crop&w=800&q=80"
+    ],
+    "authorId": "6933449352d16736c044ad44",
+    "authorName": "Quản Trị Viên Admin",
+    "tags": [
+      "soc-trang",
+      "vietnam",
+      "travel",
+      "guide"
+    ],
+    "views": 3924,
+    "likes": 214,
+    "duration": 20,
+    "type": "destination",
+    "difficulty": "easy",
+    "attractions": [
+      {
+        "name": "Historic Soc Trang Center",
+        "image": "https://images.unsplash.com/photo-1734447656045-2440428aba7b?auto=format&fit=crop&w=800&q=80",
+        "description": "The heart of Soc Trang with beautiful architecture"
+      }
+    ],
+    "tips": [
+      {
+        "title": "Best Time to Visit",
+        "content": "Visit during dry season for best weather",
+        "icon": "calendar"
+      },
+      {
+        "title": "Getting Around",
+        "content": "Taxis and ride-sharing apps are readily available",
+        "icon": "car"
+      }
+    ],
+    "published": true,
+    "featured": false,
+    "createdAt": "2025-09-17T04:48:41Z",
+    "updatedAt": "2025-12-01T10:00:00Z"
+  }
+]

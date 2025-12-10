@@ -24,6 +24,7 @@ public class ActivityService {
     private final ActivityRepository activityRepository;
     private final MongoTemplate mongoTemplate;
     private final ActivityMapper activityMapper;
+    private final com.wanderlust.api.repository.LocationRepository locationRepository;
 
     private String getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -93,6 +94,21 @@ public class ActivityService {
             activity.setSlug(activity.getName().toLowerCase().replace(" ", "-"));
         }
 
+        // Populate City & Country from Location
+        if (activity.getLocationId() != null) {
+            com.wanderlust.api.entity.Location loc = locationRepository.findById(activity.getLocationId()).orElse(null);
+            if (loc != null) {
+                activity.setCity(loc.getName());
+                if (loc.getParentLocationId() != null) {
+                    com.wanderlust.api.entity.Location parent = locationRepository.findById(loc.getParentLocationId())
+                            .orElse(null);
+                    if (parent != null) {
+                        activity.setCountry(parent.getName());
+                    }
+                }
+            }
+        }
+
         return activityRepository.save(activity);
     }
 
@@ -105,6 +121,22 @@ public class ActivityService {
         // Nếu muốn update Slug khi đổi tên, mở comment dòng dưới:
         if (dto.getName() != null)
             existingActivity.setSlug(dto.getName().toLowerCase().replace(" ", "-"));
+
+        // Populate City & Country from Location (if changed or missing)
+        if (existingActivity.getLocationId() != null) {
+            com.wanderlust.api.entity.Location loc = locationRepository.findById(existingActivity.getLocationId())
+                    .orElse(null);
+            if (loc != null) {
+                existingActivity.setCity(loc.getName());
+                if (loc.getParentLocationId() != null) {
+                    com.wanderlust.api.entity.Location parent = locationRepository.findById(loc.getParentLocationId())
+                            .orElse(null);
+                    if (parent != null) {
+                        existingActivity.setCountry(parent.getName());
+                    }
+                }
+            }
+        }
 
         return activityRepository.save(existingActivity);
     }

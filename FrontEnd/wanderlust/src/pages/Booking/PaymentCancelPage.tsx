@@ -1,8 +1,11 @@
 import { ArrowLeft, Home, XCircle } from "lucide-react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import type { PageType } from "../../MainApp";
+
+const PENDING_PAYMENT_KEY = "wanderlust_pending_payment";
 
 interface PaymentCancelPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -10,6 +13,10 @@ interface PaymentCancelPageProps {
 
 export default function PaymentCancelPage({ onNavigate }: PaymentCancelPageProps) {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    sessionStorage.removeItem(PENDING_PAYMENT_KEY);
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">

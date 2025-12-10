@@ -1,7 +1,10 @@
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { paymentApi } from "../../api/paymentApi";
 import { Button } from "../../components/ui/button";
 import type { PageType } from "../../MainApp";
+
+const PENDING_PAYMENT_KEY = "wanderlust_pending_payment";
 
 interface PaymentCallbackPageProps {
     onNavigate: (page: PageType, data?: any) => void;
@@ -14,64 +17,53 @@ export default function PaymentCallbackPage({ onNavigate }: PaymentCallbackPageP
     useEffect(() => {
         const verify = async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            // Assuming the backend redirects with some ID or we use session_id from Stripe
-            // Ideally, the backend redirect URL should include the payment ID or transaction ID.
-            // Let's assume the backend redirects to /payment/callback/:gateway?paymentId=... or similar.
-            // Or we can just grab the query params and send them to backend for verification.
+            const successFlag = urlParams.get("success") === "true" || urlParams.get("redirect_status") === "succeeded";
+            const failedFlag = urlParams.get("canceled") === "true" || urlParams.get("redirect_status") === "failed";
 
-            // Since we don't have a specific payment ID in the URL standardly from all gateways without config,
-            // let's assume we passed it in the redirect URL or we use the transaction ID.
+            const bookingId = urlParams.get("booking_id") || urlParams.get("bookingId") || undefined;
+            const paymentId = urlParams.get("payment_id") || urlParams.get("paymentId") || undefined;
 
-            // For this implementation, let's assume we verify based on 'client_reference_id' (Stripe) 
-            // if they are present, OR if we saved a pending payment ID in local storage.
+            const pendingRaw = sessionStorage.getItem(PENDING_PAYMENT_KEY);
+            const pending = pendingRaw ? JSON.parse(pendingRaw) : {};
+            const resolvedBookingId = bookingId || pending?.bookingId;
+            const resolvedPaymentId = paymentId || pending?.paymentId;
 
-            // However, a cleaner way is to have the backend handle the callback and then redirect to frontend with a status.
-            // But the current plan is Frontend -> Gateway -> Frontend (Callback).
+            if (!successFlag && failedFlag) {
+                setStatus("failed");
+                setMessage("Thanh toán thất bại hoặc bị hủy.");
+                sessionStorage.removeItem(PENDING_PAYMENT_KEY);
+                return;
+            }
 
-            // Let's try to extract a payment ID or transaction ID.
-            const orderId = urlParams.get("orderId") || urlParams.get("client_reference_id");
-
-            if (orderId) {
+            if (successFlag) {
                 try {
-                    // We need to find the payment by transaction ID (orderId)
-                    // But our verifyPayment api takes ID. 
-                    // Let's assume we can verify by transaction ID or we need a new API.
-                    // For now, let's just simulate verification or call verifyPayment if we have the ID.
-
-                    // If we don't have the ID, we might need to rely on the backend callback having already processed it.
-                    // Let's just wait a bit and check status?
-
-                    // SIMPLIFICATION: Just show success if query param success=true (Stripe)
-                    const isSuccess = urlParams.get("success") === "true" || urlParams.get("errorCode") === "0";
-
-                    if (isSuccess) {
-                        setStatus("success");
-                        setMessage("Thanh toán thành công!");
-                        // Navigate to confirmation after a delay
-                        setTimeout(() => {
-                            onNavigate("confirmation", { paymentInfo: { status: "PAID" } });
-                        }, 2000);
-                    } else {
-                        setStatus("failed");
-                        setMessage("Thanh toán thất bại hoặc bị hủy.");
+                    if (resolvedBookingId) {
+                        await paymentApi.getPaymentByBookingId(resolvedBookingId);
+                    } else if (resolvedPaymentId) {
+                        await paymentApi.getPaymentStatus(resolvedPaymentId);
                     }
-                } catch (error) {
-                    setStatus("failed");
-                    setMessage("Lỗi xác thực thanh toán.");
-                }
-            } else {
-                // Fallback for Stripe success_url which we set to include session_id
-                if (urlParams.get("success") === "true") {
+
+                    sessionStorage.removeItem(PENDING_PAYMENT_KEY);
                     setStatus("success");
                     setMessage("Thanh toán thành công!");
                     setTimeout(() => {
-                        onNavigate("confirmation", { paymentInfo: { status: "PAID" } });
-                    }, 2000);
-                } else {
+                        onNavigate("payment-success", {
+                            bookingId: resolvedBookingId,
+                            paymentId: resolvedPaymentId
+                        });
+                    }, 1200);
+                } catch (error) {
                     setStatus("failed");
-                    setMessage("Không tìm thấy thông tin thanh toán.");
+                    setMessage("Không thể xác minh thanh toán.");
+                    sessionStorage.removeItem(PENDING_PAYMENT_KEY);
                 }
+                return;
             }
+
+            // No flags, treat as failure
+            setStatus("failed");
+            setMessage("Không tìm thấy thông tin thanh toán.");
+            sessionStorage.removeItem(PENDING_PAYMENT_KEY);
         };
 
         verify();

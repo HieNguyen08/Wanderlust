@@ -18,10 +18,10 @@ $airports = @{
 }
 
 $airlines = @{
-    "VN" = @{ name = "Vietnam Airlines"; logo = "https://images.wanderlust.com/airlines/vn-logo.png" }
-    "VJ" = @{ name = "VietJet Air"; logo = "https://images.wanderlust.com/airlines/vj-logo.png" }
-    "BL" = @{ name = "Pacific Airlines"; logo = "https://images.wanderlust.com/airlines/bl-logo.png" }
-    "QH" = @{ name = "Bamboo Airways"; logo = "https://images.wanderlust.com/airlines/qh-logo.png" }
+    "VN" = @{ name = "Vietnam Airlines"; logo = "https://tse3.mm.bing.net/th/id/OIP.eSAAWYrFVpSVeQ6NUT8qvwHaEF?pid=Api&P=0&h=180" }
+    "VJ" = @{ name = "VietJet Air"; logo = "https://tse1.mm.bing.net/th/id/OIP.ZPaq4t-k_w7E6fmJ-rS_KQHaB7?pid=Api&P=0&h=180g" }
+    "BL" = @{ name = "Pacific Airlines"; logo = "https://tse3.mm.bing.net/th/id/OIP.0cmxaw2PiBJDSxB8Jnh5hQAAAA?pid=Api&P=0&h=180" }
+    "QH" = @{ name = "Bamboo Airways"; logo = "https://tse1.mm.bing.net/th/id/OIP.65afrocwtIhBUK6B1cMTPAHaHa?pid=Api&P=0&h=180" }
 }
 
 $routes = @(

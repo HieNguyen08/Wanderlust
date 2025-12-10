@@ -1,11 +1,12 @@
 package com.wanderlust.api.dto;
 
-import com.wanderlust.api.entity.types.Gender;
-import com.wanderlust.api.entity.types.Role;
-import lombok.Data;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import com.wanderlust.api.entity.types.Gender;
+import com.wanderlust.api.entity.types.Role;
+
+import lombok.Data;
 
 @Data
 public class UserProfileResponseDTO {
@@ -24,5 +25,5 @@ public class UserProfileResponseDTO {
     private String passportNumber;
     private LocalDate passportExpiryDate;
     private LocalDateTime createdAt;
-    private String partnerRequestStatus;
+    private String vendorRequestStatus;
 }
