@@ -129,11 +129,17 @@ public class WalletServiceImpl implements WalletService {
                 topUpRequest.getAmount(), "Top-up wallet via " + topUpRequest.getPaymentMethod(),
                 null, topUpRequest.getPaymentMethod());
 
+        // Đặt bookingId đặc biệt để PaymentService nhận diện luồng nạp ví
+        String topUpBookingId = "TOPUP-" + transaction.getTransactionId();
+
         // 2. Tạo Payment request gửi sang PaymentService (để gọi Stripe)
         PaymentDTO paymentDTO = new PaymentDTO();
         paymentDTO.setUserId(userId);
         paymentDTO.setAmount(topUpRequest.getAmount());
         paymentDTO.setCurrency("VND");
+        paymentDTO.setBookingId(topUpBookingId);
+        // Đồng bộ transactionId giữa Payment và WalletTransaction để dễ truy vết
+        paymentDTO.setTransactionId(transaction.getTransactionId());
         
         // Map phương thức thanh toán từ string sang Enum
         try {
@@ -142,9 +148,6 @@ public class WalletServiceImpl implements WalletService {
             paymentDTO.setPaymentMethod(PaymentMethod.STRIPE); // Mặc định fallback
         }
         
-        // QUAN TRỌNG: Tạo ID đặc biệt để PaymentService nhận diện đây là TopUp, không phải Booking
-        // String topUpRefId = "TOPUP-" + transaction.getTransactionId();
-        // paymentDTO.setBookingId(topUpRefId); 
 
         // 3. Gọi PaymentService để lấy link thanh toán
         PaymentDTO initiatedPayment = paymentService.initiatePayment(paymentDTO);

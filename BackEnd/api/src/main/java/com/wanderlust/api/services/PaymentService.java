@@ -130,6 +130,9 @@ public class PaymentService {
         payment.setCreatedAt(LocalDateTime.now());
         payment.setUpdatedAt(LocalDateTime.now());
 
+        // Nhận diện luồng nạp ví (bookingId định dạng TOPUP-{transactionId})
+        boolean isTopUp = payment.getBookingId() != null && payment.getBookingId().startsWith("TOPUP-");
+
         if (payment.getTransactionId() == null) {
             payment.setTransactionId("WL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         }
@@ -144,16 +147,23 @@ public class PaymentService {
         } else if (payment.getPaymentMethod() == PaymentMethod.STRIPE) {
             // Thanh toán bằng Stripe - tạo session và trả về URL
             paymentUrl = initiateStripePayment(payment);
-            payment.setMetadata(Map.of("paymentUrl", paymentUrl));
+            // Giữ metadata từ initiateStripePayment (stripe_session_id, payment_type) và bổ sung paymentUrl
+            Map<String, Object> metadata = payment.getMetadata() != null
+                    ? new HashMap<>(payment.getMetadata())
+                    : new HashMap<>();
+            metadata.put("paymentUrl", paymentUrl);
+            payment.setMetadata(metadata);
             payment.setStatus(PaymentStatus.PROCESSING);
-            // Đánh dấu booking đang được xử lý thanh toán
-            if (payment.getBookingId() != null) {
+            // Đánh dấu booking đang được xử lý thanh toán (không áp dụng cho top-up ví)
+            if (!isTopUp && payment.getBookingId() != null) {
                 bookingService.updatePaymentStatus(payment.getBookingId(), PaymentStatus.PROCESSING, payment.getPaymentMethod());
             }
         } else {
             // Default simulated payment for other methods
             paymentUrl = "https://simulated-payment-gateway.com/pay?tx=" + payment.getTransactionId();
-            payment.setMetadata(Map.of("paymentUrl", paymentUrl));
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("paymentUrl", paymentUrl);
+            payment.setMetadata(metadata);
             payment.setStatus(PaymentStatus.PROCESSING);
             if (payment.getBookingId() != null) {
                 bookingService.updatePaymentStatus(payment.getBookingId(), PaymentStatus.PROCESSING, payment.getPaymentMethod());
