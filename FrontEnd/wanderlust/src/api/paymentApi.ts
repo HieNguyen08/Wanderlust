@@ -36,6 +36,25 @@ export interface WalletTopUpResponse {
   status: string;
 }
 
+export interface PaymentHistoryItem {
+  id: string;
+  transactionId: string;
+  bookingId: string;
+  userId: string;
+  userEmail: string;
+  amount: string | number;
+  currency: string;
+  paymentMethod: string;
+  status: string;
+  gatewayTransactionId?: string;
+  createdAt: string;
+  paidAt?: string;
+  metadata?: {
+    paymentUrl?: string;
+    stripe_session_id?: string;
+  };
+}
+
 /**
  * Initiate a payment for booking (Flight, Hotel, Car Rental, Activity)
  */
@@ -151,11 +170,43 @@ export const topUpWallet = async (data: WalletTopUpRequest): Promise<WalletTopUp
   return result;
 };
 
+/**
+ * Get payment history by user ID
+ */
+export const getPaymentHistoryByUserId = async (userId: string): Promise<PaymentHistoryItem[]> => {
+  const token = tokenService.getToken();
+  if (!token) {
+    throw new Error('Authentication required');
+  }
 
+  console.log('📞 Fetching payment history for userId:', userId);
+  console.log('🔐 Token:', token ? 'Present' : 'Missing');
+
+  const response = await fetch(`${API_BASE_URL}/api/payments/user/${userId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  console.log('📥 Response status:', response.status);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ Error response:', errorText);
+    throw new Error(errorText || 'Failed to get payment history');
+  }
+
+  const data = await response.json();
+  console.log('✅ Payment history data:', data);
+  return data;
+};
 
 export const paymentApi = {
   initiatePayment,
   getPaymentStatus,
   getPaymentByBookingId,
-  topUpWallet
+  topUpWallet,
+  getPaymentHistoryByUserId
 };

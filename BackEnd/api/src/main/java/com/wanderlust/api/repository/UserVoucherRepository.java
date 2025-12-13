@@ -1,12 +1,13 @@
 package com.wanderlust.api.repository;
 
-import com.wanderlust.api.entity.UserVoucher;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.wanderlust.api.entity.UserVoucher;
 
 @Repository
 public interface UserVoucherRepository extends MongoRepository<UserVoucher, String> {
@@ -34,6 +35,9 @@ public interface UserVoucherRepository extends MongoRepository<UserVoucher, Stri
     // Đếm số voucher đã dùng
     @Query(value = "{ 'userId': ?0, 'status': 'USED' }", count = true)
     long countUsedVouchers(String userId);
+
+    // Đếm số lượt đã claim theo promotion
+    long countByPromotionId(String promotionId);
     
     // Tính tổng tiết kiệm
     @Query("{ 'userId': ?0, 'status': 'USED' }")

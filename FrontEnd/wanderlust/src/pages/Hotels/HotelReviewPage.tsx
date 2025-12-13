@@ -1,5 +1,5 @@
 import { Calendar, Info, MapPin, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
@@ -12,15 +12,19 @@ import { Label } from "../../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Separator } from "../../components/ui/separator";
 import type { PageType } from "../../MainApp";
-import { profileApi, tokenService } from "../../utils/api";
+import { useNavigationProps } from "../../router/withPageProps";
+import { bookingApi, profileApi, tokenService } from "../../utils/api";
 
 interface HotelReviewPageProps {
   onNavigate: (page: PageType, data?: any) => void;
   hotelData?: any;
 }
 
-export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPageProps) {
+export default function HotelReviewPage({ onNavigate, hotelData: hotelDataProp }: HotelReviewPageProps) {
   const { t } = useTranslation();
+  const { pageData, onNavigate: navigateFromHook } = useNavigationProps();
+  const hotelData = useMemo(() => hotelDataProp ?? pageData, [hotelDataProp, pageData]);
+  const goTo = onNavigate ?? navigateFromHook;
   const [contactInfo, setContactInfo] = useState({
     fullName: "",
     email: "",
@@ -50,6 +54,18 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
   });
 
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [isCreatingBooking, setIsCreatingBooking] = useState(false);
+  const [roomCount, setRoomCount] = useState(hotelData?.booking?.roomCount || 1);
+
+  // Debug: Log received hotel data
+  useEffect(() => {
+    console.log('=== HotelReviewPage Data ===');
+    console.log('Full hotelData:', hotelData);
+    console.log('hotel:', hotelData?.hotel);
+    console.log('room:', hotelData?.room);
+    console.log('booking:', hotelData?.booking);
+    console.log('pricing:', hotelData?.pricing);
+  }, [hotelData]);
 
   // Load user info when component mounts
   useEffect(() => {
@@ -118,38 +134,147 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
     tourTicket: 907000
   };
 
+  // Calculate total price for multiple rooms
   const totalAddons = 
     (addons.travelInsurance ? pricing.insurance : 0) +
     (addons.tourTickets ? pricing.tourTicket : 0);
 
-  const totalPrice = pricing.roomPrice + pricing.taxAndFees + totalAddons;
+  const baseRoomPrice = pricing.roomPrice * roomCount;
+  const baseTaxAndFees = pricing.taxAndFees * roomCount;
+  const totalPrice = baseRoomPrice + baseTaxAndFees + totalAddons;
 
-  const handleContinueToPayment = () => {
+  const handleContinueToPayment = async () => {
+    // Validation
     if (!contactInfo.fullName || !contactInfo.email || !contactInfo.phone) {
-      alert("Vui lòng điền đầy đủ thông tin liên hệ");
+      alert(t('hotels.pleaseFillContactInfo') || "Vui lòng điền đầy đủ thông tin liên hệ");
       return;
     }
 
     if (!bookingForMyself && (!guestInfo.title || !guestInfo.fullName)) {
-      alert("Vui lòng điền thông tin khách sẽ check-in");
+      alert(t('hotels.pleaseFillGuestInfo') || "Vui lòng điền thông tin khách sẽ check-in");
       return;
     }
 
     if (!agreeToTerms) {
-      alert("Vui lòng đồng ý với điều khoản và điều kiện");
+      alert(t('hotels.pleaseAgreeToTerms') || "Vui lòng đồng ý với điều khoản và điều kiện");
       return;
     }
 
-    onNavigate("payment-methods", {
-      type: "hotel",
-      contactInfo,
-      guestInfo: bookingForMyself ? contactInfo : guestInfo,
-      bookingForMyself,
-      specialRequests,
-      addons,
-      hotelData,
-      totalPrice
-    });
+    if (!hotelData?.hotel || !hotelData?.room) {
+      toast.error(t('hotels.missingHotelData') || 'Thiếu dữ liệu khách sạn, vui lòng chọn lại');
+      goTo('hotel-list');
+      return;
+    }
+
+    // Require login before creating booking
+    if (!tokenService.isAuthenticated?.()) {
+      toast.error(t('common.loginRequired') || 'Vui lòng đăng nhập');
+      goTo('login');
+      return;
+    }
+
+    try {
+      setIsCreatingBooking(true);
+
+      // Build special requests string
+      const specialRequestsList: string[] = [];
+      if (specialRequests.nonSmoking) specialRequestsList.push('Non-smoking room');
+      if (specialRequests.highFloor) specialRequestsList.push('High floor');
+      if (specialRequests.connectingRooms) specialRequestsList.push('Connecting rooms');
+      
+      const specialRequestsText = [
+        `Hotel: ${hotel.name}`,
+        `Room: ${room.name}`,
+        `Check-in: ${booking.checkIn}`,
+        `Check-out: ${booking.checkOut}`,
+        `Rooms: ${roomCount}`,
+        `Guests: ${booking.guests || 2}`,
+        `Bed Type: ${booking.bedType || 'N/A'}`,
+        `Breakfast: ${booking.breakfast ? 'Yes' : 'No'}`,
+        specialRequestsList.length > 0 ? `Special Requests: ${specialRequestsList.join(', ')}` : ''
+      ].filter(Boolean).join(' | ');
+
+      const bookingPayload = {
+        productType: "HOTEL",
+        bookingType: "HOTEL",
+        productId: hotel.id || "HOTEL001",
+        hotelId: hotel.id,
+        roomId: room.id,
+        userId: tokenService.getUserData()?.id,
+        amount: totalPrice,
+        basePrice: baseRoomPrice,
+        taxes: baseTaxAndFees,
+        fees: totalAddons,
+        discount: 0,
+        totalPrice,
+        currency: "VND",
+        startDate: booking.checkIn || new Date().toISOString(),
+        endDate: booking.checkOut || undefined,
+        quantity: roomCount,
+        numberOfGuests: {
+          adults: booking.guests || 2,
+          children: 0,
+          infants: 0
+        },
+        guestInfo: {
+          fullName: bookingForMyself ? contactInfo.fullName : guestInfo.fullName,
+          firstName: (bookingForMyself ? contactInfo.fullName : guestInfo.fullName)?.split(" ")[0] || "Guest",
+          lastName: (bookingForMyself ? contactInfo.fullName : guestInfo.fullName)?.split(" ").slice(1).join(" ") || "User",
+          email: contactInfo.email,
+          phone: contactInfo.phone,
+          title: bookingForMyself ? "" : guestInfo.title
+        },
+        specialRequests: specialRequestsText,
+        paymentStatus: "PENDING",
+        status: "PENDING",
+        metadata: {
+          contactInfo,
+          guestInfo: bookingForMyself ? contactInfo : guestInfo,
+          bookingForMyself,
+          specialRequests,
+          addons,
+          hotelData,
+          roomCount,
+          baseRoomPrice,
+          baseTaxAndFees,
+          totalAddons,
+          finalAmount: totalPrice
+        }
+      } as any;
+
+      console.log('Creating hotel booking with payload:', bookingPayload);
+      const createdBooking = await bookingApi.createBooking(bookingPayload);
+      console.log('Hotel booking created:', createdBooking);
+
+      toast.success(t('hotels.bookingCreated') || 'Đã tạo đặt phòng thành công');
+
+      // Navigate to payment with persisted booking
+      goTo("payment-methods", {
+        type: "hotel",
+        contactInfo,
+        guestInfo: bookingForMyself ? contactInfo : guestInfo,
+        bookingForMyself,
+        specialRequests,
+        addons,
+        hotelData: {
+          ...hotelData,
+          booking: {
+            ...booking,
+            roomCount
+          }
+        },
+        totalPrice,
+        bookingId: createdBooking?.id,
+        booking: createdBooking,
+        userId: tokenService.getUserData()?.id,
+        roomCount
+      });
+    } catch (error: any) {
+      console.error('Failed to create hotel booking:', error);
+      toast.error(error.message || t('payment.bookingFailed') || 'Không thể tạo đặt phòng, vui lòng thử lại');
+    } finally {
+      setIsCreatingBooking(false);
+    }
   };
 
   return (
@@ -468,9 +593,16 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
               size="lg"
               className="w-full"
               onClick={handleContinueToPayment}
-              disabled={!agreeToTerms}
+              disabled={!agreeToTerms || isCreatingBooking}
             >
-              TIẾP TỤC THANH TOÁN
+              {isCreatingBooking ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>{t('common.processing') || 'Đang xử lý...'}</span>
+                </div>
+              ) : (
+                t('hotels.continueToPayment') || 'TIẾP TỤC THANH TOÁN'
+              )}
             </Button>
           </div>
 
@@ -519,15 +651,30 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
 
                   <div className="flex items-start gap-3">
                     <Users className="w-5 h-5 text-gray-600 shrink-0" />
-                    <div>
-                      <p className="text-sm text-gray-600">Loại phòng</p>
-                      <p className="text-gray-900">
-                        ({booking.roomCount}x) {booking.roomType}
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-600 mb-2">Số lượng phòng</p>
+                      <Select 
+                        value={roomCount.toString()} 
+                        onValueChange={(value) => setRoomCount(parseInt(value))}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Chọn số phòng" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5].map((num) => (
+                            <SelectItem key={num} value={num.toString()}>
+                              {num} phòng
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Loại phòng: {booking.roomType}
                       </p>
                       <p className="text-xs text-gray-500">
                         {booking.option && `${booking.option} • `}
                         {booking.bedType && `${booking.bedType} • `}
-                        {booking.guests} khách
+                        {booking.guests} khách/phòng
                       </p>
                       {booking.breakfast && (
                         <p className="text-xs text-green-600 mt-1">✓ Bao gồm bữa sáng</p>
@@ -544,17 +691,17 @@ export default function HotelReviewPage({ onNavigate, hotelData }: HotelReviewPa
                   
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">
-                      Giá phòng ({booking.nights} đêm)
+                      Giá phòng ({roomCount} phòng × {booking.nights} đêm)
                     </span>
                     <span className="text-gray-900">
-                      {pricing.roomPrice.toLocaleString('vi-VN')}đ
+                      {baseRoomPrice.toLocaleString('vi-VN')}đ
                     </span>
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Thuế và Phí</span>
+                    <span className="text-gray-600">Thuế và Phí ({roomCount} phòng)</span>
                     <span className="text-gray-900">
-                      {pricing.taxAndFees.toLocaleString('vi-VN')}đ
+                      {baseTaxAndFees.toLocaleString('vi-VN')}đ
                     </span>
                   </div>
 

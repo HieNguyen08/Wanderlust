@@ -1,23 +1,36 @@
 import { ArrowLeft, Home, MessageCircle, XCircle } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { bookingApi } from '../../utils/api';
 
 const PaymentCancel: React.FC = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [bookingId, setBookingId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Lấy session_id từ URL query params
+    // Lấy session_id và booking_id từ URL query params
     const urlParams = new URLSearchParams(window.location.search);
     const session = urlParams.get('session_id');
+    const booking = urlParams.get('booking_id');
+    
     if (session) {
       setSessionId(session);
-      // Log cancel event for analytics
-      console.warn('Payment cancelled - Session ID:', session);
+    }
+    const isTopUpFlow = booking?.startsWith('TOPUP-') ?? false;
+    if (booking && !isTopUpFlow) {
+      setBookingId(booking);
       
-      // Optional: Gửi analytics event
+      // Cập nhật trạng thái booking thành FAILED
+      markBookingAsFailed(booking);
+    }
+    
+    // Log cancel event for analytics
+    if (session || booking) {
+      console.warn('Payment cancelled - Session ID:', session, 'Booking ID:', booking);
+      
       try {
-        // Track payment cancellation
         const cancelData = {
           sessionId: session,
+          bookingId: booking,
           timestamp: new Date().toISOString(),
           page: 'stripe-payment-cancel'
         };
@@ -27,6 +40,19 @@ const PaymentCancel: React.FC = () => {
       }
     }
   }, []);
+
+  const markBookingAsFailed = async (bookingCode: string) => {
+    try {
+      await bookingApi.updateBooking(bookingCode, {
+        paymentStatus: 'FAILED',
+        status: 'PENDING', // Giữ status là PENDING (có thể retry thanh toán)
+        paymentMethod: 'STRIPE'
+      });
+      console.log('✅ Booking payment status updated to FAILED, status kept as PENDING');
+    } catch (error) {
+      console.error('❌ Failed to update booking payment status:', error);
+    }
+  };
 
   const handleRetryPayment = () => {
     // Quay lại trang nạp tiền

@@ -49,25 +49,52 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
   const loadVouchers = async () => {
     try {
       setLoading(true);
-      const data = await promotionApi.getAllPromotions();
+      const data = await promotionApi.getAll();
       // Map backend Promotion to frontend voucher format
-      const mappedVouchers = data.map((promo: any) => ({
-        id: promo.id || promo.promotionId,
-        code: promo.code,
-        type: promo.discountType || 'PERCENTAGE',
-        value: promo.discountValue || promo.value || 0,
-        maxDiscount: promo.maxDiscountAmount || promo.maxDiscount,
-        minSpend: promo.minOrderValue || promo.minSpend || 0,
-        startDate: promo.startDate,
-        endDate: promo.endDate,
-        totalUsesLimit: promo.usageLimit || promo.totalUsesLimit,
-        userUseLimit: promo.usagePerUser || promo.userUseLimit || 1,
-        totalUsed: promo.usedCount || promo.totalUsed || 0,
-        createdBy: 'ADMIN',
-        createdById: 'admin_001',
-        status: promo.isActive ? 'ACTIVE' : 'INACTIVE',
-        conditions: [],
-      }));
+      const mappedVouchers = data.map((promo: any) => {
+        const daysLeft = promo.daysLeft || 0;
+        const isExpired = daysLeft < 0;
+        const isExhausted = promo.totalUsesLimit && promo.usedCount >= promo.totalUsesLimit;
+
+        const parsedConditions = (promo.conditions || []).map((condition: any) => {
+          if (typeof condition === 'string') {
+            const [type, ...rest] = condition.split(':');
+            return { type, value: rest.join(':') };
+          }
+          return condition;
+        });
+        
+        let status = 'INACTIVE';
+        if (isExpired) {
+          status = 'EXPIRED';
+        } else if (isExhausted) {
+          status = 'EXHAUSTED';
+        } else if (promo.isActive) {
+          status = 'ACTIVE';
+        }
+
+        return {
+          id: promo.id || promo.promotionId,
+          code: promo.code,
+          type: promo.type || 'PERCENTAGE',
+          value: promo.value || 0,
+          maxDiscount: promo.maxDiscount,
+          minSpend: promo.minSpend || 0,
+          startDate: promo.startDate,
+          endDate: promo.endDate,
+          totalUsesLimit: promo.totalUsesLimit,
+          userUseLimit: 1,
+          totalUsed: promo.usedCount || 0,
+          createdBy: 'ADMIN',
+          createdById: 'admin_001',
+          status: status,
+          daysLeft: daysLeft,
+          isExpired: isExpired,
+          isExhausted: isExhausted,
+          canToggle: !isExpired && !isExhausted,
+          conditions: parsedConditions,
+        };
+      });
       setVouchers(mappedVouchers);
     } catch (error) {
       console.error('Error loading vouchers:', error);
@@ -89,18 +116,43 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
     const voucher = vouchers.find(v => v.id === voucherId);
     if (!voucher) return;
     
+    // Check if voucher can be toggled
+    if (voucher.isExpired) {
+      toast.error(t('admin.voucherExpiredCannotToggle', { code: voucher.code }));
+      return;
+    }
+    
+    if (voucher.isExhausted) {
+      toast.error(t('admin.voucherExhaustedCannotToggle', { code: voucher.code }));
+      return;
+    }
+    
     try {
-      const newStatus = voucher.status === "ACTIVE" ? "PAUSED" : "ACTIVE";
-      await promotionApi.updatePromotion(voucher.id, {
-        ...voucher,
-        isActive: newStatus === "ACTIVE",
-        status: newStatus
-      });
-      toast.success(t(newStatus === "ACTIVE" ? 'admin.voucherActivated' : 'admin.voucherPaused', { code: voucher.code }));
-      loadVouchers(); // Reload data
-    } catch (error) {
+      const newStatus = voucher.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+      
+      // Map to backend format (don't send id in body)
+      const promotionData = {
+        code: voucher.code,
+        type: voucher.type,
+        value: voucher.value,
+        maxDiscount: voucher.maxDiscount,
+        minSpend: voucher.minSpend,
+        startDate: voucher.startDate,
+        endDate: voucher.endDate,
+        totalUsesLimit: voucher.totalUsesLimit,
+        usedCount: voucher.totalUsed,
+        conditions: voucher.conditions,
+        isActive: newStatus === "ACTIVE"
+      };
+
+      console.log('Updating voucher:', voucher.id, promotionData);
+      const result = await promotionApi.update(String(voucher.id), promotionData);
+      console.log('Update result:', result);
+      toast.success(t(newStatus === "ACTIVE" ? 'admin.voucherActivated' : 'admin.voucherDeactivated', { code: voucher.code }));
+      await loadVouchers(); // Reload data
+    } catch (error: any) {
       console.error('Error toggling voucher status:', error);
-      toast.error(t('admin.cannotUpdateVoucherStatus'));
+      toast.error(error?.message || t('admin.cannotUpdateVoucherStatus'));
     }
   };
 
@@ -122,12 +174,14 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
     
     if (confirm(t('admin.confirmDeleteVoucher', { code: voucher.code }))) {
       try {
-        await promotionApi.deletePromotion(voucher.id);
+        console.log('Deleting voucher:', voucher.id);
+        const result = await promotionApi.delete(String(voucher.id));
+        console.log('Delete result:', result);
         toast.success(t('admin.voucherDeleted'));
-        loadVouchers(); // Reload data
-      } catch (error) {
+        await loadVouchers(); // Reload data
+      } catch (error: any) {
         console.error('Error deleting voucher:', error);
-        toast.error(t('admin.cannotDeleteVoucher'));
+        toast.error(error?.message || t('admin.cannotDeleteVoucher'));
       }
     }
   };
@@ -141,10 +195,12 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
     switch (status) {
       case "ACTIVE":
         return <Badge className="bg-green-500">{t('admin.active')}</Badge>;
-      case "PAUSED":
-        return <Badge className="bg-yellow-500">{t('admin.paused')}</Badge>;
+      case "INACTIVE":
+        return <Badge className="bg-gray-500">{t('admin.inactive')}</Badge>;
       case "EXPIRED":
-        return <Badge variant="secondary">{t('admin.expired')}</Badge>;
+        return <Badge className="bg-red-500">{t('admin.expired')}</Badge>;
+      case "EXHAUSTED":
+        return <Badge className="bg-orange-500">{t('admin.exhausted')}</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -179,9 +235,9 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
       color: "text-purple-600"
     },
     {
-      label: t('admin.expired'),
-      value: vouchers.filter(v => v.status === "EXPIRED").length,
-      color: "text-gray-600"
+      label: t('admin.expiredOrExhausted'),
+      value: vouchers.filter(v => v.status === "EXPIRED" || v.status === "EXHAUSTED").length,
+      color: "text-red-600"
     },
   ];
 
@@ -323,6 +379,14 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
                       <div className="text-sm">
                         <div className="text-gray-600">{voucher.startDate}</div>
                         <div className="text-gray-600">{t('admin.to')} {voucher.endDate}</div>
+                        {voucher.daysLeft !== undefined && (
+                          <div className={`text-xs font-medium ${voucher.daysLeft < 0 ? 'text-red-600' : voucher.daysLeft < 7 ? 'text-orange-600' : 'text-gray-500'}`}>
+                            {voucher.daysLeft < 0 
+                              ? t('admin.expiredDaysAgo', { days: Math.abs(voucher.daysLeft) })
+                              : t('admin.daysLeft', { days: voucher.daysLeft })
+                            }
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -340,17 +404,32 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
-                        {voucher.status !== "EXPIRED" && (
+                        {!voucher.isExpired && !voucher.isExhausted ? (
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleToggleStatus(voucher.id)}
+                            title={voucher.status === "ACTIVE" ? t('admin.deactivateVoucher') : t('admin.activateVoucher')}
                           >
                             {voucher.status === "ACTIVE" ? (
                               <Pause className="w-4 h-4" />
                             ) : (
                               <Play className="w-4 h-4" />
                             )}
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled
+                            title={
+                              voucher.isExpired 
+                                ? t('admin.cannotToggleExpired')
+                                : t('admin.cannotToggleExhausted')
+                            }
+                            className="opacity-50 cursor-not-allowed"
+                          >
+                            <Play className="w-4 h-4" />
                           </Button>
                         )}
                         <Button
@@ -382,9 +461,39 @@ export default function AdminVouchersPage({ onNavigate }: AdminVouchersPageProps
       <CreateVoucherDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
-        onVoucherCreated={(newVoucher) => {
-          setVouchers([...vouchers, { ...newVoucher, id: Math.max(...vouchers.map(v => v.id)) + 1 }]);
-          toast.success(t('admin.voucherCreatedSuccess'));
+        onVoucherCreated={async (newVoucher) => {
+          try {
+            // Map frontend voucher to backend Promotion format
+            const mappedConditions = (newVoucher.conditions || []).map((condition: any) => {
+              if (!condition?.type) return condition?.value || '';
+              return `${condition.type}:${condition.value}`;
+            }).filter(Boolean);
+
+            const promotionData = {
+              code: newVoucher.code,
+              title: newVoucher.title || newVoucher.code,
+              description: newVoucher.description || `Promotion ${newVoucher.code}`,
+              category: newVoucher.category || 'ALL',
+              type: newVoucher.type,
+              value: newVoucher.value,
+              maxDiscount: newVoucher.maxDiscount,
+              minSpend: newVoucher.minSpend,
+              startDate: newVoucher.startDate,
+              endDate: newVoucher.endDate,
+              totalUsesLimit: newVoucher.totalUsesLimit,
+              usedCount: 0,
+              isActive: newVoucher.status === 'ACTIVE',
+              conditions: mappedConditions,
+              image: newVoucher.image || undefined
+            };
+            
+            await promotionApi.create(promotionData);
+            toast.success(t('admin.voucherCreatedSuccess'));
+            loadVouchers(); // Reload from backend
+          } catch (error) {
+            console.error('Error creating voucher:', error);
+            toast.error(t('admin.cannotCreateVoucher'));
+          }
         }}
       />
 

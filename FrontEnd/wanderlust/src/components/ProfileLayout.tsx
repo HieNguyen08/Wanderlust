@@ -14,7 +14,7 @@ interface ProfileLayoutProps {
   children: ReactNode;
   currentPage: PageType;
   onNavigate: (page: PageType, data?: any) => void;
-  activePage?: "profile" | "bookings" | "saved" | "vouchers" | "wallet" | "settings" | "saved-payment-methods";
+  activePage?: "profile" | "bookings" | "saved" | "vouchers" | "wallet" | "settings" | "payment-history";
   userRole?: FrontendRole | null;
   onLogout?: () => void;
 }
@@ -77,10 +77,10 @@ export function ProfileLayout({ children, currentPage, onNavigate, activePage = 
       page: "wallet" as PageType,
     },
     {
-      id: "saved-payment-methods",
-      label: t('profileLayout.paymentMethods'),
+      id: "payment-history",
+      label: t('profileLayout.paymentHistory', 'Lịch sử thanh toán'),
       icon: CreditCard,
-      page: "saved-payment-methods" as PageType,
+      page: "payment-history" as PageType,
     },
     {
       id: "settings",

@@ -91,16 +91,27 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
           name: `${car.brand} ${car.model}`,
           brand: car.brand,
           model: car.model,
+          year: car.year,
           type: car.type, // SPORT, SUV, SEDAN, MPV
           image: car.images?.[0]?.url || "https://images.unsplash.com/photo-1742056024244-02a093dae0b5?w=800",
           gasoline: `${car.fuelType || 'Gasoline'}`,
           transmission: car.transmission, // MANUAL, AUTOMATIC
           capacity: `${car.seats || 5} People`,
           seats: car.seats,
-          price: car.pricePerDay ? Math.round(car.pricePerDay / 24000) : 0,
+          doors: car.doors,
+          luggage: car.luggage,
+          color: car.color,
+          features: car.features || [],
+          price: car.pricePerDay ? parseFloat(car.pricePerDay) : 0,
+          pricePerHour: car.pricePerHour ? parseFloat(car.pricePerHour) : 0,
           originalPrice: undefined,
           liked: false,
           rating: car.averageRating || (4.5 + Math.random() * 0.5),
+          withDriver: car.withDriver,
+          insurance: car.insurance,
+          deposit: car.deposit ? parseFloat(car.deposit) : 0,
+          minRentalDays: car.minRentalDays,
+          deliveryAvailable: car.deliveryAvailable,
         }));
 
         setAllCars(mappedCars);
@@ -756,8 +767,12 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
 
                         <div className="flex items-center justify-between pt-4 border-t">
                           <div>
-                            <span className="text-xl text-gray-900">${car.price}</span>
-                            <span className="text-sm text-gray-600">/ngày</span>
+                            <div className="flex flex-col">
+                              <span className="text-lg text-blue-600 font-semibold">
+                                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(car.price)}
+                              </span>
+                              <span className="text-xs text-gray-500">/ngày</span>
+                            </div>
                           </div>
                           <Button size="sm">Xem chi tiết</Button>
                         </div>

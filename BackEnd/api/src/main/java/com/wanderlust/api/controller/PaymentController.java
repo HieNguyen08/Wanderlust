@@ -1,20 +1,25 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.dto.payment.PaymentDTO;
-import com.wanderlust.api.dto.payment.RefundRequestDTO;
-import com.wanderlust.api.services.PaymentService;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-
-
-import java.util.List;
-import java.util.Map;
+import com.wanderlust.api.dto.payment.PaymentDTO;
+import com.wanderlust.api.dto.payment.RefundRequestDTO;
+import com.wanderlust.api.services.PaymentService;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -147,6 +152,21 @@ public class PaymentController {
         }
     }
     
+    /**
+     * [USER/ADMIN] Xác nhận thanh toán Stripe thành công (được gọi từ frontend sau redirect)
+     * API này xử lý trường hợp webhook chưa kịp cập nhật hoặc test mode không có webhook
+     */
+    @PostMapping("/confirm-stripe-success/{bookingId}")
+    @PreAuthorize("hasRole('ADMIN') or @webSecurity.isBookingOwner(authentication, #bookingId)")
+    public ResponseEntity<?> confirmStripeSuccess(@PathVariable String bookingId) {
+        try {
+            PaymentDTO payment = paymentService.confirmStripePaymentSuccess(bookingId);
+            return new ResponseEntity<>(payment, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
+
     /**
      * [USER/ADMIN] Lấy payment theo Booking ID
      */

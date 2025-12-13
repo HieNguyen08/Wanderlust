@@ -145,10 +145,19 @@ public class PaymentService {
             // Thanh toán bằng Stripe - tạo session và trả về URL
             paymentUrl = initiateStripePayment(payment);
             payment.setMetadata(Map.of("paymentUrl", paymentUrl));
+            payment.setStatus(PaymentStatus.PROCESSING);
+            // Đánh dấu booking đang được xử lý thanh toán
+            if (payment.getBookingId() != null) {
+                bookingService.updatePaymentStatus(payment.getBookingId(), PaymentStatus.PROCESSING, payment.getPaymentMethod());
+            }
         } else {
             // Default simulated payment for other methods
             paymentUrl = "https://simulated-payment-gateway.com/pay?tx=" + payment.getTransactionId();
             payment.setMetadata(Map.of("paymentUrl", paymentUrl));
+            payment.setStatus(PaymentStatus.PROCESSING);
+            if (payment.getBookingId() != null) {
+                bookingService.updatePaymentStatus(payment.getBookingId(), PaymentStatus.PROCESSING, payment.getPaymentMethod());
+            }
         }
 
         Payment savedPayment = paymentRepository.save(payment);
@@ -159,11 +168,11 @@ public class PaymentService {
      * Xử lý thanh toán bằng ví
      */
     private void processWalletPayment(Payment payment) {
+        String userId = payment.getUserId();
+        String bookingId = payment.getBookingId();
+        BigDecimal amount = payment.getAmount();
+        
         try {
-            String userId = payment.getUserId();
-            String bookingId = payment.getBookingId();
-            BigDecimal amount = payment.getAmount();
-
             // Kiểm tra số dư
             if (!walletService.hasSufficientBalance(userId, amount)) {
                 payment.setStatus(PaymentStatus.FAILED);
@@ -179,11 +188,20 @@ public class PaymentService {
             payment.setStatus(PaymentStatus.COMPLETED);
             payment.setPaidAt(LocalDateTime.now());
 
+            // Chỉ cập nhật paymentStatus, booking status VẪN LÀ PENDING
+            // (chờ vendor/admin confirm sau khi thanh toán thành công)
+            if (bookingId != null) {
+                bookingService.updatePaymentStatus(bookingId, PaymentStatus.COMPLETED, PaymentMethod.WALLET);
+            }
+
             log.info("✅ Wallet payment completed for booking {}", bookingId);
         } catch (Exception e) {
             payment.setStatus(PaymentStatus.FAILED);
             payment.setErrorMessage(e.getMessage());
             payment.setFailedAt(LocalDateTime.now());
+            if (bookingId != null) {
+                bookingService.updatePaymentStatus(bookingId, PaymentStatus.FAILED, PaymentMethod.WALLET);
+            }
             log.error("❌ Wallet payment failed: {}", e.getMessage());
             throw new RuntimeException("Wallet payment failed: " + e.getMessage());
         }
@@ -366,13 +384,14 @@ public class PaymentService {
                     System.err.println("❌ Failed to update wallet balance: " + e.getMessage());
                 }
             } else {
-                // 2. Logic Booking: chuyển tiền về admin và xác nhận đơn hàng
+                // 2. Logic Booking: chuyển tiền về admin và cập nhật payment status
                 try {
                     moneyTransferService.processBookingPayment(payment.getBookingId(), payment.getUserId(), payment.getPaymentMethod().name());
-                    bookingService.confirmBooking(payment.getBookingId());
-                    System.out.println("✅ Booking confirmed: " + payment.getBookingId());
+                    // Chỉ cập nhật paymentStatus, KHÔNG gọi confirmBooking để update status
+                    bookingService.updatePaymentStatus(payment.getBookingId(), PaymentStatus.COMPLETED, payment.getPaymentMethod());
+                    System.out.println("✅ Booking payment status updated: " + payment.getBookingId());
                 } catch (Exception e) {
-                    System.err.println("❌ Failed to confirm booking: " + payment.getBookingId());
+                    System.err.println("❌ Failed to update booking payment status: " + payment.getBookingId());
                 }
             }
 
@@ -380,6 +399,10 @@ public class PaymentService {
             payment.setStatus(PaymentStatus.FAILED);
             payment.setFailedAt(LocalDateTime.now());
             payment.setErrorMessage("Payment failed via " + gateway);
+
+            if (payment.getBookingId() != null) {
+                bookingService.updatePaymentStatus(payment.getBookingId(), PaymentStatus.FAILED, payment.getPaymentMethod());
+            }
         }
 
         payment.setUpdatedAt(LocalDateTime.now());
@@ -479,5 +502,45 @@ public class PaymentService {
     @Transactional
     public void deleteAll() {
         paymentRepository.deleteAll();
+    }
+
+    /**
+     * Xác nhận thanh toán Stripe thành công từ frontend (sau khi redirect)
+     * Dùng trong trường hợp webhook chưa kịp cập nhật hoặc test mode không có webhook
+     */
+    @Transactional
+    public PaymentDTO confirmStripePaymentSuccess(String bookingId) {
+        Payment payment = paymentRepository.findByBookingId(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found for booking " + bookingId));
+
+        // Nếu đã COMPLETED rồi (webhook đã xử lý), không làm gì cả
+        if (payment.getStatus() == PaymentStatus.COMPLETED) {
+            log.info("✅ Payment already COMPLETED for booking {}", bookingId);
+            return paymentMapper.toDTO(payment);
+        }
+
+        // Nếu đang PROCESSING, cập nhật thành COMPLETED
+        if (payment.getStatus() == PaymentStatus.PROCESSING) {
+            payment.setStatus(PaymentStatus.COMPLETED);
+            payment.setPaidAt(LocalDateTime.now());
+            payment.setUpdatedAt(LocalDateTime.now());
+
+            // Cập nhật payment status của booking (giữ nguyên status = PENDING)
+            bookingService.updatePaymentStatus(bookingId, PaymentStatus.COMPLETED, payment.getPaymentMethod());
+
+            // Chuyển tiền về admin nếu chưa chuyển
+            try {
+                moneyTransferService.processBookingPayment(bookingId, payment.getUserId(), payment.getPaymentMethod().name());
+                log.info("✅ Payment confirmed and money transferred for booking {}", bookingId);
+            } catch (Exception e) {
+                log.warn("⚠️ Money transfer may have already been processed: {}", e.getMessage());
+            }
+
+            Payment savedPayment = paymentRepository.save(payment);
+            return paymentMapper.toDTO(savedPayment);
+        }
+
+        // Nếu trạng thái khác PROCESSING, không cho phép xác nhận
+        throw new RuntimeException("Cannot confirm payment in status " + payment.getStatus());
     }
 }

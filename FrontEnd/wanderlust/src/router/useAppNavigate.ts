@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { PageType } from "../MainApp";
 
 /**
@@ -12,9 +12,9 @@ export function useAppNavigate() {
   const pageToRoute: Record<PageType, string> = {
     "home": "/",
     "flights": "/flights",
+    "flight-detail": "/flights/detail",
     "seat-selection": "/flights/seat-selection",
     "flight-review": "/flights/review",
-    "search": "/search",
     "booking": "/booking",
     "checkout": "/checkout",
     "payment-callback": "/payment/callback",
@@ -54,7 +54,7 @@ export function useAppNavigate() {
     "wallet": "/profile/wallet",
     "topup-wallet": "/profile/wallet/topup",
     "settings": "/profile/settings",
-    "saved-payment-methods": "/profile/payment-methods",
+    "payment-history": "/profile/payment-history",
     "payment-methods": "/payment-methods",
     "admin-dashboard": "/admin",
     "admin-users": "/admin/users",

@@ -1,8 +1,9 @@
 import { CheckCircle, Home, Receipt, Wallet } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { paymentApi } from '../../api/paymentApi';
 import { useNotification } from '../../contexts/NotificationContext';
-import { transactionApi } from '../../utils/api';
+import { bookingApi, transactionApi } from '../../utils/api';
 
 interface TransactionInfo {
   amount: number;
@@ -18,6 +19,25 @@ const PaymentSuccess: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(true);
   const [transactionInfo, setTransactionInfo] = useState<TransactionInfo | null>(null);
 
+  const markBookingAsPaid = async (bookingCode: string) => {
+    try {
+      // 1. Cập nhật Payment entity thành COMPLETED
+      await paymentApi.confirmStripeSuccess(bookingCode);
+      console.log('✅ Payment confirmed via Stripe success');
+
+      // 2. Cập nhật Booking entity paymentStatus
+      await bookingApi.updateBooking(bookingCode, {
+        paymentStatus: 'COMPLETED',
+        status: 'PENDING', // Đảm bảo status vẫn là PENDING (chờ vendor/admin confirm)
+        paymentMethod: 'STRIPE'
+      });
+      console.log('✅ Booking payment status updated to COMPLETED, status kept as PENDING');
+    } catch (error) {
+      console.error('❌ Failed to update payment/booking status:', error);
+      toast.error('Có lỗi khi cập nhật trạng thái thanh toán');
+    }
+  };
+
   useEffect(() => {
     // Lấy session_id từ URL query params
     const urlParams = new URLSearchParams(window.location.search);
@@ -27,15 +47,16 @@ const PaymentSuccess: React.FC = () => {
     if (session) {
       setSessionId(session);
     }
-    if (booking) {
-      setBookingId(booking);
-    }
 
-    // Nếu là luồng booking, hiển thị ngay màn thành công không cần xử lý ví
-    if (booking) {
-      setIsProcessing(false);
+    const isTopUpFlow = booking?.startsWith('TOPUP-') ?? false;
+    if (booking && !isTopUpFlow) {
+      setBookingId(booking);
+      // Nếu là luồng booking, hiển thị ngay màn thành công không cần xử lý ví
+      markBookingAsPaid(booking).finally(() => setIsProcessing(false));
       return;
     }
+
+    // Luồng nạp ví: không có bookingId hợp lệ, tiếp tục xử lý bên dưới
 
     if (session) {
       // Đợi webhook xử lý xong (2-5 giây) rồi verify transaction

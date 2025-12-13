@@ -35,21 +35,18 @@ export function VoucherDetailDialog({ open, onOpenChange, voucher }: VoucherDeta
   };
 
   const getConditionLabel = (condition: any) => {
-    const labels: { [key: string]: { [key: string]: string } } = {
-      CATEGORY: {
-        flights: "Vé máy bay",
-        hotels: "Khách sạn",
-        activities: "Hoạt động vui chơi",
-        cars: "Thuê xe",
-        tours: "Tour du lịch",
-      },
-    };
+    if (!condition) return '';
 
-    if (condition.type === "CATEGORY") {
-      return labels.CATEGORY[condition.value] || condition.value;
-    } else if (condition.type === "VENDOR") {
+    if (typeof condition === 'string') {
+      const [type, ...rest] = condition.split(':');
+      const value = rest.join(':');
+      return getConditionLabel({ type, value });
+    }
+
+    if (condition.type === "VENDOR") {
       return `Vendor: ${condition.value}`;
-    } else if (condition.type === "USER") {
+    }
+    if (condition.type === "USER") {
       return `User: ${condition.value}`;
     }
     return condition.value;

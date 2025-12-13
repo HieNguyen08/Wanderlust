@@ -1,4 +1,4 @@
-import { AlertTriangle, Calendar, Car, MapPin, Settings } from "lucide-react";
+import { AlertTriangle, Car, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Separator } from "../../components/ui/separator";
 import { Textarea } from "../../components/ui/textarea";
 import type { PageType } from "../../MainApp";
+import { useNavigationProps } from "../../router/withPageProps";
 import { profileApi, tokenService } from "../../utils/api";
 
 interface CarRentalReviewPageProps {
@@ -23,8 +24,30 @@ interface CarRentalReviewPageProps {
   onLogout?: () => void;
 }
 
-export default function CarRentalReviewPage({ onNavigate, carData, userRole, onLogout }: CarRentalReviewPageProps) {
+export default function CarRentalReviewPage({
+  onNavigate: onNavigateProp,
+  carData: carDataProp,
+  userRole: userRoleProp,
+  onLogout: onLogoutProp
+}: CarRentalReviewPageProps) {
   const { t } = useTranslation();
+  const {
+    onNavigate: navFromContext,
+    pageData,
+    userRole: userRoleFromContext,
+    onLogout: onLogoutFromContext
+  } = useNavigationProps();
+
+  const onNavigate = onNavigateProp ?? navFromContext;
+  const userRole = userRoleProp ?? userRoleFromContext;
+  const onLogout = onLogoutProp ?? onLogoutFromContext;
+  const carData = carDataProp ?? pageData ?? {};
+
+  const isIsoDate = (value?: string) => !!value && /^\d{4}-\d{2}-\d{2}$/.test(value);
+  const initialPickupDate = isIsoDate(carData?.rental?.pickupDate) ? carData.rental.pickupDate : '';
+  const initialDropoffDate = isIsoDate(carData?.rental?.dropoffDate) ? carData.rental.dropoffDate : '';
+  const initialPickupTime = carData?.rental?.pickupTime || '09:00';
+  const initialDropoffTime = carData?.rental?.dropoffTime || '09:00';
   const [contactInfo, setContactInfo] = useState({
     fullName: "",
     email: "",
@@ -50,6 +73,14 @@ export default function CarRentalReviewPage({ onNavigate, carData, userRole, onL
 
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+
+  // Rental configuration states
+  const [rentalType, setRentalType] = useState<'daily' | 'hourly'>('daily');
+  const [pickupDate, setPickupDate] = useState<string>(initialPickupDate);
+  const [dropoffDate, setDropoffDate] = useState<string>(initialDropoffDate);
+  const [pickupTime, setPickupTime] = useState<string>(initialPickupTime);
+  const [dropoffTime, setDropoffTime] = useState<string>(initialDropoffTime);
+  const [withDriverService, setWithDriverService] = useState<boolean>(carData?.car?.withDriver || false);
 
   // Load user info when component mounts
   useEffect(() => {
@@ -82,29 +113,82 @@ export default function CarRentalReviewPage({ onNavigate, carData, userRole, onL
     loadUserData();
   }, [t]);
 
-  // Mock data
+  // Car data from CarDetailPage
   const car = carData?.car || {
     name: "Toyota Agya",
     image: "https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800",
     transmission: "Tự động",
     seats: 4,
-    vendor: "SEWAMOBIL Indonesia"
+    pricePerDay: 1855148,
+    pricePerHour: 185515,
+    withDriver: false,
+    driverPrice: 0,
+    insurance: { type: "Basic", price: 188091 },
+    deposit: 9791397
   };
 
-  const rental = carData?.rental || {
-    pickup: "Thứ 7, 8/11/2025 - 09:00",
-    dropoff: "Thứ 2, 10/11/2025 - 09:00",
-    location: "Pool Bandara CGK",
-    days: 2
+  // Initialize pickup location from CarDetailPage if available
+  useEffect(() => {
+    if (carData?.rental?.pickupLocation && !pickupDropoffInfo.pickupLocation) {
+      setPickupDropoffInfo(prev => ({
+        ...prev,
+        pickupLocation: carData.rental.pickupLocation,
+        dropoffLocation: carData.rental.dropoffLocation || carData.rental.pickupLocation
+      }));
+    }
+  }, [carData]);
+
+  // Calculate rental duration and pricing
+  const calculateDuration = () => {
+    if (!pickupDate || !dropoffDate) return { days: 0, hours: 0 };
+
+    const pickup = new Date(`${pickupDate}T${pickupTime}:00`);
+    const dropoff = new Date(`${dropoffDate}T${dropoffTime}:00`);
+
+    const diffMs = dropoff.getTime() - pickup.getTime();
+    const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    return { days: diffDays, hours: diffHours };
   };
 
-  const pricing = {
-    rentalPrice: 1000000,
-    insurance: 200000,
-    deposit: 500000
+  const duration = calculateDuration();
+
+  // Calculate pricing dynamically
+  const calculatePricing = () => {
+    const pricePerDay = car.pricePerDay || 0;
+    const pricePerHour = car.pricePerHour || 0;
+    const driverPricePerDay = car.driverPrice || 0;
+    const insurancePrice = car.insurance?.price ? parseFloat(car.insurance.price) : 0;
+    const depositAmount = car.deposit ? parseFloat(car.deposit) : 0;
+
+    let rentalPrice = 0;
+    let driverServicePrice = 0;
+
+    if (rentalType === 'daily') {
+      rentalPrice = pricePerDay * duration.days;
+      if (withDriverService && car.withDriver) {
+        driverServicePrice = driverPricePerDay * duration.days;
+      }
+    } else {
+      rentalPrice = pricePerHour * duration.hours;
+      if (withDriverService && car.withDriver) {
+        // Driver price per hour (estimate from daily rate)
+        const driverPricePerHour = driverPricePerDay / 24;
+        driverServicePrice = driverPricePerHour * duration.hours;
+      }
+    }
+
+    return {
+      rentalPrice,
+      driverServicePrice,
+      insurance: insurancePrice,
+      deposit: depositAmount,
+      total: rentalPrice + driverServicePrice + insurancePrice
+    };
   };
 
-  const totalPrice = pricing.rentalPrice;
+  const pricing = calculatePricing();
 
   const handleContinueToPayment = () => {
     if (!contactInfo.fullName || !contactInfo.email || !contactInfo.phone) {
@@ -127,13 +211,36 @@ export default function CarRentalReviewPage({ onNavigate, carData, userRole, onL
       return;
     }
 
+    const normalizedRental = {
+      pickupDate,
+      dropoffDate,
+      pickupTime,
+      dropoffTime,
+      pickupLocation: pickupDropoffInfo.pickupLocation,
+      dropoffLocation: pickupDropoffInfo.dropoffLocation,
+      location: pickupDropoffInfo.pickupLocation,
+      pickup: pickupDate && pickupTime ? `${pickupDate}T${pickupTime}` : undefined,
+      dropoff: dropoffDate && dropoffTime ? `${dropoffDate}T${dropoffTime}` : undefined,
+      rentalType,
+      duration: rentalType === 'daily' ? `${duration.days} ngày` : `${duration.hours} giờ`,
+      days: rentalType === 'daily' ? duration.days : Math.ceil(duration.hours / 24),
+      withDriverService
+    };
+
     onNavigate("payment-methods", {
       type: "car-rental",
       contactInfo,
       driverInfo,
       pickupDropoffInfo,
-      carData,
-      totalPrice
+      carData: {
+        car,
+        rental: normalizedRental,
+        pricing: {
+          ...pricing,
+          totalPrice: pricing.total
+        }
+      },
+      totalPrice: pricing.total
     });
   };
 
@@ -475,8 +582,8 @@ export default function CarRentalReviewPage({ onNavigate, carData, userRole, onL
           {/* Sidebar - Right Column */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <Card className="p-6">
-                <h2 className="text-xl text-gray-900 mb-6">Chi tiết Thuê xe</h2>
+              <Card className="p-7">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-6">Chi tiết Thuê xe</h2>
 
                 {/* Car Info */}
                 <div className="mb-6">
@@ -500,75 +607,168 @@ export default function CarRentalReviewPage({ onNavigate, carData, userRole, onL
                     </div>
                   </div>
 
-                  <p className="text-sm text-gray-600">
-                    Nhà cung cấp: {car.vendor}
-                  </p>
-                </div>
-
-                <Separator className="my-6" />
-
-                {/* Rental Info */}
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-gray-600 shrink-0" />
-                    <div>
-                      <p className="text-sm text-gray-600">Nhận xe (Pickup)</p>
-                      <p className="text-gray-900">{rental.pickup}</p>
+                  {/* Pricing Info */}
+                  <div className="space-y-2 p-3 bg-blue-50 rounded-lg">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-700">Giá thuê theo ngày:</span>
+                      <span className="font-semibold text-blue-600">
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(car.pricePerDay || 0)}
+                      </span>
                     </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-gray-600 shrink-0" />
-                    <div>
-                      <p className="text-sm text-gray-600">Trả xe (Drop-off)</p>
-                      <p className="text-gray-900">{rental.dropoff}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-gray-600 shrink-0" />
-                    <div>
-                      <p className="text-sm text-gray-600">Địa điểm</p>
-                      <p className="text-gray-900">{rental.location}</p>
-                    </div>
+                    {car.pricePerHour > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-700">Giá thuê theo giờ:</span>
+                        <span className="font-semibold text-blue-600">
+                          {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(car.pricePerHour)}
+                        </span>
+                      </div>
+                    )}
+                    {car.withDriver && car.driverPrice > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-700">Phụ phí tài xế/ngày:</span>
+                        <span className="font-semibold text-purple-600">
+                          {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(car.driverPrice)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <Separator className="my-6" />
 
-                {/* Price Details */}
+                {/* Rental Type Selection */}
+                <div className="mb-6">
+                  <Label className="text-sm mb-2 block text-gray-700">Loại thuê xe</Label>
+                  <Select value={rentalType} onValueChange={(value: 'daily' | 'hourly') => setRentalType(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">Thuê theo ngày</SelectItem>
+                      {car.pricePerHour > 0 && <SelectItem value="hourly">Thuê theo giờ</SelectItem>}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Date and Time Selection */}
+                <div className="space-y-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
+                  <div>
+                    <Label className="text-sm mb-2 block text-gray-700">Ngày nhận xe</Label>
+                    <div className="grid grid-cols-[1fr_auto] gap-3 items-center">
+                      <Input
+                        type="date"
+                        value={pickupDate}
+                        onChange={(e) => setPickupDate(e.target.value)}
+                        min={new Date().toISOString().split('T')[0]}
+                        className="w-full"
+                      />
+                      {rentalType === 'hourly' && (
+                        <Input
+                          type="time"
+                          value={pickupTime}
+                          onChange={(e) => setPickupTime(e.target.value)}
+                          className="w-28"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm mb-2 block text-gray-700">Ngày trả xe</Label>
+                    <div className="grid grid-cols-[1fr_auto] gap-3 items-center">
+                      <Input
+                        type="date"
+                        value={dropoffDate}
+                        onChange={(e) => setDropoffDate(e.target.value)}
+                        min={pickupDate || new Date().toISOString().split('T')[0]}
+                        className="w-full"
+                      />
+                      {rentalType === 'hourly' && (
+                        <Input
+                          type="time"
+                          value={dropoffTime}
+                          onChange={(e) => setDropoffTime(e.target.value)}
+                          className="w-28"
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Driver Service Option */}
+                {car.withDriver && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id="driverService"
+                          checked={withDriverService}
+                          onCheckedChange={(checked) => setWithDriverService(checked as boolean)}
+                        />
+                        <Label htmlFor="driverService" className="text-sm cursor-pointer">
+                          Thuê thêm tài xế
+                        </Label>
+                      </div>
+                      {car.driverPrice > 0 && (
+                        <span className="text-sm font-semibold text-purple-600">
+                          +{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(car.driverPrice)}/{rentalType === 'daily' ? 'ngày' : 'giờ'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <Separator className="my-6" />
+
+                {/* Duration Display */}
+                <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">Thời gian thuê:</span>
+                    <span className="text-lg font-semibold text-gray-900">
+                      {rentalType === 'daily' ? `${duration.days} ngày` : `${duration.hours} giờ`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Price Breakdown */}
                 <div className="space-y-3">
-                  <h3 className="text-gray-900 mb-3">Chi tiết Giá</h3>
+                  <h3 className="text-gray-900 mb-3 font-semibold">Chi tiết Giá</h3>
                   
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">
-                      Giá thuê xe ({rental.days} ngày)
+                      Giá thuê xe ({rentalType === 'daily' ? `${duration.days} ngày` : `${duration.hours} giờ`})
                     </span>
-                    <span className="text-gray-900">
-                      {pricing.rentalPrice.toLocaleString('vi-VN')}đ
+                    <span className="text-gray-900 font-medium">
+                      {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pricing.rentalPrice)}
                     </span>
                   </div>
 
+                  {withDriverService && pricing.driverServicePrice > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Dịch vụ tài xế</span>
+                      <span className="text-purple-600 font-medium">
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pricing.driverServicePrice)}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Bảo hiểm (bao gồm)</span>
-                    <span className="text-green-600">Miễn phí</span>
+                    <span className="text-gray-600">Bảo hiểm ({car.insurance?.type || 'Cơ bản'})</span>
+                    <span className={pricing.insurance > 0 ? "text-gray-900 font-medium" : "text-green-600"}>
+                      {pricing.insurance > 0 
+                        ? `${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pricing.insurance)}`
+                        : "Miễn phí"
+                      }
+                    </span>
                   </div>
 
                   <Separator />
 
-                  <div className="flex justify-between">
-                    <span className="text-gray-900">Tổng cộng</span>
-                    <span className="text-2xl text-blue-600">
-                      {totalPrice.toLocaleString('vi-VN')}đ
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-900 font-bold text-lg">Tổng cộng</span>
+                    <span className="text-2xl text-blue-600 font-bold">
+                      {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(pricing.total)}
                     </span>
-                  </div>
-
-                  <div className="bg-yellow-50 rounded-lg p-3 mt-4">
-                    <p className="text-sm text-yellow-900">
-                      <strong>Tiền cọc:</strong> {pricing.deposit.toLocaleString('vi-VN')}đ
-                      <br />
-                      <span className="text-xs">Sẽ hoàn trả sau khi trả xe</span>
-                    </p>
                   </div>
                 </div>
               </Card>

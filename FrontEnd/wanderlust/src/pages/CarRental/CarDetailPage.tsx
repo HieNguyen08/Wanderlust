@@ -1,17 +1,18 @@
 ﻿import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import {
-    ArrowLeft,
-    Calendar,
-    CheckCircle,
-    Fuel,
-    Heart,
-    MapPin,
-    Settings,
-    Shield,
-    Star,
-    ThumbsUp,
-    Users
+  ArrowLeft,
+  Calendar,
+  CheckCircle,
+  DollarSign,
+  Fuel,
+  Heart,
+  MapPin,
+  Settings,
+  Shield,
+  Star,
+  ThumbsUp,
+  Users
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
@@ -28,18 +29,7 @@ import type { PageType } from "../../MainApp";
 import { carRentalApi } from "../../utils/api";
 
 interface CarDetailPageProps {
-  car?: {
-    id: number;
-    name: string;
-    type: string;
-    image: string;
-    gasoline: string;
-    transmission: string;
-    capacity: string;
-    price: number;
-    originalPrice?: number;
-    rating?: number;
-  };
+  car?: any; // Allow full car object from backend
   carId?: string; // Allow passing just ID to load from API
   onNavigate: (page: PageType, data?: any) => void;
   userRole?: any;
@@ -73,15 +63,34 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
             name: `${data.brand} ${data.model}`,
             brand: data.brand,
             model: data.model,
+            year: data.year,
             type: data.type || "SUV",
             image: data.images?.[0]?.url || "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800&h=600&fit=crop",
+            images: data.images || [],
             gasoline: data.fuelType || "Gasoline",
             transmission: data.transmission || "Manual",
             capacity: `${data.seats || 5} People`,
             seats: data.seats,
-            price: data.pricePerDay ? Math.round(data.pricePerDay / 24000) : 0,
+            doors: data.doors,
+            luggage: data.luggage,
+            color: data.color,
+            licensePlate: data.licensePlate,
+            features: data.features || [],
+            price: data.pricePerDay ? parseFloat(data.pricePerDay) : 0,
+            pricePerHour: data.pricePerHour ? parseFloat(data.pricePerHour) : 0,
             originalPrice: undefined,
             rating: data.averageRating || 4.5,
+            withDriver: data.withDriver,
+            driverPrice: data.driverPrice ? parseFloat(data.driverPrice) : 0,
+            insurance: data.insurance,
+            deposit: data.deposit ? parseFloat(data.deposit) : 0,
+            fuelPolicy: data.fuelPolicy,
+            mileageLimit: data.mileageLimit,
+            minRentalDays: data.minRentalDays,
+            deliveryAvailable: data.deliveryAvailable,
+            deliveryFee: data.deliveryFee ? parseFloat(data.deliveryFee) : 0,
+            totalReviews: data.totalReviews || 0,
+            totalTrips: data.totalTrips || 0,
           };
           
           setCar(mappedCar);
@@ -188,29 +197,44 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
     const diffTime = Math.abs(dropoff.getTime() - pickup.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    // Navigate to review page with rental data
+    // Navigate to review page with complete rental data
     onNavigate("car-review", {
       car: {
         id: car.id,
         name: car.name,
+        brand: car.brand,
+        model: car.model,
         type: car.type,
         image: car.image,
+        images: car.images,
         transmission: car.transmission,
-        capacity: car.capacity
+        capacity: car.capacity,
+        seats: car.seats,
+        year: car.year,
+        color: car.color,
+        licensePlate: car.licensePlate,
+        features: car.features,
+        // Pricing info
+        pricePerDay: car.price,
+        pricePerHour: car.pricePerHour || 0,
+        withDriver: car.withDriver,
+        driverPrice: car.driverPrice || 0,
+        insurance: car.insurance,
+        deposit: car.deposit,
+        minRentalDays: car.minRentalDays,
+        deliveryAvailable: car.deliveryAvailable,
+        deliveryFee: car.deliveryFee
       },
       rental: {
-        pickupDate: format(pickup, "EEEE, dd/MM/yyyy", { locale: vi }),
+        pickupDate: pickupDate, // Raw date string for form
+        pickupDateFormatted: format(pickup, "EEEE, dd/MM/yyyy", { locale: vi }),
         pickupTime: "09:00",
-        dropoffDate: format(dropoff, "EEEE, dd/MM/yyyy", { locale: vi }),
+        dropoffDate: dropoffDate, // Raw date string for form
+        dropoffDateFormatted: format(dropoff, "EEEE, dd/MM/yyyy", { locale: vi }),
         dropoffTime: "09:00",
         pickupLocation: pickupLocation,
         dropoffLocation: pickupLocation, // Same location
         days: diffDays
-      },
-      pricing: {
-        carPrice: car.price * diffDays,
-        fees: 0,
-        deposit: car.price * 1.5
       }
     });
   };
@@ -233,8 +257,14 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
     { label: t('carDetail.capacity'), value: car.capacity },
     { label: t('carDetail.transmission'), value: car.transmission },
     { label: t('carDetail.fuel'), value: car.gasoline },
-    { label: t('carDetail.year'), value: "2023" },
-    { label: t('carDetail.color'), value: "Đen" },
+    { label: t('carDetail.year'), value: car.year || "2023" },
+    { label: t('carDetail.color'), value: car.color || "Đen" },
+    { label: t('carDetail.doors'), value: car.doors ? `${car.doors} doors` : "N/A" },
+    { label: t('carDetail.luggage'), value: car.luggage ? `${car.luggage} bags` : "N/A" },
+    { label: t('carDetail.licensePlate'), value: car.licensePlate || "N/A" },
+    { label: t('carDetail.mileageLimit'), value: car.mileageLimit ? `${car.mileageLimit} km/day` : t('carDetail.unlimited') },
+    { label: t('carDetail.minRentalDays'), value: car.minRentalDays ? `${car.minRentalDays} days` : "1 day" },
+    { label: t('carDetail.fuelPolicy'), value: car.fuelPolicy || "SAME_TO_SAME" },
   ];
 
   const reviews = [
@@ -385,9 +415,9 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
 
               <Separator className="my-4" />
 
-              {/* Features */}
-              <div>
-                <h3 className="text-lg mb-4 text-gray-900">{t('carDetail.features')}</h3>
+              {/* Default Features */}
+              <div className="mb-6">
+                <h3 className="text-lg mb-4 text-gray-900">{t('carDetail.includedFeatures')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   {features.map((feature, idx) => (
                     <div key={idx} className="flex gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
@@ -398,6 +428,82 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Car Features from Backend */}
+              {car.features && car.features.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg mb-4 text-gray-900">{t('carDetail.carFeatures')}</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {car.features.map((feature: string, idx: number) => (
+                      <div key={idx} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                        <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
+                        <span className="text-sm text-gray-700">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Insurance Information */}
+              {car.insurance && (
+                <div className="mb-6">
+                  <h3 className="text-lg mb-4 text-gray-900">{t('carDetail.insurance')}</h3>
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-start gap-3">
+                      <Shield className="w-6 h-6 text-green-600 shrink-0" />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-gray-900 font-semibold">{car.insurance.type}</h4>
+                          <span className="text-lg font-semibold text-green-600">
+                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(car.insurance.price)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600">{car.insurance.coverage}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Rental Policies */}
+              <div>
+                <h3 className="text-lg mb-4 text-gray-900">{t('carDetail.rentalPolicies')}</h3>
+                <div className="space-y-3">
+                  {car.deposit && (
+                    <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="w-5 h-5 text-yellow-600" />
+                        <span className="text-gray-700">{t('carDetail.deposit')}</span>
+                      </div>
+                      <span className="font-semibold text-gray-900">
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(car.deposit)}
+                      </span>
+                    </div>
+                  )}
+                  {car.deliveryAvailable && (
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-blue-600" />
+                        <span className="text-gray-700">{t('carDetail.deliveryService')}</span>
+                      </div>
+                      <span className="font-semibold text-blue-600">
+                        {car.deliveryFee ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(car.deliveryFee) : t('carDetail.free')}
+                      </span>
+                    </div>
+                  )}
+                  {car.withDriver && (
+                    <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-purple-600" />
+                        <span className="text-gray-700">{t('carDetail.withDriver')}</span>
+                      </div>
+                      <span className="font-semibold text-purple-600">
+                        {car.driverPrice ? `+${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(car.driverPrice)}/day` : t('carDetail.available')}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </Card>
@@ -520,21 +626,37 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
 
                       <div className="flex items-center justify-between pt-4 border-t">
                         <div>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-xl text-blue-600">${recCar.price}</span>
-                            <span className="text-sm text-gray-500">/ngày</span>
+                          <div className="flex flex-col">
+                            <span className="text-lg text-blue-600 font-semibold">
+                              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(recCar.price)}
+                            </span>
+                            <span className="text-xs text-gray-500">/ngày</span>
                           </div>
                           {recCar.originalPrice && (
-                            <p className="text-sm text-gray-400 line-through">${recCar.originalPrice}</p>
+                            <p className="text-sm text-gray-400 line-through">
+                              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(recCar.originalPrice)}
+                            </p>
                           )}
                         </div>
                         <Button
                           onClick={(e) => {
                             e.stopPropagation();
                             onNavigate("car-review", {
-                              car: { id: recCar.id, name: recCar.name, type: recCar.type, image: recCar.image, transmission: recCar.transmission, capacity: recCar.capacity },
-                              rental: { pickupDate: "Thứ 7, 8/11/2025", pickupTime: "09:00", dropoffDate: "Thứ 2, 10/11/2025", dropoffTime: "09:00", pickupLocation: "Pool Bandara CGK", dropoffLocation: "Pool Bandara CGK", days: 2 },
-                              pricing: { carPrice: recCar.price * 2, fees: 0, deposit: recCar.price * 1.5 }
+                              car: {
+                                id: recCar.id,
+                                name: recCar.name,
+                                type: recCar.type,
+                                image: recCar.image,
+                                transmission: recCar.transmission,
+                                capacity: recCar.capacity,
+                                seats: recCar.seats,
+                                pricePerDay: recCar.price,
+                                pricePerHour: recCar.pricePerHour || 0,
+                                withDriver: recCar.withDriver,
+                                driverPrice: recCar.driverPrice || 0,
+                                insurance: recCar.insurance,
+                                deposit: recCar.deposit
+                              }
                             });
                           }}
                           size="sm"
@@ -554,19 +676,50 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
           <div className="lg:col-span-1">
             <Card className="p-6 border-0 shadow-xl sticky top-24">
               <div className="mb-6">
-                <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-3xl text-blue-600">${car.price}</span>
-                  <span className="text-gray-500">/ngày</span>
-                </div>
-                {car.originalPrice && (
-                  <div className="flex items-center gap-2">
-                    <p className="text-lg text-gray-400 line-through">${car.originalPrice}</p>
-                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-                      {t('carDetail.save')} ${car.originalPrice - car.price}
-                    </Badge>
+                <div className="flex flex-col gap-2 mb-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl text-blue-600 font-bold">
+                      {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(car.price)}
+                    </span>
+                    <span className="text-gray-500">/ngày</span>
                   </div>
+                  {car.pricePerHour > 0 && (
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-sm text-gray-600">
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(car.pricePerHour)}
+                      </span>
+                      <span className="text-xs text-gray-500">/giờ</span>
+                    </div>
+                  )}
+                </div>
+                {car.minRentalDays && (
+                  <Badge variant="outline" className="text-xs">
+                    Tối thiểu {car.minRentalDays} ngày
+                  </Badge>
                 )}
               </div>
+
+              {/* Quick Info */}
+              {(car.deposit || car.insurance) && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg space-y-2 text-sm">
+                  {car.deposit && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Đặt cọc:</span>
+                      <span className="font-semibold text-gray-900">
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(car.deposit)}
+                      </span>
+                    </div>
+                  )}
+                  {car.insurance && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Bảo hiểm:</span>
+                      <span className="font-semibold text-gray-900">
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(car.insurance.price)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <Separator className="my-6" />
 

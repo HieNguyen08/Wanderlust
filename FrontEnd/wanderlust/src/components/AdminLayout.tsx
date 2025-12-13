@@ -1,21 +1,21 @@
 import {
-    Activity,
-    BarChart3,
-    BookOpen,
-    Check, ChevronDown,
-    ClipboardCheck,
-    DollarSign,
-    Gift,
-    Globe,
-    Home,
-    LayoutDashboard,
-    LogOut, Menu,
-    Plane,
-    Settings,
-    Star,
-    Users,
-    Wallet,
-    X
+  Activity,
+  BarChart3,
+  BookOpen,
+  Check, ChevronDown,
+  ClipboardCheck,
+  DollarSign,
+  Gift,
+  Globe,
+  Home,
+  LayoutDashboard,
+  LogOut, Menu,
+  Plane,
+  Settings,
+  Star,
+  Users,
+  Wallet,
+  X
 } from "lucide-react";
 import { ReactNode, useState } from "react";
 import { useTranslation } from 'react-i18next';
@@ -82,7 +82,7 @@ export function AdminLayout({ children, currentPage, onNavigate, onLogout, activ
 
   // Handle logout
   const handleLogout = () => {
-    tokenService.clearToken();
+    tokenService.clearAuth();
     if (onLogout) {
       onLogout();
     } else {
@@ -100,77 +100,77 @@ export function AdminLayout({ children, currentPage, onNavigate, onLogout, activ
     },
     {
       id: "admin-users",
-      label: "Quản lý Users",
+      label: t('admin.manageUsers'),
       icon: Users,
       page: "admin-users" as PageType,
       badge: "2,450",
     },
     {
       id: "admin-bookings",
-      label: "Quản lý Bookings",
+      label: t('admin.manageBookings'),
       icon: BookOpen,
       page: "admin-bookings" as PageType,
       badge: "127",
     },
     {
       id: "admin-flights",
-      label: "Quản lý Chuyến bay",
+      label: t('admin.manageFlights'),
       icon: Plane,
       page: "admin-flights" as PageType,
       badge: null,
     },
     {
       id: "admin-activities",
-      label: "Quản lý Hoạt động",
+      label: t('admin.manageActivities'),
       icon: Activity,
       page: "admin-activities" as PageType,
       badge: null,
     },
     {
       id: "admin-pending-services",
-      label: "Duyệt Dịch vụ",
+      label: t('admin.approveServices'),
       icon: ClipboardCheck,
       page: "admin-pending-services" as PageType,
       badge: "8",
     },
     {
       id: "admin-reviews",
-      label: "Quản lý Đánh giá",
+      label: t('admin.manageReviews'),
       icon: Star,
       page: "admin-reviews" as PageType,
       badge: "15",
     },
     {
       id: "admin-vouchers",
-      label: "Quản lý Vouchers",
+      label: t('admin.manageVouchers'),
       icon: Gift,
       page: "admin-vouchers" as PageType,
       badge: null,
     },
     {
       id: "admin-refunds",
-      label: "Quản lý Hoàn tiền",
+      label: t('admin.manageRefunds'),
       icon: DollarSign,
       page: "admin-refunds" as PageType,
       badge: "3",
     },
     {
       id: "admin-refund-wallet",
-      label: "Hoàn tiền vào Ví",
+      label: t('admin.refundToWallet'),
       icon: Wallet,
       page: "admin-refund-wallet" as PageType,
       badge: "2",
     },
     {
       id: "admin-reports",
-      label: "Báo cáo & Thống kê",
+      label: t('admin.reportsAndStatistics'),
       icon: BarChart3,
       page: "admin-reports" as PageType,
       badge: null,
     },
     {
       id: "admin-settings",
-      label: "Cài đặt",
+      label: t('admin.settings'),
       icon: Settings,
       page: "admin-settings" as PageType,
       badge: null,
@@ -189,7 +189,7 @@ export function AdminLayout({ children, currentPage, onNavigate, onLogout, activ
             >
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
-            <h1 
+            <h1
               className="font-['Kadwa',_serif] text-2xl text-blue-600 cursor-pointer"
               onClick={() => onNavigate("home")}
             >
@@ -246,12 +246,12 @@ export function AdminLayout({ children, currentPage, onNavigate, onLogout, activ
               className="hidden md:flex items-center gap-2"
             >
               <Home className="w-4 h-4" />
-              Trang chủ
+              {t('admin.home')}
             </Button>
 
             {/* Notifications */}
             <div className="relative">
-              <NotificationDropdown 
+              <NotificationDropdown
                 onNavigate={onNavigate}
                 userRole="admin"
               />
@@ -263,8 +263,8 @@ export function AdminLayout({ children, currentPage, onNavigate, onLogout, activ
                 <p className="text-sm font-medium text-gray-900">{displayName}</p>
                 <p className="text-xs text-gray-500">{userEmail}</p>
               </div>
-              <img 
-                src={getAvatarSrc(userData)} 
+              <img
+                src={getAvatarSrc(userData)}
                 alt={displayName}
                 className="w-10 h-10 rounded-full object-cover"
               />
@@ -321,16 +321,16 @@ export function AdminLayout({ children, currentPage, onNavigate, onLogout, activ
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-blue-600 hover:bg-blue-50 transition-all"
               >
                 <Home className="w-5 h-5" />
-                <span>Trang chủ</span>
+                <span>{t('admin.home')}</span>
               </button>
-              
+
               {/* Logout */}
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all"
               >
                 <LogOut className="w-5 h-5" />
-                <span>Đăng xuất</span>
+                <span>{t('admin.logout')}</span>
               </button>
             </div>
           </nav>

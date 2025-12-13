@@ -143,8 +143,8 @@ public class WalletServiceImpl implements WalletService {
         }
         
         // QUAN TRỌNG: Tạo ID đặc biệt để PaymentService nhận diện đây là TopUp, không phải Booking
-        String topUpRefId = "TOPUP-" + transaction.getTransactionId();
-        paymentDTO.setBookingId(topUpRefId); 
+        // String topUpRefId = "TOPUP-" + transaction.getTransactionId();
+        // paymentDTO.setBookingId(topUpRefId); 
 
         // 3. Gọi PaymentService để lấy link thanh toán
         PaymentDTO initiatedPayment = paymentService.initiatePayment(paymentDTO);

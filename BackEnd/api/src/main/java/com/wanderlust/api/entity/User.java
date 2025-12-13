@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.wanderlust.api.entity.types.AuthProvider;
 import com.wanderlust.api.entity.types.Gender;
 import com.wanderlust.api.entity.types.MembershipLevel;
 import com.wanderlust.api.entity.types.Role;
@@ -31,6 +32,8 @@ public class User {
     private String avatar;
     private Gender gender;
     private String email;
+    private AuthProvider provider;
+    private String providerId;
     private String mobile;
     private String password;
     private Role role;

@@ -25,7 +25,7 @@ import HomePage from "../pages/Home/HomePage";
 import { LoginPage, LoginSuccessPage } from "../pages/Auth";
 
 // Flights
-import { FlightReviewPage, FlightsPage } from "../pages/Flights";
+import { FlightDetailPage, FlightReviewPage, FlightsPage } from "../pages/Flights";
 
 // Hotels
 import { HotelLandingPage, HotelListPage, HotelReviewPage } from "../pages/Hotels";
@@ -51,17 +51,16 @@ import {
 import { TravelGuidePage } from "../pages/TravelGuide";
 
 // Booking
-import { BookingDetailsPage, ConfirmationPage, SearchPage } from "../pages/Booking";
+import { BookingDetailsPage, ConfirmationPage, PaymentMethodsPage } from "../pages/Booking";
 import PaymentCallbackPage from "../pages/Booking/PaymentCallbackPage";
 import PaymentCancelPage from "../pages/Booking/PaymentCancelPage";
 
 // Profile (User)
 import {
     BookingHistoryPage,
-    PaymentMethodsPage,
+    PaymentHistoryPage,
     ProfilePage,
     SavedItemsPage,
-    SavedPaymentMethodsPage,
     SettingsPage,
     TopUpWalletPage,
     UserVouchersPage,
@@ -106,6 +105,7 @@ const HomePageWrapped = withPageProps(HomePage);
 const LoginPageWrapped = withPageProps(LoginPage);
 const LoginSuccessPageWrapped = withPageProps(LoginSuccessPage);
 const FlightsPageWrapped = withPageProps(FlightsPage);
+const FlightDetailPageWrapped = withPageProps(FlightDetailPage);
 const FlightReviewPageWrapped = withPageProps(FlightReviewPage);
 const HotelLandingPageWrapped = withPageProps(HotelLandingPage);
 const HotelListPageWrapped = withPageProps(HotelListPage);
@@ -123,8 +123,8 @@ const VisaDocumentsPageWrapped = withPageProps(VisaDocumentsPage);
 const VisaPaymentPageWrapped = withPageProps(VisaPaymentPage);
 const VisaConfirmationPageWrapped = withPageProps(VisaConfirmationPage);
 const TravelGuidePageWrapped = withPageProps(TravelGuidePage);
-const SearchPageWrapped = withPageProps(SearchPage);
 const BookingDetailsPageWrapped = withPageProps(BookingDetailsPage);
+const PaymentMethodsPageWrapped = withPageProps(PaymentMethodsPage);
 const PaymentCallbackPageWrapped = withPageProps(PaymentCallbackPage);
 const PaymentCancelPageWrapped = withPageProps(PaymentCancelPage);
 const ConfirmationPageWrapped = withPageProps(ConfirmationPage);
@@ -137,8 +137,7 @@ const UserVouchersPageWrapped = withPageProps(UserVouchersPage);
 const UserWalletPageWrapped = withPageProps(UserWalletPage);
 const TopUpWalletPageWrapped = withPageProps(TopUpWalletPage);
 const SettingsPageWrapped = withPageProps(SettingsPage);
-const SavedPaymentMethodsPageWrapped = withPageProps(SavedPaymentMethodsPage);
-const PaymentMethodsPageWrapped = withPageProps(PaymentMethodsPage);
+const PaymentHistoryPageWrapped = withPageProps(PaymentHistoryPage);
 const AdminDashboardWrapped = withPageProps(AdminDashboard);
 const AdminUsersPageWrapped = withPageProps(AdminUsersPage);
 const AdminBookingsPageWrapped = withPageProps(AdminBookingsPage);
@@ -177,6 +176,7 @@ export const router = createBrowserRouter([
       
       // Flights
       { path: "/flights", element: <FlightsPageWrapped /> },
+      { path: "/flights/detail", element: <FlightDetailPageWrapped /> },
       { path: "/flights/seat-selection", element: <SeatSelectionPageWrapper /> },
       { path: "/flights/review", element: <FlightReviewPageWrapped /> },
       
@@ -214,8 +214,8 @@ export const router = createBrowserRouter([
       { path: "/travel-guide/tour/:id", element: <TourDetailPageWrapper /> },
       
       // Booking
-      { path: "/search", element: <SearchPageWrapped /> },
       { path: "/booking", element: <BookingDetailsPageWrapped /> },
+      { path: "/payment-methods", element: <PaymentMethodsPageWrapped /> },
       { path: "/checkout", element: <CheckoutPageWrapper /> },
       { path: "/payment/callback", element: <PaymentCallbackPageWrapped /> },
       { path: "/payment/success", element: <PaymentSuccessPageWrapper /> },
@@ -234,8 +234,7 @@ export const router = createBrowserRouter([
       { path: "/profile/wallet", element: <UserWalletPageWrapped /> },
       { path: "/profile/wallet/topup", element: <TopUpWalletPageWrapped /> },
       { path: "/profile/settings", element: <SettingsPageWrapped /> },
-      { path: "/profile/payment-methods", element: <SavedPaymentMethodsPageWrapped /> },
-      { path: "/payment-methods", element: <PaymentMethodsPageWrapped /> },
+      { path: "/profile/payment-history", element: <PaymentHistoryPageWrapped /> },
       
       // Admin
       { path: "/admin", element: <AdminDashboardWrapped /> },

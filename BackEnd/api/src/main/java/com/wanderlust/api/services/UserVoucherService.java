@@ -42,6 +42,11 @@ public class UserVoucherService {
         
         Promotion promotion = promotionOpt.get();
         
+        // Check voucher có đang active không (admin có thể tắt voucher)
+        if (promotion.getIsActive() == null || !promotion.getIsActive()) {
+            throw new RuntimeException("Voucher hiện không khả dụng!");
+        }
+        
         // Check voucher còn hiệu lực không
         LocalDate today = LocalDate.now();
         if (promotion.getStartDate().isAfter(today)) {
@@ -63,8 +68,15 @@ public class UserVoucherService {
         userVoucher.setVoucherCode(voucherCode);
         userVoucher.setStatus("AVAILABLE");
         userVoucher.setSavedAt(LocalDateTime.now());
+
+        UserVoucher savedVoucher = userVoucherRepository.save(userVoucher);
+
+        // Tăng lượt đã nhận để hiển thị chính xác ở trang khuyến mãi
+        Integer currentUsed = promotion.getUsedCount() != null ? promotion.getUsedCount() : 0;
+        promotion.setUsedCount(currentUsed + 1);
+        promotionRepository.save(promotion);
         
-        return userVoucherRepository.save(userVoucher);
+        return savedVoucher;
     }
 
     /**

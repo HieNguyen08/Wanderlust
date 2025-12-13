@@ -2,6 +2,7 @@ package com.wanderlust.api.services;
 
 import com.wanderlust.api.entity.Promotion;
 import com.wanderlust.api.repository.PromotionRepository;
+import com.wanderlust.api.repository.UserVoucherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +17,27 @@ public class PromotionService {
     @Autowired
     private PromotionRepository promotionRepository;
 
+    @Autowired
+    private UserVoucherRepository userVoucherRepository;
+
+    private void populateUsageStats(List<Promotion> promotions) {
+        if (promotions == null || promotions.isEmpty() || userVoucherRepository == null) {
+            return;
+        }
+
+        promotions.stream()
+                .filter(promotion -> promotion.getId() != null)
+                .forEach(promotion -> {
+                    long claimedCount = userVoucherRepository.countByPromotionId(promotion.getId());
+                    promotion.setUsedCount((int) claimedCount);
+                });
+    }
+
     // Get all promotions
     public List<Promotion> getAllPromotions() {
-        return promotionRepository.findAll();
+        List<Promotion> promotions = promotionRepository.findAll();
+        populateUsageStats(promotions);
+        return promotions;
     }
 
     // Get promotion by ID
@@ -49,8 +68,11 @@ public class PromotionService {
     // Get active promotions
     public List<Promotion> getActivePromotions() {
         LocalDate today = LocalDate.now();
-        return promotionRepository.findActivePromotions(today)
+        List<Promotion> promotions = promotionRepository.findActivePromotions(today);
+        populateUsageStats(promotions);
+        return promotions
                 .stream()
+                .filter(Promotion::isActive)
                 .filter(Promotion::isAvailable)
                 .collect(Collectors.toList());
     }
@@ -58,8 +80,11 @@ public class PromotionService {
     // Get active promotions by category
     public List<Promotion> getActivePromotionsByCategory(String category) {
         LocalDate today = LocalDate.now();
-        return promotionRepository.findByCategoryAndActive(category, today)
+        List<Promotion> promotions = promotionRepository.findByCategoryAndActive(category, today);
+        populateUsageStats(promotions);
+        return promotions
                 .stream()
+                .filter(Promotion::isActive)
                 .filter(Promotion::isAvailable)
                 .collect(Collectors.toList());
     }
@@ -68,7 +93,9 @@ public class PromotionService {
     public List<Promotion> getExpiringSoonPromotions(int days) {
         LocalDate today = LocalDate.now();
         LocalDate futureDate = today.plusDays(days);
-        return promotionRepository.findExpiringSoon(today, futureDate)
+        List<Promotion> promotions = promotionRepository.findExpiringSoon(today, futureDate);
+        populateUsageStats(promotions);
+        return promotions
                 .stream()
                 .filter(Promotion::isActive)
                 .filter(Promotion::isAvailable)
@@ -77,7 +104,9 @@ public class PromotionService {
 
     // Get newest promotions (sorted by start date descending)
     public List<Promotion> getNewestPromotions() {
-        return promotionRepository.findAll()
+        List<Promotion> promotions = promotionRepository.findAll();
+        populateUsageStats(promotions);
+        return promotions
                 .stream()
                 .filter(Promotion::isActive)
                 .filter(Promotion::isAvailable)
@@ -116,6 +145,7 @@ public class PromotionService {
             if (promotionDetails.getBadge() != null) promotion.setBadge(promotionDetails.getBadge());
             if (promotionDetails.getBadgeColor() != null) promotion.setBadgeColor(promotionDetails.getBadgeColor());
             if (promotionDetails.getIsFeatured() != null) promotion.setIsFeatured(promotionDetails.getIsFeatured());
+            if (promotionDetails.getIsActive() != null) promotion.setIsActive(promotionDetails.getIsActive());
             if (promotionDetails.getTotalUsesLimit() != null) promotion.setTotalUsesLimit(promotionDetails.getTotalUsesLimit());
             if (promotionDetails.getUsedCount() != null) promotion.setUsedCount(promotionDetails.getUsedCount());
             if (promotionDetails.getConditions() != null) promotion.setConditions(promotionDetails.getConditions());

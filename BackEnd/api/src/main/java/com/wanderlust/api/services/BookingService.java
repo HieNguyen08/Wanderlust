@@ -14,6 +14,8 @@ import com.wanderlust.api.dto.BookingStatisticsDTO;
 import com.wanderlust.api.entity.Booking;
 import com.wanderlust.api.entity.types.BookingStatus;
 import com.wanderlust.api.entity.types.BookingType;
+import com.wanderlust.api.entity.types.PaymentMethod;
+import com.wanderlust.api.entity.types.PaymentStatus;
 import com.wanderlust.api.exception.ResourceNotFoundException;
 import com.wanderlust.api.mapper.BookingMapper;
 import com.wanderlust.api.repository.BookingRepository;
@@ -280,6 +282,20 @@ public class BookingService {
         booking.setCancellationReason(reason);
 
         return bookingMapper.toDTO(bookingRepository.save(booking));
+    }
+
+    // --- ACTION: Cập nhật trạng thái thanh toán cho Booking ---
+    public BookingDTO updatePaymentStatus(String id, PaymentStatus paymentStatus, PaymentMethod paymentMethod) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", id));
+
+        booking.setPaymentStatus(paymentStatus);
+        if (paymentMethod != null) {
+            booking.setPaymentMethod(paymentMethod);
+        }
+
+        Booking saved = bookingRepository.save(booking);
+        return bookingMapper.toDTO(saved);
     }
 
     // --- ACTION: User confirms booking completion ---

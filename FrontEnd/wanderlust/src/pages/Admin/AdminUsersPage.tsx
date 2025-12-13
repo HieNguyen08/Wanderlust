@@ -1,14 +1,14 @@
 import {
-    Ban,
-    Calendar,
-    Edit,
-    Eye,
-    Mail,
-    MoreVertical,
-    Phone,
-    Plus,
-    Search,
-    Trash2
+  Ban,
+  Calendar,
+  Edit,
+  Eye,
+  Mail,
+  MoreVertical,
+  Phone,
+  Plus,
+  Search,
+  Trash2
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,48 +18,48 @@ import { AdminUser, adminUserApi } from "../../api/adminUserApi";
 import { AdminLayout } from "../../components/AdminLayout";
 import { UserDetailDialog } from "../../components/admin/UserDetailDialog";
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "../../components/ui/alert-dialog";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "../../components/ui/dialog";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "../../components/ui/select";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "../../components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 
@@ -225,11 +225,11 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case "admin":
-        return <Badge className="bg-purple-100 text-purple-700">Admin</Badge>;
+        return <Badge className="bg-purple-100 text-purple-700">{t('admin.roleAdmin')}</Badge>;
       case "vendor":
-        return <Badge className="bg-blue-100 text-blue-700">Vendor</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700">{t('admin.roleVendor')}</Badge>;
       case "user":
-        return <Badge className="bg-gray-100 text-gray-700">User</Badge>;
+        return <Badge className="bg-gray-100 text-gray-700">{t('admin.roleUser')}</Badge>;
       default:
         return null;
     }
@@ -238,11 +238,11 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
-        return <Badge className="bg-green-100 text-green-700">Active</Badge>;
+        return <Badge className="bg-green-100 text-green-700">{t('admin.statusActive')}</Badge>;
       case "suspended":
-        return <Badge className="bg-yellow-100 text-yellow-700">Suspended</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700">{t('admin.statusSuspended')}</Badge>;
       case "banned":
-        return <Badge className="bg-red-100 text-red-700">Banned</Badge>;
+        return <Badge className="bg-red-100 text-red-700">{t('admin.statusBanned')}</Badge>;
       default:
         return null;
     }
@@ -314,15 +314,15 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                   <Label htmlFor="role">{t('admin.role')}</Label>
                   <Select
                     value={addFormData.role}
-                    onValueChange={(value: string) => setAddFormData({ ...addFormData, role: value })}
+                    onValueChange={(value: string) => setAddFormData({ ...addFormData, role: value as any })}
                   >
                     <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="vendor">Vendor</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="user">{t('admin.roleUser')}</SelectItem>
+                      <SelectItem value="vendor">{t('admin.roleVendor')}</SelectItem>
+                      <SelectItem value="admin">{t('admin.roleAdmin')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -371,9 +371,9 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('admin.allRoles')}</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="vendor">Vendor</SelectItem>
-                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="admin">{t('admin.roleAdmin')}</SelectItem>
+                <SelectItem value="vendor">{t('admin.roleVendor')}</SelectItem>
+                <SelectItem value="user">{t('admin.roleUser')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -393,7 +393,7 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>User</TableHead>
+                      <TableHead>{t('admin.user')}</TableHead>
                       <TableHead>{t('admin.contact')}</TableHead>
                       <TableHead>{t('admin.role')}</TableHead>
                       <TableHead>{t('admin.status')}</TableHead>
@@ -564,15 +564,15 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
               <Label htmlFor="role">{t('admin.role')}</Label>
               <Select
                 value={editFormData.role}
-                onValueChange={(value: string) => setEditFormData({ ...editFormData, role: value })}
+                onValueChange={(value: string) => setEditFormData({ ...editFormData, role: value as any })}
               >
                 <SelectTrigger className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="vendor">Vendor</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="user">{t('admin.roleUser')}</SelectItem>
+                  <SelectItem value="vendor">{t('admin.roleVendor')}</SelectItem>
+                  <SelectItem value="admin">{t('admin.roleAdmin')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -580,15 +580,15 @@ export default function AdminUsersPage({ onNavigate }: AdminUsersPageProps) {
               <Label htmlFor="status">{t('admin.status')}</Label>
               <Select
                 value={editFormData.status}
-                onValueChange={(value: string) => setEditFormData({ ...editFormData, status: value })}
+                onValueChange={(value: string) => setEditFormData({ ...editFormData, status: value as any })}
               >
                 <SelectTrigger className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">{t('admin.active')}</SelectItem>
-                  <SelectItem value="suspended">{t('admin.suspended')}</SelectItem>
-                  <SelectItem value="banned">{t('admin.banned')}</SelectItem>
+                  <SelectItem value="active">{t('admin.statusActive')}</SelectItem>
+                  <SelectItem value="suspended">{t('admin.statusSuspended')}</SelectItem>
+                  <SelectItem value="banned">{t('admin.statusBanned')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

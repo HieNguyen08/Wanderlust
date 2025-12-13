@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wanderlust.api.entity.User;
+import com.wanderlust.api.entity.types.AuthProvider;
 import com.wanderlust.api.services.CustomOAuth2User;
 import com.wanderlust.api.services.JwtService;
 import com.wanderlust.api.services.UserService;
@@ -37,7 +39,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
 
     private static final String FACEBOOK_GRAPH_PICTURE_URL = "https://graph.facebook.com/%s/picture?type=large";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
+    private static final int COOKIE_EXPIRY_SECONDS = 300;
 
     @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
@@ -47,64 +49,121 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         OAuth2AuthenticationToken oAuth2AuthenticationToken = (OAuth2AuthenticationToken) authentication;
         DefaultOAuth2User defaultOAuth2User = (DefaultOAuth2User) oAuth2AuthenticationToken.getPrincipal();
         Map<String, Object> attributes = defaultOAuth2User.getAttributes();
-        String email = attributes.getOrDefault("email", "").toString();
-        String name = attributes.getOrDefault("name", "").toString();
-        String avatarUrl = "";
 
-        String provider = oAuth2AuthenticationToken.getAuthorizedClientRegistrationId();
-
-        if ("google".equals(provider)) {
-            avatarUrl = attributes.getOrDefault("picture", "").toString();
-        } else if ("facebook".equals(provider)) {
-            avatarUrl = resolveFacebookAvatar(attributes);
-        }
-        
-        if (email.isEmpty()) {
-            // Nếu không có email, không thể tiếp tục
-            String redirectUrl = frontendUrl + "/login?error=EmailNotFound";
-            response.sendRedirect(redirectUrl);
+        String registrationId = oAuth2AuthenticationToken.getAuthorizedClientRegistrationId();
+        AuthProvider authProvider;
+        try {
+            authProvider = AuthProvider.valueOf(registrationId.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            log.warn("Unsupported OAuth2 provider: {}", registrationId);
+            response.sendRedirect(frontendUrl + "/login?error=UnsupportedProvider");
             return;
         }
 
-        // **THAY ĐỔI: Logic TÌM HOẶC TẠO (FIND OR CREATE)**
+        String email = attributes.getOrDefault("email", "").toString();
+
+        if (AuthProvider.GOOGLE.equals(authProvider)) {
+            Object verifiedObj = attributes.get("email_verified");
+            boolean isVerified = false;
+            if (verifiedObj instanceof Boolean boolVal) {
+                isVerified = boolVal;
+            } else if (verifiedObj != null) {
+                isVerified = Boolean.parseBoolean(verifiedObj.toString());
+            }
+
+            if (!isVerified) {
+                log.warn("User tried to login with unverified Google email: {}", email);
+                response.sendRedirect(frontendUrl + "/login?error=EmailNotVerifiedFromProvider");
+                return;
+            }
+        }
+
+        if (email.isEmpty()) {
+            response.sendRedirect(frontendUrl + "/login?error=EmailNotFound");
+            return;
+        }
+
+        String name = attributes.getOrDefault("name", "").toString();
+        String providerId = attributes.getOrDefault("sub", attributes.getOrDefault("id", "")).toString();
+        String avatarUrl = "";
+
+        if (AuthProvider.GOOGLE.equals(authProvider)) {
+            avatarUrl = attributes.getOrDefault("picture", "").toString();
+        } else if (AuthProvider.FACEBOOK.equals(authProvider)) {
+            avatarUrl = resolveFacebookAvatar(attributes);
+        }
+
         Optional<User> optionalUser = userService.findByEmail(email);
         User user;
 
         if (optionalUser.isPresent()) {
-            // 1. Nếu tìm thấy: Sử dụng người dùng hiện có
             user = optionalUser.get();
-            // Cập nhật avatar nếu có giá trị mới hợp lệ
+
+            if (user.getProvider() == AuthProvider.LOCAL && authProvider != AuthProvider.LOCAL) {
+                String redirectUrl = frontendUrl + "/login-success?error=merge_required"
+                        + "&email=" + URLEncoder.encode(email, StandardCharsets.UTF_8)
+                        + "&provider=" + URLEncoder.encode(registrationId, StandardCharsets.UTF_8)
+                        + "&avatar=" + URLEncoder.encode(avatarUrl == null ? "" : avatarUrl, StandardCharsets.UTF_8);
+                response.sendRedirect(redirectUrl);
+                return;
+            }
+
+            boolean needUpdate = false;
+
             if (avatarUrl != null && !avatarUrl.isBlank() && !avatarUrl.equals(user.getAvatar())) {
                 user.setAvatar(avatarUrl);
-                userService.update(user); // Cập nhật lại avatar
+                needUpdate = true;
             } else if ((avatarUrl == null || avatarUrl.isBlank()) && user.getAvatar() != null) {
                 avatarUrl = user.getAvatar();
             }
+
+            if (user.getProvider() == null) {
+                user.setProvider(authProvider);
+                needUpdate = true;
+            }
+
+            if (user.getProviderId() == null && providerId != null && !providerId.isBlank()) {
+                user.setProviderId(providerId);
+                needUpdate = true;
+            }
+
+            if (needUpdate) {
+                userService.update(user);
+            }
         } else {
-            // 2. Nếu không tìm thấy: Tạo người dùng mới
-            user = userService.createOauthUser(email, name, avatarUrl);
+            user = userService.createOauthUser(email, name, avatarUrl, authProvider, providerId);
         }
 
         CustomOAuth2User oauth2User = new CustomOAuth2User(user, attributes);
         Authentication newAuthentication = new OAuth2AuthenticationToken(
             oauth2User,
             oauth2User.getAuthorities(),
-            oAuth2AuthenticationToken.getAuthorizedClientRegistrationId()
+            registrationId
         );
         SecurityContextHolder.getContext().setAuthentication(newAuthentication);
-        
-        String jwtToken = jwtService.generateToken(user);
-        String username = String.format("%s %s", user.getFirstName(), user.getLastName()).trim();
-        
-        String encodedJwtToken = URLEncoder.encode(jwtToken, StandardCharsets.UTF_8.toString());
-        String encodedUsername = URLEncoder.encode(username, StandardCharsets.UTF_8.toString());
-        if ((avatarUrl == null || avatarUrl.isBlank()) && user.getAvatar() != null) {
-            avatarUrl = user.getAvatar();
-        }
 
-        String encodedAvatarUrl = URLEncoder.encode(avatarUrl, StandardCharsets.UTF_8.toString());
-        
-        String redirectUrl = frontendUrl + "/login-success?token=" + encodedJwtToken + "&username=" + encodedUsername + "&avatar=" + encodedAvatarUrl;        
+        String jwtToken = jwtService.generateToken(user);
+
+        // Set cookie with appropriate SameSite/Secure depending on environment
+        boolean secureRequest = request.isSecure();
+        String sameSite = secureRequest ? "None" : "Lax"; // None requires Secure; Lax works for local http
+
+        ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", jwtToken)
+            .path("/")
+            .maxAge(COOKIE_EXPIRY_SECONDS)
+            .httpOnly(false) // frontend reads then stores
+            .secure(secureRequest)
+            .sameSite(sameSite)
+            .build();
+        response.addHeader("Set-Cookie", accessTokenCookie.toString());
+
+        // Always include token on URL as a fallback (dev-friendly, avoids cookie/SameSite issues)
+        String username = String.format("%s %s", user.getFirstName(), user.getLastName()).trim();
+        String redirectUrl = frontendUrl + "/login-success"
+            + "?token=" + URLEncoder.encode(jwtToken, StandardCharsets.UTF_8)
+            + "&username=" + URLEncoder.encode(username, StandardCharsets.UTF_8)
+            + "&avatar=" + URLEncoder.encode(avatarUrl == null ? "" : avatarUrl, StandardCharsets.UTF_8);
+
         response.sendRedirect(redirectUrl);
     }
 
@@ -112,28 +171,21 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         if (attributes == null || attributes.isEmpty()) {
             return buildGraphApiAvatar(attributes);
         }
-        
-        log.info("Facebook attributes: {}", attributes);
-        
+
         try {
-            // Facebook trả về picture.data.url theo cấu trúc Graph API
             Object pictureObj = attributes.get("picture");
-            
+
             if (pictureObj instanceof Map<?, ?> pictureMap) {
                 String url = extractFromPictureMap(pictureMap);
                 if (url != null && !url.isBlank()) {
-                    log.info("Successfully extracted Facebook avatar URL: {}", url);
                     return url;
                 }
             }
-            
-            // Nếu picture là String (URL trực tiếp)
+
             if (pictureObj instanceof String pictureStr && !pictureStr.isBlank()) {
                 if (pictureStr.startsWith("http")) {
-                    log.info("Facebook avatar URL (direct string): {}", pictureStr);
                     return pictureStr;
                 }
-                // Thử parse nếu là JSON string
                 try {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> pictureMap = OBJECT_MAPPER.readValue(pictureStr, Map.class);
@@ -142,48 +194,34 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
                         return url;
                     }
                 } catch (JsonProcessingException e) {
-                    log.warn("Failed to parse picture string as JSON: {}", pictureStr);
+                    log.warn("Failed to parse picture string as JSON");
                 }
             }
         } catch (Exception e) {
             log.error("Unexpected error while resolving Facebook avatar", e);
         }
-        
-        // Fallback: Sử dụng Graph API với ID
-        String fallbackUrl = buildGraphApiAvatar(attributes);
-        log.info("Using fallback Graph API URL: {}", fallbackUrl);
-        return fallbackUrl;
+
+        return buildGraphApiAvatar(attributes);
     }
 
     private String extractFromPictureMap(Map<?, ?> pictureMap) {
         if (pictureMap == null || pictureMap.isEmpty()) {
             return "";
         }
-        
-        // Cấu trúc chuẩn: picture.data.url
+
         Object dataObj = pictureMap.get("data");
         if (dataObj instanceof Map<?, ?> dataMap) {
             Object urlObj = dataMap.get("url");
             if (urlObj != null && !urlObj.toString().isBlank()) {
-                String url = urlObj.toString();
-                
-                // Kiểm tra is_silhouette - nếu là ảnh mặc định thì có thể bỏ qua
-                Object isSilhouette = dataMap.get("is_silhouette");
-                if (isSilhouette instanceof Boolean && (Boolean) isSilhouette) {
-                    log.info("Facebook avatar is silhouette (default image), URL: {}", url);
-                    // Vẫn trả về URL, frontend có thể quyết định hiển thị hay không
-                }
-                
-                return url;
+                return urlObj.toString();
             }
         }
-        
-        // Fallback: Nếu url nằm trực tiếp trong pictureMap (một số trường hợp đặc biệt)
+
         Object urlObj = pictureMap.get("url");
         if (urlObj != null && !urlObj.toString().isBlank()) {
             return urlObj.toString();
         }
-        
+
         return "";
     }
 

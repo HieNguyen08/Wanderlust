@@ -55,6 +55,27 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
   // Password visibility states
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [mergeNotice, setMergeNotice] = useState<string | null>(null);
+
+  // Prefill email when redirected from merge-required flow
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const emailParam = params.get('email');
+    const mergeRequired = params.get('merge_required');
+    const storedEmail = localStorage.getItem('prefill_login_email');
+
+    const prefill = emailParam || storedEmail;
+    if (prefill) {
+      setEmail(prefill);
+      setPassword("");
+      setIsSignUp(false);
+      localStorage.removeItem('prefill_login_email');
+    }
+
+    if (mergeRequired === '1' || mergeRequired === 'true') {
+      setMergeNotice('Email đã được đăng ký trước đó. Vui lòng nhập mật khẩu để liên kết và truy cập tài khoản.');
+    }
+  }, []);
 
   const handleGoogleLogin = () => {
     console.log("🔐 Redirecting to Google OAuth...");
@@ -87,6 +108,8 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
       const mappedRole = mapBackendRoleToFrontend(response.role);
 
       tokenService.setUserData({
+        id: response.userId || response.id,
+        userId: response.userId || response.id,
         firstName: response.firstName,
         lastName: response.lastName,
         email: response.email,
@@ -145,6 +168,8 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
       // Lưu token và user data
       tokenService.setToken(response.token);
       tokenService.setUserData({
+        id: response.userId || response.id,
+        userId: response.userId || response.id,
         firstName: response.firstName,
         lastName: response.lastName,
         email: response.email,
@@ -252,6 +277,12 @@ export function LoginPage({ onNavigate, onLogin, initialMode = "login" }: LoginP
                     <Plane className="w-8 h-8 text-blue-600" />
                     <h2 className="font-['Kadwa',serif] text-gray-900">Wanderlust</h2>
                   </div>
+
+                  {mergeNotice && (
+                    <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+                      {mergeNotice}
+                    </div>
+                  )}
 
                   <h3 className="text-gray-900 text-center mb-8">{t('auth.createAccount')}</h3>
 

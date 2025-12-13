@@ -1,0 +1,5710 @@
+{
+  "vi": [
+    {
+      "key": "home.search.flights",
+      "sourceValue": "Flights",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.hotels",
+      "sourceValue": "Hotels",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.carRental",
+      "sourceValue": "Car Rental",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.activities",
+      "sourceValue": "Activities",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.selectAirport",
+      "sourceValue": "Select airport",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.departReturnDate",
+      "sourceValue": "Depart - Return",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.selectLocation",
+      "sourceValue": "Select location",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.checkInCheckOut",
+      "sourceValue": "Check-in - Check-out",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.selfDrive",
+      "sourceValue": "Self-drive",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.withDriver",
+      "sourceValue": "With driver",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.enterLocation",
+      "sourceValue": "Enter location...",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.selectDeparture",
+      "sourceValue": "Please select departure airport",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.selectDestination",
+      "sourceValue": "Please select destination airport",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.sameAirport",
+      "sourceValue": "Departure and destination cannot be the same",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.selectDepartDate",
+      "sourceValue": "Please select departure date",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.selectReturnDate",
+      "sourceValue": "Please select return date",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.returnDateBeforeDepart",
+      "sourceValue": "Return date cannot be before departure date",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.searchFailed",
+      "sourceValue": "Cannot search flights. Please try again.",
+      "sourceLang": "en"
+    },
+    {
+      "key": "activitiesPage.userInfoLoaded",
+      "sourceValue": "ユーザー情報が読み込まれました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activeHotels",
+      "sourceValue": "有効なホテル",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activeUsers",
+      "sourceValue": "アクティブユーザー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activity",
+      "sourceValue": "アクティビティ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityAdded",
+      "sourceValue": "アクティビティが追加されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityCode",
+      "sourceValue": "アクティビティコード",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityDeleted",
+      "sourceValue": "アクティビティが削除されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityDescriptionPlaceholder",
+      "sourceValue": "詳細なアクティビティ説明...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityDetails",
+      "sourceValue": "アクティビティ詳細",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityName",
+      "sourceValue": "アクティビティ名",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityNamePlaceholder",
+      "sourceValue": "サンゴ礁でのスキューバダイビング...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityUpdated",
+      "sourceValue": "アクティビティが更新されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addActivity",
+      "sourceValue": "アクティビティ追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addActivityDesc",
+      "sourceValue": "新規アクティビティ情報をシステムに入力",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addFlight",
+      "sourceValue": "フライト追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addFlightDesc",
+      "sourceValue": "詳細なフライト情報を入力",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addNewActivity",
+      "sourceValue": "新規アクティビティ追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addNewFlight",
+      "sourceValue": "新規フライト追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addNewHotel",
+      "sourceValue": "新規ホテル追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addNewHotelDesc",
+      "sourceValue": "新規ホテル情報をシステムに入力",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addNewUser",
+      "sourceValue": "新規ユーザー追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.adventure",
+      "sourceValue": "アドベンチャー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.aircraft",
+      "sourceValue": "航空機",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.airline",
+      "sourceValue": "航空会社",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.allStatuses",
+      "sourceValue": "すべてのステータス",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.allTypes",
+      "sourceValue": "すべてのタイプ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.allowRegistration",
+      "sourceValue": "登録を許可",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.allowRegistrationDesc",
+      "sourceValue": "新規ユーザーがアカウントを作成可能",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.amount",
+      "sourceValue": "金額",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approveAction1",
+      "sourceValue": "{{method}} APIを呼び出して返金を処理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approveAction2",
+      "sourceValue": "顧客にメール通知を送信",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approveAction3",
+      "sourceValue": "ベンダーに通知を送信: {{vendor}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approveAction4",
+      "sourceValue": "次の決済期間から {{amount}}đ を差し引く",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approveAction5",
+      "sourceValue": "ステータスを「処理中」に更新",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approveServicesDesc",
+      "sourceValue": "ベンダーからのサービス追加リクエストを確認・承認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approved",
+      "sourceValue": "承認済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approvedReviews",
+      "sourceValue": "承認済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.arrivalTime",
+      "sourceValue": "到着時刻",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.attractions",
+      "sourceValue": "観光地",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.available",
+      "sourceValue": "利用可能",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.availableSeats",
+      "sourceValue": "利用可能な座席",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.averagePerMonth",
+      "sourceValue": "平均/月",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.backupNow",
+      "sourceValue": "今すぐバックアップ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.ban",
+      "sourceValue": "禁止",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.banUserDescription",
+      "sourceValue": "このユーザーは禁止され、システムにアクセスできなくなります",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.banned",
+      "sourceValue": "禁止",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.booked",
+      "sourceValue": "予約済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookedToday",
+      "sourceValue": "本日予約",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookingCancelled",
+      "sourceValue": "予約 {{id}} がキャンセルされました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookingCode",
+      "sourceValue": "予約コード",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookingConfirmed",
+      "sourceValue": "予約 {{id}} が確認されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookingDate",
+      "sourceValue": "予約日",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookingInfo",
+      "sourceValue": "予約情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookingsThisMonth",
+      "sourceValue": "今月の予約",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.businessPrice",
+      "sourceValue": "ビジネス料金",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cancelBooking",
+      "sourceValue": "予約キャンセル",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cancellationRate",
+      "sourceValue": "キャンセル率",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotAddFlight",
+      "sourceValue": "フライトを追加できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotApproveRefund",
+      "sourceValue": "返金を承認できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotApproveReview",
+      "sourceValue": "レビューを承認できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotBanUser",
+      "sourceValue": "ユーザーを禁止できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotCreateUser",
+      "sourceValue": "ユーザーを作成できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotDeleteFlight",
+      "sourceValue": "フライトを削除できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotDeleteReview",
+      "sourceValue": "レビューを削除できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotDeleteUser",
+      "sourceValue": "ユーザーを削除できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotDeleteVoucher",
+      "sourceValue": "バウチャーを削除できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotLoadBookings",
+      "sourceValue": "予約リストを読み込めません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotLoadFlights",
+      "sourceValue": "フライトリストを読み込めません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotLoadRefunds",
+      "sourceValue": "返金リストを読み込めません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotLoadReviews",
+      "sourceValue": "レビューリストを読み込めません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotLoadUsers",
+      "sourceValue": "ユーザーリストを読み込めません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotLoadVouchers",
+      "sourceValue": "バウチャーリストを読み込めません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotProcessRefund",
+      "sourceValue": "返金を処理できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotRejectRefund",
+      "sourceValue": "返金を拒否できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotRejectReview",
+      "sourceValue": "レビューを拒否できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotUpdateFlight",
+      "sourceValue": "フライトを更新できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotUpdateUser",
+      "sourceValue": "ユーザーを更新できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotUpdateVoucherStatus",
+      "sourceValue": "バウチャーステータスを更新できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.carRental",
+      "sourceValue": "レンタカー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.category",
+      "sourceValue": "カテゴリ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.completed",
+      "sourceValue": "完了",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.conditions",
+      "sourceValue": "条件",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirm",
+      "sourceValue": "確認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmApprove",
+      "sourceValue": "承認を確認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmApproveRefund",
+      "sourceValue": "返金承認を確認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmApproveRefundDesc",
+      "sourceValue": "この返金リクエストを承認してもよろしいですか？",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmBanUser",
+      "sourceValue": "このユーザーを禁止してもよろしいですか？",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmDeleteFlight",
+      "sourceValue": "このフライトを削除してもよろしいですか？",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmDeleteReview",
+      "sourceValue": "このレビューを削除してもよろしいですか？",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmDeleteVoucher",
+      "sourceValue": "バウチャー {{code}} を削除してもよろしいですか？",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmReject",
+      "sourceValue": "拒否を確認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmRejectRefund",
+      "sourceValue": "返金拒否を確認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmWalletRefund",
+      "sourceValue": "ウォレット返金承認を確認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.contactEmail",
+      "sourceValue": "連絡先メール",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.contactPhone",
+      "sourceValue": "電話番号",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.createNewVoucher",
+      "sourceValue": "新規バウチャー作成",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.createUserAccount",
+      "sourceValue": "新規ユーザーアカウントを作成",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.createdBy",
+      "sourceValue": "作成者",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.currency",
+      "sourceValue": "通貨",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.customer",
+      "sourceValue": "顧客",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.customerInfo",
+      "sourceValue": "顧客情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.dataBackup",
+      "sourceValue": "データバックアップ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.dataBackupDesc",
+      "sourceValue": "データベースのバックアップと復元",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.deleteActivity",
+      "sourceValue": "アクティビティ削除",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.deleteActivityConfirm",
+      "sourceValue": "このアクティビティを削除してもよろしいですか？この操作は元に戻せません。",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.deleteFlightDescription",
+      "sourceValue": "この操作により、フライト {{number}} ({{from}} → {{to}}) が完全に削除されます。すべての関連予約に影響します。この操作は元に戻せません。",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.deletingHotel",
+      "sourceValue": "削除中 {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.departure",
+      "sourceValue": "出発",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.departureTime",
+      "sourceValue": "出発時刻",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.destination",
+      "sourceValue": "目的地",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.detailedDescription",
+      "sourceValue": "詳細説明...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.directFlight",
+      "sourceValue": "直行便",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.downloadInvoice",
+      "sourceValue": "請求書をダウンロード",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.duration",
+      "sourceValue": "期間",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.economyPrice",
+      "sourceValue": "エコノミー料金",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.editActivity",
+      "sourceValue": "アクティビティ編集",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.editActivityDesc",
+      "sourceValue": "アクティビティ情報を更新",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.editFlight",
+      "sourceValue": "フライト編集",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.editFlightDesc",
+      "sourceValue": "フライト {{number}} 情報を更新",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.editingHotel",
+      "sourceValue": "編集中 {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.emailNotifications",
+      "sourceValue": "メール通知",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.emailNotificationsDesc",
+      "sourceValue": "メールで通知を送信",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.enterRejectionReason",
+      "sourceValue": "返金拒否理由を入力...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.estimatedCompletion",
+      "sourceValue": "完了予定",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.exportExcel",
+      "sourceValue": "Excelエクスポート",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.exportReport",
+      "sourceValue": "レポートをエクスポート",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.fixedAmount",
+      "sourceValue": "固定金額",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flight",
+      "sourceValue": "フライト",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightAdded",
+      "sourceValue": "フライトが追加されました: {{number}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightDate",
+      "sourceValue": "フライト日",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightDeleted",
+      "sourceValue": "フライトが削除されました: {{number}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightDuration",
+      "sourceValue": "飛行時間",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightNumber",
+      "sourceValue": "便名",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightTicket",
+      "sourceValue": "航空券",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightType",
+      "sourceValue": "フライトタイプ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightUpdated",
+      "sourceValue": "フライトが更新されました: {{number}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.food",
+      "sourceValue": "食事",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.generalSettings",
+      "sourceValue": "一般設定",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.generalSettingsDesc",
+      "sourceValue": "基本ウェブサイト情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.hotel",
+      "sourceValue": "ホテル",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.hotelName",
+      "sourceValue": "ホテル名",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.imageUrl",
+      "sourceValue": "画像URL",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.importantNotes",
+      "sourceValue": "重要な注意事項",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.language",
+      "sourceValue": "言語",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.lastMonth",
+      "sourceValue": "先月",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.latestBackup",
+      "sourceValue": "最新のバックアップ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.maintenanceMode",
+      "sourceValue": "メンテナンスモード",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.maintenanceModeDesc",
+      "sourceValue": "一般ユーザー向けにウェブサイトを一時的にロック",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageActivitiesDesc",
+      "sourceValue": "アクティビティとエンターテイメントサービス情報を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageBookingsDesc",
+      "sourceValue": "すべての予約と取引を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageFlightsDesc",
+      "sourceValue": "システム内のフライト情報を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageHotelsDesc",
+      "sourceValue": "ホテル情報と客室を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageRefundsDesc",
+      "sourceValue": "顧客からの返金リクエストを処理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageReviewsDesc",
+      "sourceValue": "顧客レビューを管理・モデレート",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageRooms",
+      "sourceValue": "客室管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageUsersDesc",
+      "sourceValue": "ユーザーアカウントと権限を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageVouchersDesc",
+      "sourceValue": "システム全体の割引コードを作成・管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.managingRoomsFor",
+      "sourceValue": "{{name}} の客室を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.maxDiscount",
+      "sourceValue": "最大",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.minOrder",
+      "sourceValue": "最小注文",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.music",
+      "sourceValue": "音楽",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.needsRevision",
+      "sourceValue": "修正が必要",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.newUsers",
+      "sourceValue": "新規ユーザー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.newUsersByMonth",
+      "sourceValue": "月別新規ユーザー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.noFlightsFound",
+      "sourceValue": "フライトが見つかりません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.noRefundRequests",
+      "sourceValue": "返金リクエストなし",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.noRequests",
+      "sourceValue": "利用可能なリクエストなし",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.noServicesFound",
+      "sourceValue": "サービスが見つかりません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.noVouchersFound",
+      "sourceValue": "バウチャーが見つかりません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.notifications",
+      "sourceValue": "通知",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.notificationsDesc",
+      "sourceValue": "通知システムを構成",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.numberOfRooms",
+      "sourceValue": "客室数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.orderId",
+      "sourceValue": "注文ID",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.originalBookingValue",
+      "sourceValue": "元の予約金額",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.overview",
+      "sourceValue": "概要",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.paid",
+      "sourceValue": "支払済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.participants",
+      "sourceValue": "参加者",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.paused",
+      "sourceValue": "一時停止",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.payment",
+      "sourceValue": "支払い",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.paymentAndRefundInfo",
+      "sourceValue": "支払いと返金情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.paymentGateway",
+      "sourceValue": "決済ゲートウェイ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.paymentGatewayDesc",
+      "sourceValue": "支払い方法を構成",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.paymentMethod",
+      "sourceValue": "支払い方法",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pendingApproval",
+      "sourceValue": "承認待ち",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pendingPayment",
+      "sourceValue": "支払保留中",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pendingRequests",
+      "sourceValue": "保留中のリクエスト",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.percentage",
+      "sourceValue": "パーセンテージ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pleaseEnterRejectionReason",
+      "sourceValue": "拒否理由を入力してください",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.premiumEconomyPrice",
+      "sourceValue": "プレミアムエコノミー料金",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.priceFrom",
+      "sourceValue": "料金から",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pricePerNight",
+      "sourceValue": "1泊料金 (VND)",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.processedBy",
+      "sourceValue": "処理者",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.processingInfo",
+      "sourceValue": "処理情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.processingTime",
+      "sourceValue": "処理時間",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pushNotifications",
+      "sourceValue": "プッシュ通知",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pushNotificationsDesc",
+      "sourceValue": "アプリ/ブラウザにプッシュ通知を送信",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.rating",
+      "sourceValue": "評価",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refund",
+      "sourceValue": "返金",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundAmount",
+      "sourceValue": "返金額",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundApproved",
+      "sourceValue": "返金 {{code}} が承認されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundNote1",
+      "sourceValue": "承認後、システムは自動的に決済ゲートウェイAPIを呼び出して返金を処理します",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundNote2",
+      "sourceValue": "金額 {{amount}}đ はベンダーの次の決済期間から差し引かれます",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundNote3",
+      "sourceValue": "メール通知は自動的に顧客とベンダーに送信されます",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundNote4",
+      "sourceValue": "顧客アカウントへの返金処理時間: 5〜7営業日",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundPercentage",
+      "sourceValue": "返金パーセンテージ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundProcessed",
+      "sourceValue": "予約 {{id}} の返金が処理されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundRejected",
+      "sourceValue": "返金 {{code}} が拒否されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundRequestDetails",
+      "sourceValue": "返金リクエスト詳細",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundRequestDetailsDesc",
+      "sourceValue": "返金リクエストの詳細情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundToWalletDesc",
+      "sourceValue": "ベンダーキャンセルからの緊急返金リクエストを管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refunded",
+      "sourceValue": "返金済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.rejectRefundNote",
+      "sourceValue": "リクエストは拒否されます。確認する前に慎重に確認してください。",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.rejectRefundRequest",
+      "sourceValue": "返金リクエスト拒否",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.rejectRefundRequestDesc",
+      "sourceValue": "顧客に通知するための拒否理由を入力してください",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.rejected",
+      "sourceValue": "拒否済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.rejectedReviews",
+      "sourceValue": "拒否済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.relax",
+      "sourceValue": "リラックス",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.remove",
+      "sourceValue": "削除",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reportsAndStatisticsDesc",
+      "sourceValue": "データとビジネストレンドを分析",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.requestDate",
+      "sourceValue": "リクエスト日",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.requireEmailVerification",
+      "sourceValue": "メール認証を要求",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.requireEmailVerificationDesc",
+      "sourceValue": "登録時にメールを認証する必要があります",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.restore",
+      "sourceValue": "復元",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.returnRate",
+      "sourceValue": "リターン率",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.revenueChart6Months",
+      "sourceValue": "6ヶ月の収益チャート",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.revenueThisMonth",
+      "sourceValue": "今月の収益",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reviewAndApprove",
+      "sourceValue": "確認と承認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reviewApproved",
+      "sourceValue": "レビュー {{id}} が承認されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reviewDeleted",
+      "sourceValue": "レビュー {{id}} が削除されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reviewRejected",
+      "sourceValue": "レビュー {{id}} が拒否されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reviewed",
+      "sourceValue": "レビュー済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reviews",
+      "sourceValue": "レビュー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.revisionRequested",
+      "sourceValue": "ベンダーからの修正がリクエストされました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.route",
+      "sourceValue": "ルート",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.saveChanges",
+      "sourceValue": "変更を保存",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.savePaymentConfig",
+      "sourceValue": "支払い構成を保存",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchBookings",
+      "sourceValue": "予約コード、顧客、サービスで検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchByVoucherCode",
+      "sourceValue": "バウチャーコードで検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchFlights",
+      "sourceValue": "便名、航空会社、ルートで検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchOrderCustomerVendor",
+      "sourceValue": "注文、顧客、ベンダーで検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchRefunds",
+      "sourceValue": "予約コード、顧客名、サービスで検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchReviews",
+      "sourceValue": "レビューを検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchServiceOrVendor",
+      "sourceValue": "サービス名またはベンダーで検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.security",
+      "sourceValue": "セキュリティ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.securityDesc",
+      "sourceValue": "システムセキュリティ設定",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.serviceApproved",
+      "sourceValue": "サービスが承認され公開されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.serviceName",
+      "sourceValue": "サービス名",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.serviceRejected",
+      "sourceValue": "サービスが拒否されベンダーに返されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.serviceType",
+      "sourceValue": "サービスタイプ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.smsNotifications",
+      "sourceValue": "SMS通知",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.smsNotificationsDesc",
+      "sourceValue": "SMSで通知を送信",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.spa",
+      "sourceValue": "スパ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.starRating",
+      "sourceValue": "星評価",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.submittedAt",
+      "sourceValue": "送信日時",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.suspended",
+      "sourceValue": "一時停止",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.systemSettings",
+      "sourceValue": "システム設定",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.systemSettingsDesc",
+      "sourceValue": "構成とウェブサイト設定を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.systemWillAutoExecute",
+      "sourceValue": "システムが自動的に実行します",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.terminal",
+      "sourceValue": "ターミナル",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.terminalPlaceholder",
+      "sourceValue": "ターミナル3",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.thisMonth",
+      "sourceValue": "今月",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.thisWeek",
+      "sourceValue": "今週",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.thisYear",
+      "sourceValue": "今年",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.time",
+      "sourceValue": "時間",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.timezone",
+      "sourceValue": "タイムゾーン",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.today",
+      "sourceValue": "今日",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.topMostBookedServices",
+      "sourceValue": "最も予約されたサービス",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.totalActivities",
+      "sourceValue": "総アクティビティ数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.totalFlights",
+      "sourceValue": "総フライト数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.totalHotels",
+      "sourceValue": "総ホテル数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.totalUsage",
+      "sourceValue": "総使用回数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.totalValue",
+      "sourceValue": "総額",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.totalVouchers",
+      "sourceValue": "総バウチャー数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.tours",
+      "sourceValue": "ツアー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.transactionId",
+      "sourceValue": "取引ID",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.transitFlight",
+      "sourceValue": "経由便",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.travelDate",
+      "sourceValue": "旅行日",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.type",
+      "sourceValue": "タイプ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.urgent",
+      "sourceValue": "緊急",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.usage",
+      "sourceValue": "使用",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.usages",
+      "sourceValue": "使用回数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.userAdded",
+      "sourceValue": "ユーザーが追加されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.userBanned",
+      "sourceValue": "ユーザーが禁止されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.userDeleted",
+      "sourceValue": "ユーザーが削除されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.userStatistics",
+      "sourceValue": "ユーザー統計",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.userUpdated",
+      "sourceValue": "ユーザーが更新されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.validity",
+      "sourceValue": "有効期限",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.value",
+      "sourceValue": "値",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.vendor",
+      "sourceValue": "ベンダー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.violations",
+      "sourceValue": "違反",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherActivated",
+      "sourceValue": "バウチャー {{code}} が有効化されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherCode",
+      "sourceValue": "バウチャーコード",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherCreatedSuccess",
+      "sourceValue": "新規バウチャーが正常に作成されました！",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherDeleted",
+      "sourceValue": "バウチャーが削除されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherDuplicated",
+      "sourceValue": "バウチャー {{code}} が複製されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherPaused",
+      "sourceValue": "バウチャー {{code}} が一時停止されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherType",
+      "sourceValue": "バウチャータイプ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletRefundAmount",
+      "sourceValue": "ウォレット返金額",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletRefundNote",
+      "sourceValue": "お金は顧客の内部ウォレットに返金されます（決済ゲートウェイは関与しません）",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletRefundProcess",
+      "sourceValue": "ウォレット返金プロセス",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletStep1",
+      "sourceValue": "1. 決済ゲートウェイAPI（Momo/Stripe）を呼び出さないでください",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletStep2",
+      "sourceValue": "2. データベースを更新: 顧客ウォレットにお金を追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletStep3",
+      "sourceValue": "3. WalletTransactionsに取引記録を作成",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletStep4",
+      "sourceValue": "4. 顧客に通知を送信",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletStep5",
+      "sourceValue": "5. 注文ステータスを更新",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.waterSports",
+      "sourceValue": "ウォータースポーツ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.websiteDescription",
+      "sourceValue": "ウェブサイト説明",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.websiteName",
+      "sourceValue": "ウェブサイト名",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.emailAddress",
+      "sourceValue": "メールアドレス",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.cardTypes",
+      "sourceValue": "Visa, Mastercard, JCB",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.bankNames",
+      "sourceValue": "Vietcombank, Techcombank, ...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.eWalletNames",
+      "sourceValue": "Momo, ZaloPay, VNPay",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.cardHolder",
+      "sourceValue": "カード名義人",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.cardHolderPlaceholder",
+      "sourceValue": "NGUYEN VAN A",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.cvvPlaceholder",
+      "sourceValue": "123",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.bankTransferInfo",
+      "sourceValue": "銀行振込情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.accountNumber",
+      "sourceValue": "口座番号",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.accountHolder",
+      "sourceValue": "口座名義人",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.transferContent",
+      "sourceValue": "振込内容",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.redirectToEWallet",
+      "sourceValue": "支払いのために電子ウォレットアプリにリダイレクトされます",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.noName",
+      "sourceValue": "名前なし",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.processing",
+      "sourceValue": "処理中",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.processingFee",
+      "sourceValue": "処理手数料",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.total",
+      "sourceValue": "合計",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.termsOfService",
+      "sourceValue": "利用規約",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.bank",
+      "sourceValue": "銀行",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.orderSummary",
+      "sourceValue": "注文概要",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "offers.active",
+      "sourceValue": "활성",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.activities",
+      "sourceValue": "액티비티",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.all",
+      "sourceValue": "전체",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.allCategories",
+      "sourceValue": "모든 카테고리",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.applyNow",
+      "sourceValue": "지금 적용",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.carRental",
+      "sourceValue": "렌터카",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.conditions",
+      "sourceValue": "적용 조건",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.expired",
+      "sourceValue": "만료됨",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.flights",
+      "sourceValue": "항공권",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.hotOffers",
+      "sourceValue": "특별 오퍼",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.hotOffersDesc",
+      "sourceValue": "놓치지 마세요 - 기간 한정",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.hotels",
+      "sourceValue": "호텔",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.noConditions",
+      "sourceValue": "특별한 조건 없음",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.off",
+      "sourceValue": "할인",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.promotionDetails",
+      "sourceValue": "프로모션 상세",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.promotionInfo",
+      "sourceValue": "프로모션 상세 정보",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.useNow",
+      "sourceValue": "지금 사용",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.validUntil",
+      "sourceValue": "유효 기간",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.viewAllOffers",
+      "sourceValue": "전체 보기",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.voucherCode",
+      "sourceValue": "바우처 코드",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "visa.cardNumberPlaceholder",
+      "sourceValue": "0000 0000 0000 0000",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "visa.adult",
+      "sourceValue": "성인",
+      "sourceLang": "ko"
+    }
+  ],
+  "en": [
+    {
+      "key": "admin.active",
+      "sourceValue": "Hoạt động",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.inactive",
+      "sourceValue": "Không hoạt động",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.expired",
+      "sourceValue": "Hết hạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.exhausted",
+      "sourceValue": "Đã đủ người",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.expiredOrExhausted",
+      "sourceValue": "Hết hạn/Đủ người",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.voucherExpiredCannotToggle",
+      "sourceValue": "Không thể kích hoạt voucher {{code}} vì đã hết hạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.voucherExhaustedCannotToggle",
+      "sourceValue": "Không thể kích hoạt voucher {{code}} vì đã đủ số lượng người sử dụng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.voucherDeactivated",
+      "sourceValue": "Đã tắt voucher {{code}}",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.activateVoucher",
+      "sourceValue": "Kích hoạt voucher",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.deactivateVoucher",
+      "sourceValue": "Tắt voucher",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.cannotToggleExpired",
+      "sourceValue": "Không thể kích hoạt voucher đã hết hạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.cannotToggleExhausted",
+      "sourceValue": "Không thể kích hoạt voucher đã đủ người sử dụng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.daysLeft",
+      "sourceValue": "Còn {{days}} ngày",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.expiredDaysAgo",
+      "sourceValue": "Hết hạn {{days}} ngày trước",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.to",
+      "sourceValue": "đến",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.paymentMethods",
+      "sourceValue": "Phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.paymentMethodsDesc",
+      "sourceValue": "Quản lý các phương thức thanh toán đã lưu của bạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addNew",
+      "sourceValue": "Thêm mới",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.secureInfo",
+      "sourceValue": "Thông tin của bạn được bảo mật",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.secureDesc",
+      "sourceValue": "Chúng tôi sử dụng mã hóa SSL 256-bit và tuân thủ chuẩn PCI-DSS để bảo vệ thông tin thanh toán của bạn.",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.default",
+      "sourceValue": "Mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.expiryDate",
+      "sourceValue": "Hết hạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.setDefault",
+      "sourceValue": "Đặt mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.delete",
+      "sourceValue": "Xóa",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.noPaymentMethods",
+      "sourceValue": "Chưa có phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addPaymentMethodDesc",
+      "sourceValue": "Thêm thẻ hoặc tài khoản để thanh toán nhanh hơn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addPaymentMethod",
+      "sourceValue": "Thêm phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addPaymentMethodDesc2",
+      "sourceValue": "Thêm thẻ hoặc tài khoản thanh toán mới",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.card",
+      "sourceValue": "Thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.eWallet",
+      "sourceValue": "Ví điện tử",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.bank",
+      "sourceValue": "Ngân hàng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cardNumber",
+      "sourceValue": "Số thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cardName",
+      "sourceValue": "Tên chủ thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cvv",
+      "sourceValue": "Mã CVV",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.setAsDefault",
+      "sourceValue": "Đặt làm phương thức mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.eWalletComingSoon",
+      "sourceValue": "Tính năng liên kết ví điện tử đang được phát triển",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.bankComingSoon",
+      "sourceValue": "Tính năng liên kết ngân hàng đang được phát triển",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addCard",
+      "sourceValue": "Thêm thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.confirmDelete",
+      "sourceValue": "Xác nhận xóa",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.confirmDeleteDesc",
+      "sourceValue": "Bạn có chắc chắn muốn xóa phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cannotUndo",
+      "sourceValue": "Hành động này không thể hoàn tác",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.setDefaultSuccess",
+      "sourceValue": "Đã đặt làm phương thức mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cannotDeleteDefault",
+      "sourceValue": "Không thể xóa phương thức thanh toán mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.deleteSuccess",
+      "sourceValue": "Đã xóa phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.invalidCardNumber",
+      "sourceValue": "Số thẻ không hợp lệ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.enterCardName",
+      "sourceValue": "Vui lòng nhập tên chủ thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.invalidExpiryDate",
+      "sourceValue": "Ngày hết hạn không hợp lệ (MM/YYYY)",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.invalidCVV",
+      "sourceValue": "CVV không hợp lệ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addCardSuccess",
+      "sourceValue": "Đã thêm thẻ thanh toán mới",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.activity",
+      "sourceValue": "Hoạt động",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.description",
+      "sourceValue": "Mô tả",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.destination",
+      "sourceValue": "Điểm đến",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.hotel",
+      "sourceValue": "Khách sạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.items",
+      "sourceValue": "mục",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.noItemsDesc",
+      "sourceValue": "Lưu các địa điểm và dịch vụ yêu thích để dễ dàng tìm lại sau này",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.priceFrom",
+      "sourceValue": "Giá từ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.remove",
+      "sourceValue": "Xóa",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.reviews",
+      "sourceValue": "đánh giá",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.savedOn",
+      "sourceValue": "Đã lưu",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.viewDetails",
+      "sourceValue": "Xem chi tiết",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.download",
+      "sourceValue": "Tải xuống",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.downloadData",
+      "sourceValue": "Tải dữ liệu cá nhân",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.downloadDataDesc",
+      "sourceValue": "Tải về dữ liệu của bạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.loginDevices",
+      "sourceValue": "Thiết bị đã đăng nhập",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.viewDetails",
+      "sourceValue": "Xem chi tiết",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.aboutPoint1",
+      "sourceValue": "Sử dụng ví để thanh toán nhanh chóng cho các dịch vụ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.aboutPoint2",
+      "sourceValue": "Nhận hoàn tiền tự động khi vendor hủy đơn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.aboutPoint3",
+      "sourceValue": "Tiền trong ví có thể rút về tài khoản ngân hàng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.aboutPoint4",
+      "sourceValue": "Bảo mật tuyệt đối với công nghệ mã hóa cao cấp",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.addMoney",
+      "sourceValue": "Thêm tiền vào ví",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.credit",
+      "sourceValue": "Tiền vào",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.debit",
+      "sourceValue": "Tiền ra",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.loadError",
+      "sourceValue": "Không thể tải dữ liệu ví",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.noTransactionsDesc",
+      "sourceValue": "Lịch sử giao dịch của bạn sẽ hiển thị ở đây",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.refundProcessing",
+      "sourceValue": "Yêu cầu hoàn tiền đang được xử lý bởi Admin. Dự kiến 1-3 ngày làm việc.",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.viewReport",
+      "sourceValue": "Xem báo cáo",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.viewTransactions",
+      "sourceValue": "Xem giao dịch",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "activitiesPage.userInfoLoaded",
+      "sourceValue": "ユーザー情報が読み込まれました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activeHotels",
+      "sourceValue": "有効なホテル",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activeUsers",
+      "sourceValue": "アクティブユーザー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activity",
+      "sourceValue": "アクティビティ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityAdded",
+      "sourceValue": "アクティビティが追加されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityCode",
+      "sourceValue": "アクティビティコード",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityDeleted",
+      "sourceValue": "アクティビティが削除されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityDescriptionPlaceholder",
+      "sourceValue": "詳細なアクティビティ説明...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityDetails",
+      "sourceValue": "アクティビティ詳細",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityName",
+      "sourceValue": "アクティビティ名",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityNamePlaceholder",
+      "sourceValue": "サンゴ礁でのスキューバダイビング...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.activityUpdated",
+      "sourceValue": "アクティビティが更新されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addActivity",
+      "sourceValue": "アクティビティ追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addActivityDesc",
+      "sourceValue": "新規アクティビティ情報をシステムに入力",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addFlight",
+      "sourceValue": "フライト追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addFlightDesc",
+      "sourceValue": "詳細なフライト情報を入力",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addNewActivity",
+      "sourceValue": "新規アクティビティ追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addNewFlight",
+      "sourceValue": "新規フライト追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addNewHotel",
+      "sourceValue": "新規ホテル追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addNewHotelDesc",
+      "sourceValue": "新規ホテル情報をシステムに入力",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.addNewUser",
+      "sourceValue": "新規ユーザー追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.adventure",
+      "sourceValue": "アドベンチャー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.aircraft",
+      "sourceValue": "航空機",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.airline",
+      "sourceValue": "航空会社",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.allStatuses",
+      "sourceValue": "すべてのステータス",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.allTypes",
+      "sourceValue": "すべてのタイプ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.allowRegistration",
+      "sourceValue": "登録を許可",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.allowRegistrationDesc",
+      "sourceValue": "新規ユーザーがアカウントを作成可能",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.amount",
+      "sourceValue": "金額",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approveAction1",
+      "sourceValue": "{{method}} APIを呼び出して返金を処理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approveAction2",
+      "sourceValue": "顧客にメール通知を送信",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approveAction3",
+      "sourceValue": "ベンダーに通知を送信: {{vendor}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approveAction4",
+      "sourceValue": "次の決済期間から {{amount}}đ を差し引く",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approveAction5",
+      "sourceValue": "ステータスを「処理中」に更新",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approveServicesDesc",
+      "sourceValue": "ベンダーからのサービス追加リクエストを確認・承認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approved",
+      "sourceValue": "承認済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.approvedReviews",
+      "sourceValue": "承認済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.arrivalTime",
+      "sourceValue": "到着時刻",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.attractions",
+      "sourceValue": "観光地",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.available",
+      "sourceValue": "利用可能",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.availableSeats",
+      "sourceValue": "利用可能な座席",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.averagePerMonth",
+      "sourceValue": "平均/月",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.backupNow",
+      "sourceValue": "今すぐバックアップ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.ban",
+      "sourceValue": "禁止",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.banUserDescription",
+      "sourceValue": "このユーザーは禁止され、システムにアクセスできなくなります",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.banned",
+      "sourceValue": "禁止",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.booked",
+      "sourceValue": "予約済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookedToday",
+      "sourceValue": "本日予約",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookingCancelled",
+      "sourceValue": "予約 {{id}} がキャンセルされました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookingCode",
+      "sourceValue": "予約コード",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookingConfirmed",
+      "sourceValue": "予約 {{id}} が確認されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookingDate",
+      "sourceValue": "予約日",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookingInfo",
+      "sourceValue": "予約情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.bookingsThisMonth",
+      "sourceValue": "今月の予約",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.businessPrice",
+      "sourceValue": "ビジネス料金",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cancelBooking",
+      "sourceValue": "予約キャンセル",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cancellationRate",
+      "sourceValue": "キャンセル率",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotAddFlight",
+      "sourceValue": "フライトを追加できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotApproveRefund",
+      "sourceValue": "返金を承認できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotApproveReview",
+      "sourceValue": "レビューを承認できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotBanUser",
+      "sourceValue": "ユーザーを禁止できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotCreateUser",
+      "sourceValue": "ユーザーを作成できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotDeleteFlight",
+      "sourceValue": "フライトを削除できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotDeleteReview",
+      "sourceValue": "レビューを削除できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotDeleteUser",
+      "sourceValue": "ユーザーを削除できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotDeleteVoucher",
+      "sourceValue": "バウチャーを削除できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotLoadBookings",
+      "sourceValue": "予約リストを読み込めません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotLoadFlights",
+      "sourceValue": "フライトリストを読み込めません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotLoadRefunds",
+      "sourceValue": "返金リストを読み込めません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotLoadReviews",
+      "sourceValue": "レビューリストを読み込めません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotLoadUsers",
+      "sourceValue": "ユーザーリストを読み込めません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotLoadVouchers",
+      "sourceValue": "バウチャーリストを読み込めません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotProcessRefund",
+      "sourceValue": "返金を処理できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotRejectRefund",
+      "sourceValue": "返金を拒否できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotRejectReview",
+      "sourceValue": "レビューを拒否できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotUpdateFlight",
+      "sourceValue": "フライトを更新できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotUpdateUser",
+      "sourceValue": "ユーザーを更新できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.cannotUpdateVoucherStatus",
+      "sourceValue": "バウチャーステータスを更新できません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.carRental",
+      "sourceValue": "レンタカー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.category",
+      "sourceValue": "カテゴリ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.completed",
+      "sourceValue": "完了",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.conditions",
+      "sourceValue": "条件",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirm",
+      "sourceValue": "確認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmApprove",
+      "sourceValue": "承認を確認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmApproveRefund",
+      "sourceValue": "返金承認を確認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmApproveRefundDesc",
+      "sourceValue": "この返金リクエストを承認してもよろしいですか？",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmBanUser",
+      "sourceValue": "このユーザーを禁止してもよろしいですか？",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmDeleteFlight",
+      "sourceValue": "このフライトを削除してもよろしいですか？",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmDeleteReview",
+      "sourceValue": "このレビューを削除してもよろしいですか？",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmDeleteVoucher",
+      "sourceValue": "バウチャー {{code}} を削除してもよろしいですか？",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmReject",
+      "sourceValue": "拒否を確認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmRejectRefund",
+      "sourceValue": "返金拒否を確認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.confirmWalletRefund",
+      "sourceValue": "ウォレット返金承認を確認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.contactEmail",
+      "sourceValue": "連絡先メール",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.contactPhone",
+      "sourceValue": "電話番号",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.createNewVoucher",
+      "sourceValue": "新規バウチャー作成",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.createUserAccount",
+      "sourceValue": "新規ユーザーアカウントを作成",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.createdBy",
+      "sourceValue": "作成者",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.currency",
+      "sourceValue": "通貨",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.customer",
+      "sourceValue": "顧客",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.customerInfo",
+      "sourceValue": "顧客情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.dataBackup",
+      "sourceValue": "データバックアップ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.dataBackupDesc",
+      "sourceValue": "データベースのバックアップと復元",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.deleteActivity",
+      "sourceValue": "アクティビティ削除",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.deleteActivityConfirm",
+      "sourceValue": "このアクティビティを削除してもよろしいですか？この操作は元に戻せません。",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.deleteFlightDescription",
+      "sourceValue": "この操作により、フライト {{number}} ({{from}} → {{to}}) が完全に削除されます。すべての関連予約に影響します。この操作は元に戻せません。",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.deletingHotel",
+      "sourceValue": "削除中 {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.departure",
+      "sourceValue": "出発",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.departureTime",
+      "sourceValue": "出発時刻",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.destination",
+      "sourceValue": "目的地",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.detailedDescription",
+      "sourceValue": "詳細説明...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.directFlight",
+      "sourceValue": "直行便",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.downloadInvoice",
+      "sourceValue": "請求書をダウンロード",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.duration",
+      "sourceValue": "期間",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.economyPrice",
+      "sourceValue": "エコノミー料金",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.editActivity",
+      "sourceValue": "アクティビティ編集",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.editActivityDesc",
+      "sourceValue": "アクティビティ情報を更新",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.editFlight",
+      "sourceValue": "フライト編集",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.editFlightDesc",
+      "sourceValue": "フライト {{number}} 情報を更新",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.editingHotel",
+      "sourceValue": "編集中 {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.emailNotifications",
+      "sourceValue": "メール通知",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.emailNotificationsDesc",
+      "sourceValue": "メールで通知を送信",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.enterRejectionReason",
+      "sourceValue": "返金拒否理由を入力...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.estimatedCompletion",
+      "sourceValue": "完了予定",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.exportExcel",
+      "sourceValue": "Excelエクスポート",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.exportReport",
+      "sourceValue": "レポートをエクスポート",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.fixedAmount",
+      "sourceValue": "固定金額",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flight",
+      "sourceValue": "フライト",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightAdded",
+      "sourceValue": "フライトが追加されました: {{number}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightDate",
+      "sourceValue": "フライト日",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightDeleted",
+      "sourceValue": "フライトが削除されました: {{number}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightDuration",
+      "sourceValue": "飛行時間",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightNumber",
+      "sourceValue": "便名",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightTicket",
+      "sourceValue": "航空券",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightType",
+      "sourceValue": "フライトタイプ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.flightUpdated",
+      "sourceValue": "フライトが更新されました: {{number}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.food",
+      "sourceValue": "食事",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.generalSettings",
+      "sourceValue": "一般設定",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.generalSettingsDesc",
+      "sourceValue": "基本ウェブサイト情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.hotel",
+      "sourceValue": "ホテル",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.hotelName",
+      "sourceValue": "ホテル名",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.imageUrl",
+      "sourceValue": "画像URL",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.importantNotes",
+      "sourceValue": "重要な注意事項",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.language",
+      "sourceValue": "言語",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.lastMonth",
+      "sourceValue": "先月",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.latestBackup",
+      "sourceValue": "最新のバックアップ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.maintenanceMode",
+      "sourceValue": "メンテナンスモード",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.maintenanceModeDesc",
+      "sourceValue": "一般ユーザー向けにウェブサイトを一時的にロック",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageActivitiesDesc",
+      "sourceValue": "アクティビティとエンターテイメントサービス情報を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageBookingsDesc",
+      "sourceValue": "すべての予約と取引を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageFlightsDesc",
+      "sourceValue": "システム内のフライト情報を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageHotelsDesc",
+      "sourceValue": "ホテル情報と客室を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageRefundsDesc",
+      "sourceValue": "顧客からの返金リクエストを処理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageReviewsDesc",
+      "sourceValue": "顧客レビューを管理・モデレート",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageRooms",
+      "sourceValue": "客室管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageUsersDesc",
+      "sourceValue": "ユーザーアカウントと権限を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.manageVouchersDesc",
+      "sourceValue": "システム全体の割引コードを作成・管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.managingRoomsFor",
+      "sourceValue": "{{name}} の客室を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.maxDiscount",
+      "sourceValue": "最大",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.minOrder",
+      "sourceValue": "最小注文",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.music",
+      "sourceValue": "音楽",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.needsRevision",
+      "sourceValue": "修正が必要",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.newUsers",
+      "sourceValue": "新規ユーザー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.newUsersByMonth",
+      "sourceValue": "月別新規ユーザー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.noFlightsFound",
+      "sourceValue": "フライトが見つかりません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.noRefundRequests",
+      "sourceValue": "返金リクエストなし",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.noRequests",
+      "sourceValue": "利用可能なリクエストなし",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.noServicesFound",
+      "sourceValue": "サービスが見つかりません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.noVouchersFound",
+      "sourceValue": "バウチャーが見つかりません",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.notifications",
+      "sourceValue": "通知",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.notificationsDesc",
+      "sourceValue": "通知システムを構成",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.numberOfRooms",
+      "sourceValue": "客室数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.orderId",
+      "sourceValue": "注文ID",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.originalBookingValue",
+      "sourceValue": "元の予約金額",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.overview",
+      "sourceValue": "概要",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.paid",
+      "sourceValue": "支払済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.participants",
+      "sourceValue": "参加者",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.paused",
+      "sourceValue": "一時停止",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.payment",
+      "sourceValue": "支払い",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.paymentAndRefundInfo",
+      "sourceValue": "支払いと返金情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.paymentGateway",
+      "sourceValue": "決済ゲートウェイ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.paymentGatewayDesc",
+      "sourceValue": "支払い方法を構成",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.paymentMethod",
+      "sourceValue": "支払い方法",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pendingApproval",
+      "sourceValue": "承認待ち",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pendingPayment",
+      "sourceValue": "支払保留中",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pendingRequests",
+      "sourceValue": "保留中のリクエスト",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.percentage",
+      "sourceValue": "パーセンテージ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pleaseEnterRejectionReason",
+      "sourceValue": "拒否理由を入力してください",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.premiumEconomyPrice",
+      "sourceValue": "プレミアムエコノミー料金",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.priceFrom",
+      "sourceValue": "料金から",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pricePerNight",
+      "sourceValue": "1泊料金 (VND)",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.processedBy",
+      "sourceValue": "処理者",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.processingInfo",
+      "sourceValue": "処理情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.processingTime",
+      "sourceValue": "処理時間",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pushNotifications",
+      "sourceValue": "プッシュ通知",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.pushNotificationsDesc",
+      "sourceValue": "アプリ/ブラウザにプッシュ通知を送信",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.rating",
+      "sourceValue": "評価",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refund",
+      "sourceValue": "返金",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundAmount",
+      "sourceValue": "返金額",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundApproved",
+      "sourceValue": "返金 {{code}} が承認されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundNote1",
+      "sourceValue": "承認後、システムは自動的に決済ゲートウェイAPIを呼び出して返金を処理します",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundNote2",
+      "sourceValue": "金額 {{amount}}đ はベンダーの次の決済期間から差し引かれます",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundNote3",
+      "sourceValue": "メール通知は自動的に顧客とベンダーに送信されます",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundNote4",
+      "sourceValue": "顧客アカウントへの返金処理時間: 5〜7営業日",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundPercentage",
+      "sourceValue": "返金パーセンテージ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundProcessed",
+      "sourceValue": "予約 {{id}} の返金が処理されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundRejected",
+      "sourceValue": "返金 {{code}} が拒否されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundRequestDetails",
+      "sourceValue": "返金リクエスト詳細",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundRequestDetailsDesc",
+      "sourceValue": "返金リクエストの詳細情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refundToWalletDesc",
+      "sourceValue": "ベンダーキャンセルからの緊急返金リクエストを管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.refunded",
+      "sourceValue": "返金済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.rejectRefundNote",
+      "sourceValue": "リクエストは拒否されます。確認する前に慎重に確認してください。",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.rejectRefundRequest",
+      "sourceValue": "返金リクエスト拒否",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.rejectRefundRequestDesc",
+      "sourceValue": "顧客に通知するための拒否理由を入力してください",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.rejected",
+      "sourceValue": "拒否済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.rejectedReviews",
+      "sourceValue": "拒否済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.relax",
+      "sourceValue": "リラックス",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.remove",
+      "sourceValue": "削除",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reportsAndStatisticsDesc",
+      "sourceValue": "データとビジネストレンドを分析",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.requestDate",
+      "sourceValue": "リクエスト日",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.requireEmailVerification",
+      "sourceValue": "メール認証を要求",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.requireEmailVerificationDesc",
+      "sourceValue": "登録時にメールを認証する必要があります",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.restore",
+      "sourceValue": "復元",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.returnRate",
+      "sourceValue": "リターン率",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.revenueChart6Months",
+      "sourceValue": "6ヶ月の収益チャート",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.revenueThisMonth",
+      "sourceValue": "今月の収益",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reviewAndApprove",
+      "sourceValue": "確認と承認",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reviewApproved",
+      "sourceValue": "レビュー {{id}} が承認されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reviewDeleted",
+      "sourceValue": "レビュー {{id}} が削除されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reviewRejected",
+      "sourceValue": "レビュー {{id}} が拒否されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reviewed",
+      "sourceValue": "レビュー済み",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.reviews",
+      "sourceValue": "レビュー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.revisionRequested",
+      "sourceValue": "ベンダーからの修正がリクエストされました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.route",
+      "sourceValue": "ルート",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.saveChanges",
+      "sourceValue": "変更を保存",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.savePaymentConfig",
+      "sourceValue": "支払い構成を保存",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchBookings",
+      "sourceValue": "予約コード、顧客、サービスで検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchByVoucherCode",
+      "sourceValue": "バウチャーコードで検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchFlights",
+      "sourceValue": "便名、航空会社、ルートで検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchOrderCustomerVendor",
+      "sourceValue": "注文、顧客、ベンダーで検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchRefunds",
+      "sourceValue": "予約コード、顧客名、サービスで検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchReviews",
+      "sourceValue": "レビューを検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.searchServiceOrVendor",
+      "sourceValue": "サービス名またはベンダーで検索...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.security",
+      "sourceValue": "セキュリティ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.securityDesc",
+      "sourceValue": "システムセキュリティ設定",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.serviceApproved",
+      "sourceValue": "サービスが承認され公開されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.serviceName",
+      "sourceValue": "サービス名",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.serviceRejected",
+      "sourceValue": "サービスが拒否されベンダーに返されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.serviceType",
+      "sourceValue": "サービスタイプ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.smsNotifications",
+      "sourceValue": "SMS通知",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.smsNotificationsDesc",
+      "sourceValue": "SMSで通知を送信",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.spa",
+      "sourceValue": "スパ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.starRating",
+      "sourceValue": "星評価",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.submittedAt",
+      "sourceValue": "送信日時",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.suspended",
+      "sourceValue": "一時停止",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.systemSettings",
+      "sourceValue": "システム設定",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.systemSettingsDesc",
+      "sourceValue": "構成とウェブサイト設定を管理",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.systemWillAutoExecute",
+      "sourceValue": "システムが自動的に実行します",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.terminal",
+      "sourceValue": "ターミナル",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.terminalPlaceholder",
+      "sourceValue": "ターミナル3",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.thisMonth",
+      "sourceValue": "今月",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.thisWeek",
+      "sourceValue": "今週",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.thisYear",
+      "sourceValue": "今年",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.time",
+      "sourceValue": "時間",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.timezone",
+      "sourceValue": "タイムゾーン",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.today",
+      "sourceValue": "今日",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.topMostBookedServices",
+      "sourceValue": "最も予約されたサービス",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.totalActivities",
+      "sourceValue": "総アクティビティ数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.totalFlights",
+      "sourceValue": "総フライト数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.totalHotels",
+      "sourceValue": "総ホテル数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.totalUsage",
+      "sourceValue": "総使用回数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.totalValue",
+      "sourceValue": "総額",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.totalVouchers",
+      "sourceValue": "総バウチャー数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.tours",
+      "sourceValue": "ツアー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.transactionId",
+      "sourceValue": "取引ID",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.transitFlight",
+      "sourceValue": "経由便",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.travelDate",
+      "sourceValue": "旅行日",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.type",
+      "sourceValue": "タイプ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.urgent",
+      "sourceValue": "緊急",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.usage",
+      "sourceValue": "使用",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.usages",
+      "sourceValue": "使用回数",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.userAdded",
+      "sourceValue": "ユーザーが追加されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.userBanned",
+      "sourceValue": "ユーザーが禁止されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.userDeleted",
+      "sourceValue": "ユーザーが削除されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.userStatistics",
+      "sourceValue": "ユーザー統計",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.userUpdated",
+      "sourceValue": "ユーザーが更新されました: {{name}}",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.validity",
+      "sourceValue": "有効期限",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.value",
+      "sourceValue": "値",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.vendor",
+      "sourceValue": "ベンダー",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.violations",
+      "sourceValue": "違反",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherActivated",
+      "sourceValue": "バウチャー {{code}} が有効化されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherCode",
+      "sourceValue": "バウチャーコード",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherCreatedSuccess",
+      "sourceValue": "新規バウチャーが正常に作成されました！",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherDeleted",
+      "sourceValue": "バウチャーが削除されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherDuplicated",
+      "sourceValue": "バウチャー {{code}} が複製されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherPaused",
+      "sourceValue": "バウチャー {{code}} が一時停止されました",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.voucherType",
+      "sourceValue": "バウチャータイプ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletRefundAmount",
+      "sourceValue": "ウォレット返金額",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletRefundNote",
+      "sourceValue": "お金は顧客の内部ウォレットに返金されます（決済ゲートウェイは関与しません）",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletRefundProcess",
+      "sourceValue": "ウォレット返金プロセス",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletStep1",
+      "sourceValue": "1. 決済ゲートウェイAPI（Momo/Stripe）を呼び出さないでください",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletStep2",
+      "sourceValue": "2. データベースを更新: 顧客ウォレットにお金を追加",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletStep3",
+      "sourceValue": "3. WalletTransactionsに取引記録を作成",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletStep4",
+      "sourceValue": "4. 顧客に通知を送信",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.walletStep5",
+      "sourceValue": "5. 注文ステータスを更新",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.waterSports",
+      "sourceValue": "ウォータースポーツ",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.websiteDescription",
+      "sourceValue": "ウェブサイト説明",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "admin.websiteName",
+      "sourceValue": "ウェブサイト名",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.emailAddress",
+      "sourceValue": "メールアドレス",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.cardTypes",
+      "sourceValue": "Visa, Mastercard, JCB",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.bankNames",
+      "sourceValue": "Vietcombank, Techcombank, ...",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.eWalletNames",
+      "sourceValue": "Momo, ZaloPay, VNPay",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.cardHolder",
+      "sourceValue": "カード名義人",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.cardHolderPlaceholder",
+      "sourceValue": "NGUYEN VAN A",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.cvvPlaceholder",
+      "sourceValue": "123",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.bankTransferInfo",
+      "sourceValue": "銀行振込情報",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.accountNumber",
+      "sourceValue": "口座番号",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.accountHolder",
+      "sourceValue": "口座名義人",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.transferContent",
+      "sourceValue": "振込内容",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.redirectToEWallet",
+      "sourceValue": "支払いのために電子ウォレットアプリにリダイレクトされます",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.noName",
+      "sourceValue": "名前なし",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.processing",
+      "sourceValue": "処理中",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.processingFee",
+      "sourceValue": "処理手数料",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.total",
+      "sourceValue": "合計",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.termsOfService",
+      "sourceValue": "利用規約",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.bank",
+      "sourceValue": "銀行",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "visa.orderSummary",
+      "sourceValue": "注文概要",
+      "sourceLang": "ja"
+    },
+    {
+      "key": "offers.active",
+      "sourceValue": "활성",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.activities",
+      "sourceValue": "액티비티",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.all",
+      "sourceValue": "전체",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.allCategories",
+      "sourceValue": "모든 카테고리",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.applyNow",
+      "sourceValue": "지금 적용",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.carRental",
+      "sourceValue": "렌터카",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.conditions",
+      "sourceValue": "적용 조건",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.expired",
+      "sourceValue": "만료됨",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.flights",
+      "sourceValue": "항공권",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.hotOffers",
+      "sourceValue": "특별 오퍼",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.hotOffersDesc",
+      "sourceValue": "놓치지 마세요 - 기간 한정",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.hotels",
+      "sourceValue": "호텔",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.noConditions",
+      "sourceValue": "특별한 조건 없음",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.off",
+      "sourceValue": "할인",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.promotionDetails",
+      "sourceValue": "프로모션 상세",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.promotionInfo",
+      "sourceValue": "프로모션 상세 정보",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.useNow",
+      "sourceValue": "지금 사용",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.validUntil",
+      "sourceValue": "유효 기간",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.viewAllOffers",
+      "sourceValue": "전체 보기",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.voucherCode",
+      "sourceValue": "바우처 코드",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "visa.cardNumberPlaceholder",
+      "sourceValue": "0000 0000 0000 0000",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "visa.adult",
+      "sourceValue": "성인",
+      "sourceLang": "ko"
+    }
+  ],
+  "ja": [
+    {
+      "key": "admin.noRecentBookings",
+      "sourceValue": "Không có đơn đặt nào gần đây",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.inactive",
+      "sourceValue": "Không hoạt động",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.exhausted",
+      "sourceValue": "Đã đủ người",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.expiredOrExhausted",
+      "sourceValue": "Hết hạn/Đủ người",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.voucherExpiredCannotToggle",
+      "sourceValue": "Không thể kích hoạt voucher {{code}} vì đã hết hạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.voucherExhaustedCannotToggle",
+      "sourceValue": "Không thể kích hoạt voucher {{code}} vì đã đủ số lượng người sử dụng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.voucherDeactivated",
+      "sourceValue": "Đã tắt voucher {{code}}",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.activateVoucher",
+      "sourceValue": "Kích hoạt voucher",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.deactivateVoucher",
+      "sourceValue": "Tắt voucher",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.cannotToggleExpired",
+      "sourceValue": "Không thể kích hoạt voucher đã hết hạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.cannotToggleExhausted",
+      "sourceValue": "Không thể kích hoạt voucher đã đủ người sử dụng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.daysLeft",
+      "sourceValue": "Còn {{days}} ngày",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.expiredDaysAgo",
+      "sourceValue": "Hết hạn {{days}} ngày trước",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.paymentMethods",
+      "sourceValue": "Phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.paymentMethodsDesc",
+      "sourceValue": "Quản lý các phương thức thanh toán đã lưu của bạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addNew",
+      "sourceValue": "Thêm mới",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.secureInfo",
+      "sourceValue": "Thông tin của bạn được bảo mật",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.secureDesc",
+      "sourceValue": "Chúng tôi sử dụng mã hóa SSL 256-bit và tuân thủ chuẩn PCI-DSS để bảo vệ thông tin thanh toán của bạn.",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.default",
+      "sourceValue": "Mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.expiryDate",
+      "sourceValue": "Hết hạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.setDefault",
+      "sourceValue": "Đặt mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.delete",
+      "sourceValue": "Xóa",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.noPaymentMethods",
+      "sourceValue": "Chưa có phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addPaymentMethodDesc",
+      "sourceValue": "Thêm thẻ hoặc tài khoản để thanh toán nhanh hơn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addPaymentMethod",
+      "sourceValue": "Thêm phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addPaymentMethodDesc2",
+      "sourceValue": "Thêm thẻ hoặc tài khoản thanh toán mới",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.card",
+      "sourceValue": "Thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.eWallet",
+      "sourceValue": "Ví điện tử",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.bank",
+      "sourceValue": "Ngân hàng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cardNumber",
+      "sourceValue": "Số thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cardName",
+      "sourceValue": "Tên chủ thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cvv",
+      "sourceValue": "Mã CVV",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.setAsDefault",
+      "sourceValue": "Đặt làm phương thức mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.eWalletComingSoon",
+      "sourceValue": "Tính năng liên kết ví điện tử đang được phát triển",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.bankComingSoon",
+      "sourceValue": "Tính năng liên kết ngân hàng đang được phát triển",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addCard",
+      "sourceValue": "Thêm thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.confirmDelete",
+      "sourceValue": "Xác nhận xóa",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.confirmDeleteDesc",
+      "sourceValue": "Bạn có chắc chắn muốn xóa phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cannotUndo",
+      "sourceValue": "Hành động này không thể hoàn tác",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.setDefaultSuccess",
+      "sourceValue": "Đã đặt làm phương thức mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cannotDeleteDefault",
+      "sourceValue": "Không thể xóa phương thức thanh toán mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.deleteSuccess",
+      "sourceValue": "Đã xóa phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.invalidCardNumber",
+      "sourceValue": "Số thẻ không hợp lệ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.enterCardName",
+      "sourceValue": "Vui lòng nhập tên chủ thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.invalidExpiryDate",
+      "sourceValue": "Ngày hết hạn không hợp lệ (MM/YYYY)",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.invalidCVV",
+      "sourceValue": "CVV không hợp lệ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addCardSuccess",
+      "sourceValue": "Đã thêm thẻ thanh toán mới",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.doors",
+      "sourceValue": "Số cửa",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.luggage",
+      "sourceValue": "Hành lý",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.licensePlate",
+      "sourceValue": "Biển số xe",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.mileageLimit",
+      "sourceValue": "Giới hạn quãng đường",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.minRentalDays",
+      "sourceValue": "Thuê tối thiểu",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.fuelPolicy",
+      "sourceValue": "Chính sách nhiên liệu",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.unlimited",
+      "sourceValue": "Không giới hạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.insurance",
+      "sourceValue": "Bảo hiểm",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.rentalPolicies",
+      "sourceValue": "Chính sách thuê xe",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.deposit",
+      "sourceValue": "Tiền đặt cọc",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.deliveryService",
+      "sourceValue": "Dịch vụ giao xe",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.free",
+      "sourceValue": "Miễn phí",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.withDriver",
+      "sourceValue": "Có tài xế",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.available",
+      "sourceValue": "Có sẵn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.carFeatures",
+      "sourceValue": "Tính năng xe",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.includedFeatures",
+      "sourceValue": "Tính năng bao gồm",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.failedToLoadCar",
+      "sourceValue": "Không thể tải thông tin xe",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "hotels.contactInfo",
+      "sourceValue": "Thông tin Liên hệ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "hotels.confirmationWillBeSent",
+      "sourceValue": "Xác nhận đặt phòng sẽ được gửi đến đây",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "hotels.fillContactInfo",
+      "sourceValue": "Vui lòng điền thông tin liên hệ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "hotels.fullName",
+      "sourceValue": "Tên đầy đủ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "hotels.mobilePhone",
+      "sourceValue": "Số điện thoại di động",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "hotels.userInfoLoaded",
+      "sourceValue": "Đã tải thông tin người dùng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.bookingHistory.confirmCompletion",
+      "sourceValue": "Xác nhận hoàn thành",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.activity",
+      "sourceValue": "Hoạt động",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.description",
+      "sourceValue": "Mô tả",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.destination",
+      "sourceValue": "Điểm đến",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.hotel",
+      "sourceValue": "Khách sạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.items",
+      "sourceValue": "mục",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.noItemsDesc",
+      "sourceValue": "Lưu các địa điểm và dịch vụ yêu thích để dễ dàng tìm lại sau này",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.priceFrom",
+      "sourceValue": "Giá từ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.remove",
+      "sourceValue": "Xóa",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.reviews",
+      "sourceValue": "đánh giá",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.savedOn",
+      "sourceValue": "Đã lưu",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.viewDetails",
+      "sourceValue": "Xem chi tiết",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.download",
+      "sourceValue": "Tải xuống",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.downloadData",
+      "sourceValue": "Tải dữ liệu cá nhân",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.downloadDataDesc",
+      "sourceValue": "Tải về dữ liệu của bạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.loginDevices",
+      "sourceValue": "Thiết bị đã đăng nhập",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.viewDetails",
+      "sourceValue": "Xem chi tiết",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.aboutPoint1",
+      "sourceValue": "Sử dụng ví để thanh toán nhanh chóng cho các dịch vụ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.aboutPoint2",
+      "sourceValue": "Nhận hoàn tiền tự động khi vendor hủy đơn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.aboutPoint3",
+      "sourceValue": "Tiền trong ví có thể rút về tài khoản ngân hàng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.aboutPoint4",
+      "sourceValue": "Bảo mật tuyệt đối với công nghệ mã hóa cao cấp",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.addMoney",
+      "sourceValue": "Thêm tiền vào ví",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.credit",
+      "sourceValue": "Tiền vào",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.debit",
+      "sourceValue": "Tiền ra",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.loadError",
+      "sourceValue": "Không thể tải dữ liệu ví",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.noTransactionsDesc",
+      "sourceValue": "Lịch sử giao dịch của bạn sẽ hiển thị ở đây",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.refundProcessing",
+      "sourceValue": "Yêu cầu hoàn tiền đang được xử lý bởi Admin. Dự kiến 1-3 ngày làm việc.",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.viewReport",
+      "sourceValue": "Xem báo cáo",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.viewTransactions",
+      "sourceValue": "Xem giao dịch",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.tax",
+      "sourceValue": "Thuế VAT (10%)",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.taxesAndFees",
+      "sourceValue": "Thuế và Phí",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.termsAndConditions",
+      "sourceValue": "Điều khoản & Điều kiện",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.thisCountry",
+      "sourceValue": "quốc gia này",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.ticketNonRefundable",
+      "sourceValue": "Vé máy bay không thể hoàn lại sau khi đã xuất",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.ticketPrice",
+      "sourceValue": "Giá vé",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.honorific",
+      "sourceValue": "Quý danh",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.totalPayment",
+      "sourceValue": "Tổng thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.totalPrice",
+      "sourceValue": "Tổng cộng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.trackProgress",
+      "sourceValue": "Theo dõi tiến độ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.trackProgressDesc",
+      "sourceValue": "Bạn có thể theo dõi tiến độ xử lý hồ sơ qua email hoặc hotline của chúng tôi.",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.travelInsurance",
+      "sourceValue": "Bảo hiểm du lịch",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.uploadDocuments",
+      "sourceValue": "Upload tài liệu",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.uploadFile",
+      "sourceValue": "Tải lên file",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.uploaded",
+      "sourceValue": "Đã tải lên",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.userInfoLoaded",
+      "sourceValue": "Đã tải thông tin người dùng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.visaApplication",
+      "sourceValue": "Đơn xin Visa",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.whyFillForm",
+      "sourceValue": "Tại sao nên điền form?",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.yes",
+      "sourceValue": "Có",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.yourFlight",
+      "sourceValue": "Chuyến bay của bạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.requestSuccess",
+      "sourceValue": "Gửi Yêu Cầu Thành Công!",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.thankYouForTrusting",
+      "sourceValue": "Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của Wanderlust",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.yourRequestCode",
+      "sourceValue": "Mã yêu cầu của bạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.requestInformation",
+      "sourceValue": "Thông tin yêu cầu",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.email",
+      "sourceValue": "Email",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.destinationCountry",
+      "sourceValue": "Quốc gia đến",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.emailConfirmationSent",
+      "sourceValue": "Email xác nhận đã được gửi",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.emailConfirmationDesc",
+      "sourceValue": "Chúng tôi đã gửi email xác nhận đến {{email}}. Vui lòng kiểm tra hộp thư của bạn.",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.backToForm",
+      "sourceValue": "Quay lại form",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.downloadingReceipt",
+      "sourceValue": "Đang tải biên nhận...",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.downloadingInvoice",
+      "sourceValue": "Đang tải hóa đơn...",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.uploadProgress",
+      "sourceValue": "Tiến độ tải lên",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.uploadRequiredDocs",
+      "sourceValue": "Vui lòng tải lên các tài liệu bắt buộc",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.onlyJpgPngPdfAllowed",
+      "sourceValue": "Chỉ chấp nhận file JPG, PNG, PDF",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.fileSizeExceeded",
+      "sourceValue": "Kích thước file vượt quá 5MB",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.passportScan",
+      "sourceValue": "Scan hộ chiếu",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.passportScanDesc",
+      "sourceValue": "Scan toàn bộ trang có ảnh và thông tin",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.photo4x6",
+      "sourceValue": "Ảnh 4x6",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.idCard",
+      "sourceValue": "CMND/CCCD",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.idCardDesc",
+      "sourceValue": "Scan mặt trước và mặt sau",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.employmentLetter",
+      "sourceValue": "Giấy xác nhận công việc",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.employmentLetterDesc",
+      "sourceValue": "Từ công ty hoặc trường học",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.hotelBooking",
+      "sourceValue": "Đặt phòng khách sạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.hotelBookingDesc",
+      "sourceValue": "Xác nhận đặt phòng tại nơi đến",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.insurance",
+      "sourceValue": "Bảo hiểm du lịch",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.insuranceDesc",
+      "sourceValue": "Bảo hiểm y tế và du lịch quốc tế",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "home.search.flights",
+      "sourceValue": "Flights",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.hotels",
+      "sourceValue": "Hotels",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.carRental",
+      "sourceValue": "Car Rental",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.activities",
+      "sourceValue": "Activities",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.selectAirport",
+      "sourceValue": "Select airport",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.departReturnDate",
+      "sourceValue": "Depart - Return",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.selectLocation",
+      "sourceValue": "Select location",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.checkInCheckOut",
+      "sourceValue": "Check-in - Check-out",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.selfDrive",
+      "sourceValue": "Self-drive",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.withDriver",
+      "sourceValue": "With driver",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.enterLocation",
+      "sourceValue": "Enter location...",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.selectDeparture",
+      "sourceValue": "Please select departure airport",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.selectDestination",
+      "sourceValue": "Please select destination airport",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.sameAirport",
+      "sourceValue": "Departure and destination cannot be the same",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.selectDepartDate",
+      "sourceValue": "Please select departure date",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.selectReturnDate",
+      "sourceValue": "Please select return date",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.returnDateBeforeDepart",
+      "sourceValue": "Return date cannot be before departure date",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.searchFailed",
+      "sourceValue": "Cannot search flights. Please try again.",
+      "sourceLang": "en"
+    },
+    {
+      "key": "offers.active",
+      "sourceValue": "활성",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.activities",
+      "sourceValue": "액티비티",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.all",
+      "sourceValue": "전체",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.allCategories",
+      "sourceValue": "모든 카테고리",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.applyNow",
+      "sourceValue": "지금 적용",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.carRental",
+      "sourceValue": "렌터카",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.conditions",
+      "sourceValue": "적용 조건",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.expired",
+      "sourceValue": "만료됨",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.flights",
+      "sourceValue": "항공권",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.hotOffers",
+      "sourceValue": "특별 오퍼",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.hotOffersDesc",
+      "sourceValue": "놓치지 마세요 - 기간 한정",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.hotels",
+      "sourceValue": "호텔",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.noConditions",
+      "sourceValue": "특별한 조건 없음",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.off",
+      "sourceValue": "할인",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.promotionDetails",
+      "sourceValue": "프로모션 상세",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.promotionInfo",
+      "sourceValue": "프로모션 상세 정보",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.useNow",
+      "sourceValue": "지금 사용",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.validUntil",
+      "sourceValue": "유효 기간",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.viewAllOffers",
+      "sourceValue": "전체 보기",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "offers.voucherCode",
+      "sourceValue": "바우처 코드",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "visa.cardNumberPlaceholder",
+      "sourceValue": "0000 0000 0000 0000",
+      "sourceLang": "ko"
+    },
+    {
+      "key": "visa.adult",
+      "sourceValue": "성인",
+      "sourceLang": "ko"
+    }
+  ],
+  "ko": [
+    {
+      "key": "admin.noRecentBookings",
+      "sourceValue": "Không có đơn đặt nào gần đây",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.inactive",
+      "sourceValue": "Không hoạt động",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.exhausted",
+      "sourceValue": "Đã đủ người",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.expiredOrExhausted",
+      "sourceValue": "Hết hạn/Đủ người",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.voucherExpiredCannotToggle",
+      "sourceValue": "Không thể kích hoạt voucher {{code}} vì đã hết hạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.voucherExhaustedCannotToggle",
+      "sourceValue": "Không thể kích hoạt voucher {{code}} vì đã đủ số lượng người sử dụng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.voucherDeactivated",
+      "sourceValue": "Đã tắt voucher {{code}}",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.activateVoucher",
+      "sourceValue": "Kích hoạt voucher",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.deactivateVoucher",
+      "sourceValue": "Tắt voucher",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.cannotToggleExpired",
+      "sourceValue": "Không thể kích hoạt voucher đã hết hạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.cannotToggleExhausted",
+      "sourceValue": "Không thể kích hoạt voucher đã đủ người sử dụng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.daysLeft",
+      "sourceValue": "Còn {{days}} ngày",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "admin.expiredDaysAgo",
+      "sourceValue": "Hết hạn {{days}} ngày trước",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.paymentMethods",
+      "sourceValue": "Phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.paymentMethodsDesc",
+      "sourceValue": "Quản lý các phương thức thanh toán đã lưu của bạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addNew",
+      "sourceValue": "Thêm mới",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.secureInfo",
+      "sourceValue": "Thông tin của bạn được bảo mật",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.secureDesc",
+      "sourceValue": "Chúng tôi sử dụng mã hóa SSL 256-bit và tuân thủ chuẩn PCI-DSS để bảo vệ thông tin thanh toán của bạn.",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.default",
+      "sourceValue": "Mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.expiryDate",
+      "sourceValue": "Hết hạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.setDefault",
+      "sourceValue": "Đặt mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.delete",
+      "sourceValue": "Xóa",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.noPaymentMethods",
+      "sourceValue": "Chưa có phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addPaymentMethodDesc",
+      "sourceValue": "Thêm thẻ hoặc tài khoản để thanh toán nhanh hơn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addPaymentMethod",
+      "sourceValue": "Thêm phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addPaymentMethodDesc2",
+      "sourceValue": "Thêm thẻ hoặc tài khoản thanh toán mới",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.card",
+      "sourceValue": "Thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.eWallet",
+      "sourceValue": "Ví điện tử",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.bank",
+      "sourceValue": "Ngân hàng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cardNumber",
+      "sourceValue": "Số thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cardName",
+      "sourceValue": "Tên chủ thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cvv",
+      "sourceValue": "Mã CVV",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.setAsDefault",
+      "sourceValue": "Đặt làm phương thức mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.eWalletComingSoon",
+      "sourceValue": "Tính năng liên kết ví điện tử đang được phát triển",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.bankComingSoon",
+      "sourceValue": "Tính năng liên kết ngân hàng đang được phát triển",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addCard",
+      "sourceValue": "Thêm thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.confirmDelete",
+      "sourceValue": "Xác nhận xóa",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.confirmDeleteDesc",
+      "sourceValue": "Bạn có chắc chắn muốn xóa phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cannotUndo",
+      "sourceValue": "Hành động này không thể hoàn tác",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.setDefaultSuccess",
+      "sourceValue": "Đã đặt làm phương thức mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.cannotDeleteDefault",
+      "sourceValue": "Không thể xóa phương thức thanh toán mặc định",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.deleteSuccess",
+      "sourceValue": "Đã xóa phương thức thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.invalidCardNumber",
+      "sourceValue": "Số thẻ không hợp lệ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.enterCardName",
+      "sourceValue": "Vui lòng nhập tên chủ thẻ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.invalidExpiryDate",
+      "sourceValue": "Ngày hết hạn không hợp lệ (MM/YYYY)",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.invalidCVV",
+      "sourceValue": "CVV không hợp lệ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "payment.addCardSuccess",
+      "sourceValue": "Đã thêm thẻ thanh toán mới",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.doors",
+      "sourceValue": "Số cửa",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.luggage",
+      "sourceValue": "Hành lý",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.licensePlate",
+      "sourceValue": "Biển số xe",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.mileageLimit",
+      "sourceValue": "Giới hạn quãng đường",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.minRentalDays",
+      "sourceValue": "Thuê tối thiểu",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.fuelPolicy",
+      "sourceValue": "Chính sách nhiên liệu",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.unlimited",
+      "sourceValue": "Không giới hạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.insurance",
+      "sourceValue": "Bảo hiểm",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.rentalPolicies",
+      "sourceValue": "Chính sách thuê xe",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.deposit",
+      "sourceValue": "Tiền đặt cọc",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.deliveryService",
+      "sourceValue": "Dịch vụ giao xe",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.free",
+      "sourceValue": "Miễn phí",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.withDriver",
+      "sourceValue": "Có tài xế",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.available",
+      "sourceValue": "Có sẵn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.carFeatures",
+      "sourceValue": "Tính năng xe",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.includedFeatures",
+      "sourceValue": "Tính năng bao gồm",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "carDetail.failedToLoadCar",
+      "sourceValue": "Không thể tải thông tin xe",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "common.hottestPromotions",
+      "sourceValue": "Những khuyến mãi hot nhất đang chờ bạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "hotels.contactInfo",
+      "sourceValue": "Thông tin Liên hệ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "hotels.confirmationWillBeSent",
+      "sourceValue": "Xác nhận đặt phòng sẽ được gửi đến đây",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "hotels.fillContactInfo",
+      "sourceValue": "Vui lòng điền thông tin liên hệ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "hotels.fullName",
+      "sourceValue": "Tên đầy đủ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "hotels.mobilePhone",
+      "sourceValue": "Số điện thoại di động",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "hotels.userInfoLoaded",
+      "sourceValue": "Đã tải thông tin người dùng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.bookingHistory.confirmCompletion",
+      "sourceValue": "Xác nhận hoàn thành",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.activity",
+      "sourceValue": "Hoạt động",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.description",
+      "sourceValue": "Mô tả",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.destination",
+      "sourceValue": "Điểm đến",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.hotel",
+      "sourceValue": "Khách sạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.items",
+      "sourceValue": "mục",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.noItemsDesc",
+      "sourceValue": "Lưu các địa điểm và dịch vụ yêu thích để dễ dàng tìm lại sau này",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.priceFrom",
+      "sourceValue": "Giá từ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.remove",
+      "sourceValue": "Xóa",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.reviews",
+      "sourceValue": "đánh giá",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.savedOn",
+      "sourceValue": "Đã lưu",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.savedItems.viewDetails",
+      "sourceValue": "Xem chi tiết",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.download",
+      "sourceValue": "Tải xuống",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.downloadData",
+      "sourceValue": "Tải dữ liệu cá nhân",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.downloadDataDesc",
+      "sourceValue": "Tải về dữ liệu của bạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.loginDevices",
+      "sourceValue": "Thiết bị đã đăng nhập",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.settings.viewDetails",
+      "sourceValue": "Xem chi tiết",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.aboutPoint1",
+      "sourceValue": "Sử dụng ví để thanh toán nhanh chóng cho các dịch vụ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.aboutPoint2",
+      "sourceValue": "Nhận hoàn tiền tự động khi vendor hủy đơn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.aboutPoint3",
+      "sourceValue": "Tiền trong ví có thể rút về tài khoản ngân hàng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.aboutPoint4",
+      "sourceValue": "Bảo mật tuyệt đối với công nghệ mã hóa cao cấp",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.addMoney",
+      "sourceValue": "Thêm tiền vào ví",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.credit",
+      "sourceValue": "Tiền vào",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.debit",
+      "sourceValue": "Tiền ra",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.loadError",
+      "sourceValue": "Không thể tải dữ liệu ví",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.noTransactionsDesc",
+      "sourceValue": "Lịch sử giao dịch của bạn sẽ hiển thị ở đây",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.refundProcessing",
+      "sourceValue": "Yêu cầu hoàn tiền đang được xử lý bởi Admin. Dự kiến 1-3 ngày làm việc.",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.viewReport",
+      "sourceValue": "Xem báo cáo",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "profile.wallet.viewTransactions",
+      "sourceValue": "Xem giao dịch",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.termsAndConditions",
+      "sourceValue": "Điều khoản & Điều kiện",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.thisCountry",
+      "sourceValue": "quốc gia này",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.ticketNonRefundable",
+      "sourceValue": "Vé máy bay không thể hoàn lại sau khi đã xuất",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.ticketPrice",
+      "sourceValue": "Giá vé",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.honorific",
+      "sourceValue": "Quý danh",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.totalPayment",
+      "sourceValue": "Tổng thanh toán",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.totalPrice",
+      "sourceValue": "Tổng cộng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.trackProgress",
+      "sourceValue": "Theo dõi tiến độ",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.trackProgressDesc",
+      "sourceValue": "Bạn có thể theo dõi tiến độ xử lý hồ sơ qua email hoặc hotline của chúng tôi.",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.travelInsurance",
+      "sourceValue": "Bảo hiểm du lịch",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.uploadDocuments",
+      "sourceValue": "Upload tài liệu",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.uploadFile",
+      "sourceValue": "Tải lên file",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.uploaded",
+      "sourceValue": "Đã tải lên",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.userInfoLoaded",
+      "sourceValue": "Đã tải thông tin người dùng",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.visaApplication",
+      "sourceValue": "Đơn xin Visa",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.whyFillForm",
+      "sourceValue": "Tại sao nên điền form?",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.yes",
+      "sourceValue": "Có",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.yourFlight",
+      "sourceValue": "Chuyến bay của bạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.requestSuccess",
+      "sourceValue": "Gửi Yêu Cầu Thành Công!",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.thankYouForTrusting",
+      "sourceValue": "Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của Wanderlust",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.yourRequestCode",
+      "sourceValue": "Mã yêu cầu của bạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.requestInformation",
+      "sourceValue": "Thông tin yêu cầu",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.email",
+      "sourceValue": "Email",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.destinationCountry",
+      "sourceValue": "Quốc gia đến",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.emailConfirmationSent",
+      "sourceValue": "Email xác nhận đã được gửi",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.emailConfirmationDesc",
+      "sourceValue": "Chúng tôi đã gửi email xác nhận đến {{email}}. Vui lòng kiểm tra hộp thư của bạn.",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.backToForm",
+      "sourceValue": "Quay lại form",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.downloadingReceipt",
+      "sourceValue": "Đang tải biên nhận...",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.downloadingInvoice",
+      "sourceValue": "Đang tải hóa đơn...",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.uploadProgress",
+      "sourceValue": "Tiến độ tải lên",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.uploadRequiredDocs",
+      "sourceValue": "Vui lòng tải lên các tài liệu bắt buộc",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.onlyJpgPngPdfAllowed",
+      "sourceValue": "Chỉ chấp nhận file JPG, PNG, PDF",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.fileSizeExceeded",
+      "sourceValue": "Kích thước file vượt quá 5MB",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.passportScan",
+      "sourceValue": "Scan hộ chiếu",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.passportScanDesc",
+      "sourceValue": "Scan toàn bộ trang có ảnh và thông tin",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.photo4x6",
+      "sourceValue": "Ảnh 4x6",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.idCard",
+      "sourceValue": "CMND/CCCD",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.idCardDesc",
+      "sourceValue": "Scan mặt trước và mặt sau",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.employmentLetter",
+      "sourceValue": "Giấy xác nhận công việc",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.employmentLetterDesc",
+      "sourceValue": "Từ công ty hoặc trường học",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.hotelBooking",
+      "sourceValue": "Đặt phòng khách sạn",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.hotelBookingDesc",
+      "sourceValue": "Xác nhận đặt phòng tại nơi đến",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.insurance",
+      "sourceValue": "Bảo hiểm du lịch",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "visa.insuranceDesc",
+      "sourceValue": "Bảo hiểm y tế và du lịch quốc tế",
+      "sourceLang": "vi"
+    },
+    {
+      "key": "home.search.flights",
+      "sourceValue": "Flights",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.hotels",
+      "sourceValue": "Hotels",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.carRental",
+      "sourceValue": "Car Rental",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.activities",
+      "sourceValue": "Activities",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.selectAirport",
+      "sourceValue": "Select airport",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.departReturnDate",
+      "sourceValue": "Depart - Return",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.selectLocation",
+      "sourceValue": "Select location",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.checkInCheckOut",
+      "sourceValue": "Check-in - Check-out",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.selfDrive",
+      "sourceValue": "Self-drive",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.withDriver",
+      "sourceValue": "With driver",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.enterLocation",
+      "sourceValue": "Enter location...",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.selectDeparture",
+      "sourceValue": "Please select departure airport",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.selectDestination",
+      "sourceValue": "Please select destination airport",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.sameAirport",
+      "sourceValue": "Departure and destination cannot be the same",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.selectDepartDate",
+      "sourceValue": "Please select departure date",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.selectReturnDate",
+      "sourceValue": "Please select return date",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.returnDateBeforeDepart",
+      "sourceValue": "Return date cannot be before departure date",
+      "sourceLang": "en"
+    },
+    {
+      "key": "home.search.errors.searchFailed",
+      "sourceValue": "Cannot search flights. Please try again.",
+      "sourceLang": "en"
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import { paymentApi } from "../../api/paymentApi";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import type { PageType } from "../../MainApp";
+import { bookingApi } from "../../utils/api";
 
 const PENDING_PAYMENT_KEY = "wanderlust_pending_payment";
 
@@ -23,6 +24,28 @@ export default function PaymentSuccessPage({
   const [loading, setLoading] = useState(true);
   const [paymentInfo, setPaymentInfo] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const markBookingAsPaid = async (bookingId: string, payment?: any) => {
+    if (!bookingId) return;
+    if (payment?.status && payment.status !== "COMPLETED") return;
+
+    try {
+      // 1. Xác nhận thanh toán Stripe thành công (cập nhật Payment entity)
+      if (payment?.paymentMethod === 'STRIPE') {
+        await paymentApi.confirmStripeSuccess(bookingId);
+        console.log('✅ Payment confirmed via Stripe success (PaymentSuccessPage)');
+      }
+
+      // 2. Cập nhật Booking entity paymentStatus
+      await bookingApi.updateBooking(bookingId, {
+        paymentStatus: "COMPLETED",
+        status: "PENDING",
+        paymentMethod: payment?.paymentMethod
+      });
+    } catch (err) {
+      console.error("Failed to update booking status after payment:", err);
+    }
+  };
 
   useEffect(() => {
     // Get query params from URL
@@ -55,6 +78,11 @@ export default function PaymentSuccessPage({
         ? await paymentApi.getPaymentStatus(paymentId)
         : null;
       setPaymentInfo(payment);
+
+      const bookingToUpdate = bookingId || (payment as any)?.bookingId;
+      if (bookingToUpdate) {
+        await markBookingAsPaid(bookingToUpdate, payment);
+      }
     } catch (err: any) {
       console.error('Failed to verify payment:', err);
       setError(err.message || 'Không thể xác minh thanh toán');

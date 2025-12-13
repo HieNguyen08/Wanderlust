@@ -21,6 +21,9 @@ interface CreateVoucherDialogProps {
 export function CreateVoucherDialog({ open, onOpenChange, onVoucherCreated }: CreateVoucherDialogProps) {
   const [formData, setFormData] = useState({
     code: "",
+    title: "",
+    description: "",
+    category: "ALL",
     type: "PERCENTAGE",
     value: "",
     maxDiscount: "",
@@ -31,6 +34,7 @@ export function CreateVoucherDialog({ open, onOpenChange, onVoucherCreated }: Cr
     userUseLimit: "1",
     status: "ACTIVE",
     conditions: [] as { type: string; value: string; label: string }[],
+    image: "",
   });
 
   const [newCondition, setNewCondition] = useState({ type: "", value: "" });
@@ -40,6 +44,9 @@ export function CreateVoucherDialog({ open, onOpenChange, onVoucherCreated }: Cr
 
     const voucher = {
       code: formData.code.toUpperCase(),
+      title: formData.title.trim() || formData.code.toUpperCase(),
+      description: formData.description.trim() || `Promotion ${formData.code.toUpperCase()}`,
+      category: formData.category,
       type: formData.type,
       value: parseFloat(formData.value),
       maxDiscount: formData.maxDiscount ? parseFloat(formData.maxDiscount) : null,
@@ -53,6 +60,7 @@ export function CreateVoucherDialog({ open, onOpenChange, onVoucherCreated }: Cr
       createdById: "admin_001",
       status: formData.status,
       conditions: formData.conditions.map(c => ({ type: c.type, value: c.value })),
+      image: formData.image || undefined,
     };
 
     onVoucherCreated(voucher);
@@ -61,6 +69,9 @@ export function CreateVoucherDialog({ open, onOpenChange, onVoucherCreated }: Cr
     // Reset form
     setFormData({
       code: "",
+      title: "",
+      description: "",
+      category: "ALL",
       type: "PERCENTAGE",
       value: "",
       maxDiscount: "",
@@ -71,22 +82,18 @@ export function CreateVoucherDialog({ open, onOpenChange, onVoucherCreated }: Cr
       userUseLimit: "1",
       status: "ACTIVE",
       conditions: [],
+      image: "",
     });
   };
 
   const handleAddCondition = () => {
     if (newCondition.type && newCondition.value) {
-      const conditionLabels: { [key: string]: { [key: string]: string } } = {
-        CATEGORY: {
-          flights: "Vé máy bay",
-          hotels: "Khách sạn",
-          activities: "Hoạt động vui chơi",
-          cars: "Thuê xe",
-          tours: "Tour du lịch",
-        },
-      };
-
-      const label = conditionLabels[newCondition.type]?.[newCondition.value] || newCondition.value;
+      let label = newCondition.value;
+      if (newCondition.type === 'VENDOR') {
+        label = `Vendor: ${newCondition.value}`;
+      } else if (newCondition.type === 'USER') {
+        label = `User: ${newCondition.value}`;
+      }
 
       setFormData({
         ...formData,
@@ -144,6 +151,42 @@ export function CreateVoucherDialog({ open, onOpenChange, onVoucherCreated }: Cr
               </div>
             </div>
 
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Tiêu đề voucher *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="VD: Bay quốc tế giảm 10%"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Mô tả voucher *</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Nhập mô tả ngắn gọn về chương trình ưu đãi"
+                  rows={3}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="image">Link ảnh voucher</Label>
+              <Input
+                id="image"
+                value={formData.image}
+                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                placeholder="https://..."
+              />
+              <p className="text-xs text-gray-500">Ảnh sẽ xuất hiện ở banner và danh sách khuyến mãi (có thể bỏ trống để dùng ảnh mặc định).</p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="value">
@@ -191,6 +234,26 @@ export function CreateVoucherDialog({ open, onOpenChange, onVoucherCreated }: Cr
 
             <div className="space-y-2">
               <Label>Áp dụng cho danh mục</Label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => setFormData({ ...formData, category: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn danh mục áp dụng" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tất cả dịch vụ</SelectItem>
+                  <SelectItem value="FLIGHT">Vé máy bay</SelectItem>
+                  <SelectItem value="HOTEL">Khách sạn</SelectItem>
+                  <SelectItem value="ACTIVITY">Hoạt động vui chơi</SelectItem>
+                  <SelectItem value="CAR">Thuê xe</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">Danh mục này giúp voucher hiển thị đúng bộ lọc ở trang Khuyến mãi.</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Điều kiện bổ sung</Label>
               <div className="flex gap-2">
                 <Select
                   value={newCondition.type}
@@ -200,26 +263,10 @@ export function CreateVoucherDialog({ open, onOpenChange, onVoucherCreated }: Cr
                     <SelectValue placeholder="Chọn loại điều kiện" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CATEGORY">Danh mục dịch vụ</SelectItem>
                     <SelectItem value="VENDOR">Vendor cụ thể</SelectItem>
                     <SelectItem value="USER">User cụ thể</SelectItem>
                   </SelectContent>
                 </Select>
-
-                {newCondition.type === "CATEGORY" && (
-                  <Select value={newCondition.value} onValueChange={(value) => setNewCondition({ ...newCondition, value })}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Chọn danh mục" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="flights">Vé máy bay</SelectItem>
-                      <SelectItem value="hotels">Khách sạn</SelectItem>
-                      <SelectItem value="activities">Hoạt động vui chơi</SelectItem>
-                      <SelectItem value="cars">Thuê xe</SelectItem>
-                      <SelectItem value="tours">Tour du lịch</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
 
                 {(newCondition.type === "VENDOR" || newCondition.type === "USER") && (
                   <Input

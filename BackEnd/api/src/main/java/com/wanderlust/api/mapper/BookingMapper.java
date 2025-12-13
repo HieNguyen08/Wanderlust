@@ -26,6 +26,7 @@ public abstract class BookingMapper { // <-- THAY ĐỔI: Chuyển thành abstra
      * Convert Entity -> DTO
      * Cần chỉ định phương thức custom cho các trường không khớp
      */
+    @Mapping(target = "roomId", ignore = true)
     @Mapping(target = "guestInfo", source = "guestInfo", qualifiedByName = "guestInfoToMap")
     @Mapping(target = "numberOfGuests", source = "numberOfGuests", qualifiedByName = "guestCountToMap")
     @Mapping(target = "userConfirmed", source = "userConfirmed")

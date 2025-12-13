@@ -155,10 +155,21 @@ export default function UserVouchersPage({ onNavigate, userRole, onLogout }: Use
   };
 
   const formatValue = (type: string, value: number, maxDiscount: number | null) => {
+    const safeValue = Number.isFinite(value) ? value : Number(value) || 0;
+    const safeMaxDiscount = Number.isFinite(maxDiscount as number)
+      ? (maxDiscount as number)
+      : (typeof maxDiscount === 'string' && !isNaN(Number(maxDiscount))
+        ? Number(maxDiscount)
+        : null);
+
     if (type === "PERCENTAGE") {
-      return t('vouchers.discountPercent', { value, max: maxDiscount ? ` (${t('vouchers.maxDiscount', 'tối đa')} ${maxDiscount.toLocaleString('vi-VN')}đ)` : '' });
+      const maxText = safeMaxDiscount != null
+        ? ` (${t('vouchers.maxDiscount', 'tối đa')} ${safeMaxDiscount.toLocaleString('vi-VN')}đ)`
+        : '';
+      return t('vouchers.discountPercent', { value: safeValue, max: maxText });
     }
-    return t('vouchers.discountAmount', { value: value.toLocaleString('vi-VN') });
+
+    return t('vouchers.discountAmount', { value: safeValue.toLocaleString('vi-VN') });
   };
 
   const VoucherCard = ({ voucher, showUsedInfo = false }: { voucher: any; showUsedInfo?: boolean }) => (

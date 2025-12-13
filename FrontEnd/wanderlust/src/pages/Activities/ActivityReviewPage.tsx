@@ -13,6 +13,7 @@ import { Label } from "../../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Separator } from "../../components/ui/separator";
 import type { PageType } from "../../MainApp";
+import { useNavigationProps } from "../../router/withPageProps";
 import { profileApi, tokenService } from "../../utils/api";
 
 interface ActivityReviewPageProps {
@@ -22,8 +23,24 @@ interface ActivityReviewPageProps {
   onLogout?: () => void;
 }
 
-export default function ActivityReviewPage({ onNavigate, activityData, userRole, onLogout }: ActivityReviewPageProps) {
+export default function ActivityReviewPage({
+  onNavigate: onNavigateProp,
+  activityData: activityDataProp,
+  userRole: userRoleProp,
+  onLogout: onLogoutProp
+}: ActivityReviewPageProps) {
   const { t } = useTranslation();
+  const {
+    onNavigate: navFromContext,
+    pageData,
+    userRole: userRoleFromContext,
+    onLogout: onLogoutFromContext
+  } = useNavigationProps();
+
+  const onNavigate = onNavigateProp ?? navFromContext;
+  const userRole = userRoleProp ?? userRoleFromContext;
+  const onLogout = onLogoutProp ?? onLogoutFromContext;
+  const activityData = activityDataProp ?? pageData ?? {};
   const [contactInfo, setContactInfo] = useState({
     fullName: "",
     email: "",
@@ -118,12 +135,35 @@ export default function ActivityReviewPage({ onNavigate, activityData, userRole,
       return;
     }
 
+    const participantTotal = booking.participants ?? ((booking.adults ?? 0) + (booking.children ?? 0)) ?? 1;
+
+    const normalizedBooking = {
+      ...booking,
+      date: booking.date,
+      time: booking.time,
+      participants: participantTotal,
+      adults: booking.adults ?? participantTotal ?? 1,
+      children: booking.children ?? 0,
+      hasPickup: booking.hasPickup,
+      pickupInfo: booking.hasPickup ? pickupInfo : undefined,
+    };
+
+    const normalizedActivityData = {
+      ...activityData,
+      activity,
+      booking: normalizedBooking,
+      pricing: {
+        ...pricing,
+        totalPrice: finalTotal
+      }
+    };
+
     onNavigate("payment-methods", {
       type: "activity",
       contactInfo,
       participantInfo,
       pickupInfo,
-      activityData,
+      activityData: normalizedActivityData,
       totalPrice: finalTotal
     });
   };

@@ -1,10 +1,14 @@
 package com.wanderlust.api.mapper;
 
+import java.time.LocalDateTime;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+
 import com.wanderlust.api.dto.ActivityRequestDTO;
 import com.wanderlust.api.entity.Activity;
-import org.mapstruct.*;
-
-import java.time.LocalDateTime;
 
 @Mapper(
     componentModel = "spring", 
@@ -28,6 +32,8 @@ public interface ActivityMapper {
     @Mapping(target = "averageRating", expression = "java(BigDecimal.ZERO)")
     @Mapping(target = "createdAt", expression = "java(LocalDateTime.now())")
     @Mapping(target = "updatedAt", expression = "java(LocalDateTime.now())")
+    @Mapping(target = "city", ignore = true)
+    @Mapping(target = "country", ignore = true)
     Activity toEntity(ActivityRequestDTO dto);
 
     /**
@@ -46,5 +52,7 @@ public interface ActivityMapper {
     @Mapping(target = "featured", ignore = true)
     @Mapping(target = "averageRating", ignore = true)
     @Mapping(target = "updatedAt", expression = "java(LocalDateTime.now())")
+    @Mapping(target = "city", ignore = true)
+    @Mapping(target = "country", ignore = true)
     void updateEntityFromDTO(ActivityRequestDTO dto, @MappingTarget Activity activity);
 }

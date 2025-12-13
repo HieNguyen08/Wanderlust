@@ -74,6 +74,9 @@ public class Promotion {
     @Field("isFeatured")
     private Boolean isFeatured = false;
 
+    @Field("isActive")
+    private Boolean isActiveManual = true; // Manual control by admin
+
     @Field("totalUsesLimit")
     private Integer totalUsesLimit;
 
@@ -104,11 +107,48 @@ public class Promotion {
         return (int) days;
     }
 
-    // Check if promotion is active
+    // Check if promotion has expired
+    public boolean isExpired() {
+        if (endDate == null) return false;
+        return LocalDate.now().isAfter(endDate);
+    }
+
+    // Check if promotion is exhausted (reached usage limit)
+    public boolean isExhausted() {
+        return totalUsesLimit != null && usedCount != null && usedCount >= totalUsesLimit;
+    }
+
+    // Check if promotion can be toggled (not expired and not exhausted)
+    public boolean canBeToggled() {
+        return !isExpired() && !isExhausted();
+    }
+
+    // Get computed status for display
+    public String getComputedStatus() {
+        if (isExpired()) return "EXPIRED";
+        if (isExhausted()) return "EXHAUSTED";
+        if (isActiveManual != null && isActiveManual) return "ACTIVE";
+        return "INACTIVE";
+    }
+
+    // Check if promotion is active (both manually enabled and within date range)
     public boolean isActive() {
+        if (isActiveManual == null || !isActiveManual) {
+            return false;
+        }
         LocalDate now = LocalDate.now();
         return (startDate == null || !now.isBefore(startDate)) && 
                (endDate == null || !now.isAfter(endDate));
+    }
+
+    // Get manual active status
+    public Boolean getIsActive() {
+        return isActiveManual;
+    }
+
+    // Set manual active status
+    public void setIsActive(Boolean isActive) {
+        this.isActiveManual = isActive;
     }
 
     // Check if promotion is available (not exhausted)

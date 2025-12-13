@@ -109,7 +109,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
   // Get actual flight data from previous page (location.state or prop)
   const isInternational = resolvedFlightData?.isInternational || false;
   const tripType = resolvedFlightData?.tripType || 'one-way';
-  
+
   // Debug: Log received flight data
   useEffect(() => {
     console.log('=== FlightReviewPage Data ===');
@@ -119,7 +119,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
     console.log('selectedSeats:', resolvedFlightData?.selectedSeats);
     console.log('cabinClass:', resolvedFlightData?.cabinClass);
   }, [resolvedFlightData]);
-  
+
   // Outbound flight data from SearchPage
   const outboundFlightData = resolvedFlightData?.outboundFlight;
   const returnFlightData = resolvedFlightData?.returnFlight;
@@ -181,12 +181,12 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
 
   // Calculate base price from cabin class
   const cabinClass = resolvedFlightData?.cabinClass || 'economy';
-  
+
   // Get cabin class price from flight data
   const outboundBasePrice = outboundFlightData?.cabinClasses?.[cabinClass]?.fromPrice || 1500000;
   const returnBasePrice = returnFlightData?.cabinClasses?.[cabinClass]?.fromPrice || 0;
   const basePrice = outboundBasePrice + returnBasePrice;
-  
+
   // Calculate taxes and fees (10% of base price per passenger)
   const taxAndFees = Math.round((outboundBasePrice + returnBasePrice) * 0.1);
 
@@ -716,7 +716,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                       <span>{formatDate(outboundFlightData.departureTime)}</span>
                       <span className="font-medium text-blue-700">{getCabinClassName(cabinClass)}</span>
                     </div>
-                    
+
                     {/* Selected Seats for Outbound */}
                     {selectedSeats.outbound && selectedSeats.outbound.length > 0 ? (
                       <div className="mt-3 pt-3 border-t border-blue-200">
@@ -791,7 +791,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                       <span>{formatDate(returnFlightData.departureTime)}</span>
                       <span className="font-medium text-green-700">{getCabinClassName(cabinClass)}</span>
                     </div>
-                    
+
                     {/* Selected Seats for Return */}
                     {selectedSeats.return && selectedSeats.return.length > 0 ? (
                       <div className="mt-3 pt-3 border-t border-green-200">

@@ -1,15 +1,15 @@
-import { ArrowLeft, Star, MapPin, Wifi, Car, Utensils, Dumbbell, Check, Heart, Share2, Phone, Mail, Clock, Users, Bed, Coffee, Info, ChevronDown, Maximize2, Refrigerator, AirVent, X } from "lucide-react";
-import { Button } from "../../components/ui/button";
+import { AirVent, ArrowLeft, Bed, Car, Check, ChevronDown, Clock, Dumbbell, Heart, Info, Mail, MapPin, Maximize2, Phone, Refrigerator, Share2, Star, Users, Utensils, Wifi, X } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
-import { Badge } from "../../components/ui/badge";
 import { Header } from "../../components/Header";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
 
-import type { PageType } from "../../MainApp";
-import { useState, useEffect } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { hotelApi } from "../../utils/api";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import type { PageType } from "../../MainApp";
+import { hotelApi } from "../../utils/api";
 
 interface Hotel {
   id: string;
@@ -132,6 +132,9 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
   }
 
   const handleRoomSelection = (room: any, option: any) => {
+    // Calculate nights (for now using 1 night, should be calculated from date picker)
+    const nights = 1; // TODO: Calculate from checkIn/checkOut date picker
+    
     // Navigate to hotel review page with booking data
     onNavigate("hotel-review", {
       hotel: {
@@ -139,24 +142,41 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
         name: hotel.name,
         rating: hotel.rating,
         address: hotel.address,
-        image: hotel.image
+        image: hotel.image,
+        phone: hotel.phone,
+        email: hotel.email
       },
       room: {
         id: room.id,
         name: room.name,
         size: room.size,
         image: room.image,
-        amenities: room.amenities
+        amenities: room.amenities,
+        maxGuests: room.maxGuests,
+        description: room.description
+      },
+      option: {
+        id: option.id,
+        name: option.name,
+        bedType: option.bedType,
+        breakfast: option.breakfast,
+        cancellation: option.cancellation,
+        price: option.price,
+        originalPrice: option.originalPrice,
+        roomsLeft: option.roomsLeft,
+        earnPoints: option.earnPoints
       },
       booking: {
         checkIn: "Thứ 6, 7/11/2025", // TODO: Get from date picker
         checkOut: "Thứ 7, 8/11/2025",
-        nights: 1,
+        nights: nights,
         roomType: room.name,
+        roomCount: 1,
         option: option.name,
         bedType: option.bedType,
         breakfast: option.breakfast,
-        guests: 2 // TODO: Get from guest selector
+        guests: room.maxGuests || 2,
+        cancellationPolicy: option.cancellation
       },
       pricing: {
         roomPrice: option.price,

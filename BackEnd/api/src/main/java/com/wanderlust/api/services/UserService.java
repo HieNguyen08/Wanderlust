@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.wanderlust.api.entity.User;
 import com.wanderlust.api.entity.Wallet;
+import com.wanderlust.api.entity.types.AuthProvider;
 import com.wanderlust.api.entity.types.Role;
 import com.wanderlust.api.entity.types.WalletStatus;
 import com.wanderlust.api.repository.UserRepository;
@@ -129,6 +130,7 @@ public class UserService implements BaseServices<User> {
     public User registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(Role.USER);
+        user.setProvider(AuthProvider.LOCAL);
         user.setIsBlocked(false);
         user.setCreatedAt(LocalDateTime.now());
         if (user.getMembershipLevel() == null) user.setMembershipLevel(com.wanderlust.api.entity.types.MembershipLevel.BRONZE);
@@ -150,10 +152,12 @@ public class UserService implements BaseServices<User> {
     }
 
         // **PHƯƠNG THỨC MỚI: Tạo người dùng OAuth2 (Google/Facebook)**
-    public User createOauthUser(String email, String name, String avatarUrl) {
+    public User createOauthUser(String email, String name, String avatarUrl, AuthProvider provider, String providerId) {
         User newUser = new User();
         newUser.setEmail(email);
         newUser.setAvatar(avatarUrl);
+        newUser.setProvider(provider);
+        newUser.setProviderId(providerId);
         
         String[] names = name.split(" ", 2);
         newUser.setFirstName(names[0]);

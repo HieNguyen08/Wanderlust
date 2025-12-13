@@ -125,13 +125,38 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
   useEffect(() => {
     const fetchCars = async () => {
       try {
-        // Fetch popular cars (top rated)
-        const popularResponse = await carRentalApi.getAllCars({ page: 0, size: 4, sort: "rating,desc" });
-        setPopularCars(popularResponse.content || []);
+        // Fetch all cars from backend
+        const allCars = await carRentalApi.getAllCars();
+        
+        // Map backend data to frontend format
+        const mappedCars = (Array.isArray(allCars) ? allCars : []).map((car: any) => ({
+          id: car.id,
+          name: `${car.brand} ${car.model}`,
+          brand: car.brand,
+          model: car.model,
+          year: car.year,
+          type: car.type || "SUV",
+          image: car.images?.[0]?.url || "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800",
+          gasoline: car.fuelType || "Gasoline",
+          transmission: car.transmission || "Manual",
+          capacity: `${car.seats || 5} People`,
+          seats: car.seats,
+          price: car.pricePerDay ? parseFloat(car.pricePerDay) : 0,
+          pricePerHour: car.pricePerHour ? parseFloat(car.pricePerHour) : 0,
+          liked: false,
+          rating: car.averageRating || (4.5 + Math.random() * 0.5),
+          features: car.features || [],
+          insurance: car.insurance,
+          deposit: car.deposit ? parseFloat(car.deposit) : 0,
+        }));
 
-        // Fetch recommended cars (random or specific criteria)
-        const recommendedResponse = await carRentalApi.getAllCars({ page: 0, size: 4 });
-        setRecommendedCars(recommendedResponse.content || []);
+        // Sort by rating for popular cars
+        const sortedByRating = [...mappedCars].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        setPopularCars(sortedByRating.slice(0, 4));
+
+        // Random selection for recommended cars
+        const shuffled = [...mappedCars].sort(() => Math.random() - 0.5);
+        setRecommendedCars(shuffled.slice(0, 4));
       } catch (error) {
         console.error("Failed to fetch cars:", error);
       }
@@ -758,21 +783,37 @@ function CarCard({ car, onNavigate }: { car: any; onNavigate: (page: PageType, d
 
         <div className="flex items-center justify-between pt-4 border-t">
           <div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl text-blue-600">{Math.round(car.price / 24000).toLocaleString('vi-VN')}</span>
-              <span className="text-sm text-gray-500">$/ngày</span>
+            <div className="flex flex-col">
+              <span className="text-lg text-blue-600 font-semibold">
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(car.price)}
+              </span>
+              <span className="text-xs text-gray-500">/ngày</span>
             </div>
             {car.originalPrice && (
-              <p className="text-sm text-gray-400 line-through">${Math.round(car.originalPrice / 24000).toLocaleString('vi-VN')}</p>
+              <p className="text-sm text-gray-400 line-through">
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(car.originalPrice)}
+              </p>
             )}
           </div>
           <Button
             onClick={(e) => {
               e.stopPropagation();
               onNavigate("car-review", {
-                car: { id: car.id, name: car.name, type: car.type, image: car.image, transmission: car.transmission, capacity: car.capacity },
-                rental: { pickupDate: "Thứ 7, 8/11/2025", pickupTime: "09:00", dropoffDate: "Thứ 2, 10/11/2025", dropoffTime: "09:00", pickupLocation: "TP. Hồ Chí Minh", dropoffLocation: "TP. Hồ Chí Minh", days: 2 },
-                pricing: { carPrice: car.price * 2, fees: 0, deposit: car.price * 1.5 }
+                car: {
+                  id: car.id,
+                  name: car.name,
+                  type: car.type,
+                  image: car.image,
+                  transmission: car.transmission,
+                  capacity: car.capacity,
+                  seats: car.seats,
+                  pricePerDay: car.price,
+                  pricePerHour: car.pricePerHour || 0,
+                  withDriver: car.withDriver,
+                  driverPrice: car.driverPrice || 0,
+                  insurance: car.insurance,
+                  deposit: car.deposit
+                }
               });
             }}
             size="sm"

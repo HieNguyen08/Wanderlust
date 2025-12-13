@@ -10,9 +10,9 @@ import {
   Sparkles,
   Tag,
   Ticket,
-  TrendingUp
+  Search
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner@2.0.3";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
@@ -20,8 +20,8 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
+import { Input } from "../../components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import type { PageType } from "../../MainApp";
 import { promotionApi, tokenService, userVoucherApi } from "../../utils/api";
 
@@ -40,10 +40,10 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
   // Load saved vouchers from backend
   const [savedVouchers, setSavedVouchers] = useState<string[]>([]);
   const [savingVoucher, setSavingVoucher] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Filters
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedDestinations, setSelectedDestinations] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
 
   // Load saved vouchers from backend
@@ -65,51 +65,57 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
     loadSavedVouchers();
   }, []);
 
-  // Fetch promotions from backend
-  useEffect(() => {
-    const fetchPromotions = async () => {
-      try {
-        setLoading(true);
-        const data = await promotionApi.getAll();
+  const fetchPromotions = useCallback(async (showSpinner: boolean = true) => {
+    try {
+      if (showSpinner) setLoading(true);
+      const data = await promotionApi.getActive();
 
-        // Transform backend data to match frontend structure
-        const transformedData = data.map((promo: any) => ({
-          id: promo.id,
-          code: promo.code,
-          title: promo.title,
-          description: promo.description,
-          image: promo.image || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=400&fit=crop",
-          type: promo.type, // PERCENTAGE or FIXED_AMOUNT
-          value: promo.value,
-          maxDiscount: promo.maxDiscount,
-          minSpend: promo.minSpend,
-          startDate: promo.startDate,
-          endDate: promo.endDate,
-          category: promo.category,
-          destination: promo.destination,
-          badge: promo.badge || (promo.type === 'PERCENTAGE'
-            ? `GIẢM ${promo.value}%`
-            : `${promo.value.toLocaleString('vi-VN')}Đ`),
-          badgeColor: promo.badgeColor || getCategoryColor(promo.category),
-          isFeatured: promo.isFeatured,
-          daysLeft: calculateDaysLeft(promo.endDate),
-          totalUsesLimit: promo.totalUsesLimit,
-          usedCount: promo.usedCount,
-          conditions: promo.conditions || [],
-          applicableServices: []
-        }));
+      const transformedData = data.map((promo: any) => ({
+        id: promo.id,
+        code: promo.code,
+        title: promo.title,
+        description: promo.description,
+        image: promo.image || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=400&fit=crop",
+        type: promo.type,
+        value: promo.value,
+        maxDiscount: promo.maxDiscount,
+        minSpend: promo.minSpend,
+        startDate: promo.startDate,
+        endDate: promo.endDate,
+        category: promo.category,
+        destination: promo.destination,
+        badge: promo.badge || (promo.type === 'PERCENTAGE'
+          ? `GIẢM ${promo.value}%`
+          : `${promo.value.toLocaleString('vi-VN')}Đ`),
+        badgeColor: promo.badgeColor || getCategoryColor(promo.category),
+        isFeatured: promo.isFeatured,
+        daysLeft: calculateDaysLeft(promo.endDate),
+        totalUsesLimit: promo.totalUsesLimit,
+        usedCount: typeof promo.usedCount === 'number' ? promo.usedCount : 0,
+        conditions: promo.conditions || [],
+        applicableServices: []
+      }));
 
-        setAllVouchers(transformedData);
-      } catch (error) {
-        console.error('Error fetching promotions:', error);
-        toast.error('Không thể tải danh sách khuyến mãi');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPromotions();
+      setAllVouchers(transformedData);
+    } catch (error) {
+      console.error('Error fetching promotions:', error);
+      toast.error('Không thể tải danh sách khuyến mãi');
+    } finally {
+      if (showSpinner) setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchPromotions();
+  }, [fetchPromotions]);
+
+  useEffect(() => {
+    if (!selectedPromo) return;
+    const updated = allVouchers.find((voucher) => voucher.id === selectedPromo.id);
+    if (updated && updated !== selectedPromo) {
+      setSelectedPromo(updated);
+    }
+  }, [allVouchers, selectedPromo]);
 
   // Helper functions
   const getCategoryColor = (category: string) => {
@@ -130,10 +136,9 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
-  // Hero Banners - Lấy từ backend (4 voucher featured đầu tiên)
+  // Hero Banners - hiển thị 3 voucher active đầu tiên
   const heroBanners = allVouchers
-    .filter(v => v.isFeatured)
-    .slice(0, 4)
+    .slice(0, 3)
     .map((voucher, index) => {
       const gradients = [
         "from-purple-900/70 via-pink-900/70 to-transparent",
@@ -153,24 +158,28 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
       };
     });
 
-  // Filter vouchers
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+
+  // Filter vouchers (still allow category/type filters)
   const filteredVouchers = allVouchers.filter(voucher => {
-    if (selectedCategories.length > 0 && !selectedCategories.includes(voucher.category) && !selectedCategories.includes('all')) {
-      return false;
-    }
-    if (selectedDestinations.length > 0 && !selectedDestinations.includes(voucher.destination)) {
+    const categoryValue = (voucher.category || '').toLowerCase();
+    const matchesCategory =
+      selectedCategories.length === 0 ||
+      selectedCategories.includes('all') ||
+      selectedCategories.some(cat => cat === categoryValue);
+    if (!matchesCategory) {
       return false;
     }
     if (selectedTypes.length > 0 && !selectedTypes.includes(voucher.type)) {
       return false;
     }
-    return true;
+    if (!normalizedSearch) return true;
+    const haystack = [voucher.code, voucher.title, voucher.description]
+      .filter(Boolean)
+      .map((value) => value.toLowerCase());
+    return haystack.some((value) => value.includes(normalizedSearch));
   });
-
-  // Categorize vouchers
-  const featuredVouchers = filteredVouchers.filter(v => v.isFeatured);
-  const expiringVouchers = filteredVouchers.filter(v => v.daysLeft <= 7).sort((a, b) => a.daysLeft - b.daysLeft);
-  const newestVouchers = [...filteredVouchers].sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  const visibleVouchers = filteredVouchers;
 
   const handleCopyCode = async (code: string) => {
     try {
@@ -211,16 +220,17 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
       await userVoucherApi.saveToWallet(voucherCode);
 
       // Update saved vouchers list
-      setSavedVouchers([...savedVouchers, voucherCode]);
+      setSavedVouchers((prev) => [...prev, voucherCode]);
 
       toast.success(`Đã lưu mã ${voucherCode} vào Ví Voucher của bạn!`);
+
+      // Reload promotions so "Đã sử dụng" phản ánh chính xác
+      await fetchPromotions(false);
     } catch (error: any) {
       if (error.message?.includes("đã lưu")) {
         toast.info("Bạn đã lưu voucher này rồi!");
         // Update local state if backend says already saved
-        if (!savedVouchers.includes(voucherCode)) {
-          setSavedVouchers([...savedVouchers, voucherCode]);
-        }
+        setSavedVouchers((prev) => (prev.includes(voucherCode) ? prev : [...prev, voucherCode]));
       } else {
         toast.error(error.message || "Không thể lưu voucher!");
       }
@@ -235,17 +245,22 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
     return voucher ? savedVouchers.includes(voucher.code) : false;
   };
 
-  const toggleFilter = (filterArray: string[], setFilter: Function, value: string) => {
-    if (filterArray.includes(value)) {
-      setFilter(filterArray.filter(item => item !== value));
+  const toggleFilter = (filterArray: string[], setFilter: (next: string[]) => void, value: string) => {
+    if (value === 'all') {
+      setFilter(filterArray.includes('all') ? [] : ['all']);
+      return;
+    }
+
+    const cleaned = filterArray.filter(item => item !== 'all');
+    if (cleaned.includes(value)) {
+      setFilter(cleaned.filter(item => item !== value));
     } else {
-      setFilter([...filterArray, value]);
+      setFilter([...cleaned, value]);
     }
   };
 
   const clearAllFilters = () => {
     setSelectedCategories([]);
-    setSelectedDestinations([]);
     setSelectedTypes([]);
   };
 
@@ -490,11 +505,14 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
                     <Filter className="w-5 h-5" />
                     Bộ lọc
                   </h3>
-                  {(selectedCategories.length > 0 || selectedDestinations.length > 0 || selectedTypes.length > 0) && (
+                  {(selectedCategories.length > 0 || selectedTypes.length > 0 || searchQuery.trim().length > 0) && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={clearAllFilters}
+                      onClick={() => {
+                        clearAllFilters();
+                        setSearchQuery("");
+                      }}
                       className="text-blue-600 hover:text-blue-700"
                     >
                       Xóa hết
@@ -528,22 +546,6 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
                   </div>
                 </div>
 
-                {/* Destination Filter */}
-                <div className="mb-6">
-                  <h4 className="text-sm mb-3 text-gray-700">Điểm đến</h4>
-                  <div className="space-y-2">
-                    {['Toàn quốc', 'Đà Nẵng', 'Phú Quốc', 'Hội An'].map(dest => (
-                      <label key={dest} className="flex items-center gap-2 cursor-pointer">
-                        <Checkbox
-                          checked={selectedDestinations.includes(dest)}
-                          onCheckedChange={() => toggleFilter(selectedDestinations, setSelectedDestinations, dest)}
-                        />
-                        <span className="text-sm">{dest}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Type Filter */}
                 <div>
                   <h4 className="text-sm mb-3 text-gray-700">Loại ưu đãi</h4>
@@ -569,96 +571,65 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
           {/* Main Vouchers Section */}
           <div className="flex-1">
             {/* Mobile Filter Toggle */}
-            <div className="flex items-center justify-between mb-6 lg:hidden">
-              <h2 className="text-2xl text-gray-900">Ưu đãi hiện có</h2>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                Bộ lọc
-              </Button>
+            <div className="lg:hidden mb-6 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl text-gray-900">Ưu đãi hiện có</h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  <Filter className="w-4 h-4 mr-2" />
+                  Bộ lọc
+                </Button>
+              </div>
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Tìm mã voucher hoặc chủ đề ưu đãi"
+                  className="pl-10"
+                />
+              </div>
             </div>
 
-            <Tabs defaultValue="featured" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-8">
-                <TabsTrigger value="featured" className="gap-2">
-                  <TrendingUp className="w-4 h-4" />
-                  Nổi bật
-                </TabsTrigger>
-                <TabsTrigger value="expiring" className="gap-2">
-                  <Clock className="w-4 h-4" />
-                  Sắp hết hạn
-                </TabsTrigger>
-                <TabsTrigger value="newest" className="gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Mới nhất
-                </TabsTrigger>
-              </TabsList>
+            <div className="mb-6 hidden lg:flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-3xl text-gray-900">Tất cả voucher đang hoạt động</h2>
+                <p className="text-sm text-gray-500">Mọi thay đổi từ trang quản trị được đồng bộ theo thời gian thực.</p>
+              </div>
+              <div className="relative w-full max-w-sm">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Tìm mã voucher hoặc chủ đề ưu đãi"
+                  className="pl-10"
+                />
+              </div>
+            </div>
 
-              {loading ? (
-                <Card className="p-12 text-center">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                    <p className="text-gray-600">Đang tải danh sách ưu đãi...</p>
-                  </div>
-                </Card>
-              ) : (
-                <>
-                  {/* Featured Tab */}
-                  <TabsContent value="featured">
-                    {featuredVouchers.length === 0 ? (
-                      <Card className="p-12 text-center">
-                        <Ticket className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                        <h3 className="text-lg text-gray-900 mb-2">Không tìm thấy ưu đãi</h3>
-                        <p className="text-gray-600">Thử thay đổi bộ lọc để xem thêm ưu đãi khác</p>
-                      </Card>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {featuredVouchers.map(voucher => (
-                          <PromotionCard key={voucher.id} voucher={voucher} />
-                        ))}
-                      </div>
-                    )}
-                  </TabsContent>
-
-                  {/* Expiring Tab */}
-                  <TabsContent value="expiring">
-                    {expiringVouchers.length === 0 ? (
-                      <Card className="p-12 text-center">
-                        <Clock className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                        <h3 className="text-lg text-gray-900 mb-2">Không có ưu đãi sắp hết hạn</h3>
-                        <p className="text-gray-600">Tất cả ưu đãi vẫn còn nhiều thời gian</p>
-                      </Card>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {expiringVouchers.map(voucher => (
-                          <PromotionCard key={voucher.id} voucher={voucher} />
-                        ))}
-                      </div>
-                    )}
-                  </TabsContent>
-
-                  {/* Newest Tab */}
-                  <TabsContent value="newest">
-                    {newestVouchers.length === 0 ? (
-                      <Card className="p-12 text-center">
-                        <Sparkles className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                        <h3 className="text-lg text-gray-900 mb-2">Không tìm thấy ưu đãi</h3>
-                        <p className="text-gray-600">Thử thay đổi bộ lọc để xem thêm ưu đãi khác</p>
-                      </Card>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {newestVouchers.map(voucher => (
-                          <PromotionCard key={voucher.id} voucher={voucher} />
-                        ))}
-                      </div>
-                    )}
-                  </TabsContent>
-                </>
-              )}
-            </Tabs>
+            {loading ? (
+              <Card className="p-12 text-center">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-gray-600">Đang tải danh sách ưu đãi...</p>
+                </div>
+              </Card>
+            ) : visibleVouchers.length === 0 ? (
+              <Card className="p-12 text-center">
+                <Ticket className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                <h3 className="text-lg text-gray-900 mb-2">Không tìm thấy ưu đãi đang hoạt động</h3>
+                <p className="text-gray-600">Thử thay đổi bộ lọc hoặc quay lại sau.</p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {visibleVouchers.map(voucher => (
+                  <PromotionCard key={voucher.id} voucher={voucher} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

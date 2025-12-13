@@ -249,6 +249,50 @@ public class BookingController {
         return null;
     }
 
+    /**
+     * Update booking (for payment status updates, admin updates, etc.)
+     * Frontend calls this after payment completion/failure
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @webSecurity.isBookingOwner(authentication, #id)")
+    public ResponseEntity<BookingDTO> updateBooking(
+            @PathVariable String id,
+            @RequestBody Map<String, Object> updates,
+            Authentication authentication) {
+        
+        BookingDTO existingBooking = bookingService.findById(id);
+        
+        // Update paymentStatus if provided
+        if (updates.containsKey("paymentStatus")) {
+            String paymentStatusStr = (String) updates.get("paymentStatus");
+            existingBooking.setPaymentStatus(
+                com.wanderlust.api.entity.types.PaymentStatus.valueOf(paymentStatusStr)
+            );
+        }
+        
+        // Update paymentMethod if provided
+        if (updates.containsKey("paymentMethod")) {
+            String paymentMethodStr = (String) updates.get("paymentMethod");
+            existingBooking.setPaymentMethod(
+                com.wanderlust.api.entity.types.PaymentMethod.valueOf(paymentMethodStr)
+            );
+        }
+        
+        // Update status if provided
+        if (updates.containsKey("status")) {
+            String statusStr = (String) updates.get("status");
+            existingBooking.setStatus(BookingStatus.valueOf(statusStr));
+        }
+        
+        // Update specialRequests if provided
+        if (updates.containsKey("specialRequests")) {
+            existingBooking.setSpecialRequests((String) updates.get("specialRequests"));
+        }
+        
+        BookingDTO updatedBooking = bookingService.update(id, existingBooking);
+        return new ResponseEntity<>(updatedBooking, HttpStatus.OK);
+    }
+
     @PutMapping("/{id}/cancel")
     @PreAuthorize("hasRole('ADMIN') or @webSecurity.isBookingOwner(authentication, #id)")
     public ResponseEntity<BookingDTO> cancelBooking(

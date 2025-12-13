@@ -22,13 +22,13 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../MainApp";
 import { flightApi } from "../utils/api";
+import { SearchLoadingOverlay } from "./SearchLoadingOverlay";
 import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./ui/command";
 import { Input } from "./ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "./ui/utils";
-import { SearchLoadingOverlay } from "./SearchLoadingOverlay";
 
 interface HeroSearchHubProps {
     onNavigate: (page: PageType, data?: any) => void;
@@ -144,7 +144,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                 returnFlights
             };
             onSearch?.(searchData);
-            onNavigate("search", searchData);
+            onNavigate("flight-detail", searchData);
         } catch (error: any) {
             console.error("Error searching flights:", error);
             toast.error(t("searchHub.searchError"));
