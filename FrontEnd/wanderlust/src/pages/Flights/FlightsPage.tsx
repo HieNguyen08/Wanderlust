@@ -1,21 +1,21 @@
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import {
-    ArrowRightLeft,
-    Calendar as CalendarIcon,
-    Check, ChevronsUpDown,
-    Copy,
-    Globe,
-    Headphones,
-    Minus,
-    PlaneLanding,
-    PlaneTakeoff,
-    Plus,
-    Search,
-    Shield,
-    Sparkles,
-    Tag,
-    Users
+  ArrowRightLeft,
+  Calendar as CalendarIcon,
+  Check, ChevronsUpDown,
+  Copy,
+  Globe,
+  Headphones,
+  Minus,
+  PlaneLanding,
+  PlaneTakeoff,
+  Plus,
+  Search,
+  Shield,
+  Sparkles,
+  Tag,
+  Users
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from 'react-i18next';
@@ -214,7 +214,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
         from: fromAirport.code,
         to: toAirport.code,
         date: formattedDate,
-        directOnly: false
+        directOnly: false,
+        cabinClass: cabinClass
       });
 
       console.log("✅ Found outbound flights:", outboundFlights);
@@ -226,7 +227,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
           from: toAirport.code,
           to: fromAirport.code,
           date: formattedReturnDate,
-          directOnly: false
+          directOnly: false,
+          cabinClass: cabinClass
         });
         console.log("✅ Found return flights:", returnFlights);
       }

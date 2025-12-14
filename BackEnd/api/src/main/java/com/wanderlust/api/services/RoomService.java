@@ -1,13 +1,16 @@
 package com.wanderlust.api.services;
 
 import com.wanderlust.api.dto.hotelDTO.RoomDTO;
+import com.wanderlust.api.entity.Hotel; // <-- Bổ sung
 import com.wanderlust.api.entity.Room;
+import com.wanderlust.api.entity.types.ApprovalStatus; // <-- Bổ sung
+import com.wanderlust.api.entity.types.HotelStatusType; // <-- Bổ sung
+import com.wanderlust.api.entity.types.RoomStatusType; // <-- Bổ sung
 import com.wanderlust.api.mapper.RoomMapper;
+import com.wanderlust.api.repository.HotelRepository; // <-- Bổ sung
 import com.wanderlust.api.repository.RoomRepository;
 import org.springframework.stereotype.Service;
 
-import com.wanderlust.api.repository.HotelRepository; // <-- Bổ sung
-import com.wanderlust.api.entity.Hotel; // <-- Bổ sung
 import org.springframework.security.core.GrantedAuthority; // <-- Bổ sung
 import org.springframework.security.core.authority.SimpleGrantedAuthority; // <-- Bổ sung
 import java.util.Collection; // <-- Bổ sung
@@ -67,10 +70,26 @@ public class RoomService {
     }
 
     public RoomDTO create(RoomDTO roomDTO) {
-        // MapStruct: DTO -> Entity
+        if (roomDTO.getHotelId() == null || roomDTO.getHotelId().isEmpty()) {
+            throw new RuntimeException("Hotel ID is required for room creation");
+        }
+
         Room room = roomMapper.toEntity(roomDTO);
+
+        // Default status based on parent hotel's approval/operational state
+        Hotel parentHotel = hotelRepository.findById(room.getHotelId())
+                .orElseThrow(() -> new RuntimeException("Hotel not found for room"));
+        boolean hotelIsApprovedActive = parentHotel.getApprovalStatus() == ApprovalStatus.APPROVED
+                && parentHotel.getStatus() == HotelStatusType.ACTIVE;
+
+        if (room.getApprovalStatus() == null) {
+            room.setApprovalStatus(hotelIsApprovedActive ? ApprovalStatus.APPROVED : ApprovalStatus.PENDING);
+        }
+        if (room.getStatus() == null) {
+            room.setStatus(hotelIsApprovedActive ? RoomStatusType.ACTIVE : RoomStatusType.PENDING_REVIEW);
+        }
+
         Room savedRoom = roomRepository.save(room);
-        // MapStruct: Entity -> DTO
         return roomMapper.toDTO(savedRoom);
     }
 

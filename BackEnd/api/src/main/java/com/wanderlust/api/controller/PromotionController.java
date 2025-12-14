@@ -140,13 +140,15 @@ public class PromotionController {
     public ResponseEntity<Map<String, Object>> validatePromotionCode(
             @RequestParam String code,
             @RequestParam String category,
-            @RequestParam Double orderAmount) {
+            @RequestParam Double orderAmount,
+            @RequestParam String vendorId,
+            @RequestParam(required = false) String serviceId) {
         
-        boolean isValid = promotionService.validatePromotionCode(code, category, orderAmount);
+        boolean isValid = promotionService.validatePromotionCode(code, category, orderAmount, vendorId, serviceId);
         Double discount = 0.0;
         
         if (isValid) {
-            discount = promotionService.calculateDiscount(code, orderAmount);
+            discount = promotionService.calculateDiscount(code, orderAmount, vendorId, serviceId);
         }
         
         Map<String, Object> response = new HashMap<>();
@@ -160,8 +162,11 @@ public class PromotionController {
     // Apply promotion (increment used count)
     @PostMapping("/apply/{code}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Map<String, Object>> applyPromotion(@PathVariable String code) {
-        Promotion promotion = promotionService.incrementUsedCount(code);
+    public ResponseEntity<Map<String, Object>> applyPromotion(
+            @PathVariable String code,
+            @RequestParam String vendorId,
+            @RequestParam(required = false) String serviceId) {
+        Promotion promotion = promotionService.incrementUsedCount(code, vendorId, serviceId);
         
         Map<String, Object> response = new HashMap<>();
         if (promotion != null) {
@@ -181,9 +186,11 @@ public class PromotionController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Double>> calculateDiscount(
             @RequestParam String code,
-            @RequestParam Double orderAmount) {
+            @RequestParam Double orderAmount,
+            @RequestParam String vendorId,
+            @RequestParam(required = false) String serviceId) {
         
-        Double discount = promotionService.calculateDiscount(code, orderAmount);
+        Double discount = promotionService.calculateDiscount(code, orderAmount, vendorId, serviceId);
         
         Map<String, Double> response = new HashMap<>();
         response.put("discount", discount);

@@ -20,7 +20,7 @@ import java.util.Map;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/vendor/bookings")
-@PreAuthorize("hasRole('PARTNER')") 
+@PreAuthorize("hasRole('VENDOR')") 
 public class VendorBookingController {
 
     private final BookingService bookingService;

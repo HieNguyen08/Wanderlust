@@ -33,7 +33,7 @@ public class NotificationController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<NotificationDTO>> getMyNotifications() {
         String userId = getCurrentUserId();
         List<NotificationDTO> notifications = notificationService.getUserNotifications(userId);
@@ -41,14 +41,14 @@ public class NotificationController {
     }
 
     @GetMapping("/unread-count")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Long> getUnreadCount() {
         String userId = getCurrentUserId();
         return ResponseEntity.ok(notificationService.getUnreadCount(userId));
     }
 
     @PutMapping("/{id}/read")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> markAsRead(@PathVariable String id) {
         String userId = getCurrentUserId();
         notificationService.markAsRead(id, userId);
@@ -56,7 +56,7 @@ public class NotificationController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteNotification(@PathVariable String id) {
         String userId = getCurrentUserId();
         notificationService.deleteNotification(id, userId);

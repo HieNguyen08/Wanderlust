@@ -6,6 +6,7 @@ import com.wanderlust.api.entity.Booking;
 import com.wanderlust.api.entity.CarRental;
 import com.wanderlust.api.entity.types.BookingStatus;
 import com.wanderlust.api.entity.types.CarStatus;
+import com.wanderlust.api.entity.types.ApprovalStatus;
 import com.wanderlust.api.repository.BookingRepository;
 import com.wanderlust.api.repository.CarRentalRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -31,6 +35,24 @@ public class CarRentalService {
     private final MongoTemplate mongoTemplate;
     private final com.wanderlust.api.repository.LocationRepository locationRepository;
 
+    private String getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("No authenticated user found");
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            return ((CustomUserDetails) principal).getUserID();
+        } else {
+            return authentication.getName();
+        }
+    }
+
+    private boolean hasAuthority(Authentication authentication, String authority) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> authority.equals(a.getAuthority()));
+    }
+
     // --- Basic CRUD ---
 
     public List<CarRental> findAll() {
@@ -38,6 +60,15 @@ public class CarRentalService {
     }
 
     public CarRental findById(String id) {
+        CarRental car = carRentalRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("CarRental not found with id " + id));
+        if (car.getApprovalStatus() != ApprovalStatus.APPROVED || car.getStatus() != CarStatus.AVAILABLE) {
+            throw new RuntimeException("CarRental not available");
+        }
+        return car;
+    }
+
+    public CarRental findByIdForManagement(String id) {
         return carRentalRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("CarRental not found with id " + id));
     }
@@ -45,7 +76,11 @@ public class CarRentalService {
     public CarRental create(CarRental carRental) {
         carRental.setCreatedAt(LocalDateTime.now());
         carRental.setUpdatedAt(LocalDateTime.now());
-        carRental.setStatus(CarStatus.AVAILABLE);
+        carRental.setStatus(CarStatus.PENDING_REVIEW);
+        carRental.setApprovalStatus(ApprovalStatus.PENDING);
+        if (carRental.getAvailableQuantity() == null) {
+            carRental.setAvailableQuantity(1);
+        }
 
         enrichLocation(carRental);
 
@@ -54,6 +89,10 @@ public class CarRentalService {
 
     public CarRental save(CarRental carRental) {
         carRental.setUpdatedAt(LocalDateTime.now());
+
+        if (carRental.getAvailableQuantity() == null) {
+            carRental.setAvailableQuantity(1);
+        }
 
         enrichLocation(carRental);
 
@@ -98,7 +137,6 @@ public class CarRentalService {
             BigDecimal maxPrice) {
         Query query = new Query();
         List<Criteria> criteriaList = new ArrayList<>();
-        criteriaList.add(Criteria.where("status").is(CarStatus.AVAILABLE));
 
         if (locationId != null && !locationId.isEmpty()) {
             criteriaList.add(Criteria.where("locationId").is(locationId));
@@ -116,11 +154,74 @@ public class CarRentalService {
             criteriaList.add(Criteria.where("pricePerDay").lte(maxPrice));
         }
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAuthenticated = authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken);
+        boolean isAdmin = isAuthenticated && hasAuthority(authentication, "ROLE_ADMIN");
+        boolean isVendor = isAuthenticated
+                && (hasAuthority(authentication, "ROLE_VENDOR") || hasAuthority(authentication, "ROLE_PARTNER"));
+
+        if (isAdmin) {
+            // Admin can see all cars regardless of approval/status
+        } else if (isVendor) {
+            // Vendors/partners see only their own submissions (any status)
+            criteriaList.add(Criteria.where("vendorId").is(getCurrentUserId()));
+        } else {
+            // Public users only see approved + available cars
+            criteriaList.add(Criteria.where("status").is(CarStatus.AVAILABLE));
+            criteriaList.add(Criteria.where("approvalStatus").is(ApprovalStatus.APPROVED));
+        }
+
         if (!criteriaList.isEmpty()) {
             query.addCriteria(new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
         }
 
         return mongoTemplate.find(query, CarRental.class);
+    }
+
+    public CarRental approve(String id) {
+        CarRental car = findByIdForManagement(id);
+        car.setApprovalStatus(ApprovalStatus.APPROVED);
+        car.setStatus(CarStatus.AVAILABLE);
+        car.setUpdatedAt(LocalDateTime.now());
+        car.setAdminNote(null);
+        return carRentalRepository.save(car);
+    }
+
+    public CarRental reject(String id, String reason) {
+        CarRental car = findByIdForManagement(id);
+        car.setApprovalStatus(ApprovalStatus.REJECTED);
+        car.setStatus(CarStatus.REJECTED);
+        car.setUpdatedAt(LocalDateTime.now());
+        car.setAdminNote(reason);
+        return carRentalRepository.save(car);
+    }
+
+    public CarRental requestRevision(String id, String reason) {
+        CarRental car = findByIdForManagement(id);
+        car.setApprovalStatus(ApprovalStatus.PENDING);
+        car.setStatus(CarStatus.PENDING_REVIEW);
+        car.setUpdatedAt(LocalDateTime.now());
+        car.setAdminNote(reason);
+        return carRentalRepository.save(car);
+    }
+
+    public CarRental pause(String id) {
+        CarRental car = findByIdForManagement(id);
+        car.setStatus(CarStatus.PAUSED);
+        car.setUpdatedAt(LocalDateTime.now());
+        return carRentalRepository.save(car);
+    }
+
+    public CarRental resume(String id) {
+        CarRental car = findByIdForManagement(id);
+        if (car.getApprovalStatus() != ApprovalStatus.APPROVED) {
+            throw new RuntimeException("Cannot resume a car that is not approved");
+        }
+        car.setStatus(CarStatus.AVAILABLE);
+        car.setUpdatedAt(LocalDateTime.now());
+        return carRentalRepository.save(car);
     }
 
     public List<CarRental> findPopularCars() {

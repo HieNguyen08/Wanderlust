@@ -1,6 +1,7 @@
 package com.wanderlust.api.dto.hotelDTO;
 
 import com.wanderlust.api.entity.Room;
+import com.wanderlust.api.entity.types.ApprovalStatus;
 import com.wanderlust.api.entity.types.CancellationPolicyType;
 import com.wanderlust.api.entity.types.RoomStatusType;
 import com.wanderlust.api.entity.types.RoomType;
@@ -27,5 +28,6 @@ public class RoomDTO {
     private CancellationPolicyType cancellationPolicy;
     private Boolean breakfastIncluded;
     private RoomStatusType status;
+    private ApprovalStatus approvalStatus;
     private List<Room.RoomOption> options;
 }

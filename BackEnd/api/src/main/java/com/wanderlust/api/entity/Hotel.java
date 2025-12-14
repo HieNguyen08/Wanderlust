@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.wanderlust.api.entity.types.ApprovalStatus;
 import com.wanderlust.api.entity.types.HotelStatusType;
 import com.wanderlust.api.entity.types.HotelType;
 
@@ -46,7 +47,10 @@ public class Hotel {
     private List<String> amenities; // Sửa lại từ String thành List<String> để đúng spec JSON
     private HotelPolicies policies; // Sửa lại từ String thành Object để đúng spec JSON
 
+    // approvalStatus: admin duyệt; status: vận hành/pause
+    private ApprovalStatus approvalStatus;
     private HotelStatusType status;
+    private String adminNote; // Lý do từ chối / yêu cầu chỉnh sửa
 
     private Boolean featured;
     private Boolean verified;

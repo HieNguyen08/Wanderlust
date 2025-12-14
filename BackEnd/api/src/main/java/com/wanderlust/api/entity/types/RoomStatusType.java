@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum RoomStatusType {
+    PENDING_REVIEW,
     ACTIVE,
-    INACTIVE;
+    PAUSED,
+    REJECTED;
 
     @JsonValue
     public String toValue() {

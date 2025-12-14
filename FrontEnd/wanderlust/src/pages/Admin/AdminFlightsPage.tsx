@@ -9,7 +9,7 @@ import {
   Trash2,
   TrendingUp
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import { toast } from "sonner";
 import { AdminFlight, adminFlightApi } from "../../api/adminFlightApi";
@@ -78,6 +78,8 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
   const [selectedFlightForSeats, setSelectedFlightForSeats] = useState<AdminFlight | null>(null);
   const [editingFlight, setEditingFlight] = useState<AdminFlight | null>(null);
   const [flightToDelete, setFlightToDelete] = useState<AdminFlight | null>(null);
+  const [page, setPage] = useState(0);
+  const [pageSize] = useState(10);
 
   const [formData, setFormData] = useState({
     airline: "VN",
@@ -287,12 +289,71 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
     }
   };
 
-  const filteredFlights = flights.filter((flight: AdminFlight) =>
-    flight.flightNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    flight.fromCity.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    flight.toCity.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    flight.airlineName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredFlights = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const base = flights.filter((flight: AdminFlight) =>
+      flight.flightNumber.toLowerCase().includes(q) ||
+      flight.fromCity.toLowerCase().includes(q) ||
+      flight.toCity.toLowerCase().includes(q) ||
+      flight.airlineName.toLowerCase().includes(q)
+    );
+    return base;
+  }, [flights, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredFlights.length / pageSize));
+  const paginatedFlights = useMemo(() => {
+    const start = page * pageSize;
+    return filteredFlights.slice(start, start + pageSize);
+  }, [filteredFlights, page, pageSize]);
+
+  const paginationRange = useMemo(() => {
+    const siblingCount = 2; // show 2 pages on each side
+    const totalPageNumbers = siblingCount * 2 + 5; // first, last, current, 2 dots
+
+    if (totalPages <= totalPageNumbers) {
+      return Array.from({ length: totalPages }, (_, idx) => idx + 1);
+    }
+
+    const leftSiblingIndex = Math.max(page + 1 - siblingCount, 2);
+    const rightSiblingIndex = Math.min(page + 1 + siblingCount, totalPages - 1);
+
+    const showLeftDots = leftSiblingIndex > 2;
+    const showRightDots = rightSiblingIndex < totalPages - 1;
+
+    const range: (number | string)[] = [1];
+
+    if (showLeftDots) {
+      range.push('dots-left');
+    } else {
+      for (let i = 2; i < leftSiblingIndex; i++) {
+        range.push(i);
+      }
+    }
+
+    for (let i = leftSiblingIndex; i <= rightSiblingIndex; i++) {
+      range.push(i);
+    }
+
+    if (showRightDots) {
+      range.push('dots-right');
+    } else {
+      for (let i = rightSiblingIndex + 1; i < totalPages; i++) {
+        range.push(i);
+      }
+    }
+
+    range.push(totalPages);
+    return range;
+  }, [page, totalPages]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const maxPage = Math.max(0, totalPages - 1);
+    if (page > maxPage) setPage(maxPage);
+  }, [page, totalPages]);
 
   const FlightFormFields = () => (
     <div className="space-y-4 py-4">
@@ -607,7 +668,7 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredFlights.map((flight) => (
+                  paginatedFlights.map((flight) => (
                     <TableRow key={flight.id}>
                       <TableCell>
                         <div>
@@ -680,6 +741,54 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
               </TableBody>
             </Table>
           </div>
+
+          {filteredFlights.length > 0 && (
+            <div className="flex items-center justify-between flex-wrap gap-3 mt-4 text-sm text-gray-700">
+              <div>
+                Trang {page + 1} / {totalPages} · {filteredFlights.length} chuyến bay
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                >
+                  {t('common.previous')}
+                </Button>
+
+                {paginationRange.map((item, idx) => {
+                  if (typeof item === 'string') {
+                    return (
+                      <span key={item + idx} className="px-2 text-gray-500 select-none">…</span>
+                    );
+                  }
+                  const pageIndex = item - 1;
+                  const isActive = pageIndex === page;
+                  return (
+                    <Button
+                      key={item}
+                      variant={isActive ? "default" : "outline"}
+                      size="sm"
+                      className={isActive ? "bg-blue-600 text-white" : ""}
+                      onClick={() => setPage(pageIndex)}
+                    >
+                      {item}
+                    </Button>
+                  );
+                })}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                  disabled={page + 1 >= totalPages}
+                >
+                  {t('common.next')}
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
 

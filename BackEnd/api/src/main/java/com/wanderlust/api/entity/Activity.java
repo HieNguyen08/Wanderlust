@@ -17,6 +17,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import com.wanderlust.api.entity.types.ActivityCategory;
 import com.wanderlust.api.entity.types.ActivityDifficulty;
 import com.wanderlust.api.entity.types.ActivityStatus;
+import com.wanderlust.api.entity.types.ApprovalStatus;
 
 @Document(collection = "activity")
 @Data
@@ -46,9 +47,16 @@ public class Activity {
 
     private String duration; // "4 hours", "Full day"
 
+    // Thời gian diễn ra
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
+    private Integer autoCloseBeforeMinutes; // ví dụ 60 phút trước giờ bắt đầu
+
     // --- Participants ---
     private Integer minParticipants;
     private Integer maxParticipants; // Sửa max_Participants -> camelCase
+    private Integer capacityMax; // tổng sức chứa
+    private Integer currentBookings; // số booking hiện tại (để auto full)
 
     private ActivityDifficulty difficulty; // Enum
 
@@ -70,7 +78,9 @@ public class Activity {
     private List<ScheduleItem> schedule;
 
     // --- Status & Stats ---
-    private ActivityStatus status; // Enum
+    private ActivityStatus status; // Enum (operational / auto-closed)
+    private ApprovalStatus approvalStatus; // Admin review status
+    private String adminNote; // Lý do từ chối / yêu cầu chỉnh sửa
     private Boolean featured;
 
     private BigDecimal averageRating;

@@ -54,6 +54,9 @@ public class CarRentalDTO {
     private BigDecimal deliveryFee;
 
     private CarStatus status;
+    private ApprovalStatus approvalStatus;
+    private String adminNote;
+    private Integer availableQuantity;
     
     private BigDecimal averageRating;
     private Integer totalReviews;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,13 @@ import { Alert, AlertDescription } from "../ui/alert";
 import {
   CheckCircle, XCircle, Edit, AlertTriangle, Info
 } from "lucide-react";
+
+const DetailItem = ({ label, value }: { label: string; value: string }) => (
+  <div>
+    <p className="text-sm text-gray-600 mb-1">{label}</p>
+    <p className="text-gray-900 whitespace-pre-line">{value}</p>
+  </div>
+);
 
 interface Service {
   id: string;
@@ -42,6 +49,7 @@ interface AdminServiceReviewDialogProps {
   onApprove: (serviceId: string, editedData?: any) => void;
   onReject: (serviceId: string, reason: string) => void;
   onRequestRevision: (serviceId: string, note: string) => void;
+  onOpenEditForm?: (service: Service, room?: any) => void;
 }
 
 type ActionMode = "review" | "edit" | "reject" | "revision";
@@ -53,11 +61,21 @@ export function AdminServiceReviewDialog({
   onApprove,
   onReject,
   onRequestRevision,
+  onOpenEditForm,
 }: AdminServiceReviewDialogProps) {
   const [actionMode, setActionMode] = useState<ActionMode>("review");
   const [rejectReason, setRejectReason] = useState("");
   const [revisionNote, setRevisionNote] = useState("");
   const [editedData, setEditedData] = useState<any>({});
+  const [actionLoading, setActionLoading] = useState(false);
+
+  useEffect(() => {
+    setActionMode("review");
+    setRejectReason("");
+    setRevisionNote("");
+    setEditedData({});
+    setActionLoading(false);
+  }, [service?.id]);
 
   if (!service) return null;
 
@@ -69,12 +87,29 @@ export function AdminServiceReviewDialog({
     }
   };
 
+  const formatValue = (value: any) => {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "boolean") return value ? "Có" : "Không";
+    if (Array.isArray(value)) return value.map(String).join(", ");
+    if (typeof value === "number" && Number.isFinite(value)) return String(value);
+    return String(value);
+  };
+
+  const runWithLoading = async (fn: () => any) => {
+    setActionLoading(true);
+    try {
+      await Promise.resolve(fn());
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleApproveClick = () => {
-    onApprove(service.id);
+    return runWithLoading(() => onApprove(service.id));
   };
 
   const handleEditAndApprove = () => {
-    onApprove(service.id, editedData);
+    return runWithLoading(() => onApprove(service.id, editedData));
   };
 
   const handleRejectWithReason = () => {
@@ -82,9 +117,11 @@ export function AdminServiceReviewDialog({
       alert("Vui lòng nhập lý do từ chối");
       return;
     }
-    onReject(service.id, rejectReason);
-    setRejectReason("");
-    setActionMode("review");
+    return runWithLoading(() => {
+      onReject(service.id, rejectReason);
+      setRejectReason("");
+      setActionMode("review");
+    });
   };
 
   const handleRequestRevisionSubmit = () => {
@@ -92,9 +129,11 @@ export function AdminServiceReviewDialog({
       alert("Vui lòng nhập ghi chú yêu cầu chỉnh sửa");
       return;
     }
-    onRequestRevision(service.id, revisionNote);
-    setRevisionNote("");
-    setActionMode("review");
+    return runWithLoading(() => {
+      onRequestRevision(service.id, revisionNote);
+      setRevisionNote("");
+      setActionMode("review");
+    });
   };
 
   const resetAndClose = () => {
@@ -102,8 +141,11 @@ export function AdminServiceReviewDialog({
     setRejectReason("");
     setRevisionNote("");
     setEditedData({});
+    setActionLoading(false);
     onClose();
   };
+
+  const isReadOnly = service.status === "approved";
 
   return (
     <Dialog open={isOpen} onOpenChange={resetAndClose}>
@@ -126,7 +168,7 @@ export function AdminServiceReviewDialog({
         {actionMode === "review" && (
           <div className="space-y-6">
             {/* Service Info */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Vendor</p>
                 <p className="text-gray-900">{service.vendorName}</p>
@@ -138,12 +180,129 @@ export function AdminServiceReviewDialog({
                   {getTypeLabel(service.type)}
                 </Badge>
               </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Ngày nộp</p>
-                <p className="text-gray-900">{service.submittedAt}</p>
-              </div>
             </div>
 
+            {/* Type-specific highlights */}
+            {service.type === "hotel" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {service.details.star && <DetailItem label="Hạng sao" value={`${service.details.star}★`} />}
+                {service.details.address && <DetailItem label="Địa chỉ" value={service.details.address} />}
+                {service.details.amenities && <DetailItem label="Tiện nghi" value={service.details.amenities} />}
+                {Number.isFinite(service.details.totalRooms) && (
+                  <DetailItem label="Tổng phòng" value={`${service.details.totalRooms}`} />
+                )}
+                {Array.isArray(service.details.rooms) && service.details.rooms.length > 0 && (
+                  <div className="col-span-2 space-y-2">
+                    <p className="text-sm text-gray-600">Phòng đã liên kết</p>
+                    <div className="space-y-3 max-h-72 overflow-auto border rounded-md p-3 bg-gray-50">
+                      {service.details.rooms.map((room: any) => {
+                        const maxOcc = Number.isFinite(room.maxOccupancy) ? `${room.maxOccupancy} khách` : "—";
+                        const bed = room.bedType ? String(room.bedType) : "—";
+                        const sizeText = Number.isFinite(room.size) ? `${room.size} m²` : "";
+                        const priceFromText = Number.isFinite(room.priceFrom)
+                          ? `Giá từ ${Number(room.priceFrom).toLocaleString("vi-VN")} đ`
+                          : undefined;
+                        const basePriceText = Number.isFinite(room.basePrice)
+                          ? `Giá niêm yết ${Number(room.basePrice).toLocaleString("vi-VN")} đ`
+                          : undefined;
+                        const optionText = Number.isFinite(room.optionCount) && room.optionCount > 0 ? `${room.optionCount} lựa chọn` : "";
+
+                        const fieldPairs = [
+                          { label: "Loại", value: room.type },
+                          { label: "Sức chứa", value: maxOcc },
+                          { label: "Giường", value: bed },
+                          { label: "Diện tích", value: sizeText },
+                          { label: "Tình trạng", value: room.status },
+                          { label: "Chính sách hủy", value: room.cancellationPolicy },
+                          { label: "Bữa sáng", value: typeof room.breakfastIncluded === "boolean" ? (room.breakfastIncluded ? "Có" : "Không") : "" },
+                          { label: "Tổng phòng", value: formatValue(room.totalRooms) },
+                          { label: "Còn trống", value: formatValue(room.availableRooms) },
+                          { label: "Giá gốc", value: Number.isFinite(room.originalPrice) ? `${Number(room.originalPrice).toLocaleString("vi-VN")} đ` : "" },
+                        ].filter(pair => pair.value);
+
+                        return (
+                          <div key={room.id || room.name} className="border rounded-md bg-white shadow-sm p-3 space-y-2">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="font-semibold text-gray-900">{room.name ? String(room.name) : "Phòng"}</p>
+                                <p className="text-xs text-gray-600">Mã: {room.id || "—"}</p>
+                              </div>
+                              <div className="text-right text-xs text-gray-700">
+                                {optionText && <p>{optionText}</p>}
+                                {priceFromText && <p>{priceFromText}</p>}
+                                {!priceFromText && basePriceText && <p>{basePriceText}</p>}
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-700">
+                              {fieldPairs.map((pair) => (
+                                <div key={`${room.id || room.name}-${pair.label}`} className="flex gap-1">
+                                  <span className="text-gray-600">{pair.label}:</span>
+                                  <span className="text-gray-900">{pair.value}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            {room.amenities && (
+                              <p className="text-xs text-gray-700"><span className="text-gray-600">Tiện nghi:</span> <span className="text-gray-900">{formatValue(room.amenities)}</span></p>
+                            )}
+                            {room.description && (
+                              <p className="text-xs text-gray-700 whitespace-pre-line"><span className="text-gray-600">Mô tả:</span> <span className="text-gray-900">{formatValue(room.description)}</span></p>
+                            )}
+                            {Array.isArray(room.optionSummaries) && room.optionSummaries.length > 0 && (
+                              <div className="text-xs text-gray-700 space-y-1">
+                                <p className="text-gray-600">Các lựa chọn:</p>
+                                <ul className="list-disc list-inside space-y-1">
+                                  {room.optionSummaries.map((opt: string, idx: number) => (
+                                    <li key={idx} className="text-gray-900">{opt}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {!isReadOnly && onOpenEditForm && (
+                              <div className="pt-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-blue-700 border-blue-200 hover:bg-blue-50"
+                                  onClick={() => onOpenEditForm(service, room)}
+                                >
+                                  Chỉnh sửa phòng
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {service.type === "activity" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {service.details.duration && <DetailItem label="Thời lượng" value={service.details.duration} />}
+                {service.details.category && <DetailItem label="Danh mục" value={service.details.category} />}
+                {service.details.languages && <DetailItem label="Ngôn ngữ" value={service.details.languages} />}
+                {service.details.meetingPoint && <DetailItem label="Điểm hẹn" value={service.details.meetingPoint} />}
+              </div>
+            )}
+            {service.type === "car" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {service.details.brand && <DetailItem label="Hãng" value={service.details.brand} />}
+                {service.details.model && <DetailItem label="Dòng xe" value={service.details.model} />}
+                {service.details.seats && <DetailItem label="Ghế" value={`${service.details.seats} chỗ`} />}
+                {service.details.transmission && <DetailItem label="Hộp số" value={service.details.transmission} />}
+                {service.details.fuel && <DetailItem label="Nhiên liệu" value={service.details.fuel} />}
+              </div>
+            )}
+            {service.adminNote && (
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Ghi chú trước đây</p>
+                <p className="text-red-700 whitespace-pre-line">{service.adminNote}</p>
+              </div>
+            )}
             <Separator />
 
             {/* Images */}
@@ -187,14 +346,45 @@ export function AdminServiceReviewDialog({
                     {service.price.toLocaleString('vi-VN')} VND
                   </p>
                 </div>
-                {Object.entries(service.details).map(([key, value]) => (
-                  <div key={key}>
-                    <p className="text-sm text-gray-600 mb-1 capitalize">
-                      {key.replace(/([A-Z])/g, ' $1').trim()}
-                    </p>
-                    <p className="text-gray-900 whitespace-pre-line">{value as string}</p>
+
+                {/* Thông tin vendor nhập (chỉ hiển thị giá trị đơn giản) */}
+                {Object.entries(service.details)
+                  .filter(([key, value]) => key !== "rooms")
+                  .map(([key, value]) => {
+                    // normalize values: arrays -> comma string, objects -> JSON string
+                    let display: string;
+                    if (value === null || value === undefined) {
+                      display = "";
+                    } else if (Array.isArray(value)) {
+                      display = value.join(", ");
+                    } else if (typeof value === "object") {
+                      try {
+                        display = JSON.stringify(value);
+                      } catch {
+                        display = "";
+                      }
+                    } else {
+                      display = String(value);
+                    }
+
+                    if (!display) return null;
+
+                    return (
+                      <div key={key}>
+                        <p className="text-sm text-gray-600 mb-1 capitalize">
+                          {key.replace(/([A-Z])/g, ' $1').trim()}
+                        </p>
+                        <p className="text-gray-900 whitespace-pre-line">{display}</p>
+                      </div>
+                    );
+                  })}
+
+                {service.adminNote && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Ghi chú trước đây</p>
+                    <p className="text-red-700 whitespace-pre-line">{service.adminNote}</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -215,40 +405,54 @@ export function AdminServiceReviewDialog({
               </AlertDescription>
             </Alert>
 
-            {/* Action Buttons */}
-            <div className="grid grid-cols-3 gap-3">
-              <Button
-                className="gap-2 bg-green-600 hover:bg-green-700"
-                onClick={handleApproveClick}
-              >
-                <CheckCircle className="w-4 h-4" />
-                Duyệt & Đăng
-              </Button>
-              <Button
-                variant="outline"
-                className="gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
-                onClick={() => setActionMode("edit")}
-              >
-                <Edit className="w-4 h-4" />
-                Chỉnh sửa & Đăng
-              </Button>
-              <Button
-                variant="outline"
-                className="gap-2 border-orange-600 text-orange-600 hover:bg-orange-50"
-                onClick={() => setActionMode("revision")}
-              >
-                <AlertTriangle className="w-4 h-4" />
-                Yêu cầu sửa
-              </Button>
-            </div>
-            <Button
-              variant="outline"
-              className="w-full gap-2 border-red-600 text-red-600 hover:bg-red-50"
-              onClick={() => setActionMode("reject")}
-            >
-              <XCircle className="w-4 h-4" />
-              Từ chối & Gửi lại
-            </Button>
+            {!isReadOnly && (
+              <>
+                {/* Action Buttons */}
+                <div className="grid grid-cols-3 gap-3">
+                  <Button
+                    className="gap-2 bg-green-600 hover:bg-green-700"
+                    onClick={handleApproveClick}
+                    disabled={actionLoading}
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    {actionLoading ? "Đang duyệt..." : "Duyệt & Đăng"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
+                    onClick={() => {
+                      if (onOpenEditForm) {
+                        onOpenEditForm(service);
+                      } else {
+                        setActionMode("edit");
+                      }
+                    }}
+                    disabled={actionLoading}
+                  >
+                    <Edit className="w-4 h-4" />
+                    Chỉnh sửa & Đăng
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="gap-2 border-orange-600 text-orange-600 hover:bg-orange-50"
+                    onClick={() => setActionMode("revision")}
+                    disabled={actionLoading}
+                  >
+                    <AlertTriangle className="w-4 h-4" />
+                    Yêu cầu sửa
+                  </Button>
+                </div>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2 border-red-600 text-red-600 hover:bg-red-50"
+                  onClick={() => setActionMode("reject")}
+                  disabled={actionLoading}
+                >
+                  <XCircle className="w-4 h-4" />
+                  Từ chối & Gửi lại
+                </Button>
+              </>
+            )}
           </div>
         )}
 
@@ -257,8 +461,7 @@ export function AdminServiceReviewDialog({
             <Alert className="bg-blue-50 border-blue-200">
               <Info className="h-5 w-5 text-blue-600" />
               <AlertDescription className="text-blue-900">
-                <strong>Lưu ý:</strong> Chỉ sửa các lỗi nhỏ như chính tả, định dạng, chọn ảnh đại diện khác. 
-                Không tự ý thay đổi giá hoặc nội dung quan trọng.
+                <strong>Lưu ý:</strong> Chỉnh sửa giống form Vendor, sau đó bấm “Lưu & Phê duyệt”.
               </AlertDescription>
             </Alert>
 
@@ -285,22 +488,267 @@ export function AdminServiceReviewDialog({
                 <Input
                   type="number"
                   defaultValue={service.price}
-                  onChange={(e) => setEditedData({ ...editedData, price: e.target.value })}
+                  onChange={(e) => setEditedData({ ...editedData, price: Number(e.target.value) })}
                   className="mt-1"
                 />
-                <p className="text-xs text-red-600 mt-1">
-                  ⚠️ Chỉ sửa nếu có lỗi đánh máy rõ ràng
-                </p>
               </div>
             </div>
 
+            {service.type === "hotel" && (
+              <div className="space-y-4">
+                <h4 className="text-sm text-gray-800">Thông tin khách sạn</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label>Hạng sao</Label>
+                    <Input
+                      type="number"
+                      defaultValue={service.details.star}
+                      onChange={(e) => setEditedData({ ...editedData, starRating: Number(e.target.value) })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Địa chỉ</Label>
+                    <Input
+                      defaultValue={service.details.address}
+                      onChange={(e) => setEditedData({ ...editedData, address: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Thành phố</Label>
+                    <Input
+                      defaultValue={service.details.city}
+                      onChange={(e) => setEditedData({ ...editedData, city: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Quốc gia</Label>
+                    <Input
+                      defaultValue={service.details.country}
+                      onChange={(e) => setEditedData({ ...editedData, country: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Tiện nghi (phân cách bởi dấu phẩy)</Label>
+                    <Textarea
+                      defaultValue={service.details.amenities}
+                      rows={2}
+                      onChange={(e) => setEditedData({ ...editedData, amenities: e.target.value.split(",").map(a => a.trim()).filter(Boolean) })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Số điện thoại</Label>
+                    <Input
+                      defaultValue={service.details.phone}
+                      onChange={(e) => setEditedData({ ...editedData, phone: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Website</Label>
+                    <Input
+                      defaultValue={service.details.website}
+                      onChange={(e) => setEditedData({ ...editedData, website: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Chính sách hủy</Label>
+                    <Textarea
+                      defaultValue={service.details.cancellationPolicy}
+                      rows={2}
+                      onChange={(e) => setEditedData({ ...editedData, policies: { cancellation: e.target.value } })}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {service.type === "activity" && (
+              <div className="space-y-4">
+                <h4 className="text-sm text-gray-800">Thông tin hoạt động</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label>Thời lượng</Label>
+                    <Input
+                      defaultValue={service.details.duration}
+                      onChange={(e) => setEditedData({ ...editedData, duration: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Danh mục</Label>
+                    <Input
+                      defaultValue={service.details.category}
+                      onChange={(e) => setEditedData({ ...editedData, category: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Điểm hẹn</Label>
+                    <Input
+                      defaultValue={service.details.meetingPoint}
+                      onChange={(e) => setEditedData({ ...editedData, meetingPoint: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Ngôn ngữ (phân cách bởi dấu phẩy)</Label>
+                    <Textarea
+                      defaultValue={service.details.languages}
+                      rows={2}
+                      onChange={(e) => setEditedData({ ...editedData, languages: e.target.value.split(",").map(l => l.trim()).filter(Boolean) })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Thành phố</Label>
+                    <Input
+                      defaultValue={service.details.city}
+                      onChange={(e) => setEditedData({ ...editedData, city: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Quốc gia</Label>
+                    <Input
+                      defaultValue={service.details.country}
+                      onChange={(e) => setEditedData({ ...editedData, country: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Thời gian bắt đầu</Label>
+                    <Input
+                      type="datetime-local"
+                      defaultValue={service.details.startDateTime}
+                      onChange={(e) => setEditedData({ ...editedData, startDateTime: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Thời gian kết thúc</Label>
+                    <Input
+                      type="datetime-local"
+                      defaultValue={service.details.endDateTime}
+                      onChange={(e) => setEditedData({ ...editedData, endDateTime: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Độ khó</Label>
+                    <Input
+                      defaultValue={service.details.difficulty}
+                      onChange={(e) => setEditedData({ ...editedData, difficulty: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {service.type === "car" && (
+              <div className="space-y-4">
+                <h4 className="text-sm text-gray-800">Thông tin xe</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label>Hãng</Label>
+                    <Input
+                      defaultValue={service.details.brand}
+                      onChange={(e) => setEditedData({ ...editedData, brand: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Dòng xe</Label>
+                    <Input
+                      defaultValue={service.details.model}
+                      onChange={(e) => setEditedData({ ...editedData, model: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Số ghế</Label>
+                    <Input
+                      type="number"
+                      defaultValue={service.details.seats}
+                      onChange={(e) => setEditedData({ ...editedData, seats: Number(e.target.value) })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Hộp số</Label>
+                    <Input
+                      defaultValue={service.details.transmission}
+                      onChange={(e) => setEditedData({ ...editedData, transmission: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Nhiên liệu</Label>
+                    <Input
+                      defaultValue={service.details.fuel}
+                      onChange={(e) => setEditedData({ ...editedData, fuelType: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Năm sản xuất</Label>
+                    <Input
+                      type="number"
+                      defaultValue={service.details.year}
+                      onChange={(e) => setEditedData({ ...editedData, year: Number(e.target.value) })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Chính sách nhiên liệu</Label>
+                    <Input
+                      defaultValue={service.details.fuelPolicy}
+                      onChange={(e) => setEditedData({ ...editedData, fuelPolicy: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 mt-6">
+                    <input
+                      type="checkbox"
+                      defaultChecked={service.details.withDriver}
+                      onChange={(e) => setEditedData({ ...editedData, withDriver: e.target.checked })}
+                    />
+                    <Label>Có tài xế</Label>
+                  </div>
+                  <div>
+                    <Label>Thành phố</Label>
+                    <Input
+                      defaultValue={service.details.city}
+                      onChange={(e) => setEditedData({ ...editedData, city: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label>Quốc gia</Label>
+                    <Input
+                      defaultValue={service.details.country}
+                      onChange={(e) => setEditedData({ ...editedData, country: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <DialogFooter>
-              <Button variant="outline" onClick={() => setActionMode("review")}>
+              <Button variant="outline" onClick={() => setActionMode("review") } disabled={actionLoading}>
                 Quay lại
               </Button>
-              <Button onClick={handleEditAndApprove} className="gap-2">
+              <Button onClick={handleEditAndApprove} className="gap-2" disabled={actionLoading}>
                 <CheckCircle className="w-4 h-4" />
-                Lưu & Phê duyệt
+                {actionLoading ? "Đang lưu..." : "Lưu & Phê duyệt"}
               </Button>
             </DialogFooter>
           </div>
@@ -346,9 +794,10 @@ export function AdminServiceReviewDialog({
               <Button 
                 onClick={handleRejectWithReason}
                 className="gap-2 bg-red-600 hover:bg-red-700"
+                disabled={actionLoading}
               >
                 <XCircle className="w-4 h-4" />
-                Xác nhận từ chối
+                {actionLoading ? "Đang xử lý..." : "Xác nhận từ chối"}
               </Button>
             </DialogFooter>
           </div>
@@ -394,9 +843,10 @@ export function AdminServiceReviewDialog({
               <Button 
                 onClick={handleRequestRevisionSubmit}
                 className="gap-2 bg-orange-600 hover:bg-orange-700"
+                disabled={actionLoading}
               >
                 <AlertTriangle className="w-4 h-4" />
-                Gửi yêu cầu chỉnh sửa
+                {actionLoading ? "Đang gửi..." : "Gửi yêu cầu chỉnh sửa"}
               </Button>
             </DialogFooter>
           </div>

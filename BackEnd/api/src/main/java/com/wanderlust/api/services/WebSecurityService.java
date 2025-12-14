@@ -1,42 +1,34 @@
 package com.wanderlust.api.services;
 
 // Import Entities
+import java.util.Optional;
+
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+
 import com.wanderlust.api.entity.Activity;
 import com.wanderlust.api.entity.Advertisement;
 import com.wanderlust.api.entity.Booking;
 import com.wanderlust.api.entity.CarRental;
-import com.wanderlust.api.entity.Hotel;
+import com.wanderlust.api.entity.Hotel; // <-- BỔ SUNG
 import com.wanderlust.api.entity.Payment;
 import com.wanderlust.api.entity.ReviewComment;
+import com.wanderlust.api.entity.Room;
 import com.wanderlust.api.entity.TravelGuide;
-import com.wanderlust.api.entity.Room; // <-- BỔ SUNG
 import com.wanderlust.api.entity.WalletTransaction;
-
-// Import Repositories
 import com.wanderlust.api.repository.ActivityRepository;
 import com.wanderlust.api.repository.AdvertisementRepository;
 import com.wanderlust.api.repository.BookingRepository;
 import com.wanderlust.api.repository.CarRentalRepository;
-import com.wanderlust.api.repository.HotelRepository;
+import com.wanderlust.api.repository.HotelRepository; // <-- BỔ SUNG
 import com.wanderlust.api.repository.PaymentRepository;
 import com.wanderlust.api.repository.ReviewCommentRepository;
+import com.wanderlust.api.repository.RoomRepository;
 import com.wanderlust.api.repository.TravelGuideRepository;
-import com.wanderlust.api.repository.RoomRepository; // <-- BỔ SUNG
-import com.wanderlust.api.repository.WalletTransactionRepository;
-// Import Security & Services (Từ file bạn cung cấp)
-import com.wanderlust.api.services.CustomUserDetails;
-import com.wanderlust.api.services.CustomOAuth2User;
+import com.wanderlust.api.repository.WalletTransactionRepository; // <-- BỔ SUNG
 
-// Import Lombok
 import lombok.RequiredArgsConstructor;
-
-// Import Java Util
-import java.util.Optional; // <-- BỔ SUNG
-
-// Import Spring Security
-import org.springframework.security.core.Authentication;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.stereotype.Service;
 
 /**
  * Dịch vụ bảo mật dùng trong @PreAuthorize để kiểm tra quyền sở hữu tài nguyên.
@@ -147,7 +139,7 @@ public class WebSecurityService {
      */
     public boolean isHotelOwner(Authentication authentication, String hotelId) {
         String currentUserId = getUserIdFromAuthentication(authentication);
-        if (currentUserId == null) return false;
+        if (currentUserId == null || hotelId == null) return false;
         
         return hotelRepository.findById(hotelId)
                 .map(Hotel::getVendorId)

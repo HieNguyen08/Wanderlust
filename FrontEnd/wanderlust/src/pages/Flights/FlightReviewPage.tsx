@@ -195,8 +195,8 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
   const returnSeatPrice = selectedSeats.return?.reduce((acc: number, seat: any) => acc + (seat.price || 0), 0) || 0;
   const totalSeatPrice = outboundSeatPrice + returnSeatPrice;
 
-  // Total = (Base price + Taxes) * Passengers + Seat fees
-  const totalPrice = (basePrice + taxAndFees) * numPassengers + totalSeatPrice;
+  // Total = Seat fees only (per user request)
+  const totalPrice = totalSeatPrice;
 
   const handleUpdatePassenger = (index: number, field: keyof PassengerForm, value: string) => {
     const updated = [...passengers];
@@ -265,8 +265,8 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
         seatCount: flightSeatIds.length,
         userId: tokenService.getUserData()?.id,
         amount: totalPrice,
-        basePrice: (basePrice * numPassengers),
-        taxes: (taxAndFees * numPassengers),
+        basePrice: 0,
+        taxes: 0,
         fees: totalSeatPrice,
         discount: 0,
         totalPrice,
@@ -840,23 +840,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                   </div>
                 ) : (
                   <>
-                    {/* Base Ticket Price */}
-                    <div className="flex justify-between text-sm items-center">
-                      <span className="text-gray-600">
-                        {t('flights.ticketPrice') || 'Giá vé'} ({numPassengers} {numPassengers === 1 ? (t('flights.adult') || 'người lớn') : (t('flights.passengers') || 'khách')})
-                      </span>
-                      <span className="text-gray-900 font-semibold">
-                        {(basePrice * numPassengers).toLocaleString('vi-VN')}đ
-                      </span>
-                    </div>
 
-                    {/* Taxes and Fees */}
-                    <div className="flex justify-between text-sm items-center">
-                      <span className="text-gray-600">{t('flights.taxesAndFees') || 'Thuế và phí'}</span>
-                      <span className="text-gray-900 font-semibold">
-                        {(taxAndFees * numPassengers).toLocaleString('vi-VN')}đ
-                      </span>
-                    </div>
 
                     {/* Seat Selection Fee - Only show if seats are selected */}
                     {totalSeatPrice > 0 && (

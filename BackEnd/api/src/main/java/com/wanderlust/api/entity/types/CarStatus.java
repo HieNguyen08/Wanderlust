@@ -4,9 +4,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum CarStatus {
+    PENDING_REVIEW,
     AVAILABLE,
     RENTED,
-    MAINTENANCE;
+    MAINTENANCE,
+    PAUSED,
+    REJECTED;
 
     @JsonValue
     public String toValue() {

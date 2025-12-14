@@ -1,12 +1,11 @@
 import { AirVent, ArrowLeft, Bed, Car, Check, ChevronDown, Clock, Dumbbell, Heart, Info, Mail, MapPin, Maximize2, Phone, Refrigerator, Share2, Star, Users, Utensils, Wifi, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { Header } from "../../components/Header";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
-
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import type { PageType } from "../../MainApp";
 import { hotelApi } from "../../utils/api";
@@ -43,9 +42,23 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
   const [hotel, setHotel] = useState<any>(initialHotel || null);
   const [availableRooms, setAvailableRooms] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(!initialHotel);
+  const roomsSectionRef = useRef<HTMLDivElement | null>(null);
+
+  const formatCurrency = (value: number) => value.toLocaleString("vi-VN", { maximumFractionDigits: 0 });
+  const taxAndFeesMultiplier = 1.1; // simple 10% placeholder; swap when backend provides breakdown
+
+  const normalizeList = (data: any) => (Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : []);
+  const normalizeRooms = (data: any) => {
+    if (Array.isArray(data?.content)) return data.content;
+    if (Array.isArray(data?.rooms)) return data.rooms;
+    if (Array.isArray(data)) return data;
+    return [] as any[];
+  };
 
   // Fetch hotel and room data from backend
   useEffect(() => {
+    let cancelled = false;
+
     const fetchHotelData = async () => {
       if (initialHotel && !hotelId) {
         return; // Already have hotel data from props
@@ -69,14 +82,13 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
         console.log("✅ Fetched hotel:", hotelData);
         console.log("✅ Fetched rooms:", roomsData);
 
-        // Map backend HotelDTO to frontend Hotel interface
         const mappedHotel = {
           id: hotelData.id,
           name: hotelData.name,
           rating: hotelData.starRating || hotelData.averageRating || 0,
           address: hotelData.address,
-          image: hotelData.images?.[0]?.url || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
-          price: hotelData.lowestPrice || 0,
+          image: hotelData.images?.[0]?.url || hotelData.images?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
+          price: Number(hotelData.lowestPrice) || 0,
           freeCancellation: hotelData.policies?.cancellation !== "NO_REFUND",
           amenities: hotelData.amenities || [],
           description: hotelData.description,
@@ -84,41 +96,112 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
           email: hotelData.email,
         };
 
-        // Map backend rooms to frontend format
-        const mappedRooms = roomsData.map((room: any) => ({
-          id: room.id,
-          name: room.name,
-          image: room.images?.[0]?.url || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
-          size: room.size || 0,
-          amenities: room.amenities || [],
-          maxGuests: room.maxOccupancy || 2,
-          description: room.description || "",
-          options: room.options?.map((opt: any) => ({
+        const mappedRooms = normalizeRooms(roomsData).map((room: any) => {
+          const options = normalizeList(room.roomOptions || room.options || room.availableOptions || []).map((opt: any) => ({
             id: opt.id,
             name: opt.name,
             bedType: opt.bedType,
             breakfast: opt.breakfast,
             cancellation: opt.cancellation,
-            price: opt.price,
-            originalPrice: opt.originalPrice,
-            roomsLeft: opt.roomsLeft,
-            earnPoints: opt.earnPoints
-          })) || []
-        }));
+            price: Number(opt.price ?? opt.basePrice ?? opt.lowestPrice ?? 0) || 0,
+            originalPrice: Number(opt.originalPrice ?? opt.listPrice ?? opt.referencePrice ?? 0) || undefined,
+            roomsLeft: opt.roomsLeft ?? opt.quantity,
+            earnPoints: opt.earnPoints,
+          }));
 
-        setHotel(mappedHotel);
-        setAvailableRooms(mappedRooms);
+          return {
+            id: room.id,
+            name: room.name,
+            image: room.images?.[0]?.url || room.images?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
+            size: room.size || room.area || 0,
+            amenities: room.amenities || room.features || [],
+            maxGuests: room.maxOccupancy || room.maxGuests || 2,
+            description: room.description || "",
+            options,
+          };
+        });
+
+        const derivedLowest = mappedRooms
+          .flatMap((r) => (r.options || []).map((o: any) => o.price))
+          .filter((p: number) => Number.isFinite(p) && p > 0);
+        const lowestPrice = derivedLowest.length > 0 ? Math.min(...derivedLowest) : mappedHotel.price;
+
+        if (!cancelled) {
+          setHotel({ ...mappedHotel, price: lowestPrice });
+          setAvailableRooms(mappedRooms);
+        }
       } catch (error: any) {
         console.error("❌ Error fetching hotel details:", error);
-        toast.error("Không thể tải thông tin khách sạn. Vui lòng thử lại.");
+        const message = error?.message || "Không thể tải thông tin khách sạn. Vui lòng thử lại.";
+        if (message?.includes("not available")) {
+          toast.error("Khách sạn không khả dụng hoặc đang chờ duyệt.");
+        } else {
+          toast.error(message);
+        }
         onNavigate("hotel-list");
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
     fetchHotelData();
+
+    return () => {
+      cancelled = true;
+    };
   }, [hotelId, initialHotel]);
+
+  const lowestDisplayPrice = useMemo(() => {
+    const prices = availableRooms
+      .flatMap((r) => (r.options || []).map((o: any) => o.price))
+      .filter((p: any) => Number.isFinite(p) && p > 0);
+    if (prices.length > 0) return Math.min(...prices);
+    const hotelPrice = Number(hotel?.price ?? 0);
+    if (Number.isFinite(hotelPrice) && hotelPrice > 0) return hotelPrice;
+    return 0;
+  }, [availableRooms, hotel?.price]);
+
+  const filteredRooms = useMemo(() => {
+    if (selectedFilters.length === 0) return availableRooms;
+
+    const matchesFilters = (option: any) =>
+      selectedFilters.every((f) => {
+        switch (f) {
+          case "free-cancellation":
+            return Boolean(option.cancellation) || Boolean(hotel?.freeCancellation);
+          case "extra-benefit":
+            return option.originalPrice && option.originalPrice > option.price;
+          case "large-bed":
+            return typeof option.bedType === "string" && /king|queen|large/i.test(option.bedType);
+          case "free-breakfast":
+            return Boolean(option.breakfast);
+          default:
+            return true;
+        }
+      });
+
+    return availableRooms
+      .map((room) => {
+        const options = (room.options || []).filter((opt: any) => matchesFilters(opt));
+        return { ...room, options };
+      })
+      .filter((room) => (room.options || []).length > 0);
+  }, [availableRooms, selectedFilters, hotel?.freeCancellation]);
+
+  const displayPrice = useMemo(() => {
+    switch (priceDisplay) {
+      case "per-room-tax":
+        return lowestDisplayPrice * taxAndFeesMultiplier;
+      case "total":
+        return lowestDisplayPrice * 1; // TODO: multiply by nights & room count when date picker is available
+      default:
+        return lowestDisplayPrice;
+    }
+  }, [lowestDisplayPrice, priceDisplay]);
+
+  const scrollToRooms = () => {
+    roomsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   if (isLoading || !hotel) {
     return (
@@ -126,6 +209,10 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
           <p className="text-gray-500">Đang tải thông tin khách sạn...</p>
+          <div className="mt-4 space-y-1 text-left text-sm text-gray-400">
+            <p>• Kiểm tra trạng thái duyệt và phòng khả dụng</p>
+            <p>• Đồng bộ hình ảnh và lựa chọn phòng</p>
+          </div>
         </div>
       </div>
     );
@@ -369,7 +456,7 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
                   <p className="text-sm text-gray-600 mb-2">Giá từ</p>
                   <div className="flex items-baseline gap-2 mb-3">
                     <span className="text-4xl text-red-600">
-                      {Math.min(...availableRooms.flatMap(r => r.options.map(o => o.price))).toLocaleString("vi-VN")} đ
+                      {formatCurrency(displayPrice)} đ
                     </span>
                   </div>
                   <span className="text-sm text-gray-500">/ phòng / đêm</span>
@@ -494,9 +581,14 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
             </div>
 
             {/* Room List */}
-            <div className="divide-y">
-              {availableRooms.map((room) => (
-                <div key={room.id} className="p-6 hover:bg-gray-50 transition-colors">
+            <div ref={roomsSectionRef} className="divide-y">
+              {filteredRooms.length === 0 ? (
+                <div className="p-6 text-center text-gray-500">
+                  Không có phòng phù hợp với bộ lọc. Thử bỏ bớt tiêu chí hoặc xem tất cả phòng.
+                </div>
+              ) : (
+                filteredRooms.map((room) => (
+                  <div key={room.id} className="p-6 hover:bg-gray-50 transition-colors">
                   <h3 className="text-2xl mb-4">{room.name}</h3>
 
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -537,81 +629,106 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
                     {/* Room Options */}
                     <div className="lg:col-span-8">
                       <div className="space-y-4">
-                        {room.options.map((option) => (
-                          <div
-                            key={option.id}
-                            className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
-                          >
-                            {/* Option Name */}
-                            <div className="md:col-span-4 space-y-2">
-                              <p className="text-xs text-gray-500">{room.name}</p>
-                              <p className="font-semibold">{option.name}</p>
-                              <div className="flex items-center gap-1 text-sm text-gray-600">
-                                <Bed className="w-4 h-4" />
-                                <span>{option.bedType}</span>
-                              </div>
-                              {option.cancellation && (
-                                <div className="flex items-center gap-1 text-sm text-green-600">
-                                  <Check className="w-3 h-3" />
-                                  <span>Chính sách hủy linh hoạt</span>
-                                  <Info className="w-3 h-3 text-gray-400" />
+                        {room.options.map((option) => {
+                          const optionPrice = (() => {
+                            switch (priceDisplay) {
+                              case "per-room-tax":
+                                return option.price * taxAndFeesMultiplier;
+                              case "total":
+                                return option.price; // TODO: multiply by nights & rooms when inputs are available
+                              default:
+                                return option.price;
+                            }
+                          })();
+
+                          const priceNote = (() => {
+                            switch (priceDisplay) {
+                              case "per-room-tax":
+                                return "Đã bao gồm thuế & phí";
+                              case "total":
+                                return "Giá ước tính cho kỳ nghỉ";
+                              default:
+                                return "Chưa bao gồm thuế & phí";
+                            }
+                          })();
+
+                          return (
+                            <div
+                              key={option.id}
+                              className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
+                            >
+                              {/* Option Name */}
+                              <div className="md:col-span-4 space-y-2">
+                                <p className="text-xs text-gray-500">{room.name}</p>
+                                <p className="font-semibold">{option.name}</p>
+                                <div className="flex items-center gap-1 text-sm text-gray-600">
+                                  <Bed className="w-4 h-4" />
+                                  <span>{option.bedType}</span>
                                 </div>
-                              )}
-                            </div>
+                                {option.cancellation && (
+                                  <div className="flex items-center gap-1 text-sm text-green-600">
+                                    <Check className="w-3 h-3" />
+                                    <span>Chính sách hủy linh hoạt</span>
+                                    <Info className="w-3 h-3 text-gray-400" />
+                                  </div>
+                                )}
+                              </div>
 
-                            {/* Guests */}
-                            <div className="md:col-span-2 flex justify-center">
-                              <div className="flex items-center gap-1">
-                                <Users className="w-4 h-4 text-gray-500" />
-                                <Users className="w-4 h-4 text-gray-500" />
+                              {/* Guests */}
+                              <div className="md:col-span-2 flex justify-center">
+                                <div className="flex items-center gap-1">
+                                  <Users className="w-4 h-4 text-gray-500" />
+                                  <Users className="w-4 h-4 text-gray-500" />
+                                </div>
+                              </div>
+
+                              {/* Price */}
+                              <div className="md:col-span-4 text-center">
+                                {option.originalPrice && (
+                                  <p className="text-sm text-gray-400 line-through">
+                                    {formatCurrency(option.originalPrice)} đ
+                                  </p>
+                                )}
+                                <p className="text-2xl text-red-600 mb-1">
+                                  {formatCurrency(optionPrice)} đ
+                                </p>
+                                <p className="text-xs text-gray-500">{priceNote}</p>
+                                {option.earnPoints && (
+                                  <div className="flex items-center justify-center gap-1 mt-2">
+                                    <div className="w-4 h-4 bg-yellow-400 rounded-full" />
+                                    <span className="text-xs">Tích {option.earnPoints.toLocaleString()} điểm</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Action Button */}
+                              <div className="md:col-span-2 flex flex-col items-center gap-2">
+                                <Button
+                                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 w-full md:w-auto"
+                                  onClick={() => handleRoomSelection(room, option)}
+                                >
+                                  Chọn
+                                </Button>
+                                {option.roomsLeft && (
+                                  <p className="text-xs text-red-600 font-semibold">
+                                    {option.roomsLeft} phòng còn lại!
+                                  </p>
+                                )}
+                                {option.breakfast && (
+                                  <Badge className="bg-green-500 text-white text-xs">
+                                    Rẻ nhất có ăn sáng
+                                  </Badge>
+                                )}
                               </div>
                             </div>
-
-                            {/* Price */}
-                            <div className="md:col-span-4 text-center">
-                              {option.originalPrice && (
-                                <p className="text-sm text-gray-400 line-through">
-                                  {option.originalPrice.toLocaleString("vi-VN")} VND
-                                </p>
-                              )}
-                              <p className="text-2xl text-red-600 mb-1">
-                                {option.price.toLocaleString("vi-VN")} VND
-                              </p>
-                              <p className="text-xs text-gray-500">Chưa bao gồm thuế & phí</p>
-                              {option.earnPoints && (
-                                <div className="flex items-center justify-center gap-1 mt-2">
-                                  <div className="w-4 h-4 bg-yellow-400 rounded-full" />
-                                  <span className="text-xs">Tích {option.earnPoints.toLocaleString()} điểm</span>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Action Button */}
-                            <div className="md:col-span-2 flex flex-col items-center gap-2">
-                              <Button
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-8 w-full md:w-auto"
-                                onClick={() => handleRoomSelection(room, option)}
-                              >
-                                Chọn
-                              </Button>
-                              {option.roomsLeft && (
-                                <p className="text-xs text-red-600 font-semibold">
-                                  {option.roomsLeft} phòng còn lại!
-                                </p>
-                              )}
-                              {option.breakfast && (
-                                <Badge className="bg-green-500 text-white text-xs">
-                                  Rẻ nhất có ăn sáng
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Explore More Button */}
@@ -619,6 +736,7 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
               <Button
                 className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white"
                 size="lg"
+                onClick={scrollToRooms}
               >
                 Khám phá thêm các loại phòng
                 <ChevronDown className="w-4 h-4 ml-2" />

@@ -85,11 +85,17 @@ public class PaymentService {
     @Value("${stripe.webhook-secret}")
     private String stripeWebhookSecret;
 
-    @Value("${stripe.success-url}")
-    private String stripeSuccessUrl;
+    @Value("${stripe.success-url.wallet:${stripe.success-url}}")
+    private String stripeWalletSuccessUrl;
 
-    @Value("${stripe.cancel-url}")
-    private String stripeCancelUrl;
+    @Value("${stripe.cancel-url.wallet:${stripe.cancel-url}}")
+    private String stripeWalletCancelUrl;
+
+    @Value("${stripe.success-url.booking:${stripe.success-url}}")
+    private String stripeBookingSuccessUrl;
+
+    @Value("${stripe.cancel-url.booking:${stripe.cancel-url}}")
+    private String stripeBookingCancelUrl;
 
     public List<PaymentDTO> findAll() {
         return paymentMapper.toDTOs(paymentRepository.findAll(defaultSort));
@@ -230,10 +236,13 @@ public class PaymentService {
             String description = isTopUp ? "Nạp tiền vào ví cá nhân" : "Thanh toán dịch vụ du lịch";
             String paymentType = isTopUp ? "WALLET_TOPUP" : "BOOKING";
 
-            SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
+                String successUrl = isTopUp ? stripeWalletSuccessUrl : stripeBookingSuccessUrl;
+                String cancelUrl = isTopUp ? stripeWalletCancelUrl : stripeBookingCancelUrl;
+
+                SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
-                    .setSuccessUrl(stripeSuccessUrl)
-                    .setCancelUrl(stripeCancelUrl)
+                    .setSuccessUrl(successUrl)
+                    .setCancelUrl(cancelUrl)
                     .setClientReferenceId(payment.getTransactionId())
                     .addLineItem(SessionCreateParams.LineItem.builder()
                             .setQuantity(1L)

@@ -36,11 +36,11 @@ public interface HotelMapper {
     @Mapping(target = "latitude", ignore = true)
     @Mapping(target = "longitude", ignore = true)
     @Mapping(target = "shortDescription", ignore = true)
+    @Mapping(target = "approvalStatus", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "adminNote", ignore = true)
     @Mapping(target = "verified", ignore = true)
     @Mapping(target = "totalRooms", ignore = true)
-    @Mapping(target = "city", ignore = true)
-    @Mapping(target = "country", ignore = true)
     Hotel toEntity(HotelDTO dto);
 
     /**
@@ -54,10 +54,10 @@ public interface HotelMapper {
     @Mapping(target = "latitude", ignore = true)
     @Mapping(target = "longitude", ignore = true)
     @Mapping(target = "shortDescription", ignore = true)
+    @Mapping(target = "approvalStatus", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "adminNote", ignore = true)
     @Mapping(target = "verified", ignore = true)
     @Mapping(target = "totalRooms", ignore = true)
-    @Mapping(target = "city", ignore = true)
-    @Mapping(target = "country", ignore = true)
     void updateEntityFromDTO(HotelDTO dto, @MappingTarget Hotel hotel);
 }

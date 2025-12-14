@@ -8,4 +8,7 @@ import java.util.List;
 @Repository
 public interface RoomRepository extends MongoRepository<Room, String> {
     List<Room> findByHotelId(String hotelId);
+
+    // Fetch rooms for multiple hotels at once
+    List<Room> findByHotelIdIn(List<String> hotelIds);
 }

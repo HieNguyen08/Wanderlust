@@ -3,6 +3,8 @@ package com.wanderlust.api.services;
 import com.wanderlust.api.dto.ActivityRequestDTO;
 import com.wanderlust.api.entity.Activity;
 import com.wanderlust.api.entity.types.ActivityCategory;
+import com.wanderlust.api.entity.types.ActivityStatus;
+import com.wanderlust.api.entity.types.ApprovalStatus;
 import com.wanderlust.api.mapper.ActivityMapper;
 import com.wanderlust.api.repository.ActivityRepository;
 import com.wanderlust.api.services.CustomUserDetails;
@@ -10,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -26,6 +29,11 @@ public class ActivityService {
     private final ActivityMapper activityMapper;
     private final com.wanderlust.api.repository.LocationRepository locationRepository;
 
+    private Activity getByIdForManagement(String id) {
+        return activityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Activity not found with id " + id));
+    }
+
     private String getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -37,6 +45,11 @@ public class ActivityService {
         } else {
             return authentication.getName();
         }
+    }
+
+    private boolean hasAuthority(Authentication authentication, String authority) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> authority.equals(a.getAuthority()));
     }
 
     // --- Public Get Methods ---
@@ -59,18 +72,43 @@ public class ActivityService {
             query.addCriteria(Criteria.where("price").lte(maxPrice));
         }
 
-        query.addCriteria(Criteria.where("status").is("ACTIVE"));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAuthenticated = authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken);
+        boolean isAdmin = isAuthenticated && hasAuthority(authentication, "ROLE_ADMIN");
+        boolean isVendor = isAuthenticated
+                && (hasAuthority(authentication, "ROLE_VENDOR") || hasAuthority(authentication, "ROLE_PARTNER"));
+
+        if (isAdmin) {
+            // Admin can see all activities regardless of approval/status
+        } else if (isVendor) {
+            // Vendors/partners see only their own submissions (any status)
+            query.addCriteria(Criteria.where("vendorId").is(getCurrentUserId()));
+        } else {
+            // Public users only see approved + active activities
+            query.addCriteria(new Criteria().andOperator(
+                Criteria.where("approvalStatus").is(ApprovalStatus.APPROVED),
+                Criteria.where("status").is(ActivityStatus.ACTIVE)));
+        }
 
         return mongoTemplate.find(query, Activity.class);
     }
 
     public List<Activity> getFeatured() {
-        return activityRepository.findByFeaturedTrue();
+        return activityRepository.findByFeaturedTrue().stream()
+            .filter(a -> a.getApprovalStatus() == ApprovalStatus.APPROVED)
+            .filter(a -> a.getStatus() == ActivityStatus.ACTIVE)
+            .toList();
     }
 
     public Activity findById(String id) {
-        return activityRepository.findById(id)
+        Activity activity = activityRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Activity not found with id " + id));
+        if (activity.getApprovalStatus() != ApprovalStatus.APPROVED || activity.getStatus() != ActivityStatus.ACTIVE) {
+            throw new RuntimeException("Activity not available");
+        }
+        return activity;
     }
 
     // --- Check Availability Logic ---
@@ -109,11 +147,23 @@ public class ActivityService {
             }
         }
 
+        if (activity.getApprovalStatus() == null) {
+            activity.setApprovalStatus(ApprovalStatus.PENDING);
+        }
+        if (activity.getStatus() == null) {
+            activity.setStatus(ActivityStatus.PENDING_REVIEW);
+        }
+        if (activity.getAutoCloseBeforeMinutes() == null) {
+            activity.setAutoCloseBeforeMinutes(60);
+        }
+        if (activity.getCurrentBookings() == null) {
+            activity.setCurrentBookings(0);
+        }
         return activityRepository.save(activity);
     }
 
     public Activity update(String id, ActivityRequestDTO dto) {
-        Activity existingActivity = findById(id);
+        Activity existingActivity = getByIdForManagement(id);
 
         // MapStruct tự động update các trường khác null và update 'updatedAt'
         activityMapper.updateEntityFromDTO(dto, existingActivity);
@@ -139,6 +189,45 @@ public class ActivityService {
         }
 
         return activityRepository.save(existingActivity);
+    }
+
+    public Activity approve(String id) {
+        Activity activity = getByIdForManagement(id);
+        activity.setApprovalStatus(ApprovalStatus.APPROVED);
+        activity.setStatus(ActivityStatus.ACTIVE);
+        activity.setAdminNote(null);
+        return activityRepository.save(activity);
+    }
+
+    public Activity reject(String id, String reason) {
+        Activity activity = getByIdForManagement(id);
+        activity.setApprovalStatus(ApprovalStatus.REJECTED);
+        activity.setStatus(ActivityStatus.REJECTED);
+        activity.setAdminNote(reason);
+        return activityRepository.save(activity);
+    }
+
+    public Activity requestRevision(String id, String reason) {
+        Activity activity = getByIdForManagement(id);
+        activity.setApprovalStatus(ApprovalStatus.PENDING);
+        activity.setStatus(ActivityStatus.PENDING_REVIEW);
+        activity.setAdminNote(reason);
+        return activityRepository.save(activity);
+    }
+
+    public Activity pause(String id) {
+        Activity activity = getByIdForManagement(id);
+        activity.setStatus(ActivityStatus.PAUSED);
+        return activityRepository.save(activity);
+    }
+
+    public Activity resume(String id) {
+        Activity activity = getByIdForManagement(id);
+        if (activity.getApprovalStatus() != ApprovalStatus.APPROVED) {
+            throw new RuntimeException("Cannot resume activity that is not approved");
+        }
+        activity.setStatus(ActivityStatus.ACTIVE);
+        return activityRepository.save(activity);
     }
 
     public void delete(String id) {

@@ -1,16 +1,19 @@
 import { addDays, format, subDays } from "date-fns";
 import { vi } from "date-fns/locale";
 import {
-    Armchair,
-    ArrowRightLeft,
-    Calendar as CalendarIcon,
-    Check, Filter,
-    Loader2,
-    Plane,
-    PlaneLanding,
-    PlaneTakeoff
+  Armchair,
+  ArrowRightLeft,
+  Calendar as CalendarIcon,
+  Check, Filter,
+  Loader2,
+  Plane,
+  PlaneLanding,
+  PlaneTakeoff,
+  Plus,
+  Minus
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Footer } from "../../components/Footer";
@@ -57,8 +60,10 @@ const airlines = [
   { code: "QH", name: "Bamboo Airways" },
 ];
 
-export default function FlightDetailPage({ onNavigate, searchData }: SearchPageProps) {
+export default function FlightDetailPage({ onNavigate, searchData: propsSearchData }: SearchPageProps) {
   const { t } = useTranslation();
+  const location = useLocation();
+  const searchData = propsSearchData || location.state;
   // Loading state
   const [isLoading, setIsLoading] = useState(false);
 
@@ -69,10 +74,10 @@ export default function FlightDetailPage({ onNavigate, searchData }: SearchPageP
   const [toAirport, setToAirport] = useState(searchData?.to || airports[3]);
   const [departDate, setDepartDate] = useState(searchData?.departDate || new Date());
   const [returnDate, setReturnDate] = useState(searchData?.returnDate || addDays(new Date(), 3));
-  const [adults] = useState(searchData?.passengers?.adults || 1);
-  const [children] = useState(searchData?.passengers?.children || 0);
-  const [infants] = useState(searchData?.passengers?.infants || 0);
-  const [cabinClass] = useState(searchData?.cabinClass || "economy");
+  const [adults, setAdults] = useState(searchData?.passengers?.adults || 1);
+  const [children, setChildren] = useState(searchData?.passengers?.children || 0);
+  const [infants, setInfants] = useState(searchData?.passengers?.infants || 0);
+  const [cabinClass, setCabinClass] = useState(searchData?.cabinClass || "economy");
 
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
@@ -137,7 +142,8 @@ export default function FlightDetailPage({ onNavigate, searchData }: SearchPageP
           to: currentTo.code,
           date: format(selectedDay, 'yyyy-MM-dd'),
           directOnly: flightType === 'direct',
-          airlines: selectedAirlines.length > 0 ? selectedAirlines : undefined,
+          airlines: undefined, // selectedAirlines.length > 0 ? selectedAirlines : undefined, // Let client side handle airline filtering for now to ensure consistency with other filters
+          cabinClass: cabinClass,
         });
         setFlights(results);
       } catch (error) {
@@ -150,7 +156,68 @@ export default function FlightDetailPage({ onNavigate, searchData }: SearchPageP
     };
 
     fetchFlights();
-  }, [selectedDay, fromAirport, toAirport, flightLeg, selectedAirlines, flightType]);
+    fetchFlights();
+  }, [selectedDay, fromAirport, toAirport, flightLeg, selectedAirlines, flightType, cabinClass]);
+
+  // Filter and Sort Flights
+  const getFlightPrice = (flight: any) => {
+    return flight.cabinClasses?.[cabinClass]?.fromPrice || Infinity;
+  };
+
+  const filteredAndSortedFlights = flights.filter(flight => {
+    // Filter by Departure Time
+    if (departureTime.length > 0) {
+      const hour = new Date(flight.departureTime).getHours();
+      const matches = departureTime.some(time => {
+        if (time === 'morning') return hour >= 0 && hour < 12; // 06:00 - 11:59 handled by UI label but backend/logic usually broad. Adjusting to match UI labels if strict:
+        // UI says: Morning 06-11, Afternoon 12-17, Evening 18-23, Night 00-05.
+        // Let's match the UI exactly.
+        if (time === 'morning') return hour >= 6 && hour < 12;
+        if (time === 'afternoon') return hour >= 12 && hour < 18;
+        if (time === 'evening') return hour >= 18 && hour <= 23;
+        if (time === 'night') return hour >= 0 && hour < 6;
+        return false;
+      });
+      if (!matches) return false;
+    }
+
+    // Filter by Arrival Time
+    if (arrivalTime.length > 0) {
+      const hour = new Date(flight.arrivalTime).getHours();
+      const matches = arrivalTime.some(time => {
+        if (time === 'morning') return hour >= 6 && hour < 12;
+        if (time === 'afternoon') return hour >= 12 && hour < 18;
+        if (time === 'evening') return hour >= 18 && hour <= 23;
+        if (time === 'night') return hour >= 0 && hour < 6;
+        return false;
+      });
+      if (!matches) return false;
+    }
+
+    // Filter by Airlines
+    if (selectedAirlines.length > 0) {
+      if (!selectedAirlines.includes(flight.airlineCode)) {
+        return false;
+      }
+    }
+
+    return true;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case 'price-low':
+        return getFlightPrice(a) - getFlightPrice(b);
+      case 'price-high':
+        return getFlightPrice(b) - getFlightPrice(a);
+      case 'depart-early':
+        return new Date(a.departureTime).getTime() - new Date(b.departureTime).getTime();
+      case 'depart-late':
+        return new Date(b.departureTime).getTime() - new Date(a.departureTime).getTime();
+      case 'duration':
+        return (a.durationMinutes || 0) - (b.durationMinutes || 0);
+      default:
+        return 0;
+    }
+  });
 
   // Fetch 7-day price range (only when route/filters change, NOT when selectedDay changes)
   useEffect(() => {
@@ -176,9 +243,14 @@ export default function FlightDetailPage({ onNavigate, searchData }: SearchPageP
         const priceMap = new Map<string, number>();
         results.forEach((flight: any) => {
           const flightDate = flight.departureTime.split('T')[0];
-          const cheapestPrice = Math.min(
-            ...Object.values(flight.cabinClasses || {}).map((cabin: any) => cabin.fromPrice || Infinity)
-          );
+          let cheapestPrice = Infinity;
+          if (cabinClass && flight.cabinClasses?.[cabinClass]) {
+            cheapestPrice = flight.cabinClasses[cabinClass].fromPrice || Infinity;
+          } else {
+            cheapestPrice = Math.min(
+              ...Object.values(flight.cabinClasses || {}).map((cabin: any) => cabin.fromPrice || Infinity)
+            );
+          }
           if (!priceMap.has(flightDate) || priceMap.get(flightDate)! > cheapestPrice) {
             priceMap.set(flightDate, cheapestPrice);
           }
@@ -236,6 +308,11 @@ export default function FlightDetailPage({ onNavigate, searchData }: SearchPageP
   const handleModifySearch = () => {
     setShowModifySearch(false);
     toast.success(t('search.searchUpdated'));
+    // Trigger re-fetch will happen automatically because dependencies (cabinClass, etc) change.
+    // However, if only passengers change, we might need to just update state.
+    // Since fetchFlights depends on `fromAirport` etc, but usually `cabinClass` affects price.
+    // Passenger count affects seat selection validation, not search results usually (unless API takes pax count).
+
     if (flightLeg === 'outbound') {
       setSelectedDay(departDate);
     } else {
@@ -534,10 +611,12 @@ export default function FlightDetailPage({ onNavigate, searchData }: SearchPageP
       </div>
 
       {/* Flight List */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-        <p className="text-sm text-gray-600 mb-4">Có {flights.length} chuyến bay</p>
 
-        {flights.length === 0 && !isLoading && (
+      {/* Flight List */}
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+        <p className="text-sm text-gray-600 mb-4">Có {filteredAndSortedFlights.length} chuyến bay</p>
+
+        {filteredAndSortedFlights.length === 0 && !isLoading && (
           <Card className="p-12 text-center">
             <Plane className="w-16 h-16 mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy chuyến bay</h3>
@@ -546,7 +625,7 @@ export default function FlightDetailPage({ onNavigate, searchData }: SearchPageP
         )}
 
         <div className="space-y-4">
-          {flights.map((flight) => (
+          {filteredAndSortedFlights.map((flight) => (
             <Card key={flight.id} className="overflow-hidden">
               {/* Flight Row */}
               <div className="p-6">
@@ -882,6 +961,93 @@ export default function FlightDetailPage({ onNavigate, searchData }: SearchPageP
                   </Popover>
                 </div>
               )}
+            </div>
+
+            {/* Passengers & Cabin Class */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Passengers */}
+              <div className="space-y-3">
+                <Label>Hành khách</Label>
+                <div className="border rounded-md p-3 space-y-3">
+                  {/* Adults */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Người lớn</span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline" size="icon" className="h-8 w-8"
+                        onClick={() => adults > 1 && setAdults(adults - 1)} // Oops, adults is const in this file. Need to change to setAdults state.
+                      // WAIT! I defined `const [adults] = useState(...)` at lines 75. I need to change them to `const [adults, setAdults] = ...` first.
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-4 text-center text-sm">{adults}</span>
+                      <Button
+                        variant="outline" size="icon" className="h-8 w-8"
+                        onClick={() => setAdults(adults + 1)}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                  {/* Children */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Trẻ em</span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline" size="icon" className="h-8 w-8"
+                        onClick={() => children > 0 && setChildren(children - 1)}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-4 text-center text-sm">{children}</span>
+                      <Button
+                        variant="outline" size="icon" className="h-8 w-8"
+                        onClick={() => setChildren(children + 1)}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                  {/* Infants */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Em bé</span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline" size="icon" className="h-8 w-8"
+                        onClick={() => infants > 0 && setInfants(infants - 1)}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-4 text-center text-sm">{infants}</span>
+                      <Button
+                        variant="outline" size="icon" className="h-8 w-8"
+                        onClick={() => setInfants(infants + 1)}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cabin Class */}
+              <div>
+                <Label className="mb-2 block">Hạng ghế</Label>
+                <RadioGroup value={cabinClass} onValueChange={(val: any) => setCabinClass(val)} className="flex flex-col gap-2">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="economy" id="mc-economy" />
+                    <Label htmlFor="mc-economy">Phổ thông</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="business" id="mc-business" />
+                    <Label htmlFor="mc-business">Thương gia</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="first" id="mc-first" />
+                    <Label htmlFor="mc-first">Hạng nhất</Label>
+                  </div>
+                </RadioGroup>
+              </div>
             </div>
 
             <Button onClick={handleModifySearch} className="w-full bg-blue-600">

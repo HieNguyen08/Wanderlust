@@ -117,7 +117,7 @@ export default function PaymentSuccessPage({
           </h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <div className="flex gap-3 justify-center">
-            <Button onClick={() => onNavigate('profile-bookings' as PageType)}>
+            <Button onClick={() => onNavigate('booking-history' as PageType)}>
               {t('payment.viewBookings', 'Xem đặt chỗ')}
             </Button>
             <Button variant="outline" onClick={() => onNavigate('home')}>
@@ -209,7 +209,7 @@ export default function PaymentSuccessPage({
         <div className="flex flex-col sm:flex-row gap-3">
           <Button
             className="flex-1"
-            onClick={() => onNavigate('profile-bookings' as PageType)}
+            onClick={() => onNavigate('booking-history' as PageType)}
           >
             <Receipt className="w-4 h-4 mr-2" />
             {t('payment.viewBookings', 'Xem đặt chỗ của tôi')}

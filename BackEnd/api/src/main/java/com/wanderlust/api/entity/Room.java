@@ -14,6 +14,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 // Import các Enum (Giả định bạn đã/sẽ tạo các enum này trong package types)
+import com.wanderlust.api.entity.types.ApprovalStatus;
 import com.wanderlust.api.entity.types.RoomType;
 import com.wanderlust.api.entity.types.RoomStatusType;
 import com.wanderlust.api.entity.types.CancellationPolicyType;
@@ -49,7 +50,7 @@ public class Room {
     private BigDecimal originalPrice; // Giá gốc trước khi giảm
     
     private Integer totalRooms;
-    private Integer availableRooms;
+    private Integer availableRooms; // synced with roomsLeft when provided
     
     private CancellationPolicyType cancellationPolicy; // Enum
     
@@ -59,7 +60,8 @@ public class Room {
     // Room options - different pricing/breakfast combinations
     private List<RoomOption> options;
     
-    private RoomStatusType status; // Sửa status (String) -> RoomStatusType (Enum)
+    private RoomStatusType status; // Operational status (active/pause/pending)
+    private ApprovalStatus approvalStatus; // Admin review status
 
     @CreatedDate
     private LocalDateTime createdAt;

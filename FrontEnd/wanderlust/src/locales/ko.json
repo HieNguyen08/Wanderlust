@@ -1052,6 +1052,17 @@
       "CN": "중국"
     }
   },
+  "common": {
+    "hotels": "호텔",
+    "activities": "액티비티",
+    "all": "전체",
+    "saved": "저장됨",
+    "error": "오류"
+  },
+  "flights": {
+    "todayFlights": "오늘의 항공편",
+    "upcomingFlights": "다가오는 항공편"
+  },
   "home": {
     "search": {
       "flights": "항공편",

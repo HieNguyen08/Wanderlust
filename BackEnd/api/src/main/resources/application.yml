@@ -60,8 +60,14 @@ stripe:
   secret-key: sk_test_51SYgkWAtDBiSLaVQugeSYk9dQzrHp3eT5Cbl4uxxEpFQNaEHApi3T7WEV71iHDh4VJzp8bfBV519crbxyWUAEAVS00NTuNjELm
   publishable-key: pk_test_51SYgkWAtDBiSLaVQ5oEMEVqveNwX3HmzmOXFSUpBO5j2PUDOwJt5jTd8qRXs9L8LM5bTfWTtlpjLkJzPR0P2jGtd001IAXtfqZ
   webhook-secret: whsec_qd1yVDabLuzk22hVLaMzNApuSnh7q63k
-  success-url: http://localhost:3000/stripe/payment-success
-  cancel-url: http://localhost:3000/stripe/payment-cancel
+  success-url:
+    booking: http://localhost:3000/payment/success
+    wallet: http://localhost:3000/stripe/payment-success
+    default: http://localhost:3000/stripe/payment-success
+  cancel-url:
+    booking: http://localhost:3000/payment/cancel
+    wallet: http://localhost:3000/stripe/payment-cancel
+    default: http://localhost:3000/stripe/payment-cancel
 
 # Frontend URL Configuration
 frontend:

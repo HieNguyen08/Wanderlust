@@ -14,6 +14,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 // Import các Enum vừa tạo
+import com.wanderlust.api.entity.types.ApprovalStatus;
 import com.wanderlust.api.entity.types.CarType;
 import com.wanderlust.api.entity.types.TransmissionType;
 import com.wanderlust.api.entity.types.FuelType;
@@ -76,11 +77,15 @@ public class CarRental {
     private Integer mileageLimit; // km/day (null = unlimited)
     private Integer minRentalDays;
 
+    private Integer availableQuantity; // số xe khả dụng (mặc định 1)
+
     private Boolean deliveryAvailable;
     private BigDecimal deliveryFee;
 
     // --- Status & Stats ---
-    private CarStatus status; // Enum
+    private CarStatus status; // Enum (operational & review combined)
+    private ApprovalStatus approvalStatus; // Admin review status
+    private String adminNote; // Lý do từ chối / yêu cầu chỉnh sửa
 
     private BigDecimal averageRating;
     private Integer totalReviews;

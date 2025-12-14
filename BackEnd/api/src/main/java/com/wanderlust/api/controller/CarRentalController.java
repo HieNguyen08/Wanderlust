@@ -101,7 +101,7 @@ public class CarRentalController {
     // --- SECURED ADMIN/PARTNER ENDPOINTS ---
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
     public ResponseEntity<CarRentalDTO> createCarRental(
             @RequestBody CarRentalDTO carRentalDTO,
             Authentication authentication) {
@@ -116,20 +116,54 @@ public class CarRentalController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isCarRentalOwner(authentication, #id))")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('VENDOR') and @webSecurity.isCarRentalOwner(authentication, #id))")
     public ResponseEntity<CarRentalDTO> updateCarRental(
             @PathVariable String id,
             @RequestBody CarRentalDTO carRentalDTO) {
-        CarRental existingCar = carRentalService.findById(id);
+        CarRental existingCar = carRentalService.findByIdForManagement(id);
         carRentalMapper.updateEntityFromDTO(carRentalDTO, existingCar);
         CarRental updated = carRentalService.save(existingCar);
         return ResponseEntity.ok(carRentalMapper.toDTO(updated));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isCarRentalOwner(authentication, #id))")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('VENDOR') and @webSecurity.isCarRentalOwner(authentication, #id))")
     public ResponseEntity<String> deleteCarRental(@PathVariable String id) {
         carRentalService.delete(id);
         return ResponseEntity.ok("Car rental has been deleted successfully!");
+    }
+
+    // --- APPROVAL & OPERATIONAL STATUS ---
+
+    @PostMapping("/{id}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CarRentalDTO> approve(@PathVariable String id) {
+        return ResponseEntity.ok(carRentalMapper.toDTO(carRentalService.approve(id)));
+    }
+
+    @PostMapping("/{id}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CarRentalDTO> reject(@PathVariable String id, @RequestBody(required = false) java.util.Map<String, String> body) {
+        String reason = body != null ? body.get("reason") : null;
+        return ResponseEntity.ok(carRentalMapper.toDTO(carRentalService.reject(id, reason)));
+    }
+
+    @PostMapping("/{id}/request-revision")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CarRentalDTO> requestRevision(@PathVariable String id, @RequestBody(required = false) java.util.Map<String, String> body) {
+        String reason = body != null ? body.get("reason") : null;
+        return ResponseEntity.ok(carRentalMapper.toDTO(carRentalService.requestRevision(id, reason)));
+    }
+
+    @PostMapping("/{id}/pause")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('VENDOR') and @webSecurity.isCarRentalOwner(authentication, #id))")
+    public ResponseEntity<CarRentalDTO> pause(@PathVariable String id) {
+        return ResponseEntity.ok(carRentalMapper.toDTO(carRentalService.pause(id)));
+    }
+
+    @PostMapping("/{id}/resume")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('VENDOR') and @webSecurity.isCarRentalOwner(authentication, #id))")
+    public ResponseEntity<CarRentalDTO> resume(@PathVariable String id) {
+        return ResponseEntity.ok(carRentalMapper.toDTO(carRentalService.resume(id)));
     }
 }

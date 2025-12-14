@@ -107,6 +107,9 @@ const PaymentSuccess: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
+          <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold mb-4">
+            Thanh toán dịch vụ · Stripe
+          </div>
           <div className="flex justify-center mb-6">
             <div className="relative">
               <div className="absolute inset-0 bg-green-100 rounded-full animate-pulse" />
@@ -148,7 +151,7 @@ const PaymentSuccess: React.FC = () => {
 
           <div className="space-y-3 sm:space-y-0 sm:flex sm:gap-3">
             <button
-              onClick={() => (window.location.href = '/profile/bookings')}
+              onClick={() => (window.location.href = '/profile/booking-history')}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"
             >
               <Receipt className="w-5 h-5" />
@@ -170,6 +173,9 @@ const PaymentSuccess: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
+        <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-semibold mb-4">
+          Nạp ví Stripe
+        </div>
         {/* Success Icon */}
         <div className="flex justify-center mb-6">
           <div className="relative">
@@ -244,6 +250,13 @@ const PaymentSuccess: React.FC = () => {
           >
             <Wallet className="w-5 h-5" />
             Xem Ví Của Tôi
+          </button>
+          <button
+            onClick={() => window.location.href = '/profile/payment-history'}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"
+          >
+            <Receipt className="w-5 h-5" />
+            Xem Lịch Sử Thanh Toán
           </button>
           <button
             onClick={() => window.location.href = '/'}

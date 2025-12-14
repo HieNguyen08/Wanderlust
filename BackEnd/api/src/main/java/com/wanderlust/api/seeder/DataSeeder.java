@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.MongoException;
+import com.mongodb.client.MongoClient;
 import com.wanderlust.api.entity.Activity;
 import com.wanderlust.api.entity.CarRental;
 import com.wanderlust.api.entity.Flight;
@@ -48,6 +50,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ActivityRepository activityRepository;
     private final RoomRepository roomRepository;
     private final ObjectMapper objectMapper;
+    private final MongoClient mongoClient;
 
     public DataSeeder(
             TravelGuideRepository travelGuideRepository,
@@ -60,7 +63,8 @@ public class DataSeeder implements CommandLineRunner {
             CarRentalRepository carRentalRepository,
             ActivityRepository activityRepository,
             RoomRepository roomRepository,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            MongoClient mongoClient) {
         this.travelGuideRepository = travelGuideRepository;
         this.promotionRepository = promotionRepository;
         this.visaArticleRepository = visaArticleRepository;
@@ -72,11 +76,17 @@ public class DataSeeder implements CommandLineRunner {
         this.activityRepository = activityRepository;
         this.roomRepository = roomRepository;
         this.objectMapper = objectMapper;
+        this.mongoClient = mongoClient;
     }
 
     @Override
     public void run(String... args) throws Exception {
         logger.info("🌱 Starting data seeding...");
+
+        if (!isMongoReachable()) {
+            logger.warn("Skipping data seeding because MongoDB is not reachable at configured host/port.");
+            return;
+        }
 
         // Seed Locations first (needed as foreign keys)
         seedLocations();
@@ -420,6 +430,16 @@ public class DataSeeder implements CommandLineRunner {
 
         } catch (Exception e) {
             logger.error("Error seeding rooms: {}", e.getMessage(), e);
+        }
+    }
+
+    private boolean isMongoReachable() {
+        try {
+            mongoClient.getDatabase("admin").runCommand(new org.bson.Document("ping", 1));
+            return true;
+        } catch (MongoException ex) {
+            logger.error("MongoDB connection check failed: {}", ex.getMessage());
+            return false;
         }
     }
 }

@@ -1053,6 +1053,17 @@
       "CN": "中国"
     }
   },
+  "common": {
+    "hotels": "ホテル",
+    "activities": "アクティビティ",
+    "all": "すべて",
+    "saved": "保存済み",
+    "error": "エラー"
+  },
+  "flights": {
+    "todayFlights": "今日のフライト",
+    "upcomingFlights": "今後のフライト"
+  },
   "home": {
     "search": {
       "flights": "フライト",

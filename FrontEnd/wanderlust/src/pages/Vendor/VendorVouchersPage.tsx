@@ -1,6 +1,6 @@
 import { format } from "date-fns";
-import { AlertCircle, CalendarIcon, Eye, Pause, Play, Plus, Search, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { AlertCircle, CalendarIcon, Eye, Pause, Play, Plus, Search, Trash2, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { VoucherDetailDialog } from "../../components/admin/VoucherDetailDialog";
@@ -37,6 +37,7 @@ import {
 } from "../../components/ui/table";
 import { VendorLayout } from "../../components/VendorLayout";
 import type { PageType } from "../../MainApp";
+import { vendorPromotionApi, tokenService } from "../../utils/api";
 
 interface CreateVendorVoucherDialogProps {
   open: boolean;
@@ -48,6 +49,8 @@ interface CreateVendorVoucherDialogProps {
 export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVoucherCreated }: CreateVendorVoucherDialogProps) {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
+    title: "",
+    description: "",
     code: "",
     type: "PERCENTAGE",
     value: "",
@@ -58,20 +61,21 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
     totalUsesLimit: "",
     userUseLimit: "1",
     applyToCategory: "",
+    images: []
   });
+  const [imageInput, setImageInput] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const category = formData.applyToCategory && formData.applyToCategory !== "ALL"
+      ? formData.applyToCategory
+      : "ALL";
 
-    const conditions = [
-      { type: "VENDOR", value: vendorId }
-    ];
-
-    if (formData.applyToCategory && formData.applyToCategory !== "all") {
-      conditions.push({ type: "CATEGORY", value: formData.applyToCategory });
-    }
+    const images = formData.images.filter(Boolean).slice(0, 5);
 
     const voucher = {
+      title: formData.title.trim(),
+      description: formData.description.trim(),
       code: formData.code.toUpperCase(),
       type: formData.type,
       value: parseFloat(formData.value),
@@ -80,13 +84,12 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
       startDate: format(formData.startDate, "yyyy-MM-dd"),
       endDate: format(formData.endDate, "yyyy-MM-dd"),
       totalUsesLimit: formData.totalUsesLimit ? parseInt(formData.totalUsesLimit) : null,
-      userUseLimit: parseInt(formData.userUseLimit),
-      totalUsed: 0,
-      createdBy: "VENDOR",
-      createdById: vendorId,
-      status: "PAUSED",
-      approvalStatus: "PENDING_APPROVAL",
-      conditions: conditions,
+      userUseLimit: formData.userUseLimit ? parseInt(formData.userUseLimit) : 1,
+      category,
+      images,
+      image: images[0] || undefined,
+      conditions: [],
+      isActive: true,
     };
 
     onVoucherCreated(voucher);
@@ -94,6 +97,8 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
     
     // Reset form
     setFormData({
+      title: "",
+      description: "",
       code: "",
       type: "PERCENTAGE",
       value: "",
@@ -104,7 +109,25 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
       totalUsesLimit: "",
       userUseLimit: "1",
       applyToCategory: "",
+      images: []
     });
+    setImageInput("");
+  };
+
+  const handleAddImage = () => {
+    const url = imageInput.trim();
+    if (!url) return;
+    if (formData.images.filter(Boolean).length >= 5) {
+      toast.error(t('vendor.imageLimit', 'Tối đa 5 ảnh'));
+      return;
+    }
+    setFormData({ ...formData, images: [...formData.images.filter(Boolean), url] });
+    setImageInput("");
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const next = formData.images.filter((_, idx) => idx !== index);
+    setFormData({ ...formData, images: next });
   };
 
   return (
@@ -130,6 +153,29 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
           <div className="space-y-4">
             <h3 className="text-lg">{t('vendor.basicInfo')}</h3>
 
+            <div className="space-y-2">
+              <Label htmlFor="title">{t('vendor.title', 'Tiêu đề')} *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder={t('vendor.titlePlaceholder', 'Nhập tiêu đề ngắn gọn')}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">{t('vendor.description', 'Mô tả')}</Label>
+              <textarea
+                id="description"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder={t('vendor.descriptionPlaceholder', 'Mô tả ngắn gọn về voucher')}
+                rows={3}
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="code">{t('vendor.voucherCode')} *</Label>
@@ -154,6 +200,47 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label>{t('vendor.hotelImages', 'Ảnh khách sạn (tối đa 5)')}</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder={t('vendor.imageUrlPlaceholder', 'URL ảnh')}
+                  value={imageInput}
+                  onChange={(e) => setImageInput(e.target.value)}
+                />
+                <Button type="button" variant="outline" onClick={handleAddImage}>
+                  {t('vendor.add', 'Thêm')}
+                </Button>
+              </div>
+              {formData.images.filter(Boolean).length > 0 && (
+                <div className="flex gap-3 flex-wrap">
+                  {formData.images.filter(Boolean).map((img, idx) => (
+                    <div key={idx} className="relative w-24 h-24 rounded-lg overflow-hidden border bg-gray-50">
+                      <img src={img} alt={`voucher-${idx}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        className="absolute top-1 right-1 bg-white/90 rounded-full p-1 shadow"
+                        onClick={() => handleRemoveImage(idx)}
+                        aria-label={t('common.remove', 'Xóa ảnh') as string}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                      {idx === 0 && (
+                        <div className="absolute bottom-1 left-1">
+                          <Badge variant="secondary" className="text-[10px] py-0 px-1.5">
+                            {t('vendor.coverImage', 'Ảnh đại diện')}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-gray-500">
+                {t('vendor.imageNote', 'Hình ảnh đầu tiên sẽ làm ảnh đại diện. Tối đa 5 ảnh.')}
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -208,11 +295,11 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
                   <SelectValue placeholder={t('vendor.allServices')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('vendor.allServices')}</SelectItem>
-                  <SelectItem value="hotels">{t('vendor.onlyHotels')}</SelectItem>
-                  <SelectItem value="activities">{t('vendor.onlyActivities')}</SelectItem>
-                  <SelectItem value="cars">{t('vendor.onlyCars')}</SelectItem>
-                  <SelectItem value="tours">{t('vendor.onlyTours')}</SelectItem>
+                  <SelectItem value="ALL">{t('vendor.allServices')}</SelectItem>
+                  <SelectItem value="HOTEL">{t('vendor.onlyHotels')}</SelectItem>
+                  <SelectItem value="ACTIVITY">{t('vendor.onlyActivities')}</SelectItem>
+                  <SelectItem value="CAR">{t('vendor.onlyCars')}</SelectItem>
+                  <SelectItem value="FLIGHT">{t('vendor.onlyFlights', 'Chỉ chuyến bay')}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-gray-500">
@@ -328,67 +415,82 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
+  const userData = tokenService.getUserData();
+  const vendorId = userData?.userId || userData?.id || "";
 
-  // Mock vendor vouchers data
-  const [vouchers, setVouchers] = useState([
-    {
-      id: 1,
-      code: "HOTEL_LUXURY50",
-      type: "PERCENTAGE",
-      value: 15,
-      maxDiscount: 300000,
-      minSpend: 2000000,
-      startDate: "2025-11-01",
-      endDate: "2025-12-31",
-      totalUsesLimit: 100,
-      userUseLimit: 1,
-      totalUsed: 23,
-      createdBy: "VENDOR",
-      vendorId: "vendor_001",
-      status: "PENDING",
-      applyToCategory: "hotels"
-    },
-    {
-      id: 2,
-      code: "ACTIVITY_WEEKEND",
-      type: "FIXED_AMOUNT",
-      value: 50000,
-      maxDiscount: null,
-      minSpend: 200000,
-      startDate: "2025-11-15",
-      endDate: "2025-11-30",
-      totalUsesLimit: 50,
-      userUseLimit: 1,
-      totalUsed: 12,
-      createdBy: "VENDOR",
-      vendorId: "vendor_001",
-      status: "ACTIVE",
-      applyToCategory: "activities"
-    },
-    {
-      id: 3,
-      code: "CAR_SALE20",
-      type: "PERCENTAGE",
-      value: 20,
-      maxDiscount: 200000,
-      minSpend: 500000,
-      startDate: "2025-10-01",
-      endDate: "2025-10-31",
-      totalUsesLimit: 30,
-      userUseLimit: 1,
-      totalUsed: 30,
-      createdBy: "VENDOR",
-      vendorId: "vendor_001",
-      status: "EXPIRED",
-      applyToCategory: "cars"
-    },
-  ]);
+  const computeStatus = (promo: any) => {
+    const now = new Date();
+    const startOk = !promo.startDate || new Date(promo.startDate) <= now;
+    const endOk = !promo.endDate || new Date(promo.endDate) >= now;
+    const exhausted = promo.totalUsesLimit && promo.usedCount >= promo.totalUsesLimit;
+    if (!endOk) return "EXPIRED";
+    if (exhausted) return "EXHAUSTED";
+    const manual = promo.isActive ?? promo.isActiveManual;
+    return manual && startOk ? "ACTIVE" : "INACTIVE";
+  };
+  const [vouchers, setVouchers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
 
-  const vendorId = "vendor_001"; // Mock vendor ID
+  useEffect(() => {
+    loadVouchers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, statusFilter, page]);
 
-  const handleVoucherCreated = (newVoucher: any) => {
-    setVouchers([newVoucher, ...vouchers]);
-    toast.success(t('vendor.voucherCreated'));
+  const loadVouchers = async () => {
+    try {
+      setLoading(true);
+      const res = await vendorPromotionApi.list({
+        search: searchQuery,
+        status: statusFilter,
+        page,
+        size: pageSize,
+      });
+      const content = res?.content || [];
+      const mapped = content.map((promo: any) => {
+        const status = promo.computedStatus || promo.status || computeStatus(promo);
+        const daysLeft = promo.daysLeft ?? null;
+        const isExpired = status === "EXPIRED";
+        const isExhausted = status === "EXHAUSTED" || (promo.totalUsesLimit && promo.usedCount >= promo.totalUsesLimit);
+        return {
+          id: promo.id,
+          code: promo.code,
+          type: promo.type || "PERCENTAGE",
+          value: promo.value || 0,
+          maxDiscount: promo.maxDiscount,
+          minSpend: promo.minSpend || 0,
+          startDate: promo.startDate,
+          endDate: promo.endDate,
+          totalUsesLimit: promo.totalUsesLimit,
+          totalUsed: promo.usedCount || 0,
+          status,
+          daysLeft,
+          isExpired,
+          isExhausted,
+          category: promo.category,
+        };
+      });
+      setVouchers(mapped);
+      setTotal(res?.totalElements ?? mapped.length);
+    } catch (error: any) {
+      console.error("Failed to load vendor vouchers", error);
+      toast.error(error?.message || t('vendor.cannotLoadVouchers'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVoucherCreated = async (voucher: any) => {
+    try {
+      await vendorPromotionApi.create(voucher);
+      toast.success(t('vendor.voucherCreated'));
+      await loadVouchers();
+    } catch (error: any) {
+      console.error('Failed to create voucher', error);
+      toast.error(error?.message || t('vendor.cannotCreateVoucher'));
+    }
   };
 
   const handleViewDetail = (voucher: any) => {
@@ -396,23 +498,26 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
     setDetailDialogOpen(true);
   };
 
-  const handlePauseVoucher = (voucherId: number) => {
-    setVouchers(vouchers.map(v => 
-      v.id === voucherId ? { ...v, status: "PAUSED" } : v
-    ));
-    toast.success(t('vendor.voucherPaused'));
+  const handleToggleVoucher = async (voucherId: string, activate: boolean) => {
+    try {
+      await vendorPromotionApi.toggle(voucherId, activate);
+      toast.success(activate ? t('vendor.voucherActivated') : t('vendor.voucherPaused'));
+      await loadVouchers();
+    } catch (error: any) {
+      console.error('Failed to toggle voucher', error);
+      toast.error(error?.message || t('vendor.cannotUpdateVoucher'));
+    }
   };
 
-  const handleActivateVoucher = (voucherId: number) => {
-    setVouchers(vouchers.map(v => 
-      v.id === voucherId ? { ...v, status: "ACTIVE" } : v
-    ));
-    toast.success(t('vendor.voucherActivated'));
-  };
-
-  const handleDeleteVoucher = (voucherId: number) => {
-    setVouchers(vouchers.filter(v => v.id !== voucherId));
-    toast.success(t('vendor.voucherDeleted'));
+  const handleDeleteVoucher = async (voucherId: string) => {
+    try {
+      await vendorPromotionApi.delete(voucherId);
+      toast.success(t('vendor.voucherDeleted'));
+      await loadVouchers();
+    } catch (error: any) {
+      console.error('Failed to delete voucher', error);
+      toast.error(error?.message || t('vendor.cannotDeleteVoucher'));
+    }
   };
 
   const filteredVouchers = vouchers.filter(voucher => {
@@ -422,25 +527,28 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
   });
 
   const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-      ACTIVE: { label: t('vendor.active'), variant: "default" },
-      PENDING: { label: t('vendor.pendingApproval'), variant: "secondary" },
-      PAUSED: { label: t('vendor.paused'), variant: "outline" },
-      EXPIRED: { label: t('vendor.expired'), variant: "destructive" },
+    const statusConfig: Record<string, { label: string; className: string }> = {
+      ACTIVE: { label: t('vendor.active'), className: 'bg-green-100 text-green-700' },
+      INACTIVE: { label: t('vendor.paused'), className: 'bg-gray-100 text-gray-700' },
+      PENDING: { label: t('vendor.pendingApproval'), className: 'bg-yellow-100 text-yellow-800' },
+      PAUSED: { label: t('vendor.paused'), className: 'bg-gray-100 text-gray-700' },
+      EXPIRED: { label: t('vendor.expired'), className: 'bg-red-100 text-red-700' },
+      EXHAUSTED: { label: t('vendor.exhausted', 'Đã hết lượt'), className: 'bg-orange-100 text-orange-700' },
     };
     const config = statusConfig[status] || statusConfig.ACTIVE;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    return <Badge className={config.className}>{config.label}</Badge>;
   };
 
   const getCategoryLabel = (category: string) => {
     const categories: Record<string, string> = {
-      "hotels": t('vendor.hotels'),
-      "activities": t('vendor.activities'),
-      "cars": t('vendor.cars'),
-      "flights": t('vendor.flights'),
-      "all": t('vendor.allServices')
+      HOTEL: t('vendor.hotels'),
+      ACTIVITY: t('vendor.activities'),
+      CAR: t('vendor.cars'),
+      FLIGHT: t('vendor.flights'),
+      ALL: t('vendor.allServices'),
     };
-    return categories[category] || category;
+    const key = (category || 'ALL').toUpperCase();
+    return categories[key] || t('vendor.allServices');
   };
 
   return (
@@ -537,99 +645,113 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredVouchers.map((voucher) => (
-                <TableRow key={voucher.id}>
-                  <TableCell className="font-mono font-semibold">
-                    {voucher.code}
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-6 text-gray-500">
+                    {t('common.loading')}
                   </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {voucher.type === "PERCENTAGE" ? t('vendor.percentage') : t('vendor.fixedAmount')}
-                    </Badge>
+                </TableRow>
+              ) : filteredVouchers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-6 text-gray-500">
+                    {t('vendor.noVouchersFound')}
                   </TableCell>
-                  <TableCell>
-                    {voucher.type === "PERCENTAGE" 
-                      ? `${voucher.value}%` 
-                      : `₫${voucher.value.toLocaleString()}`}
-                    {voucher.maxDiscount && (
-                      <div className="text-xs text-gray-500">
-                        {t('vendor.max')}: ₫{voucher.maxDiscount.toLocaleString()}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {getCategoryLabel(voucher.applyToCategory)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {new Date(voucher.startDate).toLocaleDateString('vi-VN')}
-                      <br />
-                      {t('vendor.to')} {new Date(voucher.endDate).toLocaleDateString('vi-VN')}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {voucher.totalUsed} / {voucher.totalUsesLimit || "∞"}
-                    </div>
-                    {voucher.totalUsesLimit && (
-                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                        <div 
-                          className="bg-blue-600 h-1.5 rounded-full" 
-                          style={{ width: `${(voucher.totalUsed / voucher.totalUsesLimit) * 100}%` }}
-                        />
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(voucher.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewDetail(voucher)}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      {voucher.status === "ACTIVE" && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handlePauseVoucher(voucher.id)}
-                        >
-                          <Pause className="w-4 h-4" />
-                        </Button>
+                </TableRow>
+              ) : (
+                filteredVouchers.map((voucher) => (
+                  <TableRow key={voucher.id}>
+                    <TableCell className="font-mono font-semibold">
+                      {voucher.code}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {voucher.type === "PERCENTAGE" ? t('vendor.percentage') : t('vendor.fixedAmount')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {voucher.type === "PERCENTAGE" 
+                        ? `${voucher.value}%` 
+                        : `₫${voucher.value.toLocaleString()}`}
+                      {voucher.maxDiscount && (
+                        <div className="text-xs text-gray-500">
+                          {t('vendor.max')}: ₫{voucher.maxDiscount.toLocaleString()}
+                        </div>
                       )}
-                      {voucher.status === "PAUSED" && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleActivateVoucher(voucher.id)}
-                        >
-                          <Play className="w-4 h-4" />
-                        </Button>
+                    </TableCell>
+                    <TableCell>
+                      {getCategoryLabel(voucher.category || "ALL")}
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {voucher.startDate}
+                        <br />
+                        {t('vendor.to')} {voucher.endDate}
+                        {voucher.daysLeft !== null && (
+                          <div className={`text-xs ${voucher.daysLeft < 0 ? "text-red-600" : voucher.daysLeft < 7 ? "text-orange-600" : "text-gray-500"}`}>
+                            {voucher.daysLeft < 0
+                              ? t('admin.expiredDaysAgo', { days: Math.abs(voucher.daysLeft) })
+                              : t('admin.daysLeft', { days: voucher.daysLeft })}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {voucher.totalUsed} / {voucher.totalUsesLimit || "∞"}
+                      </div>
+                      {voucher.totalUsesLimit && voucher.totalUsesLimit > 0 && (
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                          <div 
+                            className="bg-blue-600 h-1.5 rounded-full" 
+                            style={{ width: `${Math.min(100, (voucher.totalUsed / voucher.totalUsesLimit) * 100)}%` }}
+                          />
+                        </div>
                       )}
-                      {voucher.status === "PENDING" && (
+                    </TableCell>
+                    <TableCell>{getStatusBadge(voucher.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDeleteVoucher(voucher.id)}
+                          onClick={() => handleViewDetail(voucher)}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        {voucher.status !== "EXPIRED" && voucher.status !== "EXHAUSTED" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleToggleVoucher(String(voucher.id), voucher.status !== "ACTIVE")}
+                          >
+                            {voucher.status === "ACTIVE" ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteVoucher(String(voucher.id))}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
-
-          {filteredVouchers.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              Không tìm thấy voucher nào
-            </div>
-          )}
         </Card>
+
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-500">
+            {t('common.showing')} {filteredVouchers.length === 0 ? 0 : page * pageSize + 1}-{Math.min(total, (page + 1) * pageSize)} {t('common.of')} {total}
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" disabled={page === 0} onClick={() => setPage(Math.max(0, page - 1))}>{t('common.prev')}</Button>
+            <Button variant="outline" disabled={(page + 1) * pageSize >= total} onClick={() => setPage(page + 1)}>{t('common.next')}</Button>
+          </div>
+        </div>
       </div>
 
       {/* Dialogs */}

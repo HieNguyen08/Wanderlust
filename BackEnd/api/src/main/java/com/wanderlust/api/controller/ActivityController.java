@@ -125,7 +125,7 @@ public class ActivityController {
      * Create new activity
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'PARTNER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDOR')")
     public ResponseEntity<Activity> addActivity(@RequestBody ActivityRequestDTO activityDTO) {
         Activity newActivity = activityService.create(activityDTO);
         return new ResponseEntity<>(newActivity, HttpStatus.CREATED);
@@ -136,7 +136,7 @@ public class ActivityController {
      * Update activity
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isActivityOwner(authentication, #id))")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('VENDOR') and @webSecurity.isActivityOwner(authentication, #id))")
     public ResponseEntity<Activity> updateActivity(
             @PathVariable String id,
             @RequestBody ActivityRequestDTO activityDTO) {
@@ -149,7 +149,7 @@ public class ActivityController {
      * Delete activity
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('PARTNER') and @webSecurity.isActivityOwner(authentication, #id))")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('VENDOR') and @webSecurity.isActivityOwner(authentication, #id))")
     public ResponseEntity<String> deleteActivity(@PathVariable String id) {
         activityService.delete(id);
         return new ResponseEntity<>("Activity has been deleted successfully!", HttpStatus.OK);
@@ -164,5 +164,39 @@ public class ActivityController {
     public ResponseEntity<String> deleteAllActivities() {
         activityService.deleteAll();
         return new ResponseEntity<>("All activities have been deleted successfully!", HttpStatus.OK);
+    }
+
+    // --- APPROVAL & OPERATIONAL STATUS ---
+
+    @PostMapping("/{id}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Activity> approve(@PathVariable String id) {
+        return ResponseEntity.ok(activityService.approve(id));
+    }
+
+    @PostMapping("/{id}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Activity> reject(@PathVariable String id, @RequestBody(required = false) Map<String, String> body) {
+        String reason = body != null ? body.get("reason") : null;
+        return ResponseEntity.ok(activityService.reject(id, reason));
+    }
+
+    @PostMapping("/{id}/request-revision")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Activity> requestRevision(@PathVariable String id, @RequestBody(required = false) Map<String, String> body) {
+        String reason = body != null ? body.get("reason") : null;
+        return ResponseEntity.ok(activityService.requestRevision(id, reason));
+    }
+
+    @PostMapping("/{id}/pause")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('VENDOR') and @webSecurity.isActivityOwner(authentication, #id))")
+    public ResponseEntity<Activity> pause(@PathVariable String id) {
+        return ResponseEntity.ok(activityService.pause(id));
+    }
+
+    @PostMapping("/{id}/resume")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('VENDOR') and @webSecurity.isActivityOwner(authentication, #id))")
+    public ResponseEntity<Activity> resume(@PathVariable String id) {
+        return ResponseEntity.ok(activityService.resume(id));
     }
 }
