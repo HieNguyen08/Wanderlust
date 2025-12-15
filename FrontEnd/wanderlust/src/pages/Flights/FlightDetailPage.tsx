@@ -6,15 +6,15 @@ import {
   Calendar as CalendarIcon,
   Check, Filter,
   Loader2,
+  Minus,
   Plane,
   PlaneLanding,
   PlaneTakeoff,
-  Plus,
-  Minus
+  Plus
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Footer } from "../../components/Footer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui/accordion";
@@ -383,9 +383,9 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
 
     if (flightLeg === 'outbound') {
       if (tripType === 'round-trip') {
-        // Save outbound selection and move to return flight
+        // Save outbound selection with FULL flight info and move to return flight
         setOutboundFlight({
-          flight: selectedFlightForSeats,
+          ...selectedFlightForSeats, // Full flight object including id, departureTime, arrivalTime
           selectedSeats: selectedSeats
         });
         setFlightLeg('inbound');
@@ -394,35 +394,39 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
         setSelectedSeats([]);
         toast.success('Đã chọn ghế chiều đi. Vui lòng chọn chuyến bay chiều về.');
       } else {
-        // One-way: go to review
+        // One-way: go to review with full flight info
         onNavigate('flight-review', {
           tripType,
           from: fromAirport,
           to: toAirport,
           departDate,
-          returnDate,
-          passengers: { adults, children, infants, total: adults + children + infants },
+          passengers: { adults, children, infants, total: totalPassengers },
           cabinClass,
-          outboundFlight: selectedFlightForSeats,
-          selectedSeats: { outbound: selectedSeats, return: [] }
+          outboundFlight: selectedFlightForSeats, // Full flight object
+          selectedSeats: {
+            outbound: selectedSeats,
+            return: []
+          },
+          isInternational: fromAirport.code !== 'SGN' && fromAirport.code !== 'HAN' && fromAirport.code !== 'DAD'
         });
       }
     } else {
-      // Return flight selected - go to review
+      // Return flight selected - go to review with both flights
       onNavigate('flight-review', {
         tripType,
         from: fromAirport,
         to: toAirport,
         departDate,
         returnDate,
-        passengers: { adults, children, infants, total: adults + children + infants },
+        passengers: { adults, children, infants, total: totalPassengers },
         cabinClass,
-        outboundFlight: outboundFlight.flight,
-        returnFlight: selectedFlightForSeats,
+        outboundFlight: outboundFlight, // Full flight object from state
+        returnFlight: selectedFlightForSeats, // Full flight object
         selectedSeats: {
-          outbound: outboundFlight.selectedSeats,
+          outbound: outboundFlight?.selectedSeats || [],
           return: selectedSeats
-        }
+        },
+        isInternational: fromAirport.code !== 'SGN' && fromAirport.code !== 'HAN' && fromAirport.code !== 'DAD'
       });
     }
   };
@@ -442,7 +446,7 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl mb-2">Chọn chuyến bay</h1>
+              <h1 className="text-xl mb-2">{t('flights.selectFlight')}</h1>
               <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-gray-900">{fromAirport.city} ({fromAirport.code})</span>
@@ -454,13 +458,13 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
                 {tripType === "round-trip" && (
                   <>
                     <span>•</span>
-                    <span>Về: {format(returnDate, "dd/MM/yyyy")}</span>
+                    <span>{t('flights.return')}: {format(returnDate, "dd/MM/yyyy")}</span>
                   </>
                 )}
                 <span>•</span>
-                <span>{totalPassengers} hành khách</span>
+                <span>{totalPassengers} {t('flights.passenger')}</span>
                 <span>•</span>
-                <span>{cabinClass === 'economy' ? 'Phổ thông' : cabinClass === 'business' ? 'Thương gia' : 'Hạng nhất'}</span>
+                <span>{t(`flights.${cabinClass}`)}</span>
               </div>
             </div>
             <Button
@@ -468,7 +472,7 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
               onClick={() => setShowModifySearch(true)}
               className="border-blue-600 text-blue-600 hover:bg-blue-50"
             >
-              THAY ĐỔI
+              {t('flights.modify')}
             </Button>
           </div>
         </div>
@@ -494,7 +498,7 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
                 <div className="flex items-center gap-2">
                   <PlaneTakeoff className="w-5 h-5" />
                   <div className="text-left">
-                    <div className="font-medium">Chiều đi</div>
+                    <div className="font-medium">{t('flights.outbound')}</div>
                     <div className="text-sm">
                       {fromAirport.code} → {toAirport.code} • {format(departDate, "dd/MM")}
                     </div>
@@ -521,7 +525,7 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
                 <div className="flex items-center gap-2">
                   <PlaneLanding className="w-5 h-5" />
                   <div className="text-left">
-                    <div className="font-medium">Chiều về</div>
+                    <div className="font-medium">{t('flights.return')}</div>
                     <div className="text-sm">
                       {toAirport.code} → {fromAirport.code} • {format(returnDate, "dd/MM")}
                     </div>
@@ -540,7 +544,7 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
             <div className="flex items-center gap-2 text-sm text-green-800">
               <Check className="w-5 h-5 text-green-600" />
               <span>
-                <strong>Đã chọn chiều đi:</strong> Chuyến bay {outboundFlight.flight?.flightNumber || outboundFlight.flightNumber}
+                <strong>{t('flights.selectedOutbound')}:</strong> {t('flights.flightTickets')} {outboundFlight.flight?.flightNumber || outboundFlight.flightNumber}
               </span>
             </div>
           </div>
@@ -587,22 +591,22 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
               className="gap-2"
             >
               <Filter className="w-4 h-4" />
-              HIỂN THỊ BỘ LỌC
+              {t('flights.showFilters')}
             </Button>
 
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600">Sắp xếp theo:</span>
+              <span className="text-sm text-gray-600">{t('flights.sortBy')}</span>
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="default">Mặc định</SelectItem>
-                  <SelectItem value="price-low">Giá rẻ nhất</SelectItem>
-                  <SelectItem value="price-high">Giá cao nhất</SelectItem>
-                  <SelectItem value="depart-early">Giờ khởi hành sớm nhất</SelectItem>
-                  <SelectItem value="depart-late">Giờ khởi hành muộn nhất</SelectItem>
-                  <SelectItem value="duration">Thời gian bay ngắn nhất</SelectItem>
+                  <SelectItem value="default">{t('flights.sortDefault')}</SelectItem>
+                  <SelectItem value="price-low">{t('flights.sortPriceLow')}</SelectItem>
+                  <SelectItem value="price-high">{t('flights.sortPriceHigh')}</SelectItem>
+                  <SelectItem value="depart-early">{t('flights.sortDepartEarly')}</SelectItem>
+                  <SelectItem value="depart-late">{t('flights.sortDepartLate')}</SelectItem>
+                  <SelectItem value="duration">{t('flights.sortDuration')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -614,13 +618,13 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
 
       {/* Flight List */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-        <p className="text-sm text-gray-600 mb-4">Có {filteredAndSortedFlights.length} chuyến bay</p>
+        <p className="text-sm text-gray-600 mb-4">{t('flights.flightsFound', { count: filteredAndSortedFlights.length })}</p>
 
         {filteredAndSortedFlights.length === 0 && !isLoading && (
           <Card className="p-12 text-center">
             <Plane className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy chuyến bay</h3>
-            <p className="text-gray-600">Vui lòng thử tìm kiếm với điều kiện khác hoặc chọn ngày khác.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('flights.noFlightsFound')}</h3>
+            <p className="text-gray-600">{t('flights.tryDifferentSearch')}</p>
           </Card>
         )}
 
@@ -651,7 +655,7 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
                             <div className="text-sm text-gray-600">{flight.durationDisplay}</div>
                             <div className="border-t border-gray-300 my-1"></div>
                             <div className="text-xs text-gray-500">
-                              {flight.isDirect ? "Bay thẳng" : "Có dừng"}
+                              {flight.isDirect ? t('flights.directFlight') : t('flights.stopover')}
                             </div>
                           </div>
                           <div className="text-right">
@@ -663,25 +667,25 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
                         <Popover>
                           <PopoverTrigger asChild>
                             <button className="text-sm text-blue-600 hover:underline">
-                              Chi tiết hành trình
+                              {t('flights.itineraryDetails')}
                             </button>
                           </PopoverTrigger>
                           <PopoverContent className="w-80">
                             <div className="space-y-2">
                               <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Máy bay</span>
+                                <span className="text-sm text-gray-600">{t('flights.aircraft')}</span>
                                 <span className="text-sm font-medium">{flight.aircraftType || 'N/A'}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Thời gian bay</span>
+                                <span className="text-sm text-gray-600">{t('flights.flightTime')}</span>
                                 <span className="text-sm font-medium">{flight.durationDisplay}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Khoảng cách</span>
+                                <span className="text-sm text-gray-600">{t('flights.distance')}</span>
                                 <span className="text-sm font-medium">{flight.distanceKm} km</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Khai thác bởi</span>
+                                <span className="text-sm text-gray-600">{t('flights.operatedBy')}</span>
                                 <span className="text-sm font-medium">{flight.airlineName}</span>
                               </div>
                             </div>
@@ -696,15 +700,15 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
                     {/* Flight Stats */}
                     <div className="grid grid-cols-3 gap-4 flex-1">
                       <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-600 mb-1">Tổng ghế</div>
+                        <div className="text-sm text-gray-600 mb-1">{t('flights.totalSeats')}</div>
                         <div className="text-lg font-semibold">{flight.totalSeats || 'N/A'}</div>
                       </div>
                       <div className="text-center p-3 bg-green-50 rounded-lg">
-                        <div className="text-sm text-gray-600 mb-1">Còn trống</div>
+                        <div className="text-sm text-gray-600 mb-1">{t('flights.available')}</div>
                         <div className="text-lg font-semibold text-green-600">{flight.availableSeats || 'N/A'}</div>
                       </div>
                       <div className="text-center p-3 bg-blue-50 rounded-lg">
-                        <div className="text-sm text-gray-600 mb-1">Giá từ</div>
+                        <div className="text-sm text-gray-600 mb-1">{t('flights.priceFrom')}</div>
                         <div className="text-lg font-semibold text-blue-600">
                           {flight.cabinClasses[cabinClass]?.fromPrice?.toLocaleString('vi-VN') || 'N/A'}₫
                         </div>
@@ -717,7 +721,7 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
                       className="bg-blue-600 hover:bg-blue-700 px-8 py-6 text-lg"
                       disabled={selectedFlightForSeats?.id === flight.id}
                     >
-                      {selectedFlightForSeats?.id === flight.id ? 'Đang chọn ghế' : 'Chọn chuyến bay'}
+                      {selectedFlightForSeats?.id === flight.id ? t('flights.selectingSeats') : t('flights.selectFlightAction')}
                     </Button>
                   </div>
                 </div>
@@ -728,10 +732,9 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
                 <div className="border-t bg-gray-50 p-6">
                   <div className="mb-4 flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-semibold mb-1">Chọn ghế ngồi</h3>
+                      <h3 className="text-lg font-semibold mb-1">{t('flights.seatSelection')}</h3>
                       <p className="text-sm text-gray-600">
-                        Vui lòng chọn {adults + children} ghế cho hành khách của bạn
-                        ({selectedSeats.length}/{adults + children} đã chọn)
+                        {t('flights.pleaseSelectSeats', { count: adults + children, selected: selectedSeats.length })}
                       </p>
                     </div>
                     <Button
@@ -741,19 +744,19 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
                         setSelectedSeats([]);
                       }}
                     >
-                      Hủy
+                      {t('flights.cancel')}
                     </Button>
                   </div>
 
                   {loadingSeats ? (
                     <div className="flex justify-center items-center py-12">
                       <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                      <span className="ml-3">Đang tải sơ đồ ghế...</span>
+                      <span className="ml-3">{t('flights.loadingSeats')}</span>
                     </div>
                   ) : availableSeats.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">
                       <Armchair className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                      <p>Không còn ghế trống cho hạng vé này</p>
+                      <p>{t('flights.noSeatsAvailable')}</p>
                     </div>
                   ) : (
                     <div>
@@ -761,19 +764,19 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
                       <div className="flex flex-wrap gap-6 text-sm justify-center mb-6 pb-4 border-b">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
-                          <span>Còn trống</span>
+                          <span>{t('flights.seatLegendAvailable')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 border-2 border-blue-600 bg-blue-600 rounded"></div>
-                          <span>Đã chọn</span>
+                          <span>{t('flights.seatLegendSelected')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 border-2 border-gray-200 bg-gray-200 rounded"></div>
-                          <span>Đã đặt</span>
+                          <span>{t('flights.seatLegendBooked')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 border-2 border-green-400 bg-white rounded ring-2 ring-green-400 ring-offset-1"></div>
-                          <span>Ghế đặc biệt</span>
+                          <span>{t('flights.seatLegendSpecial')}</span>
                         </div>
                       </div>
 

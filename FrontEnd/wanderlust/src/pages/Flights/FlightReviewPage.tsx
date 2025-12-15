@@ -88,12 +88,12 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
             countryCode: "+84"
           });
 
-          toast.success(t('flights.userInfoLoaded') || 'Đã tải thông tin người dùng');
+          toast.success(t('flights.userInfoLoaded'));
         } catch (error: any) {
           console.error('Error loading user profile:', error);
           // If error but not auth issue, just use empty form
           if (error.message !== 'UNAUTHORIZED') {
-            toast.info(t('flights.fillContactInfo') || 'Vui lòng điền thông tin liên hệ');
+            toast.info(t('flights.fillContactInfo'));
           }
         } finally {
           setIsLoadingUserData(false);
@@ -118,11 +118,78 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
     console.log('returnFlight:', resolvedFlightData?.returnFlight);
     console.log('selectedSeats:', resolvedFlightData?.selectedSeats);
     console.log('cabinClass:', resolvedFlightData?.cabinClass);
+    
+    // Additional debugging for seat flightIds
+    if (resolvedFlightData?.selectedSeats?.outbound) {
+      console.log('Outbound seat flightIds:', resolvedFlightData.selectedSeats.outbound.map((s: any) => s.flightId));
+    }
+    if (resolvedFlightData?.selectedSeats?.return) {
+      console.log('Return seat flightIds:', resolvedFlightData.selectedSeats.return.map((s: any) => s.flightId));
+    }
   }, [resolvedFlightData]);
 
   // Outbound flight data from SearchPage
   const outboundFlightData = resolvedFlightData?.outboundFlight;
   const returnFlightData = resolvedFlightData?.returnFlight;
+
+  // Extract flightId from seats if not available in flight data
+  const getFlightIdFromSeats = (seats: any[]) => {
+    if (!seats || seats.length === 0) return null;
+    return seats[0]?.flightId;
+  };
+
+  const outboundFlightId = outboundFlightData?.flightNumber 
+    || outboundFlightData?.id 
+    || getFlightIdFromSeats(resolvedFlightData?.selectedSeats?.outbound);
+  
+  const returnFlightId = returnFlightData?.flightNumber 
+    || returnFlightData?.id 
+    || getFlightIdFromSeats(resolvedFlightData?.selectedSeats?.return);
+
+  // Load complete flight data if missing
+  useEffect(() => {
+    const loadFlightData = async () => {
+      try {
+        // If we have flightId but missing flight details, fetch them
+        if (outboundFlightId && !outboundFlightData?.departureTime) {
+          console.log('Fetching outbound flight data for:', outboundFlightId);
+          const response = await fetch(`http://localhost:8080/api/flights/${outboundFlightId}`);
+          if (response.ok) {
+            const flightData = await response.json();
+            console.log('Loaded outbound flight:', flightData);
+            // Update resolvedFlightData with complete info
+            if (resolvedFlightData) {
+              resolvedFlightData.outboundFlight = { 
+                ...resolvedFlightData.outboundFlight, 
+                ...flightData 
+              };
+            }
+          }
+        }
+        
+        if (returnFlightId && tripType === 'round-trip' && !returnFlightData?.arrivalTime) {
+          console.log('Fetching return flight data for:', returnFlightId);
+          const response = await fetch(`http://localhost:8080/api/flights/${returnFlightId}`);
+          if (response.ok) {
+            const flightData = await response.json();
+            console.log('Loaded return flight:', flightData);
+            if (resolvedFlightData) {
+              resolvedFlightData.returnFlight = { 
+                ...resolvedFlightData.returnFlight, 
+                ...flightData 
+              };
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading flight data:', error);
+      }
+    };
+
+    if (outboundFlightId) {
+      loadFlightData();
+    }
+  }, [outboundFlightId, returnFlightId, tripType]);
 
   // Format flight info for display
   const formatTime = (dateTimeString: string) => {
@@ -140,9 +207,9 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
   // Map cabin class for display
   const getCabinClassName = (cabinClass: string) => {
     const mapping: Record<string, string> = {
-      'economy': t('flights.economy') || 'Phổ thông',
-      'business': t('flights.business') || 'Thương gia',
-      'first': t('flights.firstClass') || 'Hạng nhất'
+      'economy': t('flights.economy'),
+      'business': t('flights.business'),
+      'first': t('flights.firstClass')
     };
     return mapping[cabinClass?.toLowerCase()] || cabinClass;
   };
@@ -232,14 +299,14 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
     }
 
     if (!resolvedFlightData?.outboundFlight) {
-      toast.error(t('flights.missingFlightData') || 'Thiếu dữ liệu chuyến bay, vui lòng chọn lại');
+      toast.error(t('flights.missingFlightData'));
       goTo('search');
       return;
     }
 
     // Require login before creating booking
     if (!tokenService.isAuthenticated?.()) {
-      toast.error(t('common.loginRequired') || 'Vui lòng đăng nhập');
+      toast.error(t('common.loginRequired'));
       goTo('login');
       return;
     }
@@ -254,25 +321,71 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
         ...(selectedSeatsData.return?.map((s: any) => s.id) || [])
       ];
 
+      // Calculate correct pricing
+      const totalBasePriceForBooking = basePrice * (passengers.length || numPassengers || 1);
+      const totalTaxesForBooking = taxAndFees * (passengers.length || numPassengers || 1);
+      const totalFeesForBooking = 0; // Website service fee = 0
+      const totalAmountBeforeDiscount = totalBasePriceForBooking + totalTaxesForBooking + totalSeatPrice;
+
+      // Build flightId List (1 for one-way, 2 for round-trip)
+      const flightIds = [outboundFlightId];
+      if (tripType === 'round-trip' && returnFlightId) {
+        flightIds.push(returnFlightId);
+      }
+
+      console.log('=== Creating Booking ===');
+      console.log('flightIds:', flightIds);
+      console.log('outboundFlightData:', outboundFlightData);
+      console.log('returnFlightData:', returnFlightData);
+
+      if (!outboundFlightId) {
+        toast.error('Không tìm thấy thông tin chuyến bay');
+        return;
+      }
+
+      // Determine startDate and endDate from actual flight data
+      let startDate = outboundFlightData?.departureTime;
+      let endDate;
+
+      console.log('startDate from outboundFlight:', startDate);
+
+      if (!startDate) {
+        toast.error('Thiếu thông tin thời gian bay');
+        return;
+      }
+
+      if (tripType === 'round-trip' && returnFlightData) {
+        // Round-trip: endDate = arrivalTime of return flight
+        endDate = returnFlightData.arrivalTime;
+      } else {
+        // One-way: endDate = arrivalTime of outbound flight
+        endDate = outboundFlightData?.arrivalTime;
+      }
+
+      console.log('endDate:', endDate);
+
+      if (!endDate) {
+        toast.error('Thiếu thông tin thời gian hạ cánh');
+        return;
+      }
+
       const bookingPayload = {
         productType: "FLIGHT",
         bookingType: "FLIGHT",
-        productId: resolvedFlightData?.outboundFlight?.id
-          || resolvedFlightData?.outboundFlight?.flightNumber
-          || "FLIGHT001",
-        flightId: resolvedFlightData?.outboundFlight?.flightNumber || resolvedFlightData?.outboundFlight?.id,
+        productId: flightIds[0], // For compatibility
+        flightId: flightIds, // Now a List<String>
         flightSeatIds,
         seatCount: flightSeatIds.length,
         userId: tokenService.getUserData()?.id,
-        amount: totalPrice,
-        basePrice: 0,
-        taxes: 0,
-        fees: totalSeatPrice,
+        amount: totalAmountBeforeDiscount,
+        basePrice: totalBasePriceForBooking,
+        taxes: totalTaxesForBooking,
+        fees: totalFeesForBooking,
         discount: 0,
-        totalPrice,
+        totalPrice: totalAmountBeforeDiscount,
         currency: "VND",
-        startDate: resolvedFlightData?.outboundFlight?.departureTime || new Date().toISOString(),
-        endDate: resolvedFlightData?.returnFlight?.arrivalTime || undefined,
+        startDate,
+        endDate,
         quantity: passengers.length || numPassengers || 1,
         numberOfGuests: {
           adults: passengerInfo?.adults || numPassengers || 1,
@@ -293,17 +406,64 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
           passengers,
           contactInfo,
           selectedSeats: selectedSeatsData,
+          selectedFlights: { // NEW: Store full flight info
+            outbound: outboundFlightData,
+            return: returnFlightData
+          },
           tripType,
           cabinClass,
           basePricePerPassenger: basePrice,
           taxesPerPassenger: taxAndFees,
           seatFees: totalSeatPrice,
           voucherDiscount: 0,
-          finalAmount: totalPrice
+          finalAmount: totalAmountBeforeDiscount
         }
       } as any;
 
       const createdBooking = await bookingApi.createBooking(bookingPayload);
+
+      // Update flight seats to RESERVED status (user-level PATCH)
+      try {
+        for (const seatId of flightSeatIds) {
+          await fetch(`http://localhost:8080/api/flight-seats/${seatId}/status?status=RESERVED`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${tokenService.getToken()}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        }
+        console.log('Successfully updated seat statuses to RESERVED');
+      } catch (seatError) {
+        console.error('Failed to update seat statuses:', seatError);
+        // Continue anyway as booking is already created
+      }
+
+      // Decrement available seats for each flight leg
+      try {
+        const outboundCount = selectedSeatsData.outbound?.length || 0;
+        if (outboundFlightId && outboundCount > 0) {
+          await fetch(`http://localhost:8080/api/flights/${outboundFlightId}/available-seats/decrement?count=${outboundCount}`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${tokenService.getToken()}`
+            }
+          });
+        }
+
+        const returnCount = selectedSeatsData.return?.length || 0;
+        if (tripType === 'round-trip' && returnFlightId && returnCount > 0) {
+          await fetch(`http://localhost:8080/api/flights/${returnFlightId}/available-seats/decrement?count=${returnCount}`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${tokenService.getToken()}`
+            }
+          });
+        }
+        console.log('Successfully decremented available seats for flights');
+      } catch (flightSeatError) {
+        console.error('Failed to decrement available seats:', flightSeatError);
+      }
 
       // Navigate to payment with persisted booking
       goTo("payment-methods", {
@@ -311,7 +471,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
         contactInfo,
         passengers,
         flightData: resolvedFlightData,
-        totalPrice,
+        totalPrice: totalAmountBeforeDiscount,
         bookingId: createdBooking?.id,
         booking: createdBooking,
         userId: tokenService.getUserData()?.id,
@@ -319,7 +479,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
       });
     } catch (error: any) {
       console.error('Failed to create booking before payment', error);
-      toast.error(error.message || t('payment.bookingFailed') || 'Không thể tạo đặt chỗ, vui lòng thử lại');
+      toast.error(error.message || t('payment.bookingFailed'));
     } finally {
       setIsCreatingBooking(false);
     }
@@ -390,7 +550,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
             {isLoadingUserData ? (
               <div className="flex justify-center items-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <span className="ml-3 text-gray-600">{t('common.loading') || 'Đang tải...'}</span>
+                <span className="ml-3 text-gray-600">{t('common.loading')}</span>
               </div>
             ) : (
               <>
@@ -660,7 +820,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
             onClick={handleContinueToPayment}
             disabled={!agreeToTerms || isCreatingBooking}
           >
-            {isCreatingBooking ? t('common.loading') || 'Đang xử lý...' : t('flights.continueToPayment')}
+            {isCreatingBooking ? t('common.loading') : t('flights.continueToPayment')}
           </Button>
         </div>
 
@@ -668,12 +828,12 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
         <div className="lg:col-span-1">
           <div className="sticky top-24">
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">{t('flights.yourFlight') || 'Chuyến bay của bạn'}</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">{t('flights.yourFlight')}</h2>
 
               {/* Debug Info (remove in production) */}
               {!outboundFlightData && (
                 <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-yellow-800">
-                  ⚠️ Không tìm thấy thông tin chuyến bay. Vui lòng quay lại trang tìm kiếm.
+                  {t('flights.noFlightDataFound')}
                 </div>
               )}
 
@@ -682,7 +842,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
                     <Plane className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-gray-700">{t('flights.outbound') || 'Chiều đi'}</span>
+                    <span className="text-sm font-medium text-gray-700">{t('flights.outbound')}</span>
                   </div>
 
                   <div className="bg-gradient-to-br from-blue-50 to-gray-50 rounded-lg p-4 border border-blue-100">
@@ -720,7 +880,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                     {/* Selected Seats for Outbound */}
                     {selectedSeats.outbound && selectedSeats.outbound.length > 0 ? (
                       <div className="mt-3 pt-3 border-t border-blue-200">
-                        <p className="text-xs font-semibold text-gray-700 mb-2">💺 {t('flights.selectedSeats') || "Ghế đã chọn"}:</p>
+                        <p className="text-xs font-semibold text-gray-700 mb-2">💺 {t('flights.selectedSeats')}:</p>
                         <div className="flex flex-wrap gap-1.5">
                           {selectedSeats.outbound.map((seat: any) => (
                             <div key={seat.id} className="flex flex-col items-center">
@@ -736,19 +896,19 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                           ))}
                         </div>
                         <p className="text-xs text-blue-700 font-bold mt-2 bg-blue-100 px-2 py-1 rounded inline-block">
-                          {t('flights.seatsFee') || 'Phí ghế'}: +{outboundSeatPrice.toLocaleString('vi-VN')}đ
+                          {t('flights.seatsFee')}: +{outboundSeatPrice.toLocaleString('vi-VN')}đ
                         </p>
                       </div>
                     ) : (
                       <div className="mt-3 pt-3 border-t border-blue-200">
-                        <p className="text-xs text-gray-500 italic">ℹ️ Chưa chọn ghế ngồi</p>
+                        <p className="text-xs text-gray-500 italic">{t('flights.noSeatsSelected')}</p>
                       </div>
                     )}
                   </div>
                 </div>
               ) : (
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                  <p className="text-sm text-gray-500 text-center">🛩️ Chưa có thông tin chuyến bay</p>
+                  <p className="text-sm text-gray-500 text-center">{t('flights.noFlightInfo')}</p>
                 </div>
               )}
 
@@ -757,7 +917,7 @@ export default function FlightReviewPage({ onNavigate, flightData }: FlightRevie
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
                     <Plane className="w-4 h-4 text-blue-600 rotate-180" />
-                    <span className="text-sm font-medium text-gray-700">{t('flights.return') || 'Chiều về'}</span>
+                    <span className="text-sm font-medium text-gray-700">{t('flights.return')}</span>
                   </div>
 
                   <div className="bg-gradient-to-br from-green-50 to-gray-50 rounded-lg p-4 border border-green-100">

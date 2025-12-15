@@ -264,6 +264,20 @@ public class FlightService {
     }
 
     /**
+     * Giảm số ghế trống, giới hạn không xuống dưới 0
+     */
+    public Flight decrementAvailableSeats(String flightId, Integer count) {
+        Flight flight = flightRepository.findById(flightId)
+                .orElseThrow(() -> new RuntimeException("Flight not found"));
+
+        int currentAvailable = flight.getAvailableSeats() == null ? 0 : flight.getAvailableSeats();
+        int decrement = (count == null || count <= 0) ? 1 : count;
+        int updated = Math.max(0, currentAvailable - decrement);
+        flight.setAvailableSeats(updated);
+        return flightRepository.save(flight);
+    }
+
+    /**
      * Cập nhật trạng thái chuyến bay
      */
     public Flight updateStatus(String flightId, FlightStatus status) {

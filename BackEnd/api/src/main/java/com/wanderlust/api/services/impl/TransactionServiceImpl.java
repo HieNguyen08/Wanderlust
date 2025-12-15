@@ -1,54 +1,47 @@
 package com.wanderlust.api.services.impl;
 
 // Import DTOs
-import com.wanderlust.api.dto.walletDTO.TransactionDetailDTO;
-import com.wanderlust.api.dto.walletDTO.TransactionResponseDTO;
-import com.wanderlust.api.dto.walletDTO.TransactionSummaryDTO;
-
-// Import Entities
-import com.wanderlust.api.entity.Wallet;
-import com.wanderlust.api.entity.WalletTransaction;
-import com.wanderlust.api.entity.Booking;
-import com.wanderlust.api.entity.Hotel;
-import com.wanderlust.api.entity.Flight;
-import com.wanderlust.api.entity.Activity;
-import com.wanderlust.api.entity.CarRental;
-import com.wanderlust.api.entity.User; // <-- IMPORT MỚI
-
-// Import Enums
-import com.wanderlust.api.entity.types.TransactionStatus;
-import com.wanderlust.api.entity.types.TransactionType;
-import com.wanderlust.api.exception.ResourceNotFoundException;
-
-// Import Repositories & Services
-import com.wanderlust.api.repository.WalletRepository;
-import com.wanderlust.api.repository.WalletTransactionRepository;
-import com.wanderlust.api.repository.BookingRepository;
-import com.wanderlust.api.repository.HotelRepository;
-import com.wanderlust.api.repository.UserRepository; // <-- IMPORT MỚI
-import com.wanderlust.api.services.TransactionService;
-import com.wanderlust.api.services.FlightService;
-import com.wanderlust.api.services.ActivityService;
-import com.wanderlust.api.services.CarRentalService;
-
-// Import Mappers
-import com.wanderlust.api.mapper.TransactionMapper; 
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service; // <-- IMPORT MỚI
+import org.springframework.transaction.annotation.Transactional;
+
+import com.wanderlust.api.dto.walletDTO.TransactionDetailDTO;
+import com.wanderlust.api.dto.walletDTO.TransactionResponseDTO;
+import com.wanderlust.api.dto.walletDTO.TransactionSummaryDTO;
+import com.wanderlust.api.entity.Activity;
+import com.wanderlust.api.entity.Booking;
+import com.wanderlust.api.entity.CarRental;
+import com.wanderlust.api.entity.Flight; // <-- IMPORT MỚI
+import com.wanderlust.api.entity.Hotel;
+import com.wanderlust.api.entity.User;
+import com.wanderlust.api.entity.Wallet;
+import com.wanderlust.api.entity.WalletTransaction;
+import com.wanderlust.api.entity.types.TransactionStatus;
+import com.wanderlust.api.entity.types.TransactionType;
+import com.wanderlust.api.exception.ResourceNotFoundException;
+import com.wanderlust.api.mapper.TransactionMapper;
+import com.wanderlust.api.repository.BookingRepository;
+import com.wanderlust.api.repository.HotelRepository;
+import com.wanderlust.api.repository.UserRepository;
+import com.wanderlust.api.repository.WalletRepository;
+import com.wanderlust.api.repository.WalletTransactionRepository;
+import com.wanderlust.api.services.ActivityService;
+import com.wanderlust.api.services.CarRentalService;
+import com.wanderlust.api.services.FlightService;
+import com.wanderlust.api.services.TransactionService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor // Sử dụng constructor injection
@@ -223,8 +216,9 @@ public class TransactionServiceImpl implements TransactionService {
                     }
                     break;
                 case FLIGHT:
-                    if (booking.getFlightId() != null) {
-                        Flight flight = flightService.getFlightById(booking.getFlightId()).orElse(null);
+                    if (booking.getFlightId() != null && !booking.getFlightId().isEmpty()) {
+                        String primaryFlightId = booking.getFlightId().get(0);
+                        Flight flight = flightService.getFlightById(primaryFlightId).orElse(null);
                         if (flight != null) serviceName = "Chuyến bay: " + flight.getFlightNumber() + " (" + flight.getAirlineName() + ")";
                     }
                     break;

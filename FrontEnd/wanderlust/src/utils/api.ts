@@ -2354,6 +2354,9 @@ export const vendorApi = {
   // Get vendor reviews
   getVendorReviews: async (vendorId: string) => {
     const response = await authenticatedFetch(`/api/reviews/vendor/${vendorId}`);
+    if (response.status === 401 || response.status === 403) {
+      return [];
+    }
     if (!response.ok) {
       throw new Error('Failed to fetch vendor reviews');
     }

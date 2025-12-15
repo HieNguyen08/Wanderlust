@@ -1,20 +1,26 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.dto.BookingDTO;
-import com.wanderlust.api.services.BookingService;
-// Import 2 class principal
-import com.wanderlust.api.services.CustomUserDetails;
-import com.wanderlust.api.services.CustomOAuth2User;
+import java.util.List;
+import java.util.Map;
 
-import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Map;
+import com.wanderlust.api.dto.VendorBookingResponse;
+import com.wanderlust.api.services.BookingService;
+import com.wanderlust.api.services.CustomOAuth2User;
+import com.wanderlust.api.services.CustomUserDetails;
+
+import lombok.AllArgsConstructor;
 
 @CrossOrigin
 @RestController
@@ -45,28 +51,28 @@ public class VendorBookingController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BookingDTO>> getVendorBookings(Authentication authentication) {
+    public ResponseEntity<List<VendorBookingResponse>> getVendorBookings(Authentication authentication) {
         String vendorId = getVendorIdFromAuthentication(authentication);
-        return new ResponseEntity<>(bookingService.findByVendorId(vendorId), HttpStatus.OK);
+        return new ResponseEntity<>(bookingService.findVendorBookingsView(vendorId), HttpStatus.OK);
     }
 
 
     @PostMapping("/{id}/confirm")
     @PreAuthorize("@webSecurity.isBookingVendor(authentication, #id)")
-    public ResponseEntity<BookingDTO> confirmBooking(@PathVariable String id) {
-        BookingDTO result = bookingService.confirmBooking(id);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+    public ResponseEntity<VendorBookingResponse> confirmBooking(@PathVariable String id) {
+        bookingService.confirmBooking(id);
+        return new ResponseEntity<>(bookingService.getVendorBookingView(id), HttpStatus.OK);
     }
 
 
     @PostMapping("/{id}/reject")
     @PreAuthorize("@webSecurity.isBookingVendor(authentication, #id)")
-    public ResponseEntity<BookingDTO> rejectBooking(
+    public ResponseEntity<VendorBookingResponse> rejectBooking(
             @PathVariable String id,
             @RequestBody(required = false) Map<String, String> payload) {
         
         String reason = payload != null ? payload.get("reason") : "Vendor rejected";
-        BookingDTO result = bookingService.rejectBooking(id, reason);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        bookingService.rejectBooking(id, reason);
+        return new ResponseEntity<>(bookingService.getVendorBookingView(id), HttpStatus.OK);
     }
 }

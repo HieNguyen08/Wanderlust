@@ -2,6 +2,8 @@ package com.wanderlust.api.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -39,12 +41,44 @@ public class BookingController {
     private final BookingService bookingService;
 
     // DateTimeFormatter to handle multiple date formats
+
     private static final DateTimeFormatter[] DATE_FORMATTERS = {
-            DateTimeFormatter.ofPattern("dd/MM/yyyy"), // 23/11/2025
-            DateTimeFormatter.ofPattern("yyyy-MM-dd"), // 2025-11-23
-            DateTimeFormatter.ISO_LOCAL_DATE, // ISO format
-            DateTimeFormatter.ofPattern("MM/dd/yyyy") // 11/23/2025
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME, // 2025-12-16T12:00:00
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME, // 2025-12-16T12:00:00+07:00
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+            DateTimeFormatter.ofPattern("dd/MM/yyyy"), // 23/11/2025 -> atStartOfDay
+            DateTimeFormatter.ofPattern("yyyy-MM-dd"), // 2025-11-23 -> atStartOfDay
+            DateTimeFormatter.ISO_LOCAL_DATE, // ISO date -> atStartOfDay
+            DateTimeFormatter.ofPattern("MM/dd/yyyy") // 11/23/2025 -> atStartOfDay
     };
+
+    // Helper method to parse date/time with multiple formats
+    private LocalDateTime parseDateTime(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            return null;
+        }
+
+        String trimmed = dateStr.trim();
+
+        for (DateTimeFormatter formatter : DATE_FORMATTERS) {
+            try {
+                if (formatter == DateTimeFormatter.ISO_LOCAL_DATE ||
+                    formatter.equals(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ||
+                    formatter.equals(DateTimeFormatter.ofPattern("yyyy-MM-dd")) ||
+                    formatter.equals(DateTimeFormatter.ofPattern("MM/dd/yyyy"))) {
+                    return LocalDateTime.of(LocalDate.parse(trimmed, formatter), LocalTime.MIDNIGHT);
+                }
+                return LocalDateTime.parse(trimmed, formatter);
+            } catch (DateTimeParseException e) {
+                // try next
+            }
+        }
+
+        System.err.println("Warning: Unable to parse date/time: '" + dateStr
+                + "'. Returning null.");
+        return null;
+    }
 
     // Helper method to parse date with multiple formats
     private LocalDate parseDate(String dateStr) {
@@ -123,12 +157,23 @@ public class BookingController {
             bookingDTO.setBookingType(BookingType.valueOf(productType));
         }
 
-        // Map productId -> specific ID field
+        // Map productId / flightId
         String productId = (String) payload.get("productId");
-        if (productType != null && productId != null) {
+        Object flightIdObj = payload.get("flightId");
+
+        if (productType != null) {
             switch (productType) {
                 case "FLIGHT":
-                    bookingDTO.setFlightId(productId);
+                    // Accept both List<String> and single String
+                    if (flightIdObj instanceof List<?>) {
+                        @SuppressWarnings("unchecked")
+                        List<String> flightIds = (List<String>) flightIdObj;
+                        bookingDTO.setFlightId(flightIds);
+                    } else if (flightIdObj instanceof String) {
+                        bookingDTO.setFlightId(List.of((String) flightIdObj));
+                    } else if (productId != null) {
+                        bookingDTO.setFlightId(List.of(productId));
+                    }
                     break;
                 case "HOTEL":
                     bookingDTO.setHotelId(productId);
@@ -150,15 +195,15 @@ public class BookingController {
             bookingDTO.setSeatCount(flightSeatIds.size());
         }
 
-        // Parse dates
+        // Parse dates (LocalDateTime)
         String startDateStr = (String) payload.get("startDate");
         if (startDateStr != null) {
-            bookingDTO.setStartDate(parseDate(startDateStr));
+            bookingDTO.setStartDate(parseDateTime(startDateStr));
         }
 
         String endDateStr = (String) payload.get("endDate");
         if (endDateStr != null) {
-            bookingDTO.setEndDate(parseDate(endDateStr));
+            bookingDTO.setEndDate(parseDateTime(endDateStr));
         }
 
         // Parse guestInfo

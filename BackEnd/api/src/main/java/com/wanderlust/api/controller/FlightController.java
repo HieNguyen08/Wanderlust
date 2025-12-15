@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -110,6 +111,15 @@ public class FlightController {
     public ResponseEntity<Void> deleteFlight(@PathVariable String id) {
         flightService.deleteFlight(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Decrement available seats (user-level patch)
+    @PatchMapping("/{id}/available-seats/decrement")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Flight> decrementAvailableSeats(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "1") Integer count) {
+        return ResponseEntity.ok(flightService.decrementAvailableSeats(id, count));
     }
 
     @PutMapping("/{id}/available-seats")

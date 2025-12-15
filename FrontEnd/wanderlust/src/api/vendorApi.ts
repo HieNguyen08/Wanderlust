@@ -2,7 +2,7 @@ import { authenticatedFetch } from "../utils/api";
 
 export interface VendorBooking {
   id: string;
-  bookingCode: string;
+  bookingCode?: string;
   customer: string;
   email: string;
   phone: string;
@@ -51,7 +51,12 @@ export const vendorApi = {
     if (!response.ok) {
       throw new Error("Failed to fetch vendor bookings");
     }
-    return response.json();
+    const data = await response.json();
+    if (!Array.isArray(data)) return [];
+    return data.map((item) => ({
+      ...item,
+      amount: typeof item.amount === "string" ? Number(item.amount) : item.amount,
+    }));
   },
 
   // Confirm booking
@@ -65,7 +70,11 @@ export const vendorApi = {
     if (!response.ok) {
       throw new Error("Failed to confirm booking");
     }
-    return response.json();
+    const data = await response.json();
+    return {
+      ...data,
+      amount: typeof data.amount === "string" ? Number(data.amount) : data.amount,
+    };
   },
 
   // Reject/Cancel booking
@@ -80,7 +89,11 @@ export const vendorApi = {
     if (!response.ok) {
       throw new Error("Failed to reject booking");
     }
-    return response.json();
+    const data = await response.json();
+    return {
+      ...data,
+      amount: typeof data.amount === "string" ? Number(data.amount) : data.amount,
+    };
   },
 
   // Get vendor refund requests (filterable by status)

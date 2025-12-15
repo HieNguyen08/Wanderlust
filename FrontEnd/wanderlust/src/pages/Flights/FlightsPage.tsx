@@ -115,7 +115,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
         setPromotions(data);
       } catch (error) {
         console.error('Error fetching flight promotions:', error);
-        toast.error('Không thể tải ưu đãi');
+        toast.error(t('flights.toast.fetchPromotionsError'));
       } finally {
         setLoadingPromotions(false);
       }
@@ -141,14 +141,14 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
     try {
       // Check authentication
       if (!tokenService.isAuthenticated()) {
-        toast.error('Vui lòng đăng nhập để lưu voucher');
+        toast.error(t('flights.toast.loginRequired'));
         onNavigate('login');
         return;
       }
 
       setSavingVoucher(true);
       await userVoucherApi.saveToWallet(voucher.code);
-      toast.success(`Đã lưu mã ${voucher.code} vào Ví Voucher!`);
+      toast.success(t('flights.toast.voucherSaved', { code: voucher.code }));
 
       // Refresh available vouchers
       const available = await userVoucherApi.getAvailable();
@@ -156,7 +156,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
 
       setSelectedVoucher(null);
     } catch (error: any) {
-      toast.error(error.message || 'Không thể lưu voucher');
+      toast.error(error.message || t('flights.toast.saveError'));
     } finally {
       setSavingVoucher(false);
     }
@@ -171,27 +171,27 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
   const handleSearch = async () => {
     // Validation
     if (!fromAirport) {
-      toast.error("Vui lòng chọn điểm khởi hành");
+      toast.error(t('flights.toast.fromRequired'));
       return;
     }
     if (!toAirport) {
-      toast.error("Vui lòng chọn điểm đến");
+      toast.error(t('flights.toast.toRequired'));
       return;
     }
     if (fromAirport.code === toAirport.code) {
-      toast.error("Điểm đi và điểm đến không được trùng nhau");
+      toast.error(t('flights.toast.sameAirports'));
       return;
     }
     if (!departDate) {
-      toast.error("Vui lòng chọn ngày đi");
+      toast.error(t('flights.toast.departDateRequired'));
       return;
     }
     if (tripType === "round-trip" && !returnDate) {
-      toast.error("Vui lòng chọn ngày về");
+      toast.error(t('flights.toast.returnDateRequired'));
       return;
     }
     if (tripType === "round-trip" && returnDate && returnDate < departDate) {
-      toast.error("Ngày về không được trước ngày đi");
+      toast.error(t('flights.toast.returnDateInvalid'));
       return;
     }
 
@@ -252,7 +252,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       });
     } catch (error: any) {
       console.error("❌ Error searching flights:", error);
-      toast.error("Không thể tìm kiếm chuyến bay. Vui lòng thử lại.");
+      toast.error(t('flights.toast.searchError'));
     } finally {
       setIsSearching(false);
     }
@@ -753,8 +753,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       {/* Today's Flights Section */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-20 bg-blue-50/50">
         <div className="mb-8">
-          <h2 className="text-3xl mb-2">{t('flights.todayFlights') || "Chuyến bay hôm nay"}</h2>
-          <p className="text-gray-600">{t('flights.upcomingFlights') || "Các chuyến bay sắp khởi hành gần bạn"}</p>
+          <h2 className="text-3xl mb-2">{t('flights.todayFlights')}</h2>
+          <p className="text-gray-600">{t('flights.upcomingFlights')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -788,7 +788,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                     <div className="w-16 h-px bg-gray-300 my-1 relative">
                       <PlaneTakeoff className="w-3 h-3 absolute -top-1.5 left-1/2 -translate-x-1/2 text-gray-400" />
                     </div>
-                    <span className="text-xs text-green-600">{flight.isDirect ? t('flights.direct') : `${flight.stops} stop`}</span>
+                    <span className="text-xs text-green-600">{flight.isDirect ? t('flights.direct') : t('flights.stops', { count: flight.stops })}</span>
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-bold">{format(new Date(flight.arrivalTime), "HH:mm")}</div>
@@ -799,14 +799,14 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
                   <span className="text-xs text-gray-500">{format(new Date(flight.departureTime), "dd/MM/yyyy")}</span>
                   {/* Min price display if available */}
                   <span className="text-sm font-bold text-blue-600">
-                    {t('common.viewDetails') || "Xem chi tiết"}
+                    {t('common.viewDetails')}
                   </span>
                 </div>
               </div>
             ))
           ) : (
             <div className="col-span-full h-40 flex items-center justify-center text-gray-500">
-              {t('flights.noUpcomingFlights') || "Không có chuyến bay nào sắp khởi hành trong hôm nay."}
+              {t('flights.noUpcomingFlights')}
             </div>
           )}
         </div>
@@ -821,10 +821,10 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { from: "TP. Hồ Chí Minh", to: "Hà Nội", price: "1.200.000đ", image: "https://images.unsplash.com/photo-1509023464722-18d996393ca8?w=400&h=300&fit=crop" },
-            { from: "Hà Nội", to: "Đà Nẵng", price: "980.000đ", image: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=400&h=300&fit=crop" },
-            { from: "TP. Hồ Chí Minh", to: "Phú Quốc", price: "1.450.000đ", image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop" },
-            { from: "Hà Nội", to: "Nha Trang", price: "1.100.000đ", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop" }
+            { from: t('flights.cities.hoChiMinh'), to: t('flights.cities.haNoi'), price: "1.200.000đ", image: "https://images.unsplash.com/photo-1509023464722-18d996393ca8?w=400&h=300&fit=crop" },
+            { from: t('flights.cities.haNoi'), to: t('flights.cities.daNang'), price: "980.000đ", image: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=400&h=300&fit=crop" },
+            { from: t('flights.cities.hoChiMinh'), to: t('flights.cities.phuQuoc'), price: "1.450.000đ", image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop" },
+            { from: t('flights.cities.haNoi'), to: t('flights.cities.nhaTrang'), price: "1.100.000đ", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop" }
           ].map((flight, index) => (
             <div
               key={index}

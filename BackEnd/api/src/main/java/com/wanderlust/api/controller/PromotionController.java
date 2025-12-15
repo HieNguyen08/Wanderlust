@@ -195,6 +195,27 @@ public class PromotionController {
         return ResponseEntity.badRequest().body(response);
     }
 
+        // Increment usedCount when a voucher is applied successfully (user-level)
+        @PatchMapping("/usage/{code}")
+        @PreAuthorize("isAuthenticated()")
+        public ResponseEntity<?> incrementUsage(
+                @PathVariable String code,
+                @RequestParam(required = false) String vendorId,
+                @RequestParam(required = false) String serviceId) {
+            try {
+                Promotion updated = promotionService.incrementUsedCount(code, vendorId, serviceId);
+                if (updated == null) {
+                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                }
+                Map<String, Object> resp = new HashMap<>();
+                resp.put("usedCount", updated.getUsedCount());
+                resp.put("totalUsesLimit", updated.getTotalUsesLimit());
+                return new ResponseEntity<>(resp, HttpStatus.OK);
+            } catch (Exception e) {
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
     // Calculate discount for    a promotion code
     @GetMapping("/calculate-discount")
     @PreAuthorize("isAuthenticated()")

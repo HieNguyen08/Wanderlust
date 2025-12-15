@@ -144,7 +144,7 @@ public class ReviewCommentController {
      * [PARTNER] Vendor phản hồi review
      */
     @PostMapping("/{id}/respond")
-    @PreAuthorize("hasRole('PARTNER')")
+    @PreAuthorize("hasRole('VENDOR')")
     public ResponseEntity<ReviewCommentDTO> respondToReview(
             @PathVariable String id,
             @RequestBody Map<String, String> response) {
@@ -156,10 +156,10 @@ public class ReviewCommentController {
 
     /**
      * GET /api/reviews/vendor/{vendorId}
-     * [PARTNER] Lấy tất cả reviews về dịch vụ của vendor
+     * [PARTNER] Lấy tất cả reviews về dịch vụ của vendor   
      */
     @GetMapping("/vendor/{vendorId}")
-    @PreAuthorize("hasRole('PARTNER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('VENDOR') or hasRole('ADMIN')")
     public ResponseEntity<List<ReviewCommentDTO>> getReviewsByVendor(@PathVariable String vendorId) {
         List<ReviewCommentDTO> reviews = reviewCommentService.findAllByVendorId(vendorId);
         return ResponseEntity.ok(reviews);

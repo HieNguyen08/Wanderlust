@@ -1,7 +1,6 @@
 package com.wanderlust.api.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map; // Cho guestInfo, numberOfGuests
@@ -26,7 +25,7 @@ public class BookingDTO {
     private LocalDateTime bookingDate;
 
     // --- ID Dịch vụ liên quan (Polymorphic) ---
-    private String flightId;
+    private List<String> flightId; // Support one-way (1) or round-trip (2)
     private List<String> flightSeatIds;
     private Integer seatCount;
     private String hotelId;
@@ -35,8 +34,8 @@ public class BookingDTO {
     private String activityId;
 
     // --- Ngày giờ ---
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
 
     // --- Thông tin Khách (JSON) ---
     private Map<String, Object> guestInfo; // {name, email, phone, passport}

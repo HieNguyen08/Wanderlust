@@ -1,22 +1,22 @@
 import {
-  Activity,
-  BarChart3,
-  BookOpen,
-  Car,
-  Check,
-  ChevronDown,
-  Globe,
-  Home,
-  Hotel,
-  LayoutDashboard,
-  LogOut, Menu,
-  Package,
-  Plane,
-  RefreshCw,
-  Settings,
-  Star,
-  Ticket,
-  X
+    Activity,
+    BarChart3,
+    BookOpen,
+    Car,
+    Check,
+    ChevronDown,
+    Globe,
+    Home,
+    Hotel,
+    LayoutDashboard,
+    LogOut, Menu,
+    Package,
+    Plane,
+    RefreshCw,
+    Settings,
+    Star,
+    Ticket,
+    X
 } from "lucide-react";
 import { ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -147,7 +147,7 @@ export function VendorLayout({
         // The API returns List<BookingDTO>. Filter for PENDING status.
         // Assuming BookingDTO has 'status' field.
         const pendingBookings = Array.isArray(bookings)
-          ? bookings.filter((b: any) => b.status === 'PENDING').length
+          ? bookings.filter((b: any) => String(b.status).toLowerCase() === 'pending').length
           : 0;
 
         // Fetch Reviews

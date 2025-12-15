@@ -38,7 +38,7 @@ public class Booking {
 
     // --- Polymorphic Relationships (Nullable IDs) ---
     // Tùy vào bookingType mà 1 trong các trường này sẽ có dữ liệu
-    private String flightId;
+    private List<String> flightId; // Changed to List to support round-trip (outbound + return)
     private List<String> flightSeatIds; // Danh sách ghế đã chọn cho chuyến bay
     private Integer seatCount;          // Số lượng ghế đã đặt (cho flight booking)
     private String hotelId;

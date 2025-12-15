@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
@@ -11,14 +12,21 @@ import org.springframework.stereotype.Service;
 
 import com.wanderlust.api.dto.BookingDTO;
 import com.wanderlust.api.dto.BookingStatisticsDTO;
+import com.wanderlust.api.dto.VendorBookingResponse;
+import com.wanderlust.api.entity.Activity;
 import com.wanderlust.api.entity.Booking;
+import com.wanderlust.api.entity.CarRental;
+import com.wanderlust.api.entity.Hotel;
+import com.wanderlust.api.entity.Room;
 import com.wanderlust.api.entity.types.BookingStatus;
 import com.wanderlust.api.entity.types.BookingType;
 import com.wanderlust.api.entity.types.PaymentMethod;
 import com.wanderlust.api.entity.types.PaymentStatus;
 import com.wanderlust.api.exception.ResourceNotFoundException;
 import com.wanderlust.api.mapper.BookingMapper;
+import com.wanderlust.api.repository.ActivityRepository;
 import com.wanderlust.api.repository.BookingRepository;
+import com.wanderlust.api.repository.CarRentalRepository;
 import com.wanderlust.api.repository.HotelRepository;
 import com.wanderlust.api.repository.RoomRepository;
 
@@ -35,6 +43,8 @@ public class BookingService {
 
     private final HotelRepository hotelRepository;
     private final RoomRepository roomRepository;
+    private final ActivityRepository activityRepository;
+    private final CarRentalRepository carRentalRepository;
     private final ActivityService activityService;
     private final CarRentalService carRentalService;
     private final MoneyTransferService moneyTransferService;
@@ -54,6 +64,19 @@ public class BookingService {
     public List<BookingDTO> findByVendorId(String vendorId) {
         List<Booking> bookings = bookingRepository.findByVendorId(vendorId, defaultSort);
         return bookingMapper.toDTOs(bookings);
+    }
+
+    public List<VendorBookingResponse> findVendorBookingsView(String vendorId) {
+        List<Booking> bookings = bookingRepository.findByVendorId(vendorId, defaultSort);
+        return bookings.stream()
+                .map(this::toVendorBookingResponse)
+                .collect(Collectors.toList());
+    }
+
+    public VendorBookingResponse getVendorBookingView(String bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
+        return toVendorBookingResponse(booking);
     }
 
     public List<BookingDTO> findRefundRequestedWithCompletedPayment() {
@@ -104,8 +127,40 @@ public class BookingService {
         if (booking.getVendorId() != null) {
             return booking.getVendorId();
         }
-        // Additional vendor resolution logic (by related entity IDs) can be added here
-        // later.
+
+        // Resolve by hotel or room
+        if (booking.getHotelId() != null) {
+            return hotelRepository.findById(booking.getHotelId())
+                    .map(Hotel::getVendorId)
+                    .orElse(null);
+        }
+
+        if (booking.getRoomIds() != null && !booking.getRoomIds().isEmpty()) {
+            Optional<Room> room = roomRepository.findById(booking.getRoomIds().get(0));
+            if (room.isPresent()) {
+                String hotelId = room.get().getHotelId();
+                if (hotelId != null) {
+                    return hotelRepository.findById(hotelId)
+                            .map(Hotel::getVendorId)
+                            .orElse(null);
+                }
+            }
+        }
+
+        // Resolve by car rental
+        if (booking.getCarRentalId() != null) {
+            return carRentalRepository.findById(booking.getCarRentalId())
+                    .map(CarRental::getVendorId)
+                    .orElse(null);
+        }
+
+        // Resolve by activity
+        if (booking.getActivityId() != null) {
+            return activityRepository.findById(booking.getActivityId())
+                    .map(Activity::getVendorId)
+                    .orElse(null);
+        }
+
         return null;
     }
 
@@ -278,6 +333,10 @@ public class BookingService {
                 // THAY ĐỔI TẠI ĐÂY
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", id));
 
+        if (booking.getVendorId() == null) {
+            booking.setVendorId(findVendorIdForBooking(booking));
+        }
+
         booking.setStatus(BookingStatus.CONFIRMED);
         booking.setVendorConfirmed(true);
 
@@ -290,11 +349,137 @@ public class BookingService {
                 // THAY ĐỔI TẠI ĐÂY
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", id));
 
+        if (booking.getVendorId() == null) {
+            booking.setVendorId(findVendorIdForBooking(booking));
+        }
+
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setVendorConfirmed(false);
         booking.setCancellationReason(reason);
 
         return bookingMapper.toDTO(bookingRepository.save(booking));
+    }
+
+    private VendorBookingResponse toVendorBookingResponse(Booking booking) {
+        VendorBookingResponse response = new VendorBookingResponse();
+        response.setId(booking.getId());
+        response.setBookingCode(booking.getBookingCode());
+
+        if (booking.getGuestInfo() != null) {
+            response.setCustomer(booking.getGuestInfo().getFullName());
+            response.setEmail(booking.getGuestInfo().getEmail());
+            response.setPhone(booking.getGuestInfo().getPhone());
+        }
+
+        response.setService(resolveServiceName(booking));
+        response.setServiceType(booking.getBookingType() != null ? booking.getBookingType().name().toLowerCase() : "unknown");
+        response.setCheckIn(formatDate(booking.getStartDate()));
+        response.setCheckOut(formatDate(booking.getEndDate()));
+        response.setGuests(resolveGuestCount(booking));
+
+        response.setStatus(mapStatusForVendor(booking.getStatus()));
+        response.setPayment(mapPaymentForVendor(booking.getPaymentStatus()));
+        response.setAmount(booking.getTotalPrice());
+        response.setBookingDate(formatDateTime(booking.getBookingDate()));
+
+        response.setVendorConfirmed(booking.getVendorConfirmed());
+        response.setUserConfirmed(booking.getUserConfirmed());
+        response.setAutoCompleted(booking.getAutoCompleted());
+        return response;
+    }
+
+    private String resolveServiceName(Booking booking) {
+        if (booking == null) {
+            return "N/A";
+        }
+
+        BookingType type = booking.getBookingType();
+        if (type == BookingType.HOTEL) {
+            if (booking.getHotelId() != null) {
+                return hotelRepository.findById(booking.getHotelId())
+                        .map(Hotel::getName)
+                        .orElse("Hotel " + booking.getHotelId());
+            }
+
+            if (booking.getRoomIds() != null && !booking.getRoomIds().isEmpty()) {
+                Optional<Room> room = roomRepository.findById(booking.getRoomIds().get(0));
+                if (room.isPresent() && room.get().getHotelId() != null) {
+                    String hotelId = room.get().getHotelId();
+                    return hotelRepository.findById(hotelId)
+                            .map(Hotel::getName)
+                            .orElse("Hotel " + hotelId);
+                }
+            }
+        } else if (type == BookingType.CAR_RENTAL && booking.getCarRentalId() != null) {
+            return carRentalRepository.findById(booking.getCarRentalId())
+                    .map(car -> {
+                        String brand = Optional.ofNullable(car.getBrand()).orElse("").trim();
+                        String model = Optional.ofNullable(car.getModel()).orElse("").trim();
+                        String name = (brand + " " + model).trim();
+                        return name.isEmpty() ? "Car " + booking.getCarRentalId() : name;
+                    })
+                    .orElse("Car " + booking.getCarRentalId());
+        } else if (type == BookingType.ACTIVITY && booking.getActivityId() != null) {
+            return activityRepository.findById(booking.getActivityId())
+                    .map(Activity::getName)
+                    .orElse("Activity " + booking.getActivityId());
+        } else if (type == BookingType.FLIGHT && booking.getFlightId() != null && !booking.getFlightId().isEmpty()) {
+            // Handle List<String> flightId - join multiple flight IDs for round-trip
+            return "Flight " + String.join(", ", booking.getFlightId());
+        }
+
+        return "N/A";
+    }
+
+    private int resolveGuestCount(Booking booking) {
+        if (booking.getNumberOfGuests() != null) {
+            Booking.GuestCount guestCount = booking.getNumberOfGuests();
+            int adults = Optional.ofNullable(guestCount.getAdults()).orElse(0);
+            int children = Optional.ofNullable(guestCount.getChildren()).orElse(0);
+            int infants = Optional.ofNullable(guestCount.getInfants()).orElse(0);
+            int total = adults + children + infants;
+            if (total > 0) {
+                return total;
+            }
+        }
+
+        if (booking.getSeatCount() != null && booking.getSeatCount() > 0) {
+            return booking.getSeatCount();
+        }
+
+        return 1;
+    }
+
+    private String mapStatusForVendor(BookingStatus status) {
+        if (status == null) {
+            return "pending";
+        }
+
+        switch (status) {
+            case CONFIRMED:
+                return "confirmed";
+            case CANCELLED:
+                return "cancelled";
+            case COMPLETED:
+                return "completed";
+            default:
+                return "pending";
+        }
+    }
+
+    private String mapPaymentForVendor(PaymentStatus paymentStatus) {
+        if (paymentStatus == PaymentStatus.COMPLETED || paymentStatus == PaymentStatus.REFUNDED) {
+            return "paid";
+        }
+        return "pending";
+    }
+
+    private String formatDate(LocalDateTime value) {
+        return value != null ? value.toLocalDate().toString() : null;
+    }
+
+    private String formatDateTime(LocalDateTime value) {
+        return value != null ? value.toString() : null;
     }
 
     // --- ACTION: Cập nhật trạng thái thanh toán cho Booking ---

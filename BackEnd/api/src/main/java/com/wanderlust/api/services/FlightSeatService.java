@@ -41,6 +41,22 @@ public class FlightSeatService implements BaseServices<FlightSeat> {
         return flightSeatRepository.save(updatedFlightSeat);
     }
 
+    // Update only status (for PATCH endpoint)
+    public FlightSeat updateStatus(String id, String status) {
+        FlightSeat seat = flightSeatRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("FlightSeat not found with id " + id));
+
+        SeatStatus newStatus;
+        try {
+            newStatus = SeatStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid seat status: " + status);
+        }
+
+        seat.setStatus(newStatus);
+        return flightSeatRepository.save(seat);
+    }
+
     // Delete a flight seat by ID
     public void delete(String id) {
         if (flightSeatRepository.findById(id).isPresent()) {

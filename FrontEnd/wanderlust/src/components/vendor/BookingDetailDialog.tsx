@@ -1,17 +1,23 @@
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import { Separator } from "../ui/separator";
-import {
-  Calendar, Users, Phone, Mail, MapPin,
-  CreditCard, CheckCircle, X, Download
+    Calendar,
+    CheckCircle,
+    CreditCard,
+    Download,
+    Mail,
+    Phone,
+    Users,
+    X
 } from "lucide-react";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "../ui/dialog";
+import { Separator } from "../ui/separator";
 
 interface Booking {
   id: string;
@@ -200,7 +206,7 @@ export function BookingDetailDialog({
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Tổng tiền:</span>
                 <span className="text-2xl font-bold text-blue-600">
-                  {booking.amount.toLocaleString('vi-VN')}đ
+                  {(booking.amount ?? 0).toLocaleString('vi-VN')}đ
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">

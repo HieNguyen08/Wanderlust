@@ -1,8 +1,11 @@
 package com.wanderlust.api.services;
 
-import com.wanderlust.api.entity.Promotion;
-import com.wanderlust.api.repository.PromotionRepository;
-import com.wanderlust.api.repository.UserVoucherRepository;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -14,11 +17,9 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.wanderlust.api.entity.Promotion;
+import com.wanderlust.api.repository.PromotionRepository;
+import com.wanderlust.api.repository.UserVoucherRepository;
 
 @Service
 public class PromotionService {
@@ -41,7 +42,11 @@ public class PromotionService {
                 .filter(promotion -> promotion.getId() != null)
                 .forEach(promotion -> {
                     long claimedCount = userVoucherRepository.countByPromotionId(promotion.getId());
-                    promotion.setUsedCount((int) claimedCount);
+                    Integer current = promotion.getUsedCount();
+                    // Only bump the stored usedCount up; never overwrite with a lower derived value
+                    if (current == null || claimedCount > current) {
+                        promotion.setUsedCount((int) claimedCount);
+                    }
                 });
     }
 
@@ -55,8 +60,13 @@ public class PromotionService {
 
     private boolean isVendorApplicable(Promotion promotion, String vendorId) {
         if (promotion == null) return false;
-        if (Boolean.TRUE.equals(promotion.getAdminCreateCheck())) return true; // admin vouchers are global
-        return vendorId != null && vendorId.equals(promotion.getVendorId());
+
+        // Admin-created or vendor-less promotions are global
+        if (Boolean.TRUE.equals(promotion.getAdminCreateCheck())) return true;
+        if (!StringUtils.hasText(promotion.getVendorId())) return true;
+
+        // Vendor-scoped promotions require a matching vendorId
+        return StringUtils.hasText(vendorId) && vendorId.equals(promotion.getVendorId());
     }
 
     private boolean isServiceApplicable(Promotion promotion, String serviceId) {
@@ -331,12 +341,18 @@ public class PromotionService {
         if (optionalPromotion.isPresent()) {
             Promotion promotion = optionalPromotion.get();
 
+            // Treat empty vendorId as null for applicability checks
+            if (!StringUtils.hasText(vendorId)) {
+                vendorId = null;
+            }
+
             if (!isVendorApplicable(promotion, vendorId) || !isServiceApplicable(promotion, serviceId)) {
                 return null;
             }
             
             if (promotion.isActive() && promotion.isAvailable()) {
-                promotion.setUsedCount(promotion.getUsedCount() + 1);
+                int currentUsed = promotion.getUsedCount() == null ? 0 : promotion.getUsedCount();
+                promotion.setUsedCount(currentUsed + 1);
                 return promotionRepository.save(promotion);
             }
         }

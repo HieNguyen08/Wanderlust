@@ -1,39 +1,39 @@
 import {
-    Calendar,
-    CheckCircle,
-    Download,
-    Eye,
-    Mail,
-    MoreVertical,
-    Phone,
-    Search,
-    Users,
-    X
+  Calendar,
+  CheckCircle,
+  Download,
+  Eye,
+  Mail,
+  MoreVertical,
+  Phone,
+  Search,
+  Users,
+  X
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
-import { vendorApi } from "../../api/vendorApi";
+import { vendorApi, type VendorBooking } from "../../api/vendorApi";
 import { VendorCancelOrderDialog } from "../../components/VendorCancelOrderDialog";
 import { VendorLayout } from "../../components/VendorLayout";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 import { Input } from "../../components/ui/input";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "../../components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { BookingDetailDialog } from "../../components/vendor/BookingDetailDialog";
@@ -43,21 +43,6 @@ interface VendorBookingsPageProps {
   vendorType?: "hotel" | "activity" | "car" | "airline";
 }
 
-interface Booking {
-  id: string;
-  customer: string;
-  email: string;
-  phone: string;
-  service: string;
-  checkIn: string;
-  checkOut: string;
-  guests: number;
-  status: "confirmed" | "pending" | "cancelled" | "completed";
-  payment: "paid" | "pending";
-  amount: number;
-  bookingDate: string;
-}
-
 export default function VendorBookingsPage({ 
   onNavigate,
   vendorType = "hotel"
@@ -65,11 +50,11 @@ export default function VendorBookingsPage({
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<VendorBooking | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
-  const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookingToCancel, setBookingToCancel] = useState<VendorBooking | null>(null);
+  const [bookings, setBookings] = useState<VendorBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -88,12 +73,26 @@ export default function VendorBookingsPage({
     }
   };
 
-  const stats = [
-    { label: t('vendor.totalBookings'), value: "186", color: "blue" },
-    { label: t('vendor.pendingApproval'), value: "12", color: "yellow" },
-    { label: t('vendor.cancelled'), value: "8", color: "red" },
-    { label: t('vendor.revenue'), value: "₫523M", color: "green" },
-  ];
+  const stats = useMemo(() => {
+    const pending = bookings.filter(b => b.status === "pending").length;
+    const cancelled = bookings.filter(b => b.status === "cancelled").length;
+    const revenue = bookings
+      .filter(b => b.payment === "paid")
+      .reduce((acc, b) => acc + (b.amount || 0), 0);
+
+    const formatMillions = (value: number) => {
+      if (!value || Number.isNaN(value)) return "0";
+      const millions = value / 1_000_000;
+      return `${millions.toFixed(millions >= 100 ? 0 : 1)}M`;
+    };
+
+    return [
+      { label: t('vendor.totalBookings'), value: bookings.length.toString(), color: "blue" },
+      { label: t('vendor.pendingApproval'), value: pending.toString(), color: "yellow" },
+      { label: t('vendor.cancelled'), value: cancelled.toString(), color: "red" },
+      { label: t('vendor.revenue'), value: formatMillions(revenue), color: "green" },
+    ];
+  }, [bookings, t]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -122,14 +121,15 @@ export default function VendorBookingsPage({
   };
 
   const filteredBookings = bookings.filter(booking => {
-    const matchesSearch = booking.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         booking.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         booking.service.toLowerCase().includes(searchQuery.toLowerCase());
+    const query = searchQuery.toLowerCase();
+    const searchableFields = [booking.id, booking.bookingCode, booking.customer, booking.service];
+    const matchesSearch = searchableFields.some((value) => value?.toLowerCase().includes(query));
+
     const matchesTab = activeTab === "all" || booking.status === activeTab;
     return matchesSearch && matchesTab;
   });
 
-  const handleViewDetail = (booking: Booking) => {
+  const handleViewDetail = (booking: VendorBooking) => {
     setSelectedBooking(booking);
     setIsDetailOpen(true);
   };
@@ -144,7 +144,7 @@ export default function VendorBookingsPage({
     }
   };
 
-  const handleOpenCancelDialog = (booking: Booking) => {
+  const handleOpenCancelDialog = (booking: VendorBooking) => {
     setBookingToCancel(booking);
     setIsCancelDialogOpen(true);
   };
@@ -232,90 +232,104 @@ export default function VendorBookingsPage({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredBookings.map((booking) => (
-                      <TableRow key={booking.id}>
-                        <TableCell className="font-medium">{booking.id}</TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-gray-900">{booking.customer}</p>
-                            <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                              <Mail className="w-3 h-3" />
-                              {booking.email}
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                              <Phone className="w-3 h-3" />
-                              {booking.phone}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="max-w-xs">
-                          <p className="text-sm text-gray-900 truncate">{booking.service}</p>
-                        </TableCell>
-                        <TableCell className="text-sm text-gray-600">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {booking.checkIn}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm text-gray-600">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {booking.checkOut}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Users className="w-4 h-4 text-gray-600" />
-                            <span className="font-medium">{booking.guests}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{getStatusBadge(booking.status)}</TableCell>
-                        <TableCell>{getPaymentBadge(booking.payment)}</TableCell>
-                        <TableCell className="font-semibold text-gray-900">
-                          {(booking.amount / 1000000).toFixed(1)}M
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem 
-                                className="gap-2"
-                                onClick={() => handleViewDetail(booking)}
-                              >
-                                <Eye className="w-4 h-4" />
-                                {t('vendor.viewDetails')}
-                              </DropdownMenuItem>
-                              {booking.status === "pending" && (
-                                <DropdownMenuItem 
-                                  className="gap-2 text-green-600"
-                                  onClick={() => handleConfirmBooking(booking.id)}
-                                >
-                                  <CheckCircle className="w-4 h-4" />
-                                  {t('vendor.confirm')}
-                                </DropdownMenuItem>
-                              )}
-                              {booking.status !== "cancelled" && booking.status !== "completed" && (
-                                <DropdownMenuItem 
-                                  className="gap-2 text-red-600"
-                                  onClick={() => handleOpenCancelDialog(booking)}
-                                >
-                                  <X className="w-4 h-4" />
-                                  {t('vendor.cancelBooking')}
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem className="gap-2">
-                                <Download className="w-4 h-4" />
-                                {t('vendor.downloadInvoice')}
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={10} className="text-center py-8">
+                          {t('common.loading')}
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : filteredBookings.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                          {t('vendor.noBookingsFound', 'No bookings found')}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredBookings.map((booking) => (
+                        <TableRow key={booking.id}>
+                          <TableCell className="font-medium">{booking.id}</TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-gray-900">{booking.customer}</p>
+                              <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                                <Mail className="w-3 h-3" />
+                                {booking.email}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <Phone className="w-3 h-3" />
+                                {booking.phone}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="max-w-xs">
+                            <p className="text-sm text-gray-900 truncate">{booking.service}</p>
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-600">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {booking.checkIn || '-'}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-600">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {booking.checkOut || '-'}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Users className="w-4 h-4 text-gray-600" />
+                              <span className="font-medium">{booking.guests}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{getStatusBadge(booking.status)}</TableCell>
+                          <TableCell>{getPaymentBadge(booking.payment)}</TableCell>
+                          <TableCell className="font-semibold text-gray-900">
+                            {(((booking.amount || 0) / 1000000)).toFixed(1)}M
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem 
+                                  className="gap-2"
+                                  onClick={() => handleViewDetail(booking)}
+                                >
+                                  <Eye className="w-4 h-4" />
+                                  {t('vendor.viewDetails')}
+                                </DropdownMenuItem>
+                                {booking.status === "pending" && (
+                                  <DropdownMenuItem 
+                                    className="gap-2 text-green-600"
+                                    onClick={() => handleConfirmBooking(booking.id)}
+                                  >
+                                    <CheckCircle className="w-4 h-4" />
+                                    {t('vendor.confirm')}
+                                  </DropdownMenuItem>
+                                )}
+                                {booking.status !== "cancelled" && booking.status !== "completed" && (
+                                  <DropdownMenuItem 
+                                    className="gap-2 text-red-600"
+                                    onClick={() => handleOpenCancelDialog(booking)}
+                                  >
+                                    <X className="w-4 h-4" />
+                                    {t('vendor.cancelBooking')}
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem className="gap-2">
+                                  <Download className="w-4 h-4" />
+                                  {t('vendor.downloadInvoice')}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>

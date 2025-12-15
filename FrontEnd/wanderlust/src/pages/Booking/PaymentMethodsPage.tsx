@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   Calendar,
   Clock,
+  Eye,
   Loader2,
   MapPin,
   Plane,
@@ -19,6 +20,13 @@ import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { PaymentMethodSelector } from "../../components/payment/PaymentMethodSelector";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Separator } from "../../components/ui/separator";
 import { useNavigationProps } from "../../router/withPageProps";
@@ -41,6 +49,13 @@ interface VoucherType {
   description: string;
   vendorId?: string;
   adminCreateCheck?: boolean;
+  title?: string;
+  image?: string;
+  startDate?: string;
+  endDate?: string;
+  totalUsesLimit?: number;
+  usedCount?: number;
+  conditions?: string[];
 }
 
 export default function PaymentMethodsPage({
@@ -57,6 +72,7 @@ export default function PaymentMethodsPage({
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [availableVouchers, setAvailableVouchers] = useState<VoucherType[]>([]);
   const [loadingVouchers, setLoadingVouchers] = useState(false);
+  const [selectedVoucherDetail, setSelectedVoucherDetail] = useState<VoucherType | null>(null);
 
   // Extract booking info
   const bookingType = bookingData?.type || "flight";
@@ -74,7 +90,8 @@ export default function PaymentMethodsPage({
     const taxesTotal = Math.round((outboundBasePrice + returnBasePrice) * 0.1) * (passengers.length || 1);
     const seatFees = (selectedSeats.outbound?.reduce((acc: number, seat: any) => acc + (seat.price || 0), 0) || 0)
       + (selectedSeats.return?.reduce((acc: number, seat: any) => acc + (seat.price || 0), 0) || 0);
-    const subtotal = basePriceTotal + taxesTotal + seatFees;
+    const websiteFees = 0; // Phí dịch vụ web = 0
+    const subtotal = basePriceTotal + taxesTotal + seatFees + websiteFees;
 
     return {
       passengers,
@@ -85,6 +102,7 @@ export default function PaymentMethodsPage({
       basePriceTotal,
       taxesTotal,
       seatFees,
+      websiteFees,
       subtotal
     };
   }, [bookingData]);
@@ -138,11 +156,18 @@ export default function PaymentMethodsPage({
         const normalized = (promos || []).map((p: any, idx: number) => ({
           id: p.id || p._id || `${p.code || 'promo'}-${idx}`,
           code: p.code,
-          discount: p.discountValue ?? p.discount ?? 0,
-          type: (p.discountType || p.type || "FIXED_AMOUNT") as VoucherType["type"],
-          minOrderValue: p.minOrderValue ?? 0,
+          discount: p.value ?? p.discountValue ?? p.discount ?? 0,
+          type: (p.type || p.discountType || "FIXED_AMOUNT") as VoucherType["type"],
+          minOrderValue: p.minSpend ?? p.minOrderValue ?? 0,
           maxDiscount: p.maxDiscount,
           description: p.description || p.title || p.code,
+          title: p.title,
+          image: p.image,
+          startDate: p.startDate,
+          endDate: p.endDate,
+          totalUsesLimit: p.totalUsesLimit,
+          usedCount: p.usedCount ?? 0,
+          conditions: p.conditions || [],
           vendorId: p.vendorId,
           adminCreateCheck: p.adminCreateCheck
         })) as VoucherType[];
@@ -192,7 +217,7 @@ export default function PaymentMethodsPage({
     : null;
 
   // Apply voucher
-  const handleApplyVoucher = () => {
+  const handleApplyVoucher = async () => {
     const targetCode = voucherCode.trim().toUpperCase();
     const voucher = availableVouchers.find((v) => v.code?.toUpperCase() === targetCode);
 
@@ -201,6 +226,24 @@ export default function PaymentMethodsPage({
       return;
     }
 
+    // Check time validity
+    const now = new Date();
+    if (voucher.startDate && new Date(voucher.startDate) > now) {
+      toast.error("Mã giảm giá chưa có hiệu lực");
+      return;
+    }
+    if (voucher.endDate && new Date(voucher.endDate) < now) {
+      toast.error("Mã giảm giá đã hết hạn");
+      return;
+    }
+
+    // Check usage limit
+    if (voucher.totalUsesLimit && voucher.usedCount >= voucher.totalUsesLimit) {
+      toast.error("Mã giảm giá đã hết lượt sử dụng");
+      return;
+    }
+
+    // Check minimum order value
     if (subtotalAmount < voucher.minOrderValue) {
       toast.error(
         t('payment.minOrderNotMet', "Đơn hàng chưa đủ giá trị tối thiểu {{amount}}", {
@@ -210,8 +253,54 @@ export default function PaymentMethodsPage({
       return;
     }
 
-    setAppliedVoucher(voucher);
-    toast.success(t('payment.voucherApplied', "Đã áp dụng mã giảm giá"));
+    try {
+      // Step 1: Update promotion usedCount via user-level PATCH
+      try {
+        const vendorId = voucher.vendorId || '';
+        const flightIdForService = bookingType === 'flight'
+          ? (bookingData?.flightData?.outbound?.id || bookingData?.flightData?.outboundFlight?.id)
+          : undefined;
+
+        await fetch(`http://localhost:8080/api/promotions/usage/${voucher.code}?vendorId=${vendorId || ''}&serviceId=${flightIdForService || ''}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${tokenService.getToken()}`,
+              'Content-Type': 'application/json'
+            }
+          });
+      } catch (usageErr) {
+        console.warn('Failed to increment voucher usage (non-blocking):', usageErr);
+      }
+
+      // Step 2: Calculate discount
+      let discountAmount = 0;
+      if (voucher.type === "FIXED_AMOUNT") {
+        discountAmount = Math.min(voucher.discount, subtotalAmount);
+      } else {
+        const percentDiscount = (subtotalAmount * voucher.discount) / 100;
+        discountAmount = Math.min(
+          percentDiscount,
+          voucher.maxDiscount || subtotalAmount
+        );
+      }
+
+      // Step 3: Update booking if exists
+      if (bookingData?.bookingId) {
+        await bookingApi.updateBooking(bookingData.bookingId, {
+          voucherCode: voucher.code,
+          voucherDiscount: discountAmount,
+          discount: discountAmount,
+          totalPrice: subtotalAmount - discountAmount
+        });
+      }
+
+      setAppliedVoucher(voucher);
+      toast.success(t('payment.voucherApplied', "Đã áp dụng mã giảm giá"));
+    } catch (error: any) {
+      console.error('Failed to apply voucher:', error);
+      toast.error("Không thể áp dụng mã giảm giá. Vui lòng thử lại.");
+    }
   };
 
   // Process payment
@@ -290,10 +379,33 @@ export default function PaymentMethodsPage({
       );
 
       // Step 3: Handle payment response
+      const markSeatsOccupied = async () => {
+        if (bookingType !== "flight") return;
+        const selectedSeats = bookingData?.flightData?.selectedSeats || { outbound: [], return: [] };
+        const outboundIds = (selectedSeats.outbound || []).map((s: any) => s.id).filter(Boolean);
+        const returnIds = (selectedSeats.return || []).map((s: any) => s.id).filter(Boolean);
+
+        const allSeatIds = [...outboundIds, ...returnIds];
+        for (const seatId of allSeatIds) {
+          try {
+            await fetch(`http://localhost:8080/api/flight-seats/${seatId}/status?status=OCCUPIED`, {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `Bearer ${tokenService.getToken()}`,
+                'Content-Type': 'application/json'
+              }
+            });
+          } catch (e) {
+            console.warn('Failed to mark seat occupied:', seatId, e);
+          }
+        }
+      };
+
       if (selectedMethod === "WALLET") {
         // Wallet payment completes immediately
         toast.success(t('payment.walletPaymentSuccess', "Thanh toán ví thành công!"));
         sessionStorage.removeItem(PENDING_PAYMENT_KEY);
+        await markSeatsOccupied();
         goTo("payment-success", {
           bookingId,
           paymentId: paymentResponse.id
@@ -361,11 +473,15 @@ export default function PaymentMethodsPage({
   const createFlightBooking = () => {
     const passengers = flightPricing.passengers;
     const contactInfo = bookingData?.contactInfo || {};
-    const flightData = flightPricing.flightData;
+    const rawFlightData = flightPricing.flightData;
     const selectedSeats = flightPricing.selectedSeats;
 
+    // Handle both structures: flightData.outbound vs flightData.outboundFlight
+    const outboundFlight = rawFlightData?.outbound || rawFlightData?.outboundFlight;
+    const returnFlight = rawFlightData?.return || rawFlightData?.returnFlight;
+
     const passengerCounts = flightPricing.passengerCounts;
-    const { basePriceTotal, taxesTotal, seatFees, cabinClass } = flightPricing;
+    const { basePriceTotal, taxesTotal, seatFees, websiteFees, cabinClass } = flightPricing;
 
     const discount = voucherDiscount || 0;
     const totalWithFees = Math.max(flightPricing.subtotal - discount, 0);
@@ -376,22 +492,60 @@ export default function PaymentMethodsPage({
       ...(selectedSeats.return?.map((seat: any) => seat.id) || [])
     ];
 
+    // Build flightId List (1 for one-way, 2 for round-trip)
+    const outboundFlightId = outboundFlight?.id || outboundFlight?.flightNumber;
+    const returnFlightId = returnFlight?.id || returnFlight?.flightNumber;
+
+    const flightIds = [outboundFlightId];
+    const tripType = bookingData?.flightData?.tripType || bookingData?.tripType || 'one-way';
+    if (tripType === 'round-trip' && returnFlightId) {
+      flightIds.push(returnFlightId);
+    }
+
+    console.log('=== Creating Flight Booking in PaymentMethodsPage ===');
+    console.log('rawFlightData:', rawFlightData);
+    console.log('outboundFlight:', outboundFlight);
+    console.log('returnFlight:', returnFlight);
+    console.log('tripType:', tripType);
+    console.log('flightIds:', flightIds);
+    console.log('selectedSeats:', selectedSeats);
+
+    // Determine correct startDate and endDate
+    let startDate = outboundFlight?.departureTime;
+    let endDate;
+
+    console.log('startDate from outboundFlight:', startDate);
+
+    if (tripType === 'round-trip' && returnFlight) {
+      endDate = returnFlight.arrivalTime;
+    } else {
+      endDate = outboundFlight?.arrivalTime;
+    }
+
+    console.log('endDate:', endDate);
+
+    // Fallback to current date if still missing
+    if (!startDate) {
+      startDate = new Date().toISOString();
+      console.warn('Missing departureTime, using current date');
+    }
+
     return {
       productType: "FLIGHT",
       bookingType: "FLIGHT",
-      productId: flightData?.outbound?.id || flightData?.outbound?.flightNumber || "FLIGHT001",
-      flightId: flightData?.outbound?.flightNumber || flightData?.outbound?.id,
-      flightSeatIds: flightSeatIds, // Add seat IDs to booking
+      productId: flightIds[0] || "UNKNOWN_FLIGHT",
+      flightId: flightIds, // Now a List<String>
+      flightSeatIds: flightSeatIds,
       seatCount: flightSeatIds.length,
       amount: totalWithFees,
-      basePrice: basePriceTotal,
+      basePrice: basePriceTotal + seatFees,
       taxes: taxesTotal,
-      fees: seatFees,
+      fees: websiteFees,
       discount,
       totalPrice: totalWithFees,
       currency: "VND",
-      startDate: flightData?.outbound?.departureTime || flightData?.outbound?.date || new Date().toISOString(),
-      endDate: flightData?.return?.arrivalTime || flightData?.return?.date || undefined,
+      startDate,
+      endDate,
       quantity: passengers.length || 1,
       numberOfGuests: {
         adults: passengerCounts?.adults || passengers.length || 1,
@@ -404,7 +558,7 @@ export default function PaymentMethodsPage({
         email: contactInfo?.email || "guest@example.com",
         phone: contactInfo?.phone || ""
       },
-      specialRequests: `Flight: ${flightData?.outbound?.from || flightData?.outbound?.departureAirportCode} to ${flightData?.outbound?.to || flightData?.outbound?.arrivalAirportCode}. Passengers: ${passengers.length}. Seats: ${flightSeatIds.join(", ")}`,
+      specialRequests: `Flights: ${flightIds.join(', ')}. Passengers: ${passengers.length}. Seats: ${flightSeatIds.join(", ")}`,
       voucherCode: appliedVoucher?.code,
       voucherDiscount: discount,
       originalAmount: flightPricing.subtotal,
@@ -416,6 +570,10 @@ export default function PaymentMethodsPage({
         passengers,
         contactInfo,
         selectedSeats,
+        selectedFlights: { // NEW: Store full flight info
+          outbound: outboundFlight,
+          return: returnFlight
+        },
         cabinClass,
         basePriceTotal,
         taxesTotal,
@@ -437,6 +595,10 @@ export default function PaymentMethodsPage({
     const booking = bookingData?.hotelData?.booking || {};
     const roomCount = bookingData?.roomCount || booking?.roomCount || 1;
 
+    // Respect user-selected check-in/out from HotelReviewPage
+    const startDate = booking?.checkIn || new Date().toISOString();
+    const endDate = booking?.checkOut || undefined;
+
     return {
       productType: "HOTEL",
       productId: hotel?.id || "HOTEL001",
@@ -450,8 +612,8 @@ export default function PaymentMethodsPage({
       voucherVendorId: appliedVoucher?.vendorId,
       paymentStatus: "PENDING",
       status: "PENDING",
-      startDate: booking?.checkIn || new Date().toISOString(),
-      endDate: booking?.checkOut || undefined,
+      startDate,
+      endDate,
       quantity: roomCount,
       numberOfGuests: {
         adults: booking?.guests || 2,
@@ -481,6 +643,10 @@ export default function PaymentMethodsPage({
     const car = bookingData?.carData?.car || {};
     const rental = bookingData?.carData?.rental || {};
 
+    // Use user-selected pickup/dropoff from CarRentalReviewPage
+    const startDate = rental?.pickup || new Date().toISOString();
+    const endDate = rental?.dropoff || undefined;
+
     return {
       productType: "CAR_RENTAL",
       productId: car?.id || "CAR001",
@@ -492,8 +658,8 @@ export default function PaymentMethodsPage({
       voucherVendorId: appliedVoucher?.vendorId,
       paymentStatus: "PENDING",
       status: "PENDING",
-      startDate: rental?.pickup || new Date().toISOString(),
-      endDate: rental?.dropoff || undefined,
+      startDate,
+      endDate,
       quantity: 1,
       guestInfo: {
         firstName: driverInfo?.fullName?.split(" ")[0] || "Guest",
@@ -513,6 +679,19 @@ export default function PaymentMethodsPage({
     const booking = bookingData?.activityData?.booking || {};
     const pricing = bookingData?.activityData?.pricing || {};
 
+    // Activities: use selected date, normalized to 06:00 start and 22:00 end on that day
+    const bookingDate = booking?.date;
+    let startDate = bookingDate;
+    let endDate: string | undefined = undefined;
+
+    if (bookingDate) {
+      const baseDate = bookingDate.split("T")[0];
+      startDate = `${baseDate}T06:00:00`;
+      endDate = `${baseDate}T22:00:00`;
+    } else {
+      startDate = new Date().toISOString();
+    }
+
     return {
       productType: "ACTIVITY",
       productId: activity?.id || "ACTIVITY001",
@@ -526,8 +705,8 @@ export default function PaymentMethodsPage({
       voucherVendorId: appliedVoucher?.vendorId,
       paymentStatus: "PENDING",
       status: "PENDING",
-      startDate: booking?.date || new Date().toISOString(),
-      endDate: undefined,
+      startDate,
+      endDate,
       quantity: booking?.participants || 1,
       guestInfo: {
         firstName: participantInfo?.fullName?.split(" ")[0] || "Guest",
@@ -650,19 +829,34 @@ export default function PaymentMethodsPage({
                       {availableVouchers.map((voucher) => (
                         <div
                           key={voucher.id}
-                          className="p-3 border rounded-lg cursor-pointer hover:border-blue-500 transition-colors"
-                          onClick={() => {
-                            setVoucherCode(voucher.code);
-                          }}
+                          className="p-3 border rounded-lg hover:border-blue-500 transition-colors"
                         >
-                          <div className="flex items-center justify-between">
-                            <div>
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex-1 cursor-pointer" onClick={() => {
+                              setVoucherCode(voucher.code);
+                            }}>
                               <p className="font-medium">{voucher.code}</p>
                               <p className="text-sm text-gray-600">{voucher.description}</p>
                             </div>
-                            <Button size="sm" variant="outline">
-                              {t('payment.apply', 'Áp dụng')}
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                onClick={() => setSelectedVoucherDetail(voucher)}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  setVoucherCode(voucher.code);
+                                  handleApplyVoucher();
+                                }}
+                              >
+                                {t('payment.apply', 'Áp dụng')}
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -689,16 +883,41 @@ export default function PaymentMethodsPage({
 
               {/* Price Breakdown */}
               <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">
-                    {t('payment.subtotal', "Tạm tính")}:
-                  </span>
-                  <span>{subtotalAmount.toLocaleString("vi-VN")}đ</span>
-                </div>
+                {bookingType === "flight" && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">
+                        {t('payment.basePrice', "Giá vé")}:
+                      </span>
+                      <span>{(flightPricing.basePriceTotal + flightPricing.seatFees).toLocaleString("vi-VN")}đ</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">
+                        {t('payment.taxes', "Thuế và phí sân bay")}:
+                      </span>
+                      <span>{flightPricing.taxesTotal.toLocaleString("vi-VN")}đ</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">
+                        {t('payment.serviceFee', "Phí dịch vụ Wanderlust")}:
+                      </span>
+                      <span>{flightPricing.websiteFees.toLocaleString("vi-VN")}đ</span>
+                    </div>
+                  </>
+                )}
+
+                {bookingType !== "flight" && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">
+                      {t('payment.subtotal', "Tạm tính")}:
+                    </span>
+                    <span>{subtotalAmount.toLocaleString("vi-VN")}đ</span>
+                  </div>
+                )}
 
                 {voucherDiscount > 0 && (
                   <div className="flex justify-between text-sm text-green-600">
-                    <span>{t('payment.discount', "Giảm giá")}:</span>
+                    <span>{t('payment.discount', "Giảm giá")} ({appliedVoucher?.code}):</span>
                     <span>-{voucherDiscount.toLocaleString("vi-VN")}đ</span>
                   </div>
                 )}
@@ -735,6 +954,145 @@ export default function PaymentMethodsPage({
           </div>
         </div>
       </div>
+
+      {/* Voucher Detail Dialog */}
+      {selectedVoucherDetail && (
+        <Dialog open={!!selectedVoucherDetail} onOpenChange={() => setSelectedVoucherDetail(null)}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Chi tiết mã giảm giá</DialogTitle>
+              <DialogDescription>
+                Xem thông tin đầy đủ về mã giảm giá
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              {/* Image */}
+              {selectedVoucherDetail.image && (
+                <div className="relative h-48 rounded-lg overflow-hidden">
+                  <ImageWithFallback
+                    src={selectedVoucherDetail.image}
+                    alt={selectedVoucherDetail.title || selectedVoucherDetail.code}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Title & Code */}
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {selectedVoucherDetail.title || selectedVoucherDetail.code}
+                </h3>
+                <div className="flex items-center gap-2">
+                  <code className="px-3 py-1 bg-gray-100 rounded text-lg font-mono">
+                    {selectedVoucherDetail.code}
+                  </code>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedVoucherDetail.code);
+                      toast.success("Đã sao chép mã!");
+                    }}
+                  >
+                    📋
+                  </Button>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <Tag className="w-4 h-4" />
+                  Mô tả
+                </h4>
+                <p className="text-gray-700">{selectedVoucherDetail.description}</p>
+              </div>
+
+              {/* Discount Info */}
+              <div>
+                <h4 className="font-semibold mb-2">Giá trị giảm giá</h4>
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <p className="text-lg font-bold text-blue-700">
+                    {selectedVoucherDetail.type === "PERCENTAGE"
+                      ? `Giảm ${selectedVoucherDetail.discount}%`
+                      : `Giảm ${selectedVoucherDetail.discount.toLocaleString("vi-VN")}đ`}
+                  </p>
+                  {selectedVoucherDetail.maxDiscount && selectedVoucherDetail.type === "PERCENTAGE" && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      Giảm tối đa: {selectedVoucherDetail.maxDiscount.toLocaleString("vi-VN")}đ
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Conditions */}
+              <div>
+                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Điều kiện áp dụng
+                </h4>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {selectedVoucherDetail.minOrderValue > 0 && (
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-600 mt-1">•</span>
+                      <span>
+                        Đơn hàng tối thiểu:{" "}
+                        <strong>{selectedVoucherDetail.minOrderValue.toLocaleString("vi-VN")}đ</strong>
+                      </span>
+                    </li>
+                  )}
+                  {selectedVoucherDetail.startDate && selectedVoucherDetail.endDate && (
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-600 mt-1">•</span>
+                      <span>
+                        Thời gian: {new Date(selectedVoucherDetail.startDate).toLocaleDateString("vi-VN")} -{" "}
+                        {new Date(selectedVoucherDetail.endDate).toLocaleDateString("vi-VN")}
+                      </span>
+                    </li>
+                  )}
+                  {selectedVoucherDetail.totalUsesLimit && (
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-600 mt-1">•</span>
+                      <span>
+                        Số lượng có hạn: {selectedVoucherDetail.usedCount}/{selectedVoucherDetail.totalUsesLimit}
+                      </span>
+                    </li>
+                  )}
+                  {selectedVoucherDetail.conditions && selectedVoucherDetail.conditions.length > 0 && (
+                    selectedVoucherDetail.conditions.map((condition: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-blue-600 mt-1">•</span>
+                        <span>{condition}</span>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Button
+                  className="flex-1"
+                  onClick={() => {
+                    setVoucherCode(selectedVoucherDetail.code);
+                    setSelectedVoucherDetail(null);
+                    handleApplyVoucher();
+                  }}
+                >
+                  Áp dụng ngay
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedVoucherDetail(null)}
+                >
+                  Đóng
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       <Footer />
     </div>
