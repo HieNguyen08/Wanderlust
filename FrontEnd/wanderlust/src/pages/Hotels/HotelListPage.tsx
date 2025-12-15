@@ -1,7 +1,8 @@
 import { vi } from "date-fns/locale";
 import { Calendar as CalendarIcon, Check, ChevronDown, Hotel, Minus, Plus, Repeat, Search, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import { Footer } from "../../components/Footer";
 import { HotelCardGrid } from "../../components/HotelCardGrid";
 import { HotelCardList } from "../../components/HotelCardList";
@@ -52,6 +53,7 @@ interface HotelListPageProps {
   searchParams?: {
     destination?: string;
     destinationId?: string;
+    city?: string;
     checkIn?: string;
     checkOut?: string;
     bookingInfo?: {
@@ -77,6 +79,11 @@ export default function HotelListPage({
   onNavigate,
 }: HotelListPageProps) {
   const { t } = useTranslation();
+  const location = useLocation();
+  const params = useMemo(
+    () => searchParams ?? ((location.state as any) || {}),
+    [searchParams, location.state]
+  );
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("popular");
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -89,13 +96,13 @@ export default function HotelListPage({
   const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
   const [adults, setAdults] = useState(
-    searchParams?.guests?.adults ?? searchParams?.bookingInfo?.guests?.adults ?? 2
+    params?.guests?.adults ?? params?.bookingInfo?.guests?.adults ?? 2
   );
   const [children, setChildren] = useState(
-    searchParams?.guests?.children ?? searchParams?.bookingInfo?.guests?.children ?? 0
+    params?.guests?.children ?? params?.bookingInfo?.guests?.children ?? 0
   );
   const [rooms, setRooms] = useState(
-    searchParams?.guests?.rooms ?? searchParams?.bookingInfo?.guests?.rooms ?? 1
+    params?.guests?.rooms ?? params?.bookingInfo?.guests?.rooms ?? 1
   );
 
   // Popover states
@@ -131,19 +138,23 @@ export default function HotelListPage({
           setDestinations(mappedLocations);
         }
 
-        // Set initial destination from searchParams
-        if (searchParams?.destinationId) {
-          const foundDestById = mappedLocations.find(d => d.id === searchParams.destinationId);
+        // Set initial destination from resolved params
+        if (params?.destinationId) {
+          const foundDestById = mappedLocations.find(d => d.id === params.destinationId);
           if (foundDestById) {
             setDestination(foundDestById);
           }
-        } else if (searchParams?.destination) {
+        } else if (params?.destination) {
           const foundDest = mappedLocations.find(d =>
-            d.name.toLowerCase() === searchParams.destination?.toLowerCase()
+            d.name.toLowerCase() === params.destination?.toLowerCase()
           );
           if (foundDest) {
             setDestination(foundDest);
+          } else if (params?.city) {
+            setDestination({ code: "CUSTOM", name: params.city, country: "Việt Nam" });
           }
+        } else if (params?.city) {
+          setDestination({ code: "CUSTOM", name: params.city, country: "Việt Nam" });
         }
       } catch (error) {
         console.error("Failed to fetch locations:", error);
@@ -151,12 +162,12 @@ export default function HotelListPage({
     };
 
     fetchLocations();
-  }, [searchParams?.destination]);
+  }, [params?.city, params?.destination, params?.destinationId]);
 
-  // Initialize dates from searchParams
+  // Initialize dates from resolved params (props or navigation state)
   useEffect(() => {
-    const initialCheckIn = searchParams?.checkIn || searchParams?.bookingInfo?.checkIn || undefined;
-    const initialCheckOut = searchParams?.checkOut || searchParams?.bookingInfo?.checkOut || undefined;
+    const initialCheckIn = params?.checkIn || params?.bookingInfo?.checkIn || undefined;
+    const initialCheckOut = params?.checkOut || params?.bookingInfo?.checkOut || undefined;
 
     if (initialCheckIn) {
       try {
@@ -174,7 +185,7 @@ export default function HotelListPage({
         console.error("Invalid checkOut date:", err);
       }
     }
-  }, [searchParams]);
+  }, [params]);
 
   // Fetch hotels from backend when component mounts
   useEffect(() => {
@@ -185,15 +196,21 @@ export default function HotelListPage({
         // Prepare search params
         const apiParams: any = {};
 
-        // Map destination to location
-        if (searchParams?.destinationId) {
-          apiParams.locationId = searchParams.destinationId;
-        } else if (searchParams?.destination) {
-          apiParams.location = searchParams.destination;
+        // Prefer locationId first, then fall back to city string
+        if (destination?.id) {
+          apiParams.locationId = destination.id;
+        } else if (params?.destinationId) {
+          apiParams.locationId = params.destinationId;
+        } else if (destination?.name) {
+          apiParams.location = destination.name;
+        } else if (params?.city) {
+          apiParams.location = params.city;
+        } else if (params?.destination) {
+          apiParams.location = params.destination;
         }
 
         // Map check-in/check-out dates (convert from dd/MM/yyyy to yyyy-MM-dd)
-        const checkInParam = searchParams?.checkIn || searchParams?.bookingInfo?.checkIn;
+        const checkInParam = params?.checkIn || params?.bookingInfo?.checkIn;
         if (checkInParam) {
           try {
             const checkInDate = parse(checkInParam, "dd/MM/yyyy", new Date());
@@ -203,7 +220,7 @@ export default function HotelListPage({
           }
         }
 
-        const checkOutParam = searchParams?.checkOut || searchParams?.bookingInfo?.checkOut;
+        const checkOutParam = params?.checkOut || params?.bookingInfo?.checkOut;
         if (checkOutParam) {
           try {
             const checkOutDate = parse(checkOutParam, "dd/MM/yyyy", new Date());
@@ -214,20 +231,26 @@ export default function HotelListPage({
         }
 
         // Map guests (adults + children)
-        const guestParams = searchParams?.guests || searchParams?.bookingInfo?.guests;
+        const guestParams = params?.guests || params?.bookingInfo?.guests;
         if (guestParams) {
           const totalGuests = guestParams.adults + guestParams.children;
           apiParams.guests = totalGuests;
         }
 
         console.log("🔍 Fetching hotels with params:", apiParams);
-        const hotelsData = await hotelApi.searchHotels(apiParams);
+        let hotelsData = await hotelApi.searchHotels(apiParams);
+
+        // Fallback: if backend filters return nothing, fetch all then client-filter by city
+        if ((!hotelsData || hotelsData.length === 0) && (destination?.name || params?.city)) {
+          console.warn("⚠️ No hotels returned with location filter, retrying without filters for client-side match");
+          hotelsData = await hotelApi.searchHotels({});
+        }
 
         console.log("✅ Fetched hotels:", hotelsData);
 
         // Map backend HotelDTO to frontend Hotel interface
         let mappedHotels: Hotel[] = hotelsData.map((hotel: any) => ({
-          id: hotel.id,
+          id: hotel.hotelID || hotel.id,
           name: hotel.name,
           rating: hotel.starRating || hotel.averageRating || 0,
           address: hotel.address,
@@ -246,12 +269,27 @@ export default function HotelListPage({
           email: hotel.email,
         }));
 
-        // Ensure client-side filtering by locationId or city when provided
-        if (searchParams?.destinationId) {
-          mappedHotels = mappedHotels.filter((hotel) => hotel.locationId === searchParams.destinationId);
-        } else if (searchParams?.destination) {
-          const destLower = searchParams.destination.toLowerCase();
-          mappedHotels = mappedHotels.filter((hotel) => hotel.city?.toLowerCase() === destLower);
+        // Client-side filtering by locationId (primary) then city string (fallback)
+        if (destination?.id) {
+          mappedHotels = mappedHotels.filter((hotel) => hotel.locationId === destination.id);
+        } else if (params?.destinationId) {
+          mappedHotels = mappedHotels.filter((hotel) => hotel.locationId === params.destinationId);
+        }
+
+        if (mappedHotels.length === 0) {
+          if (destination?.name) {
+            const cityLower = destination.name.toLowerCase();
+            mappedHotels = hotelsData.filter((hotel: any) => hotel.city?.toLowerCase() === cityLower);
+          } else if (params?.city) {
+            const cityLower = params.city.toLowerCase();
+            mappedHotels = hotelsData.filter((hotel: any) => hotel.city?.toLowerCase() === cityLower);
+          }
+        }
+
+        // If still nothing and we had a city string, try partial match (defensive)
+        if (mappedHotels.length === 0 && (destination?.name || params?.city)) {
+          const target = (destination?.name || params?.city || "").toLowerCase();
+          mappedHotels = hotelsData.filter((hotel: any) => (hotel.city || "").toLowerCase().includes(target));
         }
 
         setHotels(mappedHotels);
@@ -267,7 +305,7 @@ export default function HotelListPage({
     };
 
     fetchHotels();
-  }, [searchParams]);
+  }, [params, destination?.name]);
 
   // Apply filters
   const handleFilterChange = (filters: any) => {
@@ -370,7 +408,7 @@ export default function HotelListPage({
                           </div>
                         ) : (
                           <div className="text-sm font-semibold text-gray-400">
-                            {searchParams?.destination || t('hotels.defaultLocation')}
+                            {params?.city || params?.destination || t('hotels.defaultLocation')}
                           </div>
                         )}
                       </div>
@@ -420,7 +458,7 @@ export default function HotelListPage({
                         <span className="text-sm font-semibold text-gray-800">
                           {checkIn
                             ? format(checkIn, "d 'tháng' M, EEEE", { locale: vi })
-                            : searchParams?.checkIn || "Chọn ngày"}
+                            : params?.checkIn || "Chọn ngày"}
                         </span>
                       </div>
                     </div>
@@ -455,7 +493,7 @@ export default function HotelListPage({
                         <span className="text-sm font-semibold text-gray-800">
                           {checkOut
                             ? format(checkOut, "d 'tháng' M, EEEE", { locale: vi })
-                            : searchParams?.checkOut || "Chọn ngày"}
+                            : params?.checkOut || "Chọn ngày"}
                         </span>
                       </div>
                     </div>
@@ -602,6 +640,7 @@ export default function HotelListPage({
                   const newSearchParams = {
                     destination: destination.name,
                     destinationId: destination.id,
+                    city: destination.name,
                     checkIn: formattedCheckIn,
                     checkOut: formattedCheckOut,
                     guests: { adults, children, rooms },
@@ -640,7 +679,11 @@ export default function HotelListPage({
             totalResults={filteredHotels.length}
             sortBy={sortBy}
             onSortChange={setSortBy}
-            destination={destination ? `${destination.name}, ${destination.country}` : (searchParams?.destination || "Tất cả địa điểm")}
+            destination={destination
+              ? `${destination.name}, ${destination.country}`
+              : params?.city
+                ? params.city
+                : params?.destination || filteredHotels[0]?.city || "Tất cả địa điểm"}
           />
 
           {/* Hotel Cards */}

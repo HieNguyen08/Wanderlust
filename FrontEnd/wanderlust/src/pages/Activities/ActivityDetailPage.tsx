@@ -41,14 +41,22 @@ interface ActivityDetailPageProps {
   onNavigate: (page: PageType, data?: any) => void;
   userRole?: any;
   onLogout?: () => void;
+  data?: {
+    activity?: ActivityDetailPageProps["activity"];
+    bookingInfo?: {
+      date?: string;
+      guests?: { adults?: number; children?: number; total?: number };
+    };
+  };
 }
 
-export default function ActivityDetailPage({ activity: initialActivity, activityId, onNavigate, userRole, onLogout }: ActivityDetailPageProps) {
+export default function ActivityDetailPage({ activity: initialActivityProp, activityId, onNavigate, userRole, onLogout, data }: ActivityDetailPageProps) {
   const { t } = useTranslation();
+  const initialActivity = data?.activity ?? initialActivityProp ?? (data && !data.activity ? data : undefined);
   const [activity, setActivity] = useState(initialActivity);
   const [loading, setLoading] = useState(!initialActivity && !!activityId);
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [guestCount, setGuestCount] = useState(1);
+  const [selectedDate, setSelectedDate] = useState<string>(data?.bookingInfo?.date || "");
+  const [guestCount, setGuestCount] = useState(data?.bookingInfo?.guests?.total || 1);
   const [isLiked, setIsLiked] = useState(false);
 
   // Load activity details if only ID is provided

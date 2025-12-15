@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Calendar, ChevronDown, MapPin, Search, Star, Users } from "lucide-react";
+import { Calendar, Check, ChevronDown, MapPin, Search, Star, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
@@ -8,9 +8,10 @@ import { Footer } from "../../components/Footer";
 import { Header } from "../../components/Header";
 import { Button } from "../../components/ui/button";
 import { Calendar as CalendarComponent } from "../../components/ui/calendar";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import type { PageType } from "../../MainApp";
-import { activityApi } from "../../utils/api";
+import { activityApi, locationApi } from "../../utils/api";
 
 // Activity Category Icons (using Lucide icons instead of imported images)
 const categories = [
@@ -32,8 +33,16 @@ interface Activity {
   rating: number;
   reviews: number;
   location: string;
+  locationId?: string;
   duration?: string;
   description: string;
+}
+
+interface LocationItem {
+  id: string;
+  code: string;
+  name: string;
+  country: string;
 }
 
 interface ActivitiesPageProps {
@@ -53,7 +62,8 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all", us
   const [error, setError] = useState<string | null>(null);
 
   // Advanced Search States
-  const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [locations, setLocations] = useState<LocationItem[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<LocationItem | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
@@ -66,37 +76,40 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all", us
   const [minRating, setMinRating] = useState(0);
   const [sortBy, setSortBy] = useState("recommended");
 
-  // Popular destinations
-  const destinations = [
-    { code: "NT", name: "Nha Trang", count: 245 },
-    { code: "DN", name: "Đà Nẵng", count: 189 },
-    { code: "HCM", name: "TP. Hồ Chí Minh", count: 312 },
-    { code: "HA", name: "Hội An", count: 156 },
-    { code: "PQ", name: "Phú Quốc", count: 178 },
-    { code: "HN", name: "Hà Nội", count: 234 },
-    { code: "DL", name: "Đà Lạt", count: 167 },
-    { code: "VT", name: "Vũng Tàu", count: 98 },
-  ];
-
   const totalGuests = adults + children;
 
-  // Initialize from searchParams
+  // Fetch locations from backend
   useEffect(() => {
-    if (searchParams) {
-      if (searchParams.location) {
-        setSelectedLocation(searchParams.location);
+    const fetchLocations = async () => {
+      try {
+        const response = await locationApi.getLocationsByType('CITY');
+        const locationsArray = Array.isArray(response) ? response : (response.content || []);
+
+        const mappedLocations: LocationItem[] = locationsArray.map((loc: any) => ({
+          id: loc.id,
+          code: loc.code || "N/A",
+          name: loc.name,
+          country: loc.metadata?.country || "Việt Nam",
+        }));
+
+        if (mappedLocations.length === 0) {
+          const fallbackLocations: LocationItem[] = [
+            { id: "HAN", code: "HAN", name: "Hà Nội", country: "Việt Nam" },
+            { id: "HCM", code: "HCM", name: "TP. Hồ Chí Minh", country: "Việt Nam" },
+            { id: "DAD", code: "DAD", name: "Đà Nẵng", country: "Việt Nam" },
+            { id: "PQC", code: "PQC", name: "Phú Quốc", country: "Việt Nam" },
+          ];
+          setLocations(fallbackLocations);
+        } else {
+          setLocations(mappedLocations);
+        }
+      } catch (err) {
+        console.error("Failed to fetch locations", err);
       }
-      if (searchParams.date) {
-        setSelectedDate(new Date(searchParams.date));
-      }
-      if (searchParams.adults) {
-        setAdults(searchParams.adults);
-      }
-      if (searchParams.children !== undefined) {
-        setChildren(searchParams.children);
-      }
-    }
-  }, [searchParams]);
+    };
+
+    fetchLocations();
+  }, []);
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -129,6 +142,7 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all", us
           rating: item.averageRating || 0,
           reviews: item.totalReviews || 0,
           location: item.meetingPoint || "Vietnam", // Use meeting point as location for now
+          locationId: item.locationId,
           duration: item.duration,
           description: item.description
         }));
@@ -145,16 +159,47 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all", us
     fetchActivities();
   }, []);
 
+  // Initialize from searchParams after locations loaded
+  useEffect(() => {
+    if (!searchParams) return;
+
+    if (searchParams.locationId && locations.length > 0) {
+      const found = locations.find((loc) => loc.id === searchParams.locationId);
+      if (found) setSelectedLocation(found);
+    } else if (searchParams.location && locations.length > 0) {
+      const foundByName = locations.find((loc) => loc.name.toLowerCase() === searchParams.location.toLowerCase());
+      if (foundByName) setSelectedLocation(foundByName);
+    }
+
+    if (searchParams.date) {
+      setSelectedDate(new Date(searchParams.date));
+    }
+    if (searchParams.adults) {
+      setAdults(searchParams.adults);
+    }
+    if (searchParams.children !== undefined) {
+      setChildren(searchParams.children);
+    }
+  }, [searchParams, locations]);
+
   // Filter logic
   const filteredActivities = activities.filter((activity) => {
     const matchesCategory = selectedCategory === "all" || activity.category === selectedCategory;
-    const matchesSearch = activity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+
+    // LocationId has priority; fall back to text search when no location chosen
+    let matchesLocation = true;
+    const targetLocationId = selectedLocation?.id || searchParams?.locationId;
+    if (targetLocationId) {
+      matchesLocation = activity.locationId === targetLocationId;
+    }
+
+    const matchesSearchText = activity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       activity.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesLocation = !selectedLocation || activity.location.toLowerCase().includes(selectedLocation.toLowerCase());
+
     const matchesPriceRange = activity.price >= priceRange[0] && activity.price <= priceRange[1];
     const matchesRating = activity.rating >= minRating;
 
-    return matchesCategory && matchesSearch && matchesLocation && matchesPriceRange && matchesRating;
+    return matchesCategory && matchesLocation && matchesPriceRange && matchesRating && (targetLocationId ? true : matchesSearchText);
   });
 
   // Sort activities
@@ -174,7 +219,17 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all", us
   });
 
   const handleActivityClick = (activity: Activity) => {
-    onNavigate("activity-detail", activity);
+    onNavigate("activity-detail", {
+      activity,
+      bookingInfo: {
+        date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined,
+        guests: {
+          adults,
+          children,
+          total: totalGuests,
+        },
+      }
+    });
   };
 
   return (
@@ -218,7 +273,7 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all", us
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-gray-500">{t('activitiesPage.location')}</p>
                         <p className="text-sm font-medium truncate">
-                          {selectedLocation || t('activitiesPage.selectLocation')}
+                          {selectedLocation ? selectedLocation.name : t('activitiesPage.selectLocation')}
                         </p>
                       </div>
                       <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -226,39 +281,30 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all", us
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-80 p-0" align="start">
-                  <div className="p-4">
-                    <h4 className="font-medium mb-3">{t('activitiesPage.popularDestinations')}</h4>
-                    <div className="space-y-1">
-                      {destinations.map((dest) => (
-                        <button
-                          key={dest.code}
-                          onClick={() => {
-                            setSelectedLocation(dest.name);
-                            setOpenLocation(false);
-                          }}
-                          className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 transition-colors text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <MapPin className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm">{dest.name}</span>
-                          </div>
-                          <span className="text-xs text-gray-500">{dest.count} {t('activitiesPage.activities')}</span>
-                        </button>
-                      ))}
-                    </div>
-                    {selectedLocation && (
-                      <Button
-                        variant="ghost"
-                        className="w-full mt-3"
-                        onClick={() => {
-                          setSelectedLocation("");
-                          setOpenLocation(false);
-                        }}
-                      >
-                        {t('activitiesPage.clearFilter')}
-                      </Button>
-                    )}
-                  </div>
+                  <Command>
+                    <CommandInput placeholder={t('activitiesPage.searchLocationPlaceholder') || "Tìm địa điểm..."} />
+                    <CommandList>
+                      <CommandEmpty>{t('activitiesPage.noLocationFound') || "Không tìm thấy."}</CommandEmpty>
+                      <CommandGroup>
+                        {locations.map((loc) => (
+                          <CommandItem
+                            key={loc.id}
+                            value={loc.name}
+                            onSelect={() => {
+                              setSelectedLocation(loc);
+                              setOpenLocation(false);
+                            }}
+                          >
+                            <Check className={`mr-2 h-4 w-4 ${selectedLocation?.id === loc.id ? "opacity-100" : "opacity-0"}`} />
+                            <div className="flex flex-col">
+                              <span>{loc.name}</span>
+                              <span className="text-xs text-gray-500">{loc.country}</span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
                 </PopoverContent>
               </Popover>
 

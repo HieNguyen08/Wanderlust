@@ -28,6 +28,7 @@ interface CarRentalListPageProps {
 }
 
 interface LocationItem {
+  id?: string;
   code: string;
   name: string;
   airport?: string;
@@ -46,8 +47,10 @@ const timeSlots = [
 export default function CarRentalListPage({ onNavigate, userRole, onLogout, searchParams }: CarRentalListPageProps) {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedCapacities, setSelectedCapacities] = useState<string[]>([]);
-  const [maxPrice, setMaxPrice] = useState(100);
-  const [visibleCars, setVisibleCars] = useState(9);
+  const [maxPrice, setMaxPrice] = useState(0);
+  const [priceCeiling, setPriceCeiling] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   // Location and search states
   const [locations, setLocations] = useState<LocationItem[]>([]);
@@ -163,6 +166,7 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
           city: car.city, // Add city from backend
           createdAt: car.createdAt ? new Date(car.createdAt) : null,
           withDriver: car.withDriver,
+          locationId: car.locationId,
           insurance: car.insurance,
           deposit: car.deposit ? parseFloat(car.deposit) : 0,
           minRentalDays: car.minRentalDays,
@@ -171,13 +175,27 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
 
         setAllCars(mappedCars);
 
-        // Build location options from car cities to align with car search by city string
-        const uniqueCities = Array.from(new Set(mappedCars.map((c) => c.city).filter(Boolean))).map((city) => ({
-          code: city,
-          name: city,
-          airport: city,
-        }));
-        setLocations(uniqueCities);
+        // Determine price ceiling (max price among cars) and initialize slider to that value
+        const maxDetectedPrice = mappedCars.reduce((acc, car) => Math.max(acc, car.price || 0), 0);
+        const ceiling = maxDetectedPrice > 0 ? maxDetectedPrice : 2_000_000;
+        setPriceCeiling(ceiling);
+        setMaxPrice(ceiling);
+
+        // Build location options from car locationId + city so dropdown aligns with backend IDs
+        const uniqueLocations = Array.from(
+          new Map(
+            mappedCars
+              .map((c) => ({
+                id: c.locationId || c.city || c.id,
+                code: c.locationId || c.city || c.id,
+                name: c.city || c.locationId || "Không rõ địa điểm",
+                airport: c.city || c.locationId || "",
+              }))
+              .filter((loc) => !!loc.id)
+              .map((loc) => [loc.id, loc])
+          ).values()
+        );
+        setLocations(uniqueLocations);
         setLoadingLocations(false);
       } catch (error: any) {
         console.error("❌ Error fetching cars:", error);
@@ -196,10 +214,14 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
     if (!searchParams) return;
 
     const city = searchParams.searchData?.pickupLocation || searchParams.pickupLocation;
-    if (city) {
-      setPickupLocation({ code: city, name: city });
-      setDropoffLocation(searchParams.searchData?.dropoffLocation ? { code: searchParams.searchData.dropoffLocation, name: searchParams.searchData.dropoffLocation } : null);
-      setSearchCity(city);
+    const pickupId = searchParams.searchData?.pickupLocationId;
+
+    if (city || pickupId) {
+      setPickupLocation({ id: pickupId, code: city || pickupId, name: city || pickupId });
+      if (searchParams.searchData?.dropoffLocation) {
+        setDropoffLocation({ code: searchParams.searchData.dropoffLocation, name: searchParams.searchData.dropoffLocation });
+      }
+      setSearchCity(city || "");
     }
 
     if (searchParams.searchData?.pickupDate) {
@@ -270,6 +292,17 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
 
     const locationQuery = (searchCity || pickupLocation?.name || "").trim().toLowerCase();
 
+    // Location ID filter takes priority
+    let locationMatch = true;
+    const locationIdFromState = pickupLocation?.id;
+    if (searchParams?.searchData?.pickupLocationId) {
+      locationMatch = car.locationId === searchParams.searchData.pickupLocationId;
+    } else if (locationIdFromState) {
+      locationMatch = car.locationId === locationIdFromState;
+    } else if (locationQuery) {
+      locationMatch = !!car.city && car.city.toLowerCase().includes(locationQuery);
+    }
+
     // Capacity filter - match based on seat count
     let capacityMatch = selectedCapacities.length === 0;
     if (!capacityMatch && car.seats) {
@@ -282,12 +315,15 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
       });
     }
 
-    const priceMatch = car.price <= maxPrice;
+    const priceMatch = maxPrice === 0 ? true : car.price <= maxPrice;
 
-    // Location filter - match by city string stored on car
-    const locationMatch = !locationQuery || (car.city && car.city.toLowerCase().includes(locationQuery));
+    // Driver filter
+    let driverMatch = true;
+    if (withDriver === true) {
+      driverMatch = car.withDriver === true;
+    }
 
-    return typeMatch && capacityMatch && priceMatch && locationMatch;
+    return typeMatch && capacityMatch && priceMatch && locationMatch && driverMatch;
   });
 
   const sortedCars = [...filteredCars].sort((a, b) => {
@@ -303,17 +339,21 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
     return aDate - bDate;
   });
 
-  const displayedCars = sortedCars.slice(0, visibleCars);
-  const hasMoreCars = visibleCars < filteredCars.length;
+  const totalPages = Math.ceil(sortedCars.length / itemsPerPage);
+  const displayedCars = sortedCars.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  const handleLoadMore = () => {
-    setVisibleCars(prev => Math.min(prev + 6, filteredCars.length));
-  };
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedTypes, selectedCapacities, maxPrice, withDriver, searchCity, pickupLocation?.id, searchParams?.searchData?.pickupLocationId]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
 
   const handleResetFilters = () => {
     setSelectedTypes([]);
     setSelectedCapacities([]);
-    setMaxPrice(100);
+    setMaxPrice(priceCeiling || 2_000_000);
   };
 
   const handleSearch = () => {
@@ -322,17 +362,47 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
       toast.error("Vui lòng chọn địa điểm nhận xe");
       return;
     }
-    if (!pickupDate) {
-      toast.error("Vui lòng chọn ngày nhận xe");
-      return;
-    }
-    if (!dropoffDate) {
-      toast.error("Vui lòng chọn ngày trả xe");
-      return;
-    }
+    const formattedPickupDate = pickupDate ? format(pickupDate, "dd/MM/yyyy", { locale: vi }) : undefined;
+    const formattedDropoffDate = dropoffDate ? format(dropoffDate, "dd/MM/yyyy", { locale: vi }) : undefined;
 
-    // Scroll to results or perform search
-    toast.success("Đang tìm kiếm xe phù hợp...");
+    const newSearchParams = {
+      searchData: {
+        pickupLocationId: pickupLocation.id,
+        pickupLocation: pickupLocation.name,
+        dropoffLocation: dropoffLocation?.name,
+        pickupDate: formattedPickupDate,
+        dropoffDate: formattedDropoffDate,
+        pickupTime,
+        dropoffTime,
+        withDriver,
+      }
+    };
+
+    onNavigate("car-list", newSearchParams);
+  };
+
+  const Pagination = () => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex justify-center items-center gap-2 mt-8">
+        <Button
+          variant="outline"
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+        >
+          Trước
+        </Button>
+        <span className="text-sm font-medium">Trang {currentPage} / {totalPages}</span>
+        <Button
+          variant="outline"
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+        >
+          Sau
+        </Button>
+      </div>
+    );
   };
 
   return (
@@ -788,11 +858,11 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
                 <Slider
                   value={[maxPrice]}
                   onValueChange={([value]) => setMaxPrice(value)}
-                  max={200}
-                  step={10}
+                  max={priceCeiling || 2_000_000}
+                  step={50_000}
                   className="mb-2"
                 />
-                <div className="text-sm text-gray-600">${maxPrice}/ngày</div>
+                <div className="text-sm text-gray-600">{maxPrice.toLocaleString('vi-VN')} đ/ngày</div>
               </div>
             </Card>
           </div>
@@ -878,13 +948,7 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
                   ))}
                 </div>
 
-                {hasMoreCars && (
-                  <div className="mt-8 text-center">
-                    <Button onClick={handleLoadMore} variant="outline" size="lg">
-                      Xem thêm
-                    </Button>
-                  </div>
-                )}
+                <Pagination />
               </>
             )}
           </div>

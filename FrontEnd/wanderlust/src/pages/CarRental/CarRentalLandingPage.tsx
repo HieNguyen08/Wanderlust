@@ -27,7 +27,7 @@ interface CarRentalLandingPageProps {
 }
 
 interface LocationItem {
-  id?: string;
+  id: string;
   code: string;
   name: string;
   country: string;
@@ -159,11 +159,11 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
         if (mappedLocations.length === 0) {
           console.log("⚠️ No city locations from backend, using fallback data");
           const fallbackLocations: LocationItem[] = [
-            { code: "SGN", name: "Ho Chi Minh City", country: "Vietnam", airport: "Sân bay Tân Sơn Nhất" },
-            { code: "HAN", name: "Hanoi", country: "Vietnam", airport: "Sân bay Nội Bài" },
-            { code: "DAD", name: "Da Nang", country: "Vietnam", airport: "Sân bay Đà Nẵng" },
-            { code: "NHA", name: "Nha Trang", country: "Vietnam", airport: "Sân bay Cam Ranh" },
-            { code: "PQC", name: "Phu Quoc", country: "Vietnam", airport: "Sân bay Phú Quốc" },
+            { id: "SGN", code: "SGN", name: "Ho Chi Minh City", country: "Vietnam", airport: "Sân bay Tân Sơn Nhất" },
+            { id: "HAN", code: "HAN", name: "Hanoi", country: "Vietnam", airport: "Sân bay Nội Bài" },
+            { id: "DAD", code: "DAD", name: "Da Nang", country: "Vietnam", airport: "Sân bay Đà Nẵng" },
+            { id: "NHA", code: "NHA", name: "Nha Trang", country: "Vietnam", airport: "Sân bay Cam Ranh" },
+            { id: "PQC", code: "PQC", name: "Phu Quoc", country: "Vietnam", airport: "Sân bay Phú Quốc" },
           ];
           setLocations(fallbackLocations);
         } else {
@@ -175,11 +175,11 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
 
         // Fallback data if API fails
         const fallbackLocations: LocationItem[] = [
-          { code: "SGN", name: "Ho Chi Minh City", country: "Vietnam", airport: "Sân bay Tân Sơn Nhất" },
-          { code: "HAN", name: "Hanoi", country: "Vietnam", airport: "Sân bay Nội Bài" },
-          { code: "DAD", name: "Da Nang", country: "Vietnam", airport: "Sân bay Đà Nẵng" },
-          { code: "NHA", name: "Nha Trang", country: "Vietnam", airport: "Sân bay Cam Ranh" },
-          { code: "PQC", name: "Phu Quoc", country: "Vietnam", airport: "Sân bay Phú Quốc" },
+          { id: "SGN", code: "SGN", name: "Ho Chi Minh City", country: "Vietnam", airport: "Sân bay Tân Sơn Nhất" },
+          { id: "HAN", code: "HAN", name: "Hanoi", country: "Vietnam", airport: "Sân bay Nội Bài" },
+          { id: "DAD", code: "DAD", name: "Da Nang", country: "Vietnam", airport: "Sân bay Đà Nẵng" },
+          { id: "NHA", code: "NHA", name: "Nha Trang", country: "Vietnam", airport: "Sân bay Cam Ranh" },
+          { id: "PQC", code: "PQC", name: "Phu Quoc", country: "Vietnam", airport: "Sân bay Phú Quốc" },
         ];
         console.log("🔄 Using fallback locations:", fallbackLocations);
         setLocations(fallbackLocations);
@@ -269,24 +269,12 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
 
   // Handle search
   const handleSearch = () => {
-    // Validation
     if (!pickupLocation) {
       toast.error("Vui lòng chọn địa điểm nhận xe");
       return;
     }
-    if (!pickupDate) {
-      toast.error("Vui lòng chọn ngày nhận xe");
-      return;
-    }
-    if (!sameLocation && !dropoffLocation) {
-      toast.error("Vui lòng chọn địa điểm trả xe");
-      return;
-    }
-    if (!dropoffDate) {
-      toast.error("Vui lòng chọn ngày trả xe");
-      return;
-    }
-    if (dropoffDate < pickupDate) {
+
+    if (pickupDate && dropoffDate && dropoffDate < pickupDate) {
       toast.error("Ngày trả xe không được trước ngày nhận xe");
       return;
     }
@@ -296,17 +284,18 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
     setTimeout(() => {
       setIsSearching(false);
       const searchParams = {
-        pickupLocation: pickupLocation?.name,
-        pickupLocationCode: pickupLocation?.code,
+        pickupLocationId: pickupLocation.id,
+        pickupLocation: pickupLocation.name,
+        pickupLocationCode: pickupLocation.code,
         pickupDate: pickupDate ? format(pickupDate, "dd/MM/yyyy", { locale: vi }) : null,
         pickupTime,
-        dropoffLocation: sameLocation ? pickupLocation?.name : dropoffLocation?.name,
+        dropoffLocation: sameLocation ? pickupLocation.name : dropoffLocation?.name || null,
         dropoffDate: dropoffDate ? format(dropoffDate, "dd/MM/yyyy", { locale: vi }) : null,
         dropoffTime,
         withDriver,
       };
       onNavigate("car-list", { searchData: searchParams });
-    }, 2000);
+    }, 1000);
   };
 
   return (
@@ -791,7 +780,7 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
             </div>
             <Button
               variant="ghost"
-              onClick={() => onNavigate("car-list", { sortMode: popularSortMode })}
+              onClick={() => onNavigate("car-list", { sortMode: "trips" })}
               className="text-blue-600 hover:text-blue-700"
             >
               Xem tất cả →
@@ -820,7 +809,7 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
         {/* Show More */}
         <div className="flex flex-col items-center gap-4">
           <Button
-            onClick={() => onNavigate("car-list", { sortMode: popularSortMode })}
+            onClick={() => onNavigate("car-list", {})}
             size="lg"
             className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
           >

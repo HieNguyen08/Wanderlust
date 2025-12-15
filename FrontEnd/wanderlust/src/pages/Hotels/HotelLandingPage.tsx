@@ -128,6 +128,8 @@ function HotelSearchForm({ onSearch, onViewAll, isSearching }: { onSearch: (data
 
     onSearch({
       destination: destination.name,
+      destinationId: destination.id,
+      city: destination.name,
       bookingInfo: {
         checkIn: checkIn ? format(checkIn, "dd/MM/yyyy") : null,
         checkOut: checkOut ? format(checkOut, "dd/MM/yyyy") : null,
@@ -496,6 +498,8 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
       // For hotel list we only need destination for filtering; keep bookingInfo attached for later steps (review page)
       onNavigate("hotel-list", {
         destination: searchData.destination,
+        destinationId: searchData.destinationId,
+        city: searchData.city || searchData.destination,
         bookingInfo: searchData.bookingInfo,
       });
     }, 2000);
