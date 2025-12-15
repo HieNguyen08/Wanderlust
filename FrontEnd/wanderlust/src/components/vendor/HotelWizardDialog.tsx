@@ -1,15 +1,16 @@
+import { Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { locationApi, vendorApi, hotelApi } from "../../utils/api";
+import { locationApi, vendorApi } from "../../utils/api";
+import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { Card } from "../ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Textarea } from "../ui/textarea";
-import { Badge } from "../ui/badge";
-import { Card } from "../ui/card";
-import { ImageWithFallback } from "../figma/ImageWithFallback";
 
 interface HotelWizardDialogProps {
   open: boolean;
@@ -35,6 +36,19 @@ interface RoomPayload {
   totalRooms?: number;
   availableRooms?: number;
   images: { url: string; caption: string; order: number }[];
+  options?: RoomOptionPayload[];
+}
+
+interface RoomOptionPayload {
+  id?: string;
+  name?: string;
+  bedType?: string;
+  breakfast?: boolean;
+  cancellation?: boolean;
+  price?: number;
+  originalPrice?: number;
+  roomsLeft?: number;
+  earnPoints?: number;
 }
 
 const hotelTypes = [
@@ -80,6 +94,35 @@ function RoomModal({
   onSaved: (room: RoomPayload) => void;
   editingRoom?: RoomPayload | null;
 }) {
+  type OptionForm = {
+    tempId: string;
+    id?: string;
+    name: string;
+    bedType: string;
+    breakfast: string;
+    cancellation: string;
+    price: string;
+    originalPrice: string;
+    roomsLeft: string;
+    earnPoints: string;
+  };
+
+  const makeTempId = () => `opt-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  const toOptionForm = (opt?: RoomOptionPayload): OptionForm => ({
+    tempId: opt?.id || makeTempId(),
+    id: opt?.id,
+    name: opt?.name || "",
+    bedType: opt?.bedType || "",
+    breakfast: opt?.breakfast ? "yes" : "no",
+    cancellation: opt?.cancellation ? "yes" : "no",
+    price: opt?.price !== undefined && opt?.price !== null ? String(opt.price) : "",
+    originalPrice:
+      opt?.originalPrice !== undefined && opt?.originalPrice !== null ? String(opt.originalPrice) : "",
+    roomsLeft: opt?.roomsLeft !== undefined && opt?.roomsLeft !== null ? String(opt.roomsLeft) : "",
+    earnPoints: opt?.earnPoints !== undefined && opt?.earnPoints !== null ? String(opt.earnPoints) : "",
+  });
+
   const empty = {
     name: "",
     type: "SINGLE",
@@ -95,6 +138,7 @@ function RoomModal({
     totalRooms: "",
     availableRooms: "",
     images: [] as string[],
+    options: [] as OptionForm[],
   };
   const [form, setForm] = useState(empty);
   const [imageUrl, setImageUrl] = useState("");
@@ -119,6 +163,7 @@ function RoomModal({
           totalRooms: editingRoom.totalRooms?.toString() || "",
           availableRooms: editingRoom.availableRooms?.toString() || "",
           images: (editingRoom.images || []).map((img) => (typeof img === "string" ? img : img.url)),
+          options: (editingRoom.options || []).map((opt) => toOptionForm(opt)),
         });
       } else {
         setForm(empty);
@@ -138,11 +183,40 @@ function RoomModal({
     setImageUrl("");
   };
 
+  const handleAddOption = () => {
+    setForm((prev) => ({ ...prev, options: [...prev.options, toOptionForm()] }));
+  };
+
+  const updateOption = (index: number, key: keyof OptionForm, value: string) => {
+    setForm((prev) => {
+      const next = [...prev.options];
+      next[index] = { ...next[index], [key]: value } as OptionForm;
+      return { ...prev, options: next };
+    });
+  };
+
+  const removeOption = (index: number) => {
+    setForm((prev) => ({ ...prev, options: prev.options.filter((_, i) => i !== index) }));
+  };
+
   const submit = async () => {
     if (!form.name || !form.basePrice || !form.maxOccupancy) {
       toast.error("Điền đầy đủ tên, sức chứa và giá phòng");
       return;
     }
+
+    const optionsPayload = (form.options || []).map((opt) => ({
+      id: opt.id,
+      name: opt.name || undefined,
+      bedType: opt.bedType || undefined,
+      breakfast: opt.breakfast === "yes",
+      cancellation: opt.cancellation === "yes",
+      price: opt.price ? Number(opt.price) : undefined,
+      originalPrice: opt.originalPrice ? Number(opt.originalPrice) : undefined,
+      roomsLeft: opt.roomsLeft ? Number(opt.roomsLeft) : undefined,
+      earnPoints: opt.earnPoints ? Number(opt.earnPoints) : undefined,
+    }));
+
     const payload = {
       hotelId,
       name: form.name,
@@ -160,6 +234,7 @@ function RoomModal({
       totalRooms: form.totalRooms ? Number(form.totalRooms) : undefined,
       availableRooms: form.availableRooms ? Number(form.availableRooms) : form.totalRooms ? Number(form.totalRooms) : undefined,
       status: "PENDING_REVIEW",
+      options: optionsPayload,
     };
 
     try {
@@ -183,7 +258,7 @@ function RoomModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editingRoom ? "Chỉnh sửa phòng" : "Thêm phòng"}</DialogTitle>
           <DialogDescription>Điền thông tin phòng thuộc khách sạn đã tạo.</DialogDescription>
@@ -289,6 +364,99 @@ function RoomModal({
                 <SelectItem value="no">Không</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="col-span-2 space-y-3">
+            <div className="flex items-center justify-between">
+              <Label>Option giá phòng (có thể thêm nhiều)</Label>
+              <Button type="button" variant="outline" size="sm" onClick={handleAddOption} className="gap-1">
+                <Plus className="w-4 h-4" /> Thêm option
+              </Button>
+            </div>
+            {form.options.length === 0 && (
+              <p className="text-sm text-gray-500">Chưa có option nào. Bấm "Thêm option" để bắt đầu.</p>
+            )}
+            <div className="space-y-3">
+              {form.options.map((opt, idx) => (
+                <Card key={opt.tempId || idx} className="p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-semibold text-gray-800">Option {idx + 1}</div>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeOption(idx)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Tên option</Label>
+                      <Input value={opt.name} onChange={(e) => updateOption(idx, "name", e.target.value)} placeholder="VD: Có bữa sáng" />
+                    </div>
+                    <div>
+                      <Label>Loại giường</Label>
+                      <Input value={opt.bedType} onChange={(e) => updateOption(idx, "bedType", e.target.value)} placeholder="Queen / Twin" />
+                    </div>
+                    <div>
+                      <Label>Bao gồm bữa sáng?</Label>
+                      <Select value={opt.breakfast} onValueChange={(v) => updateOption(idx, "breakfast", v)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">Có</SelectItem>
+                          <SelectItem value="no">Không</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Hủy miễn phí?</Label>
+                      <Select value={opt.cancellation} onValueChange={(v) => updateOption(idx, "cancellation", v)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">Có</SelectItem>
+                          <SelectItem value="no">Không</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Giá option (VND)</Label>
+                      <Input
+                        type="number"
+                        value={opt.price}
+                        onChange={(e) => updateOption(idx, "price", e.target.value)}
+                        placeholder="Giá áp dụng cho option"
+                      />
+                    </div>
+                    <div>
+                      <Label>Giá gốc (nếu có)</Label>
+                      <Input
+                        type="number"
+                        value={opt.originalPrice}
+                        onChange={(e) => updateOption(idx, "originalPrice", e.target.value)}
+                        placeholder="Giá trước khuyến mãi"
+                      />
+                    </div>
+                    <div>
+                      <Label>Phòng còn lại</Label>
+                      <Input
+                        type="number"
+                        value={opt.roomsLeft}
+                        onChange={(e) => updateOption(idx, "roomsLeft", e.target.value)}
+                        placeholder="Số phòng cho option này"
+                      />
+                    </div>
+                    <div>
+                      <Label>Điểm thưởng</Label>
+                      <Input
+                        type="number"
+                        value={opt.earnPoints}
+                        onChange={(e) => updateOption(idx, "earnPoints", e.target.value)}
+                        placeholder="Điểm tích lũy"
+                      />
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
           </div>
           <div className="col-span-2">
             <Label>Tiện nghi (phẩy)</Label>
@@ -531,6 +699,17 @@ export function HotelWizardDialog({ open, onOpenChange, onCompleted, editingHote
           breakfastIncluded: r.breakfastIncluded,
           totalRooms: r.totalRooms,
           availableRooms: r.availableRooms,
+          options: (r.options || []).map((opt: any) => ({
+            id: opt.id,
+            name: opt.name,
+            bedType: opt.bedType,
+            breakfast: opt.breakfast,
+            cancellation: opt.cancellation,
+            price: opt.price ? Number(opt.price) : undefined,
+            originalPrice: opt.originalPrice ? Number(opt.originalPrice) : undefined,
+            roomsLeft: opt.roomsLeft,
+            earnPoints: opt.earnPoints,
+          })),
           images: (r.images || []).map((img: any, imageIndex: number) => ({
             url: img.url || img,
             caption: img.caption || "",

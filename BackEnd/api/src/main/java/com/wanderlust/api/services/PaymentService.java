@@ -107,7 +107,29 @@ public class PaymentService {
         return paymentMapper.toDTO(payment);
     }
 
-    public List<PaymentDTO> findByUserId(String userId) {
+    /**
+     * Resolve userId from email or userId parameter
+     * If parameter is email format, look up userId from User table
+     * Otherwise, use it as userId directly
+     */
+    public String resolveUserId(String userIdOrEmail) {
+        if (userIdOrEmail == null || userIdOrEmail.isBlank()) {
+            throw new ResourceNotFoundException("User identifier is required");
+        }
+        
+        // Check if it looks like an email
+        if (userIdOrEmail.contains("@")) {
+            return userRepository.findByEmail(userIdOrEmail)
+                    .map(user -> user.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userIdOrEmail));
+        }
+        
+        // Otherwise, assume it's already a userId
+        return userIdOrEmail;
+    }
+
+    public List<PaymentDTO> findByUserId(String userIdOrEmail) {
+        String userId = resolveUserId(userIdOrEmail);
         List<Payment> payments = paymentRepository.findByUserId(userId, defaultSort);
         return paymentMapper.toDTOs(payments);
     }

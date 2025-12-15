@@ -13,6 +13,7 @@ import com.wanderlust.api.entity.Booking;
 import com.wanderlust.api.entity.CarRental;
 import com.wanderlust.api.entity.Hotel; // <-- BỔ SUNG
 import com.wanderlust.api.entity.Payment;
+import com.wanderlust.api.entity.Promotion;
 import com.wanderlust.api.entity.ReviewComment;
 import com.wanderlust.api.entity.Room;
 import com.wanderlust.api.entity.TravelGuide;
@@ -23,6 +24,7 @@ import com.wanderlust.api.repository.BookingRepository;
 import com.wanderlust.api.repository.CarRentalRepository;
 import com.wanderlust.api.repository.HotelRepository; // <-- BỔ SUNG
 import com.wanderlust.api.repository.PaymentRepository;
+import com.wanderlust.api.repository.PromotionRepository;
 import com.wanderlust.api.repository.ReviewCommentRepository;
 import com.wanderlust.api.repository.RoomRepository;
 import com.wanderlust.api.repository.TravelGuideRepository;
@@ -45,6 +47,7 @@ public class WebSecurityService {
     private final CarRentalRepository carRentalRepository;
     private final HotelRepository hotelRepository;
     private final PaymentRepository paymentRepository;
+    private final PromotionRepository promotionRepository;
     private final ReviewCommentRepository reviewCommentRepository;
     private final TravelGuideRepository travelGuideRepository;
     private final RoomRepository roomRepository;
@@ -219,6 +222,19 @@ public class WebSecurityService {
                 .map(WalletTransaction::getUserId) // Lấy userId từ transaction
                 .map(ownerId -> ownerId.equals(currentUserId))
                 .orElse(false); // Trả về false nếu không tìm thấy transaction
+    }
+
+    /**
+     * (PARTNER) Kiểm tra PARTNER có sở hữu Promotion không (dựa trên vendorId).
+     */
+    public boolean isPromotionOwner(Authentication authentication, String promotionId) {
+        String currentUserId = getUserIdFromAuthentication(authentication);
+        if (currentUserId == null) return false;
+        
+        return promotionRepository.findById(promotionId)
+                .map(Promotion::getVendorId)
+                .map(vendorId -> vendorId != null && vendorId.equals(currentUserId))
+                .orElse(false);
     }
 
     /**

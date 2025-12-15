@@ -16,8 +16,9 @@ import { Label } from "../../components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Slider } from "../../components/ui/slider";
+import { VoucherCarousel } from "../../components/VoucherCarousel";
 import type { PageType } from "../../MainApp";
-import { carRentalApi, locationApi } from "../../utils/api";
+import { carRentalApi, promotionApi, tokenService, userVoucherApi } from "../../utils/api";
 
 interface CarRentalListPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -59,6 +60,13 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
   const [dropoffTime, setDropoffTime] = useState<string>("09:00");
   const [sameLocation, setSameLocation] = useState(true);
   const [withDriver, setWithDriver] = useState(false);
+  const [searchCity, setSearchCity] = useState("");
+  const [sortMode, setSortMode] = useState<"trips" | "createdAt">("trips");
+
+  // Vouchers/Promotions
+  const [promotions, setPromotions] = useState<any[]>([]);
+  const [loadingPromotions, setLoadingPromotions] = useState(true);
+  const [savedVouchers, setSavedVouchers] = useState<string[]>([]);
 
   // Popover states
   const [pickupLocationOpen, setPickupLocationOpen] = useState(false);
@@ -74,7 +82,51 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
 
   // Ref for search section
   const searchSectionRef = useRef<HTMLDivElement>(null);
+  // Load saved vouchers from backend
+  useEffect(() => {
+    const loadSavedVouchers = async () => {
+      try {
+        if (tokenService.isAuthenticated()) {
+          const available = await userVoucherApi.getAvailable();
+          setSavedVouchers(available.map((v: any) => v.voucherCode));
+        }
+      } catch (error: any) {
+        // Silently fail if not authenticated
+        if (error.message !== 'UNAUTHORIZED') {
+          console.error('Error loading saved vouchers:', error);
+        }
+      }
+    };
 
+    loadSavedVouchers();
+  }, []);
+
+  // Fetch car promotions on mount (filter by CAR or ALL)
+  useEffect(() => {
+    const fetchCarPromotions = async () => {
+      try {
+        setLoadingPromotions(true);
+        // Fetch all active promotions
+        const allPromotions = await promotionApi.getActive();
+        
+        // Filter by category: CAR or ALL
+        const filteredPromotions = allPromotions.filter((promo: any) => {
+          const category = promo.category?.toUpperCase();
+          return category === 'CAR' || category === 'ALL';
+        });
+        
+        console.log('✅ Filtered car promotions:', filteredPromotions);
+        setPromotions(filteredPromotions);
+      } catch (error) {
+        console.error('Error fetching car promotions:', error);
+        toast.error('Không thể tải ưu đãi');
+      } finally {
+        setLoadingPromotions(false);
+      }
+    };
+
+    fetchCarPromotions();
+  }, []);
   // Fetch cars from backend
   useEffect(() => {
     const fetchCars = async () => {
@@ -107,6 +159,9 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
           originalPrice: undefined,
           liked: false,
           rating: car.averageRating || (4.5 + Math.random() * 0.5),
+          totalTrips: car.totalTrips || 0,
+          city: car.city, // Add city from backend
+          createdAt: car.createdAt ? new Date(car.createdAt) : null,
           withDriver: car.withDriver,
           insurance: car.insurance,
           deposit: car.deposit ? parseFloat(car.deposit) : 0,
@@ -115,55 +170,54 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
         }));
 
         setAllCars(mappedCars);
+
+        // Build location options from car cities to align with car search by city string
+        const uniqueCities = Array.from(new Set(mappedCars.map((c) => c.city).filter(Boolean))).map((city) => ({
+          code: city,
+          name: city,
+          airport: city,
+        }));
+        setLocations(uniqueCities);
+        setLoadingLocations(false);
       } catch (error: any) {
         console.error("❌ Error fetching cars:", error);
         toast.error("Không thể tải danh sách xe. Vui lòng thử lại.");
       } finally {
         setIsLoading(false);
+        setLoadingLocations(false);
       }
     };
 
     fetchCars();
   }, []);
 
-  // Fetch locations from backend
+  // Apply incoming search params from landing page
   useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        setLoadingLocations(true);
-        const response = await locationApi.getAllLocations({ page: 0, size: 100 });
-        const locationsData = response.content || [];
+    if (!searchParams) return;
 
-        const mappedLocations: LocationItem[] = locationsData.map((loc: any) => ({
-          code: loc.airport_Code || loc.location_ID || "N/A",
-          name: loc.city,
-          airport: loc.airport_Name || `Sân bay ${loc.city}`
-        }));
+    const city = searchParams.searchData?.pickupLocation || searchParams.pickupLocation;
+    if (city) {
+      setPickupLocation({ code: city, name: city });
+      setDropoffLocation(searchParams.searchData?.dropoffLocation ? { code: searchParams.searchData.dropoffLocation, name: searchParams.searchData.dropoffLocation } : null);
+      setSearchCity(city);
+    }
 
-        if (mappedLocations.length === 0) {
-          const fallbackLocations: LocationItem[] = [
-            { code: "SGN", name: "TP. Hồ Chí Minh", airport: "Sân bay Tân Sơn Nhất" },
-            { code: "HAN", name: "Hà Nội", airport: "Sân bay Nội Bài" },
-            { code: "DAD", name: "Đà Nẵng", airport: "Sân bay Đà Nẵng" },
-          ];
-          setLocations(fallbackLocations);
-        } else {
-          setLocations(mappedLocations);
-        }
-      } catch (error) {
-        console.error("Failed to fetch locations:", error);
-        const fallbackLocations: LocationItem[] = [
-          { code: "SGN", name: "TP. Hồ Chí Minh", airport: "Sân bay Tân Sơn Nhất" },
-          { code: "HAN", name: "Hà Nội", airport: "Sân bay Nội Bài" },
-        ];
-        setLocations(fallbackLocations);
-      } finally {
-        setLoadingLocations(false);
-      }
-    };
+    if (searchParams.searchData?.pickupDate) {
+      const [day, month, year] = searchParams.searchData.pickupDate.split("/");
+      setPickupDate(new Date(Number(year), Number(month) - 1, Number(day)));
+    }
+    if (searchParams.searchData?.dropoffDate) {
+      const [day, month, year] = searchParams.searchData.dropoffDate.split("/");
+      setDropoffDate(new Date(Number(year), Number(month) - 1, Number(day)));
+    }
+    if (searchParams.searchData?.pickupTime) setPickupTime(searchParams.searchData.pickupTime);
+    if (searchParams.searchData?.dropoffTime) setDropoffTime(searchParams.searchData.dropoffTime);
+    if (typeof searchParams.searchData?.withDriver === "boolean") setWithDriver(searchParams.searchData.withDriver);
 
-    fetchLocations();
-  }, []);
+    if (searchParams.sortMode === "createdAt" || searchParams.sortMode === "trips") {
+      setSortMode(searchParams.sortMode);
+    }
+  }, [searchParams]);
 
   const toggleType = (type: string) => {
     setSelectedTypes(prev =>
@@ -214,6 +268,8 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
   const filteredCars = allCars.filter(car => {
     const typeMatch = selectedTypes.length === 0 || selectedTypes.includes(car.type);
 
+    const locationQuery = (searchCity || pickupLocation?.name || "").trim().toLowerCase();
+
     // Capacity filter - match based on seat count
     let capacityMatch = selectedCapacities.length === 0;
     if (!capacityMatch && car.seats) {
@@ -228,15 +284,26 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
 
     const priceMatch = car.price <= maxPrice;
 
-    // Location filter - if pickup location is set, filter by it
-    const locationMatch = !pickupLocation?.name ||
-      car.name?.toLowerCase().includes(pickupLocation.name.toLowerCase()) ||
-      car.brand?.toLowerCase().includes(pickupLocation.name.toLowerCase());
+    // Location filter - match by city string stored on car
+    const locationMatch = !locationQuery || (car.city && car.city.toLowerCase().includes(locationQuery));
 
     return typeMatch && capacityMatch && priceMatch && locationMatch;
   });
 
-  const displayedCars = filteredCars.slice(0, visibleCars);
+  const sortedCars = [...filteredCars].sort((a, b) => {
+    if (sortMode === "createdAt") {
+      const aDate = a.createdAt ? a.createdAt.getTime() : 0;
+      const bDate = b.createdAt ? b.createdAt.getTime() : 0;
+      return aDate - bDate; // oldest first
+    }
+    const tripDiff = (b.totalTrips || 0) - (a.totalTrips || 0);
+    if (tripDiff !== 0) return tripDiff;
+    const aDate = a.createdAt ? a.createdAt.getTime() : 0;
+    const bDate = b.createdAt ? b.createdAt.getTime() : 0;
+    return aDate - bDate;
+  });
+
+  const displayedCars = sortedCars.slice(0, visibleCars);
   const hasMoreCars = visibleCars < filteredCars.length;
 
   const handleLoadMore = () => {
@@ -318,8 +385,8 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
                           aria-expanded={pickupLocationOpen}
                           className="w-full justify-between bg-white border-blue-200 hover:bg-white hover:border-blue-300"
                         >
-                          {pickupLocation ? (
-                            <span className="truncate">{pickupLocation.name}</span>
+                          {searchCity ? (
+                            <span className="truncate">{searchCity}</span>
                           ) : (
                             <span className="text-gray-500">Chọn thành phố</span>
                           )}
@@ -341,6 +408,7 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
                                     value={city.name}
                                     onSelect={() => {
                                       setPickupLocation(city);
+                                      setSearchCity(city.name);
                                       if (sameLocation) {
                                         setDropoffLocation(city);
                                       }
@@ -348,11 +416,11 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
                                     }}
                                   >
                                     <Check
-                                      className={`mr-2 h-4 w-4 ${pickupLocation?.code === city.code ? "opacity-100" : "opacity-0"
+                                      className={`mr-2 h-4 w-4 ${searchCity === city.name ? "opacity-100" : "opacity-0"
                                         }`}
                                     />
                                     <div className="flex flex-col">
-                                      <span>{city.name} ({city.code})</span>
+                                      <span>{city.name}</span>
                                       <span className="text-xs text-gray-500">{city.airport}</span>
                                     </div>
                                   </CommandItem>
@@ -391,7 +459,6 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
                             setPickupDateOpen(false);
                           }}
                           disabled={(date) => date < new Date()}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -446,8 +513,10 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
                     id="same-location"
                     checked={sameLocation}
                     onCheckedChange={(checked) => {
-                      setSameLocation(checked as boolean);
-                      if (checked && pickupLocation) {
+                      const value = Boolean(checked);
+                      setSameLocation(value);
+                      // If keeping the same location, mirror pickup into dropoff
+                      if (value && pickupLocation) {
                         setDropoffLocation(pickupLocation);
                       }
                     }}
@@ -525,7 +594,7 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
                                         }`}
                                     />
                                     <div className="flex flex-col">
-                                      <span>{city.name} ({city.code})</span>
+                                      <span>{city.name}</span>
                                       <span className="text-xs text-gray-500">{city.airport}</span>
                                     </div>
                                   </CommandItem>
@@ -564,7 +633,6 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
                             setDropoffDateOpen(false);
                           }}
                           disabled={(date) => date < (pickupDate || new Date())}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -626,7 +694,36 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
             </div>
           </Card>
         </div>
+        {/* Voucher Carousel Section */}
+        {!loadingPromotions && promotions.length > 0 && (
+          <section className="mb-12">
+            <VoucherCarousel
+              vouchers={promotions}
+              savedVouchers={savedVouchers}
+              onSaveVoucher={async (voucher: any) => {
+                try {
+                  // Check authentication
+                  if (!tokenService.isAuthenticated()) {
+                    toast.error('Vui lòng đăng nhập để lưu voucher');
+                    onNavigate('login');
+                    return;
+                  }
 
+                  // Save voucher to wallet
+                  await userVoucherApi.saveToWallet(voucher.code);
+                  setSavedVouchers([...savedVouchers, voucher.code]);
+                  toast.success('Đã lưu voucher vào ví thành công!');
+                } catch (error: any) {
+                  console.error('Error saving voucher:', error);
+                  toast.error(error.message || 'Không thể lưu voucher');
+                }
+              }}
+              onNavigate={onNavigate}
+              title="Ưu đãi dành cho bạn"
+              subtitle="Tiết kiệm chi phí thuê xe với các mã giảm giá hấp dẫn"
+            />
+          </section>
+        )}
         {/* Results Section */}
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}

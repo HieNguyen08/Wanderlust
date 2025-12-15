@@ -30,7 +30,8 @@
     "featured": true,
     "popularity": 95,
     "metadata": {
-      "climate": "Humid subtropical"
+      "climate": "Humid subtropical",
+      "country": "Vietnam"
     }
   },
   {
@@ -47,7 +48,8 @@
     "featured": true,
     "popularity": 98,
     "metadata": {
-      "climate": "Tropical savanna"
+      "climate": "Tropical savanna",
+      "country": "Vietnam"
     }
   },
   {
@@ -64,7 +66,8 @@
     "featured": true,
     "popularity": 90,
     "metadata": {
-      "climate": "Tropical monsoon"
+      "climate": "Tropical monsoon",
+      "country": "Vietnam"
     }
   },
   {
@@ -98,7 +101,8 @@
     "featured": true,
     "popularity": 85,
     "metadata": {
-      "climate": "Tropical savanna"
+      "climate": "Tropical savanna",
+      "country": "Vietnam"
     }
   },
   {
@@ -132,7 +136,8 @@
     "featured": true,
     "popularity": 88,
     "metadata": {
-      "climate": "Tropical savanna"
+      "climate": "Tropical savanna",
+      "country": "Vietnam"
     }
   },
   {
@@ -149,7 +154,8 @@
     "featured": true,
     "popularity": 94,
     "metadata": {
-      "climate": "Tropical monsoon"
+      "climate": "Tropical monsoon",
+      "country": "Vietnam"
     }
   },
   {

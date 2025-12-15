@@ -10,34 +10,34 @@ import { Button } from "../../components/ui/button";
 import { Calendar } from "../../components/ui/calendar";
 import { Card } from "../../components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "../../components/ui/select";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "../../components/ui/table";
 import { VendorLayout } from "../../components/VendorLayout";
 import type { PageType } from "../../MainApp";
-import { vendorPromotionApi, tokenService } from "../../utils/api";
+import { tokenService, vendorPromotionApi } from "../../utils/api";
 
 interface CreateVendorVoucherDialogProps {
   open: boolean;
@@ -86,10 +86,14 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
       totalUsesLimit: formData.totalUsesLimit ? parseInt(formData.totalUsesLimit) : null,
       userUseLimit: formData.userUseLimit ? parseInt(formData.userUseLimit) : 1,
       category,
+      vendorId,
+      adminCreateCheck: false,
       images,
       image: images[0] || undefined,
       conditions: [],
       isActive: true,
+      isActiveManual: true,
+      usedCount: 0,
     };
 
     onVoucherCreated(voucher);
@@ -444,19 +448,21 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
       setLoading(true);
       const res = await vendorPromotionApi.list({
         search: searchQuery,
-        status: statusFilter,
+        status: statusFilter !== "ALL" ? statusFilter : undefined,
         page,
         size: pageSize,
       });
       const content = res?.content || [];
       const mapped = content.map((promo: any) => {
         const status = promo.computedStatus || promo.status || computeStatus(promo);
-        const daysLeft = promo.daysLeft ?? null;
+        const daysLeft = promo.daysLeft ?? (promo.endDate ? Math.ceil((new Date(promo.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null);
         const isExpired = status === "EXPIRED";
         const isExhausted = status === "EXHAUSTED" || (promo.totalUsesLimit && promo.usedCount >= promo.totalUsesLimit);
         return {
           id: promo.id,
           code: promo.code,
+          title: promo.title,
+          description: promo.description,
           type: promo.type || "PERCENTAGE",
           value: promo.value || 0,
           maxDiscount: promo.maxDiscount,
@@ -470,6 +476,9 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
           isExpired,
           isExhausted,
           category: promo.category,
+          vendorId: promo.vendorId,
+          isActive: promo.isActive ?? promo.isActiveManual,
+          isActiveManual: promo.isActiveManual,
         };
       });
       setVouchers(mapped);
@@ -520,11 +529,8 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
     }
   };
 
-  const filteredVouchers = vouchers.filter(voucher => {
-    const matchesSearch = voucher.code.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "ALL" || voucher.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredVouchers = vouchers;
+  const pagedVouchers = vouchers;
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; className: string }> = {
@@ -607,24 +613,24 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
         <div className="grid grid-cols-4 gap-4">
           <Card className="p-4">
             <div className="text-sm text-gray-600">{t('vendor.totalVouchers')}</div>
-            <div className="text-2xl font-bold mt-1">{vouchers.length}</div>
+            <div className="text-2xl font-bold mt-1">{filteredVouchers.length}</div>
           </Card>
           <Card className="p-4">
             <div className="text-sm text-gray-600">{t('vendor.active')}</div>
             <div className="text-2xl font-bold mt-1 text-green-600">
-              {vouchers.filter(v => v.status === "ACTIVE").length}
+              {filteredVouchers.filter(v => v.status === "ACTIVE").length}
             </div>
           </Card>
           <Card className="p-4">
             <div className="text-sm text-gray-600">{t('vendor.pendingApproval')}</div>
             <div className="text-2xl font-bold mt-1 text-yellow-600">
-              {vouchers.filter(v => v.status === "PENDING").length}
+              {filteredVouchers.filter(v => v.status === "PENDING").length}
             </div>
           </Card>
           <Card className="p-4">
             <div className="text-sm text-gray-600">{t('vendor.totalUsage')}</div>
             <div className="text-2xl font-bold mt-1">
-              {vouchers.reduce((sum, v) => sum + v.totalUsed, 0)}
+              {filteredVouchers.reduce((sum, v) => sum + v.totalUsed, 0)}
             </div>
           </Card>
         </div>
@@ -658,7 +664,7 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredVouchers.map((voucher) => (
+                pagedVouchers.map((voucher) => (
                   <TableRow key={voucher.id}>
                     <TableCell className="font-mono font-semibold">
                       {voucher.code}

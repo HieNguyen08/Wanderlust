@@ -23,27 +23,27 @@ import com.wanderlust.api.entity.types.LocationType;
 public class Location {
     @Id
     private String id; // Sửa location_ID -> id cho chuẩn Java/Spec
-    
-    // @Field dùng để mapping nếu tên biến Java khác tên trong DB (optional), 
+
+    // @Field dùng để mapping nếu tên biến Java khác tên trong DB (optional),
     // nhưng ở đây ta sửa tên biến cho khớp spec luôn.
     private String name; // Sửa location_Name -> name
-    
+
     private String slug;
-    
+
     private LocationType type; // Sửa location_Type -> type
-    
+
     private String parentLocationId;
     private BigDecimal latitude;
     private BigDecimal longitude;
     private String timezone;
     private String description;
-    
+
     private String image; // Sửa imageUrl -> image (để khớp spec)
-    
+
     private Boolean featured;
-    
+
     private Integer popularity; // Sửa popularityScore -> popularity
-    
+
     // Quan trọng: Dùng Map<String, Object> để lưu JSON động
     // Ví dụ: { "weather": "tropical", "bestTimeToVisit": "May-Aug" }
     private Map<String, Object> metadata;

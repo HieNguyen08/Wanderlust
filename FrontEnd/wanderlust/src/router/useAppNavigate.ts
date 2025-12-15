@@ -60,7 +60,7 @@ export function useAppNavigate() {
     "admin-users": "/admin/users",
     "admin-bookings": "/admin/bookings",
     "admin-flights": "/admin/flights",
-    "admin-activities": "/admin/activities",
+    "admin-services": "/admin/services",
     "admin-reviews": "/admin/reviews",
     "admin-reports": "/admin/reports",
     "admin-settings": "/admin/settings",

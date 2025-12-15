@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
+import { vendorApi } from "../../api/vendorApi";
 import { VendorCancelOrderDialog } from "../../components/VendorCancelOrderDialog";
 import { VendorLayout } from "../../components/VendorLayout";
 import { Badge } from "../../components/ui/badge";
@@ -36,7 +37,6 @@ import {
 } from "../../components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { BookingDetailDialog } from "../../components/vendor/BookingDetailDialog";
-import { vendorApi } from "../../utils/api";
 
 interface VendorBookingsPageProps {
   onNavigate: (page: PageType, data?: any) => void;

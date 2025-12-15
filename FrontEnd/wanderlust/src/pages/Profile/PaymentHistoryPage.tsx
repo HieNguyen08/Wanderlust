@@ -49,7 +49,7 @@ export default function PaymentHistoryPage({ onNavigate, userRole, onLogout }: P
   const [loading, setLoading] = useState(true);
   const [selectedPayment, setSelectedPayment] = useState<PaymentHistoryItem | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
-  
+
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -67,19 +67,28 @@ export default function PaymentHistoryPage({ onNavigate, userRole, onLogout }: P
     try {
       setLoading(true);
       const userData = tokenService.getUserData();
-      const userId = userData?.userId || userData?.id;
+      const token = tokenService.getToken();
       
       console.log('🔍 Loading payment history for user:', userData);
-      
-      if (!userData || !userId) {
+      console.log('🔐 Token available:', !!token);
+
+      if (!userData || !token) {
         toast.error(t('payment.notLoggedIn', 'Vui lòng đăng nhập để xem lịch sử'));
         return;
       }
 
-      console.log('📞 Calling API with userId:', userId);
-      const history = await getPaymentHistoryByUserId(userId);
+      // Try userId first, then email (backend will resolve both)
+      const userIdentifier = userData?.userId || userData?.id || userData?.email || userData?.sub;
+      
+      if (!userIdentifier) {
+        toast.error(t('payment.notLoggedIn', 'Không tìm thấy thông tin người dùng'));
+        return;
+      }
+
+      console.log('📞 Calling API with userIdentifier:', userIdentifier);
+      const history = await getPaymentHistoryByUserId(userIdentifier);
       console.log('✅ Payment history loaded:', history);
-      setPayments(history);
+      setPayments(Array.isArray(history) ? history : []);
     } catch (error: any) {
       console.error('❌ Failed to load payment history:', error);
       toast.error(t('payment.loadHistoryFailed', 'Không thể tải lịch sử thanh toán'));
@@ -93,9 +102,9 @@ export default function PaymentHistoryPage({ onNavigate, userRole, onLogout }: P
 
     // Search filter
     if (searchQuery) {
-      filtered = filtered.filter(payment => 
-        payment.transactionId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        payment.bookingId.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(payment =>
+        (payment.transactionId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (payment.bookingId || '').toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -145,8 +154,8 @@ export default function PaymentHistoryPage({ onNavigate, userRole, onLogout }: P
     }
   };
 
-  const formatAmount = (amount: string | number, currency: string) => {
-    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  const formatAmount = (amount: string | number | undefined, currency: string) => {
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : (amount ?? 0);
     if (currency === 'VND') {
       return new Intl.NumberFormat('vi-VN', {
         style: 'currency',
@@ -288,7 +297,7 @@ export default function PaymentHistoryPage({ onNavigate, userRole, onLogout }: P
                           <span className="text-gray-400">•</span>
                           <span className="font-mono text-xs">{payment.transactionId}</span>
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4" />
                           <span>{formatDate(payment.createdAt)}</span>
@@ -305,6 +314,11 @@ export default function PaymentHistoryPage({ onNavigate, userRole, onLogout }: P
                         <div className="text-xs text-gray-500">
                           {t('payment.bookingId', 'Mã đặt chỗ')}: {payment.bookingId}
                         </div>
+                        {payment.discountAmount ? (
+                          <div className="text-xs text-green-600">
+                            {t('payment.discount', 'Giảm giá')}: {formatAmount(payment.discountAmount, payment.currency)}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -372,8 +386,13 @@ export default function PaymentHistoryPage({ onNavigate, userRole, onLogout }: P
                 <div className="text-right">
                   <p className="text-sm text-gray-600">{t('payment.amount', 'Số tiền')}</p>
                   <p className="text-xl font-bold text-gray-900">
-                    {formatAmount(selectedPayment.amount, selectedPayment.currency)}
+                    {formatAmount(selectedPayment.amount ?? selectedPayment.originalAmount, selectedPayment.currency)}
                   </p>
+                  {selectedPayment.discountAmount ? (
+                    <p className="text-xs text-green-600">
+                      {t('payment.discount', 'Giảm giá')}: {formatAmount(selectedPayment.discountAmount, selectedPayment.currency)}
+                    </p>
+                  ) : null}
                 </div>
               </div>
 

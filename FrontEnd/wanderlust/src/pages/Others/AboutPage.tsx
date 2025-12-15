@@ -1,4 +1,5 @@
 import { ArrowLeft, Award, Globe, Target, Users } from "lucide-react";
+import ThanhAnhImage from "../../assets/images/ThanhAnh.jpg";
 import { useTranslation } from "react-i18next";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
@@ -43,9 +44,9 @@ export default function AboutPage({ onNavigate }: AboutPageProps) {
 
   const team = [
     {
-      name: "Nguyễn Văn A",
-      role: "CEO & Founder",
-      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop",
+      name: "Thanh Anh",
+      role: "Developer & Founder",
+      image: ThanhAnhImage,
     },
     {
       name: "Trần Thị B",

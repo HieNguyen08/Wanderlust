@@ -1,4 +1,4 @@
-import { Calendar, Info, MapPin, Users } from "lucide-react";
+import { Info, MapPin } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -41,6 +41,15 @@ export default function HotelReviewPage({ onNavigate, hotelData: hotelDataProp }
 
   const [bookingForMyself, setBookingForMyself] = useState(false);
   const [isEditingContact, setIsEditingContact] = useState(false);
+
+  // Date and time selection states
+  const isIsoDate = (value?: string) => !!value && /^\d{4}-\d{2}-\d{2}$/.test(value);
+  const initialCheckInDate = isIsoDate(hotelData?.booking?.checkIn) ? hotelData.booking.checkIn : '';
+  const initialCheckOutDate = isIsoDate(hotelData?.booking?.checkOut) ? hotelData.booking.checkOut : '';
+  const [checkInDate, setCheckInDate] = useState<string>(initialCheckInDate);
+  const [checkOutDate, setCheckOutDate] = useState<string>(initialCheckOutDate);
+  const [checkInTime, setCheckInTime] = useState<string>('14:00'); // Standard hotel check-in
+  const [checkOutTime, setCheckOutTime] = useState<string>('12:00'); // Standard hotel check-out
 
   const [specialRequests, setSpecialRequests] = useState({
     nonSmoking: false,
@@ -115,10 +124,25 @@ export default function HotelReviewPage({ onNavigate, hotelData: hotelDataProp }
     amenities: []
   };
 
+  // Calculate number of nights
+  const calculateNights = () => {
+    if (!checkInDate || !checkOutDate) return 1;
+
+    const checkIn = new Date(`${checkInDate}T${checkInTime}:00`);
+    const checkOut = new Date(`${checkOutDate}T${checkOutTime}:00`);
+
+    const diffMs = checkOut.getTime() - checkIn.getTime();
+    const diffNights = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    return diffNights > 0 ? diffNights : 1;
+  };
+
+  const calculatedNights = calculateNights();
+
   const booking = hotelData?.booking || {
     checkIn: "Thứ 6, 7/11/2025",
     checkOut: "Thứ 7, 8/11/2025",
-    nights: 1,
+    nights: calculatedNights,
     roomType: "Superior Twin Room",
     roomCount: 1,
     guests: 2,
@@ -134,13 +158,16 @@ export default function HotelReviewPage({ onNavigate, hotelData: hotelDataProp }
     tourTicket: 907000
   };
 
-  // Calculate total price for multiple rooms
+  // Calculate total price for multiple rooms and nights
   const totalAddons = 
     (addons.travelInsurance ? pricing.insurance : 0) +
     (addons.tourTickets ? pricing.tourTicket : 0);
 
-  const baseRoomPrice = pricing.roomPrice * roomCount;
-  const baseTaxAndFees = pricing.taxAndFees * roomCount;
+  const pricePerNight = pricing.roomPrice || 1294000;
+  const taxPerNight = pricing.taxAndFees || 200000;
+  
+  const baseRoomPrice = pricePerNight * roomCount * calculatedNights;
+  const baseTaxAndFees = taxPerNight * roomCount * calculatedNights;
   const totalPrice = baseRoomPrice + baseTaxAndFees + totalAddons;
 
   const handleContinueToPayment = async () => {
@@ -208,8 +235,8 @@ export default function HotelReviewPage({ onNavigate, hotelData: hotelDataProp }
         discount: 0,
         totalPrice,
         currency: "VND",
-        startDate: booking.checkIn || new Date().toISOString(),
-        endDate: booking.checkOut || undefined,
+        startDate: checkInDate && checkInTime ? `${checkInDate}T${checkInTime}:00` : booking.checkIn || new Date().toISOString(),
+        endDate: checkOutDate && checkOutTime ? `${checkOutDate}T${checkOutTime}:00` : booking.checkOut || undefined,
         quantity: roomCount,
         numberOfGuests: {
           adults: booking.guests || 2,
@@ -235,6 +262,11 @@ export default function HotelReviewPage({ onNavigate, hotelData: hotelDataProp }
           addons,
           hotelData,
           roomCount,
+          nights: calculatedNights,
+          checkInDate,
+          checkOutDate,
+          checkInTime,
+          checkOutTime,
           baseRoomPrice,
           baseTaxAndFees,
           totalAddons,
@@ -260,7 +292,10 @@ export default function HotelReviewPage({ onNavigate, hotelData: hotelDataProp }
           ...hotelData,
           booking: {
             ...booking,
-            roomCount
+            roomCount,
+            nights: calculatedNights,
+            checkIn: checkInDate && checkInTime ? `${checkInDate}T${checkInTime}` : booking.checkIn,
+            checkOut: checkOutDate && checkOutTime ? `${checkOutDate}T${checkOutTime}` : booking.checkOut
           }
         },
         totalPrice,
@@ -630,29 +665,74 @@ export default function HotelReviewPage({ onNavigate, hotelData: hotelDataProp }
 
                 <Separator className="my-6" />
 
-                {/* Booking Info */}
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-gray-600 shrink-0" />
+                {/* Booking Configuration */}
+                <div className="mb-6">
+                  <h3 className="text-lg text-gray-900 mb-4">{t('hotels.bookingDetails') || 'Thông tin đặt phòng'}</h3>
+                  
+                  <div className="space-y-4">
+                    {/* Check-in Date & Time */}
                     <div>
-                      <p className="text-sm text-gray-600">Check-in</p>
-                      <p className="text-gray-900">{booking.checkIn}</p>
+                      <Label htmlFor="checkInDate" className="text-sm text-gray-700 mb-1 block">
+                        {t('hotels.checkInDate') || 'Ngày nhận phòng'} <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="checkInDate"
+                        type="date"
+                        value={checkInDate}
+                        onChange={(e) => setCheckInDate(e.target.value)}
+                        className="mb-2"
+                        min={new Date().toISOString().split('T')[0]}
+                      />
+                      <Label htmlFor="checkInTime" className="text-sm text-gray-700 mb-1 block">
+                        {t('hotels.checkInTime') || 'Giờ nhận phòng'}
+                      </Label>
+                      <Input
+                        id="checkInTime"
+                        type="time"
+                        value={checkInTime}
+                        onChange={(e) => setCheckInTime(e.target.value)}
+                      />
                     </div>
-                  </div>
 
-                  <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-gray-600 shrink-0" />
+                    {/* Check-out Date & Time */}
                     <div>
-                      <p className="text-sm text-gray-600">Check-out</p>
-                      <p className="text-gray-900">{booking.checkOut}</p>
-                      <p className="text-xs text-gray-500">({booking.nights} đêm)</p>
+                      <Label htmlFor="checkOutDate" className="text-sm text-gray-700 mb-1 block">
+                        {t('hotels.checkOutDate') || 'Ngày trả phòng'} <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="checkOutDate"
+                        type="date"
+                        value={checkOutDate}
+                        onChange={(e) => setCheckOutDate(e.target.value)}
+                        className="mb-2"
+                        min={checkInDate || new Date().toISOString().split('T')[0]}
+                      />
+                      <Label htmlFor="checkOutTime" className="text-sm text-gray-700 mb-1 block">
+                        {t('hotels.checkOutTime') || 'Giờ trả phòng'}
+                      </Label>
+                      <Input
+                        id="checkOutTime"
+                        type="time"
+                        value={checkOutTime}
+                        onChange={(e) => setCheckOutTime(e.target.value)}
+                      />
                     </div>
-                  </div>
 
-                  <div className="flex items-start gap-3">
-                    <Users className="w-5 h-5 text-gray-600 shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-600 mb-2">Số lượng phòng</p>
+                    {/* Number of Nights Display */}
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-700">{t('hotels.numberOfNights') || 'Số đêm'}:</span>
+                        <span className="text-lg font-semibold text-blue-600">
+                          {calculatedNights} {t('hotels.nights') || 'đêm'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Number of Rooms */}
+                    <div>
+                      <Label htmlFor="roomCount" className="text-sm text-gray-700 mb-1 block">
+                        {t('hotels.numberOfRooms') || 'Số phòng'}
+                      </Label>
                       <Select 
                         value={roomCount.toString()} 
                         onValueChange={(value) => setRoomCount(parseInt(value))}
@@ -668,17 +748,17 @@ export default function HotelReviewPage({ onNavigate, hotelData: hotelDataProp }
                           ))}
                         </SelectContent>
                       </Select>
-                      <p className="text-xs text-gray-500 mt-2">
-                        Loại phòng: {booking.roomType}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {booking.option && `${booking.option} • `}
-                        {booking.bedType && `${booking.bedType} • `}
-                        {booking.guests} khách/phòng
-                      </p>
-                      {booking.breakfast && (
-                        <p className="text-xs text-green-600 mt-1">✓ Bao gồm bữa sáng</p>
-                      )}
+                      <div className="mt-2 text-xs text-gray-500 space-y-1">
+                        <p>Loại phòng: {booking.roomType}</p>
+                        <p>
+                          {booking.option && `${booking.option} • `}
+                          {booking.bedType && `${booking.bedType} • `}
+                          {booking.guests} khách/phòng
+                        </p>
+                        {booking.breakfast && (
+                          <p className="text-green-600">✓ Bao gồm bữa sáng</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -687,19 +767,25 @@ export default function HotelReviewPage({ onNavigate, hotelData: hotelDataProp }
 
                 {/* Price Details */}
                 <div className="space-y-3">
-                  <h3 className="text-gray-900 mb-3">Chi tiết Giá</h3>
+                  <h3 className="text-gray-900 mb-3">{t('hotels.priceBreakdown') || 'Chi tiết Giá'}</h3>
                   
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">
-                      Giá phòng ({roomCount} phòng × {booking.nights} đêm)
+                      {t('hotels.roomPrice') || 'Giá phòng'} ({roomCount} {t('hotels.room') || 'phòng'} × {calculatedNights} {t('hotels.night') || 'đêm'})
                     </span>
                     <span className="text-gray-900">
                       {baseRoomPrice.toLocaleString('vi-VN')}đ
                     </span>
                   </div>
 
+                  <div className="pl-4 text-xs text-gray-500">
+                    {pricePerNight.toLocaleString('vi-VN')} ₫ / {t('hotels.nightPerRoom') || 'đêm/phòng'}
+                  </div>
+
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Thuế và Phí ({roomCount} phòng)</span>
+                    <span className="text-gray-600">
+                      {t('hotels.taxesAndFees') || 'Thuế và Phí'}
+                    </span>
                     <span className="text-gray-900">
                       {baseTaxAndFees.toLocaleString('vi-VN')}đ
                     </span>
@@ -707,7 +793,7 @@ export default function HotelReviewPage({ onNavigate, hotelData: hotelDataProp }
 
                   {addons.travelInsurance && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Bảo hiểm Du lịch</span>
+                      <span className="text-gray-600">{t('hotels.travelInsurance') || 'Bảo hiểm Du lịch'}</span>
                       <span className="text-gray-900">
                         {pricing.insurance.toLocaleString('vi-VN')}đ
                       </span>
@@ -716,7 +802,7 @@ export default function HotelReviewPage({ onNavigate, hotelData: hotelDataProp }
 
                   {addons.tourTickets && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Coupon Tour</span>
+                      <span className="text-gray-600">{t('hotels.tourTickets') || 'Coupon Tour'}</span>
                       <span className="text-gray-900">
                         {pricing.tourTicket.toLocaleString('vi-VN')}đ
                       </span>
@@ -725,9 +811,11 @@ export default function HotelReviewPage({ onNavigate, hotelData: hotelDataProp }
 
                   <Separator />
 
-                  <div className="flex justify-between">
-                    <span className="text-gray-900">Tổng cộng</span>
-                    <span className="text-2xl text-blue-600">
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-lg font-semibold text-gray-900">
+                      {t('hotels.totalPrice') || 'Tổng cộng'}
+                    </span>
+                    <span className="text-2xl font-bold text-blue-600">
                       {totalPrice.toLocaleString('vi-VN')}đ
                     </span>
                   </div>

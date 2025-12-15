@@ -1,7 +1,7 @@
-import { Star, MapPin, Check } from "lucide-react";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
+import { Check, MapPin, Star } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 
 interface Hotel {
   id: string;
@@ -16,6 +16,11 @@ interface Hotel {
   roomType?: string;
   bedType?: string;
   breakfast?: boolean;
+  city?: string;
+  country?: string;
+  description?: string;
+  phone?: string;
+  email?: string;
 }
 
 interface HotelCardListProps {
@@ -24,6 +29,10 @@ interface HotelCardListProps {
 }
 
 export function HotelCardList({ hotel, onSelect }: HotelCardListProps) {
+  const locationText = [hotel.address, hotel.city, hotel.country]
+    .filter(Boolean)
+    .join(", ");
+
   return (
     <div className="w-full border rounded-lg overflow-hidden bg-white hover:shadow-lg transition-shadow">
       <div className="flex flex-col md:flex-row">
@@ -62,9 +71,22 @@ export function HotelCardList({ hotel, onSelect }: HotelCardListProps) {
             <p className="text-sm font-semibold">Địa chỉ:</p>
             <div className="flex items-start gap-1">
               <MapPin className="w-3 h-3 text-gray-400 mt-0.5 shrink-0" />
-              <p className="text-xs text-gray-600">{hotel.address}</p>
+              <p className="text-xs text-gray-600">{locationText}</p>
             </div>
           </div>
+
+          {/* Description */}
+          {hotel.description && (
+            <p className="text-xs text-gray-700 line-clamp-2">{hotel.description}</p>
+          )}
+
+          {/* Contact */}
+          {(hotel.phone || hotel.email) && (
+            <div className="text-[11px] text-gray-600 space-y-0.5">
+              {hotel.phone && <p>Điện thoại: {hotel.phone}</p>}
+              {hotel.email && <p>Email: {hotel.email}</p>}
+            </div>
+          )}
 
           {/* Tags */}
           <div className="flex flex-wrap gap-2">

@@ -1,8 +1,8 @@
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Award, Building2, Calendar as CalendarIcon, Check, ChevronDown, Clock, Gift, Hotel, MapPin, Minus, Plus, Repeat, Search, Sparkles, Star, Tag, TrendingUp, Users } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import { Separator } from "../../components/ui/separator";
 import { PageType } from "../../MainApp";
-import { hotelApi, promotionApi, tokenService, userVoucherApi } from "../../utils/api";
+import { locationApi, promotionApi, tokenService, userVoucherApi } from "../../utils/api";
 
 interface HotelLandingPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -31,7 +31,7 @@ interface Destination {
 }
 
 // Search Form Component
-function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => void; isSearching: boolean }) {
+function HotelSearchForm({ onSearch, onViewAll, isSearching }: { onSearch: (data: any) => void; onViewAll: () => void; isSearching: boolean }) {
   const { t } = useTranslation();
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [destination, setDestination] = useState<Destination | null>(null);
@@ -40,7 +40,6 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [rooms, setRooms] = useState(1);
-  const [loading, setLoading] = useState(true);
 
   // Popover states
   const [destinationOpen, setDestinationOpen] = useState(false);
@@ -48,44 +47,45 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
   const [checkOutOpen, setCheckOutOpen] = useState(false);
   const [guestsOpen, setGuestsOpen] = useState(false);
 
-  // Fetch locations từ backend (dựa trên hotels)
+  // Fetch locations từ backend (lọc theo CITY từ Location API)
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        setLoading(true);
-        const response = await hotelApi.getHotelLocations();
+        const response = await locationApi.getLocationsByType('CITY');
 
-        console.log("📍 Hotel Locations API response:", response);
+        console.log("📍 City Locations API response:", response);
 
-        // Response là array trực tiếp
-        if (!Array.isArray(response)) {
+        // Check if response is paginated or array
+        const locationsArray = Array.isArray(response) ? response : (response.content || []);
+
+        if (!Array.isArray(locationsArray)) {
           console.error("Invalid locations data format:", response);
           throw new Error("Invalid response format");
         }
 
-        // Map backend data sang format Destination
-        const mappedLocations: Destination[] = response.map((loc: any) => ({
+        // Map location data sang format Destination
+        const mappedLocations: Destination[] = locationsArray.map((loc: any) => ({
           id: loc.id,
-          code: loc.airport_Code || loc.location_ID || "N/A",
-          name: loc.city,
-          country: loc.country,
-          hotels: `${loc.hotelCount}+` // Hiển thị số lượng hotels thực tế
+          code: loc.code || "N/A",
+          name: loc.name,
+          country: loc.metadata?.country || "Việt Nam", // Mặc định là Việt Nam nếu không có thông tin
+          hotels: "" // Will be populated from metadata if available
         }));
 
-        console.log("✅ Mapped locations from hotels:", mappedLocations);
+        console.log("✅ Mapped city locations:", mappedLocations);
 
         // Nếu backend không có data (database rỗng), dùng fallback
         if (mappedLocations.length === 0) {
-          console.warn("⚠️ No hotels found in database, using fallback data");
+          console.warn("⚠️ No city locations found in database, using fallback data");
           const fallbackLocations = [
-            { code: "SGN", name: "TP. Hồ Chí Minh", country: "Việt Nam", hotels: "500+" },
-            { code: "HAN", name: "Hà Nội", country: "Việt Nam", hotels: "450+" },
-            { code: "DAD", name: "Đà Nẵng", country: "Việt Nam", hotels: "340+" },
-            { code: "PQC", name: "Phú Quốc", country: "Việt Nam", hotels: "250+" },
-            { code: "NHA", name: "Nha Trang", country: "Việt Nam", hotels: "280+" },
-            { code: "DLI", name: "Đà Lạt", country: "Việt Nam", hotels: "180+" },
-            { code: "HUE", name: "Huế", country: "Việt Nam", hotels: "150+" },
-            { code: "VTE", name: "Vũng Tàu", country: "Việt Nam", hotels: "120+" },
+            { code: "SGN", name: "Ho Chi Minh City", country: "Vietnam", hotels: "500+" },
+            { code: "HAN", name: "Hanoi", country: "Vietnam", hotels: "450+" },
+            { code: "DAD", name: "Da Nang", country: "Vietnam", hotels: "340+" },
+            { code: "PQC", name: "Phu Quoc", country: "Vietnam", hotels: "250+" },
+            { code: "NHA", name: "Nha Trang", country: "Vietnam", hotels: "280+" },
+            { code: "DLI", name: "Da Lat", country: "Vietnam", hotels: "180+" },
+            { code: "HUE", name: "Hue", country: "Vietnam", hotels: "150+" },
+            { code: "VTE", name: "Vung Tau", country: "Vietnam", hotels: "120+" },
             { code: "BKK", name: "Bangkok", country: "Thailand", hotels: "800+" },
             { code: "HKT", name: "Phuket", country: "Thailand", hotels: "600+" },
             { code: "SIN", name: "Singapore", country: "Singapore", hotels: "550+" },
@@ -96,21 +96,19 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
           setDestinations(mappedLocations);
         }
       } catch (error) {
-        console.error("❌ Failed to fetch locations:", error);
+        console.error("❌ Failed to fetch city locations:", error);
         toast.error("Không thể tải danh sách địa điểm");
 
         // Fallback data nếu API fails
         const fallbackLocations = [
-          { code: "SGN", name: "TP. Hồ Chí Minh", country: "Việt Nam", hotels: "500+" },
-          { code: "HAN", name: "Hà Nội", country: "Việt Nam", hotels: "450+" },
-          { code: "DAD", name: "Đà Nẵng", country: "Việt Nam", hotels: "340+" },
-          { code: "PQC", name: "Phú Quốc", country: "Việt Nam", hotels: "250+" },
-          { code: "NHA", name: "Nha Trang", country: "Việt Nam", hotels: "280+" },
+          { code: "SGN", name: "Ho Chi Minh City", country: "Vietnam", hotels: "500+" },
+          { code: "HAN", name: "Hanoi", country: "Vietnam", hotels: "450+" },
+          { code: "DAD", name: "Da Nang", country: "Vietnam", hotels: "340+" },
+          { code: "PQC", name: "Phu Quoc", country: "Vietnam", hotels: "250+" },
+          { code: "NHA", name: "Nha Trang", country: "Vietnam", hotels: "280+" },
         ];
         console.log("🔄 Using fallback locations:", fallbackLocations);
         setDestinations(fallbackLocations);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -118,29 +116,23 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
   }, []);
 
   const handleSearch = () => {
-    // Validation
+    // Only require destination for list search; keep the rest as optional booking info for later (review page)
     if (!destination) {
       toast.error(t('hotels.locationPlaceholder'));
       return;
     }
-    if (!checkIn) {
-      toast.error("Vui lòng chọn ngày nhận phòng");
-      return;
-    }
-    if (!checkOut) {
-      toast.error("Vui lòng chọn ngày trả phòng");
-      return;
-    }
-    if (checkOut <= checkIn) {
+    if (checkIn && checkOut && checkOut <= checkIn) {
       toast.error("Ngày trả phòng phải sau ngày nhận phòng");
       return;
     }
 
     onSearch({
-      destination: destination?.name,
-      checkIn: checkIn ? format(checkIn, "dd/MM/yyyy") : null,
-      checkOut: checkOut ? format(checkOut, "dd/MM/yyyy") : null,
-      guests: { adults, children, rooms },
+      destination: destination.name,
+      bookingInfo: {
+        checkIn: checkIn ? format(checkIn, "dd/MM/yyyy") : null,
+        checkOut: checkOut ? format(checkOut, "dd/MM/yyyy") : null,
+        guests: { adults, children, rooms },
+      }
     });
   };
 
@@ -387,14 +379,26 @@ function HotelSearchForm({ onSearch, isSearching }: { onSearch: (data: any) => v
             </span>
           </div>
 
-          <Button
-            onClick={handleSearch}
-            disabled={isSearching}
-            className="bg-[#0194f3] hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50"
-          >
-            <Search className="w-4 h-4" />
-            {isSearching ? t('hotels.searching') : t('common.search')}
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={handleSearch}
+              disabled={isSearching}
+              className="bg-[#0194f3] hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50"
+            >
+              <Search className="w-4 h-4" />
+              {isSearching ? t('hotels.searching') : t('common.search')}
+            </Button>
+            
+            <Button
+              onClick={onViewAll}
+              disabled={isSearching}
+              variant="outline"
+              className="border-[#0194f3] text-[#0194f3] hover:bg-blue-50 px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50"
+            >
+              <Building2 className="w-4 h-4" />
+              {t('hotels.viewAllHotels') || 'Xem tất cả khách sạn'}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -431,13 +435,22 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
     loadSavedVouchers();
   }, []);
 
-  // Fetch hotel promotions on mount
+  // Fetch hotel promotions on mount (filter by HOTEL or ALL)
   useEffect(() => {
     const fetchHotelPromotions = async () => {
       try {
         setLoadingPromotions(true);
-        const data = await promotionApi.getActiveByCategory('hotel');
-        setPromotions(data);
+        // Fetch all active promotions
+        const allPromotions = await promotionApi.getActive();
+        
+        // Filter by category: HOTEL or ALL
+        const filteredPromotions = allPromotions.filter((promo: any) => {
+          const category = promo.category?.toUpperCase();
+          return category === 'HOTEL' || category === 'ALL';
+        });
+        
+        console.log('✅ Filtered hotel promotions:', filteredPromotions);
+        setPromotions(filteredPromotions);
       } catch (error) {
         console.error('Error fetching hotel promotions:', error);
         toast.error('Không thể tải ưu đãi');
@@ -480,8 +493,22 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
     // Simulate search delay
     setTimeout(() => {
       setIsSearching(false);
-      onNavigate("hotel-list", searchData);
+      // For hotel list we only need destination for filtering; keep bookingInfo attached for later steps (review page)
+      onNavigate("hotel-list", {
+        destination: searchData.destination,
+        bookingInfo: searchData.bookingInfo,
+      });
     }, 2000);
+  };
+
+  const handleViewAllHotels = () => {
+    setIsSearching(true);
+
+    // Navigate to hotel list without any search parameters
+    setTimeout(() => {
+      setIsSearching(false);
+      onNavigate("hotel-list", {});
+    }, 1000);
   };
 
   const domesticDestinations = [
@@ -569,7 +596,7 @@ export default function HotelLandingPage({ onNavigate }: HotelLandingPageProps) 
       </div>
 
       {/* Search Form - Overlapping Hero */}
-      <HotelSearchForm onSearch={handleSearch} isSearching={isSearching} />
+      <HotelSearchForm onSearch={handleSearch} onViewAll={handleViewAllHotels} isSearching={isSearching} />
 
       {/* Content Sections */}
       <div className="max-w-7xl mx-auto px-4 py-16 space-y-20">

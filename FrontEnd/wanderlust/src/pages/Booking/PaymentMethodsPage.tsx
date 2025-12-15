@@ -9,7 +9,7 @@ import {
   Tag,
   Users
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
@@ -60,7 +60,60 @@ export default function PaymentMethodsPage({
 
   // Extract booking info
   const bookingType = bookingData?.type || "flight";
-  const totalAmount = bookingData?.totalPrice || bookingData?.amount || 0;
+
+  // Pre-compute flight pricing once so both display and payload use the same numbers
+  const flightPricing = useMemo(() => {
+    const passengers = bookingData?.passengers || [];
+    const flightData = bookingData?.flightData || {};
+    const selectedSeats = bookingData?.flightData?.selectedSeats || { outbound: [], return: [] };
+    const passengerCounts = bookingData?.passengersCount || bookingData?.passengers || { adults: passengers.length || 1, children: 0, infants: 0 };
+    const cabinClass = bookingData?.flightData?.cabinClass || bookingData?.cabinClass || "economy";
+    const outboundBasePrice = flightData?.outbound?.cabinClasses?.[cabinClass]?.fromPrice || 1500000;
+    const returnBasePrice = flightData?.return?.cabinClasses?.[cabinClass]?.fromPrice || 0;
+    const basePriceTotal = (outboundBasePrice + returnBasePrice) * (passengers.length || 1);
+    const taxesTotal = Math.round((outboundBasePrice + returnBasePrice) * 0.1) * (passengers.length || 1);
+    const seatFees = (selectedSeats.outbound?.reduce((acc: number, seat: any) => acc + (seat.price || 0), 0) || 0)
+      + (selectedSeats.return?.reduce((acc: number, seat: any) => acc + (seat.price || 0), 0) || 0);
+    const subtotal = basePriceTotal + taxesTotal + seatFees;
+
+    return {
+      passengers,
+      passengerCounts,
+      flightData,
+      selectedSeats,
+      cabinClass,
+      basePriceTotal,
+      taxesTotal,
+      seatFees,
+      subtotal
+    };
+  }, [bookingData]);
+
+  // Subtotal before voucher discount per booking type
+  const subtotalAmount = useMemo(() => {
+    if (bookingType === "flight") return flightPricing.subtotal;
+    if (bookingType === "hotel") {
+      return bookingData?.hotelData?.booking?.totalPrice
+        ?? bookingData?.hotelData?.booking?.total
+        ?? bookingData?.totalPrice
+        ?? bookingData?.amount
+        ?? 0;
+    }
+    if (bookingType === "car-rental") {
+      return bookingData?.carData?.rental?.totalPrice
+        ?? bookingData?.carData?.rental?.price
+        ?? bookingData?.totalPrice
+        ?? bookingData?.amount
+        ?? 0;
+    }
+    if (bookingType === "activity") {
+      return bookingData?.activityData?.pricing?.totalPrice
+        ?? bookingData?.totalPrice
+        ?? bookingData?.amount
+        ?? 0;
+    }
+    return bookingData?.totalPrice || bookingData?.amount || 0;
+  }, [bookingType, bookingData, flightPricing]);
 
   // Load vouchers from promotions API based on booking type
   useEffect(() => {
@@ -110,21 +163,33 @@ export default function PaymentMethodsPage({
   const calculateDiscount = (): number => {
     if (!appliedVoucher) return 0;
 
-    if (totalAmount < appliedVoucher.minOrderValue) return 0;
+    if (subtotalAmount < appliedVoucher.minOrderValue) return 0;
 
     if (appliedVoucher.type === "FIXED_AMOUNT") {
-      return Math.min(appliedVoucher.discount, totalAmount);
+      return Math.min(appliedVoucher.discount, subtotalAmount);
     } else {
-      const percentDiscount = (totalAmount * appliedVoucher.discount) / 100;
+      const percentDiscount = (subtotalAmount * appliedVoucher.discount) / 100;
       return Math.min(
         percentDiscount,
-        appliedVoucher.maxDiscount || totalAmount
+        appliedVoucher.maxDiscount || subtotalAmount
       );
     }
   };
 
   const voucherDiscount = calculateDiscount();
-  const finalAmount = totalAmount - voucherDiscount;
+  const finalAmount = Math.max(subtotalAmount - voucherDiscount, 0);
+
+  const voucherMeta = appliedVoucher
+    ? {
+        code: appliedVoucher.code,
+        discountValue: voucherDiscount,
+        discountType: appliedVoucher.type,
+        minOrderValue: appliedVoucher.minOrderValue,
+        maxDiscount: appliedVoucher.maxDiscount,
+        vendorId: appliedVoucher.vendorId,
+        adminCreateCheck: appliedVoucher.adminCreateCheck === true
+      }
+    : null;
 
   // Apply voucher
   const handleApplyVoucher = () => {
@@ -136,7 +201,7 @@ export default function PaymentMethodsPage({
       return;
     }
 
-    if (totalAmount < voucher.minOrderValue) {
+    if (subtotalAmount < voucher.minOrderValue) {
       toast.error(
         t('payment.minOrderNotMet', "Đơn hàng chưa đủ giá trị tối thiểu {{amount}}", {
           amount: voucher.minOrderValue.toLocaleString('vi-VN') + 'đ'
@@ -198,6 +263,11 @@ export default function PaymentMethodsPage({
         userId,
         userEmail,
         amount: finalAmount,
+        payableAmount: finalAmount,
+        originalAmount: subtotalAmount,
+        discountAmount: voucherDiscount,
+        voucherCode: appliedVoucher?.code,
+        voucherMeta,
         currency: "VND",
         paymentMethod: selectedMethod
       } as any;
@@ -211,6 +281,10 @@ export default function PaymentMethodsPage({
           bookingId,
           paymentId: paymentResponse?.id,
           amount: finalAmount,
+          originalAmount: subtotalAmount,
+          discountAmount: voucherDiscount,
+          voucherCode: appliedVoucher?.code,
+          voucherMeta,
           method: selectedMethod
         })
       );
@@ -285,22 +359,16 @@ export default function PaymentMethodsPage({
 
   // Create flight booking payload
   const createFlightBooking = () => {
-    const passengers = bookingData?.passengers || [];
+    const passengers = flightPricing.passengers;
     const contactInfo = bookingData?.contactInfo || {};
-    const flightData = bookingData?.flightData || {};
-    const selectedSeats = bookingData?.flightData?.selectedSeats || { outbound: [], return: [] };
+    const flightData = flightPricing.flightData;
+    const selectedSeats = flightPricing.selectedSeats;
 
-    const passengerCounts = bookingData?.passengersCount || bookingData?.passengers || { adults: passengers.length || 1, children: 0, infants: 0 };
+    const passengerCounts = flightPricing.passengerCounts;
+    const { basePriceTotal, taxesTotal, seatFees, cabinClass } = flightPricing;
 
-    const cabinClass = bookingData?.flightData?.cabinClass || bookingData?.cabinClass || 'economy';
-    const outboundBasePrice = flightData?.outbound?.cabinClasses?.[cabinClass]?.fromPrice || 1500000;
-    const returnBasePrice = flightData?.return?.cabinClasses?.[cabinClass]?.fromPrice || 0;
-    const basePriceTotal = (outboundBasePrice + returnBasePrice) * (passengers.length || 1);
-    const taxesTotal = Math.round((outboundBasePrice + returnBasePrice) * 0.1) * (passengers.length || 1);
-    const seatFees = (selectedSeats.outbound?.reduce((acc: number, seat: any) => acc + (seat.price || 0), 0) || 0)
-      + (selectedSeats.return?.reduce((acc: number, seat: any) => acc + (seat.price || 0), 0) || 0);
     const discount = voucherDiscount || 0;
-    const totalWithFees = basePriceTotal + taxesTotal + seatFees - discount;
+    const totalWithFees = Math.max(flightPricing.subtotal - discount, 0);
 
     // Collect all seat IDs
     const flightSeatIds = [
@@ -339,6 +407,9 @@ export default function PaymentMethodsPage({
       specialRequests: `Flight: ${flightData?.outbound?.from || flightData?.outbound?.departureAirportCode} to ${flightData?.outbound?.to || flightData?.outbound?.arrivalAirportCode}. Passengers: ${passengers.length}. Seats: ${flightSeatIds.join(", ")}`,
       voucherCode: appliedVoucher?.code,
       voucherDiscount: discount,
+      originalAmount: flightPricing.subtotal,
+      voucherAdminCreated: appliedVoucher?.adminCreateCheck === true,
+      voucherVendorId: appliedVoucher?.vendorId,
       paymentStatus: "PENDING",
       status: "PENDING",
       metadata: {
@@ -350,7 +421,9 @@ export default function PaymentMethodsPage({
         taxesTotal,
         seatFees,
         discount,
-        finalAmount: totalWithFees
+        finalAmount: totalWithFees,
+        originalAmount: flightPricing.subtotal,
+        voucherMeta
       }
     };
   };
@@ -370,6 +443,13 @@ export default function PaymentMethodsPage({
       hotelId: hotel?.id,
       roomId: room?.id,
       amount: finalAmount,
+      originalAmount: subtotalAmount,
+      voucherCode: appliedVoucher?.code,
+      voucherDiscount,
+      voucherAdminCreated: appliedVoucher?.adminCreateCheck === true,
+      voucherVendorId: appliedVoucher?.vendorId,
+      paymentStatus: "PENDING",
+      status: "PENDING",
       startDate: booking?.checkIn || new Date().toISOString(),
       endDate: booking?.checkOut || undefined,
       quantity: roomCount,
@@ -405,6 +485,13 @@ export default function PaymentMethodsPage({
       productType: "CAR_RENTAL",
       productId: car?.id || "CAR001",
       amount: finalAmount,
+      originalAmount: subtotalAmount,
+      voucherCode: appliedVoucher?.code,
+      voucherDiscount,
+      voucherAdminCreated: appliedVoucher?.adminCreateCheck === true,
+      voucherVendorId: appliedVoucher?.vendorId,
+      paymentStatus: "PENDING",
+      status: "PENDING",
       startDate: rental?.pickup || new Date().toISOString(),
       endDate: rental?.dropoff || undefined,
       quantity: 1,
@@ -433,6 +520,12 @@ export default function PaymentMethodsPage({
       basePrice: pricing?.totalPrice ?? finalAmount,
       discount: voucherDiscount,
       totalPrice: finalAmount,
+      originalAmount: subtotalAmount,
+      voucherCode: appliedVoucher?.code,
+      voucherAdminCreated: appliedVoucher?.adminCreateCheck === true,
+      voucherVendorId: appliedVoucher?.vendorId,
+      paymentStatus: "PENDING",
+      status: "PENDING",
       startDate: booking?.date || new Date().toISOString(),
       endDate: undefined,
       quantity: booking?.participants || 1,
@@ -600,7 +693,7 @@ export default function PaymentMethodsPage({
                   <span className="text-gray-600">
                     {t('payment.subtotal', "Tạm tính")}:
                   </span>
-                  <span>{totalAmount.toLocaleString("vi-VN")}đ</span>
+                  <span>{subtotalAmount.toLocaleString("vi-VN")}đ</span>
                 </div>
 
                 {voucherDiscount > 0 && (

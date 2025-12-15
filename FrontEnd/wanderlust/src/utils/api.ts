@@ -355,7 +355,7 @@ export const transactionApi = {
     if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
     const response = await authenticatedFetch(`/api/v1/wallet/transactions?${queryParams.toString()}`);
-    
+
     if (!response.ok) {
       if (response.status === 401) {
         throw new Error('UNAUTHORIZED');
@@ -687,41 +687,46 @@ export const promotionApi = {
 
 // Vendor Promotion API endpoints
 export const vendorPromotionApi = {
+  // Lấy danh sách promotion của vendor hiện tại (tự động lọc theo vendorId)
   list: async (params: { search?: string; status?: string; type?: string; page?: number; size?: number }) => {
     const search = params.search ? `&search=${encodeURIComponent(params.search)}` : '';
     const status = params.status ? `&status=${encodeURIComponent(params.status)}` : '';
     const type = params.type ? `&type=${encodeURIComponent(params.type)}` : '';
     const page = params.page ?? 0;
     const size = params.size ?? 10;
-    const response = await authenticatedFetch(`/api/vendor/promotions?page=${page}&size=${size}${search}${status}${type}`);
+    const response = await authenticatedFetch(`/api/promotions/vendor/my-promotions?page=${page}&size=${size}${search}${status}${type}`);
     if (!response.ok) throw new Error('Failed to fetch vendor promotions');
     return response.json();
   },
+  // Tạo promotion mới (vendor)
   create: async (data: any) => {
-    const response = await authenticatedFetch('/api/vendor/promotions', {
+    const response = await authenticatedFetch('/api/promotions/vendor', {
       method: 'POST',
       body: JSON.stringify(data)
     });
     if (!response.ok) throw new Error('Failed to create vendor promotion');
     return response.json();
   },
+  // Cập nhật promotion (vendor)
   update: async (id: string, data: any) => {
-    const response = await authenticatedFetch(`/api/vendor/promotions/${id}`, {
+    const response = await authenticatedFetch(`/api/promotions/vendor/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)
     });
     if (!response.ok) throw new Error('Failed to update vendor promotion');
     return response.json();
   },
+  // Xóa promotion (vendor)
   delete: async (id: string) => {
-    const response = await authenticatedFetch(`/api/vendor/promotions/${id}`, {
+    const response = await authenticatedFetch(`/api/promotions/vendor/${id}`, {
       method: 'DELETE'
     });
     if (!response.ok) throw new Error('Failed to delete vendor promotion');
     return response.json();
   },
+  // Toggle trạng thái active (vendor)
   toggle: async (id: string, active: boolean) => {
-    const response = await authenticatedFetch(`/api/vendor/promotions/${id}/toggle?active=${active}`, {
+    const response = await authenticatedFetch(`/api/promotions/vendor/${id}/toggle?active=${active}`, {
       method: 'PATCH'
     });
     if (!response.ok) throw new Error('Failed to toggle vendor promotion');
@@ -1414,12 +1419,14 @@ export const bookingApi = {
   getMyBookings: async (params?: {
     page?: number;
     size?: number;
-    status?: string; // "PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"
+    status?: string; // "PENDING", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUND_REQUESTED"
+    paymentStatus?: string; // "COMPLETED", "PENDING"
   }) => {
     const queryParams = new URLSearchParams();
     if (params?.page !== undefined) queryParams.append('page', params.page.toString());
     if (params?.size !== undefined) queryParams.append('size', params.size.toString());
     if (params?.status) queryParams.append('status', params.status);
+    if (params?.paymentStatus) queryParams.append('paymentStatus', params.paymentStatus);
 
     const url = `/api/bookings${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     const response = await authenticatedFetch(url);
@@ -1614,7 +1621,7 @@ export const adminApi = {
     if (params?.status) queryParams.append('status', params.status);
     if (params?.userId) queryParams.append('userId', params.userId);
 
-    const url = `/api/admin/bookings${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const url = `/api/v1/admin/bookings${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     const response = await authenticatedFetch(url);
     if (!response.ok) {
       throw new Error('Failed to fetch bookings');
@@ -1624,7 +1631,7 @@ export const adminApi = {
 
   // Get booking statistics
   getBookingStatistics: async () => {
-    const response = await authenticatedFetch('/api/admin/bookings/statistics');
+    const response = await authenticatedFetch('/api/v1/admin/bookings/statistics');
     if (!response.ok) {
       throw new Error('Failed to fetch booking statistics');
     }
@@ -1633,7 +1640,7 @@ export const adminApi = {
 
   // Update booking
   updateBooking: async (bookingId: string, updates: any) => {
-    const response = await authenticatedFetch(`/api/admin/bookings/${bookingId}`, {
+    const response = await authenticatedFetch(`/api/v1/admin/bookings/${bookingId}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
     });
@@ -1645,7 +1652,7 @@ export const adminApi = {
 
   // Delete booking
   deleteBooking: async (bookingId: string) => {
-    const response = await authenticatedFetch(`/api/admin/bookings/${bookingId}`, {
+    const response = await authenticatedFetch(`/api/v1/admin/bookings/${bookingId}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
@@ -2079,28 +2086,46 @@ export const adminWalletApi = {
     return response.json();
   },
 
-  // Get pending refunds
-  getPendingRefunds: async (params?: {
-    page?: number;
-    size?: number;
-  }) => {
-    const queryParams = new URLSearchParams();
-    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
-    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+  // Get refunds (defaults to pending for backward compatibility)
+  getPendingRefunds: async (
+    params?: { page?: number; size?: number; status?: string } | number,
+    sizeArg?: number
+  ) => {
+    // Support legacy signature getPendingRefunds(page, size)
+    const normalizedParams = typeof params === 'number'
+      ? { page: params, size: sizeArg }
+      : params || {};
 
-    const url = `/api/v1/admin/wallets/refunds/pending${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const queryParams = new URLSearchParams();
+    if (normalizedParams.page !== undefined) queryParams.append('page', normalizedParams.page.toString());
+    if (normalizedParams.size !== undefined) queryParams.append('size', normalizedParams.size.toString());
+    if (normalizedParams.status) queryParams.append('status', normalizedParams.status);
+
+    // If status provided, use the generic refunds endpoint; otherwise keep the older /pending path
+    const basePath = normalizedParams.status
+      ? '/api/v1/admin/wallets/refunds'
+      : '/api/v1/admin/wallets/refunds/pending';
+
+    const url = `${basePath}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     const response = await authenticatedFetch(url);
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+      }
       throw new Error('Failed to fetch pending refunds');
     }
     return response.json();
   },
 
-  // Approve refund
-  approveRefund: async (transactionId: string, notes?: string) => {
+  // Approve refund (optional penalty when admin overrides vendor SLA)
+  approveRefund: async (
+    transactionId: string,
+    notes?: string,
+    options?: { enforcePenalty?: boolean }
+  ) => {
     const response = await authenticatedFetch(`/api/v1/admin/wallets/refunds/${transactionId}/approve`, {
       method: 'PUT',
-      body: JSON.stringify({ notes }),
+      body: JSON.stringify({ notes, enforcePenalty: options?.enforcePenalty }),
     });
     if (!response.ok) {
       throw new Error('Failed to approve refund');
@@ -2326,6 +2351,15 @@ export const vendorApi = {
     return response.text();
   },
 
+  // Get vendor reviews
+  getVendorReviews: async (vendorId: string) => {
+    const response = await authenticatedFetch(`/api/reviews/vendor/${vendorId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch vendor reviews');
+    }
+    return response.json();
+  },
+
   // Get vendor services (hotels, cars, activities)
   getServices: async (serviceType: string, params?: {
     page?: number;
@@ -2397,7 +2431,7 @@ export const vendorApi = {
 export const flightSeatApi = {
   // Lấy ghế của chuyến bay
   getSeatsByFlight: async (flightId: string) => {
-    const response = await fetch(`${API_BASE_URL}/api/flight-seats/flight/${flightId}`);
+    const response = await authenticatedFetch(`/api/flight-seats/flight/${flightId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch flight seats');
     }

@@ -1,29 +1,30 @@
 import {
-    Activity,
-    BarChart3,
-    BookOpen,
-    Car,
-    Check,
-    ChevronDown,
-    Globe,
-    Home,
-    Hotel,
-    LayoutDashboard,
-    LogOut, Menu,
-    Package,
-    Plane,
-    Settings,
-    Star,
-    Ticket,
-    X
+  Activity,
+  BarChart3,
+  BookOpen,
+  Car,
+  Check,
+  ChevronDown,
+  Globe,
+  Home,
+  Hotel,
+  LayoutDashboard,
+  LogOut, Menu,
+  Package,
+  Plane,
+  RefreshCw,
+  Settings,
+  Star,
+  Ticket,
+  X
 } from "lucide-react";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import avatarMan from '../assets/images/avatarman.jpeg';
 import avatarOther from '../assets/images/avatarother.jpeg';
 import avatarWoman from '../assets/images/avatarwoman.jpeg';
 import type { PageType } from "../MainApp";
-import { tokenService } from "../utils/api";
+import { tokenService, vendorApi } from "../utils/api";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -33,15 +34,15 @@ interface VendorLayoutProps {
   currentPage: PageType;
   onNavigate: (page: PageType, data?: any) => void;
   onLogout?: () => void;
-  activePage?: "vendor-dashboard" | "vendor-services" | "vendor-bookings" | "vendor-reviews" | "vendor-vouchers" | "vendor-reports" | "vendor-settings";
+  activePage?: "vendor-dashboard" | "vendor-services" | "vendor-bookings" | "vendor-refunds" | "vendor-reviews" | "vendor-vouchers" | "vendor-reports" | "vendor-settings";
   vendorType?: "hotel" | "activity" | "car" | "airline";
 }
 
-export function VendorLayout({ 
-  children, 
-  currentPage, 
+export function VendorLayout({
+  children,
+  currentPage,
   onNavigate,
-  onLogout, 
+  onLogout,
   activePage = "vendor-dashboard",
   vendorType = "hotel"
 }: VendorLayoutProps) {
@@ -128,6 +129,58 @@ export function VendorLayout({
   const currentVendor = vendorInfo[vendorType];
   const VendorIcon = currentVendor.icon;
 
+  // State for sidebar badges
+  const [counts, setCounts] = useState({
+    bookings: 0,
+    reviews: 0
+  });
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const userId = userData?.id; // Assuming userData contains id. If tokenService.getUserData() returns id, verify property path.
+        // NOTE: tokenService.getUserData() might return object with 'id' or 'userId'. 
+        // Based on previous code, let's proceed. If userId is needed for reviews.
+
+        // Fetch Bookings
+        const bookings = await vendorApi.getVendorBookings();
+        // The API returns List<BookingDTO>. Filter for PENDING status.
+        // Assuming BookingDTO has 'status' field.
+        const pendingBookings = Array.isArray(bookings)
+          ? bookings.filter((b: any) => b.status === 'PENDING').length
+          : 0;
+
+        // Fetch Reviews
+        // vendorApi.getVendorReviews requires vendorId. 
+        // We need to be sure we have the vendorId. 
+        // If the user IS the vendor, their ID is the vendorId.
+        let pendingReviews = 0;
+        if (userData?.id) {
+          try {
+            const reviews = await vendorApi.getVendorReviews(userData.id);
+            // ReviewCommentDTO likely has 'hasResponse' or 'response' field.
+            // Based on VendorReviewsPage: activeTab === "pending" && !review.hasResponse
+            pendingReviews = Array.isArray(reviews)
+              ? reviews.filter((r: any) => !r.hasResponse && !r.response).length // Checking both just in case
+              : 0;
+          } catch (err) {
+            console.error("Failed to fetch vendor reviews", err);
+          }
+        }
+
+        setCounts({
+          bookings: pendingBookings,
+          reviews: pendingReviews
+        });
+
+      } catch (error) {
+        console.error("Failed to fetch sidebar counts", error);
+      }
+    };
+
+    fetchCounts();
+  }, []);
+
   const menuItems = [
     {
       id: "vendor-dashboard",
@@ -148,14 +201,21 @@ export function VendorLayout({
       label: t('vendor.bookings'),
       icon: BookOpen,
       page: "vendor-bookings" as PageType,
-      badge: "12",
+      badge: counts.bookings > 0 ? counts.bookings.toString() : null,
+    },
+    {
+      id: "vendor-refunds",
+      label: t('vendor.refunds', 'Hoàn tiền'),
+      icon: RefreshCw,
+      page: "vendor-refunds" as PageType,
+      badge: null,
     },
     {
       id: "vendor-reviews",
       label: t('vendor.reviews'),
       icon: Star,
       page: "vendor-reviews" as PageType,
-      badge: "3",
+      badge: counts.reviews > 0 ? counts.reviews.toString() : null,
     },
     {
       id: "vendor-vouchers",
@@ -192,8 +252,8 @@ export function VendorLayout({
             >
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
-            
-            <h1 
+
+            <h1
               className="font-['Kadwa',_serif] text-2xl text-blue-600 cursor-pointer"
               onClick={() => onNavigate("home")}
             >
@@ -255,7 +315,7 @@ export function VendorLayout({
 
             {/* Notifications */}
             <div className="relative">
-              <NotificationDropdown 
+              <NotificationDropdown
                 onNavigate={onNavigate}
                 userRole="vendor"
               />
@@ -267,8 +327,8 @@ export function VendorLayout({
                 <p className="text-sm font-medium text-gray-900">{displayName}</p>
                 <p className="text-xs text-gray-500">{userEmail}</p>
               </div>
-              <img 
-                src={getAvatarSrc(userData)} 
+              <img
+                src={getAvatarSrc(userData)}
                 alt={displayName}
                 className="w-10 h-10 rounded-full object-cover"
               />
@@ -327,7 +387,7 @@ export function VendorLayout({
                 <Home className="w-5 h-5" />
                 <span>Trang chủ</span>
               </button>
-              
+
               {/* Logout */}
               <button
                 onClick={handleLogout}

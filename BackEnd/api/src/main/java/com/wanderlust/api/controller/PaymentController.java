@@ -183,12 +183,28 @@ public class PaymentController {
 
      /**
      * [USER/ADMIN] Lấy tất cả payment của 1 User
+     * Accepts either userId or email as path parameter
      */
-    @GetMapping("/user/{userId}")
-    @PreAuthorize("hasRole('ADMIN') or @webSecurity.isCurrentUser(authentication, #userId)") // <-- SỬA
-    public ResponseEntity<?> getPaymentsByUserId(@PathVariable String userId) {
+    @GetMapping("/user/{userIdOrEmail}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getPaymentsByUserId(@PathVariable String userIdOrEmail, Authentication authentication) {
         try {
-            List<PaymentDTO> payments = paymentService.findByUserId(userId);
+            // Resolve to actual userId (handles both email and userId)
+            String actualUserId = paymentService.resolveUserId(userIdOrEmail);
+            
+            // Get current user's ID from authentication
+            String currentUserEmail = authentication.getName();
+            String currentUserId = paymentService.resolveUserId(currentUserEmail);
+            
+            // Check authorization: must be admin or the user themselves
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+            
+            if (!isAdmin && !currentUserId.equals(actualUserId)) {
+                return new ResponseEntity<>("Access denied", HttpStatus.FORBIDDEN);
+            }
+            
+            List<PaymentDTO> payments = paymentService.findByUserId(actualUserId);
             return new ResponseEntity<>(payments, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);

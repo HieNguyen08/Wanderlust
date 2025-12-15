@@ -35,6 +35,7 @@ public class AuthController {
             String token = jwtService.generateToken(user);
 
             AuthResponseDTO response = new AuthResponseDTO(
+                    user.getUserId(),
                     token,
                     user.getFirstName(),
                     user.getLastName(),
@@ -67,6 +68,7 @@ public class AuthController {
 
         // Trả về response giống login
         AuthResponseDTO response = new AuthResponseDTO(
+                newUser.getUserId(),
                 token,
                 newUser.getFirstName(),
                 newUser.getLastName(),

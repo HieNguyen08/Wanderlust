@@ -95,7 +95,7 @@ public class DataSeeder implements CommandLineRunner {
         seedTravelGuides();
 
         // Seed Promotions (from JSON file)
-        seedPromotions();
+        // seedPromotions();
 
         // Seed Visa Articles (from JSON file)
         seedVisaArticles();
@@ -107,16 +107,16 @@ public class DataSeeder implements CommandLineRunner {
         seedFlightSeats();
 
         // Seed Hotels (from JSON file) - must be before rooms
-        seedHotels();
+        // seedHotels();
 
         // Seed Rooms (from JSON file) - requires hotels
-        seedRooms();
+        // seedRooms();
 
         // Seed Car Rentals (from JSON file)
-        seedCarRentals();
+        // seedCarRentals();
 
         // Seed Activities (from JSON file)
-        seedActivities();
+        // seedActivities();
 
         logger.info("✅ Data seeding completed successfully!");
     }
@@ -153,36 +153,36 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
-    private void seedPromotions() {
-        try {
-            long existingCount = promotionRepository.count();
+    // private void seedPromotions() {
+    //     try {
+    //         long existingCount = promotionRepository.count();
 
-            if (existingCount > 0) {
-                logger.info("Database already has {} promotions. Skipping seed.", existingCount);
-                return;
-            }
+    //         if (existingCount > 0) {
+    //             logger.info("Database already has {} promotions. Skipping seed.", existingCount);
+    //             return;
+    //         }
 
-            logger.info("No existing promotions found. Starting seed...");
+    //         logger.info("No existing promotions found. Starting seed...");
 
-            // Đọc file JSON từ resources
-            ClassPathResource resource = new ClassPathResource("data/promotions-new.json");
-            InputStream inputStream = resource.getInputStream();
+    //         // Đọc file JSON từ resources
+    //         ClassPathResource resource = new ClassPathResource("data/promotions-new.json");
+    //         InputStream inputStream = resource.getInputStream();
 
-            // Parse JSON thành List<Promotion>
-            List<Promotion> promotions = objectMapper.readValue(
-                    inputStream,
-                    new TypeReference<List<Promotion>>() {
-                    });
+    //         // Parse JSON thành List<Promotion>
+    //         List<Promotion> promotions = objectMapper.readValue(
+    //                 inputStream,
+    //                 new TypeReference<List<Promotion>>() {
+    //                 });
 
-            // Lưu vào database
-            List<Promotion> savedPromotions = promotionRepository.saveAll(promotions);
+    //         // Lưu vào database
+    //         List<Promotion> savedPromotions = promotionRepository.saveAll(promotions);
 
-            logger.info("Successfully seeded {} promotions to database!", savedPromotions.size());
+    //         logger.info("Successfully seeded {} promotions to database!", savedPromotions.size());
 
-        } catch (Exception e) {
-            logger.error("Error seeding promotions: {}", e.getMessage());
-        }
-    }
+    //     } catch (Exception e) {
+    //         logger.error("Error seeding promotions: {}", e.getMessage());
+    //     }
+    // }
 
     private void seedVisaArticles() {
         try {
@@ -309,129 +309,129 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
-    private void seedHotels() {
-        try {
-            long count = hotelRepository.count();
+    // private void seedHotels() {
+    //     try {
+    //         long count = hotelRepository.count();
 
-            if (count > 0) {
-                logger.info("Database already has {} hotels. Skipping seed.", count);
-                return;
-            }
+    //         if (count > 0) {
+    //             logger.info("Database already has {} hotels. Skipping seed.", count);
+    //             return;
+    //         }
 
-            logger.info("No existing hotels found. Starting seed...");
+    //         logger.info("No existing hotels found. Starting seed...");
 
-            // Đọc file JSON từ resources
-            ClassPathResource resource = new ClassPathResource("data/hotels.json");
-            InputStream inputStream = resource.getInputStream();
+    //         // Đọc file JSON từ resources
+    //         ClassPathResource resource = new ClassPathResource("data/hotels.json");
+    //         InputStream inputStream = resource.getInputStream();
 
-            // Parse JSON thành List<Hotel>
-            List<Hotel> hotels = objectMapper.readValue(
-                    inputStream,
-                    new TypeReference<List<Hotel>>() {
-                    });
+    //         // Parse JSON thành List<Hotel>
+    //         List<Hotel> hotels = objectMapper.readValue(
+    //                 inputStream,
+    //                 new TypeReference<List<Hotel>>() {
+    //                 });
 
-            // Lưu vào database
-            List<Hotel> savedHotels = hotelRepository.saveAll(hotels);
+    //         // Lưu vào database
+    //         List<Hotel> savedHotels = hotelRepository.saveAll(hotels);
 
-            logger.info("Successfully seeded {} hotels to database!", savedHotels.size());
+    //         logger.info("Successfully seeded {} hotels to database!", savedHotels.size());
 
-        } catch (Exception e) {
-            logger.error("Error seeding hotels: {}", e.getMessage(), e);
-        }
-    }
+    //     } catch (Exception e) {
+    //         logger.error("Error seeding hotels: {}", e.getMessage(), e);
+    //     }
+    // }
 
-    private void seedCarRentals() {
-        try {
-            long count = carRentalRepository.count();
+    // private void seedCarRentals() {
+    //     try {
+    //         long count = carRentalRepository.count();
 
-            if (count > 0) {
-                logger.info("Database already has {} car rentals. Skipping seed.", count);
-                return;
-            }
+    //         if (count > 0) {
+    //             logger.info("Database already has {} car rentals. Skipping seed.", count);
+    //             return;
+    //         }
 
-            logger.info("No existing car rentals found. Starting seed...");
+    //         logger.info("No existing car rentals found. Starting seed...");
 
-            // Đọc file JSON từ resources
-            ClassPathResource resource = new ClassPathResource("data/car_rentals.json");
-            InputStream inputStream = resource.getInputStream();
+    //         // Đọc file JSON từ resources
+    //         ClassPathResource resource = new ClassPathResource("data/car_rentals.json");
+    //         InputStream inputStream = resource.getInputStream();
 
-            // Parse JSON thành List<CarRental>
-            List<CarRental> carRentals = objectMapper.readValue(
-                    inputStream,
-                    new TypeReference<List<CarRental>>() {
-                    });
+    //         // Parse JSON thành List<CarRental>
+    //         List<CarRental> carRentals = objectMapper.readValue(
+    //                 inputStream,
+    //                 new TypeReference<List<CarRental>>() {
+    //                 });
 
-            // Lưu vào database
-            List<CarRental> savedCarRentals = carRentalRepository.saveAll(carRentals);
+    //         // Lưu vào database
+    //         List<CarRental> savedCarRentals = carRentalRepository.saveAll(carRentals);
 
-            logger.info("Successfully seeded {} car rentals to database!", savedCarRentals.size());
+    //         logger.info("Successfully seeded {} car rentals to database!", savedCarRentals.size());
 
-        } catch (Exception e) {
-            logger.error("Error seeding car rentals: {}", e.getMessage(), e);
-        }
-    }
+    //     } catch (Exception e) {
+    //         logger.error("Error seeding car rentals: {}", e.getMessage(), e);
+    //     }
+    // }
 
-    private void seedActivities() {
-        try {
-            long count = activityRepository.count();
+    // private void seedActivities() {
+    //     try {
+    //         long count = activityRepository.count();
 
-            if (count > 0) {
-                logger.info("Database already has {} activities. Skipping seed.", count);
-                return;
-            }
+    //         if (count > 0) {
+    //             logger.info("Database already has {} activities. Skipping seed.", count);
+    //             return;
+    //         }
 
-            logger.info("No existing activities found. Starting seed...");
+    //         logger.info("No existing activities found. Starting seed...");
 
-            // Đọc file JSON từ resources
-            ClassPathResource resource = new ClassPathResource("data/activities.json");
-            InputStream inputStream = resource.getInputStream();
+    //         // Đọc file JSON từ resources
+    //         ClassPathResource resource = new ClassPathResource("data/activities.json");
+    //         InputStream inputStream = resource.getInputStream();
 
-            // Parse JSON thành List<Activity>
-            List<Activity> activities = objectMapper.readValue(
-                    inputStream,
-                    new TypeReference<List<Activity>>() {
-                    });
+    //         // Parse JSON thành List<Activity>
+    //         List<Activity> activities = objectMapper.readValue(
+    //                 inputStream,
+    //                 new TypeReference<List<Activity>>() {
+    //                 });
 
-            // Lưu vào database
-            List<Activity> savedActivities = activityRepository.saveAll(activities);
+    //         // Lưu vào database
+    //         List<Activity> savedActivities = activityRepository.saveAll(activities);
 
-            logger.info("Successfully seeded {} activities to database!", savedActivities.size());
+    //         logger.info("Successfully seeded {} activities to database!", savedActivities.size());
 
-        } catch (Exception e) {
-            logger.error("Error seeding activities: {}", e.getMessage(), e);
-        }
-    }
+    //     } catch (Exception e) {
+    //         logger.error("Error seeding activities: {}", e.getMessage(), e);
+    //     }
+    // }
 
-    private void seedRooms() {
-        try {
-            long count = roomRepository.count();
+    // private void seedRooms() {
+    //     try {
+    //         long count = roomRepository.count();
 
-            if (count > 0) {
-                logger.info("Database already has {} rooms. Skipping seed.", count);
-                return;
-            }
+    //         if (count > 0) {
+    //             logger.info("Database already has {} rooms. Skipping seed.", count);
+    //             return;
+    //         }
 
-            logger.info("No existing rooms found. Starting seed...");
+    //         logger.info("No existing rooms found. Starting seed...");
 
-            // Đọc file JSON từ resources
-            ClassPathResource resource = new ClassPathResource("data/rooms.json");
-            InputStream inputStream = resource.getInputStream();
+    //         // Đọc file JSON từ resources
+    //         ClassPathResource resource = new ClassPathResource("data/rooms.json");
+    //         InputStream inputStream = resource.getInputStream();
 
-            // Parse JSON thành List<Room>
-            List<Room> rooms = objectMapper.readValue(
-                    inputStream,
-                    new TypeReference<List<Room>>() {
-                    });
+    //         // Parse JSON thành List<Room>
+    //         List<Room> rooms = objectMapper.readValue(
+    //                 inputStream,
+    //                 new TypeReference<List<Room>>() {
+    //                 });
 
-            // Lưu vào database
-            List<Room> savedRooms = roomRepository.saveAll(rooms);
+    //         // Lưu vào database
+    //         List<Room> savedRooms = roomRepository.saveAll(rooms);
 
-            logger.info("Successfully seeded {} rooms to database!", savedRooms.size());
+    //         logger.info("Successfully seeded {} rooms to database!", savedRooms.size());
 
-        } catch (Exception e) {
-            logger.error("Error seeding rooms: {}", e.getMessage(), e);
-        }
-    }
+    //     } catch (Exception e) {
+    //         logger.error("Error seeding rooms: {}", e.getMessage(), e);
+    //     }
+    // }
 
     private boolean isMongoReachable() {
         try {

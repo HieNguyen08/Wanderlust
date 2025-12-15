@@ -39,16 +39,20 @@ public class HotelService {
 
     private HotelDTO toDTOWithDerived(Hotel hotel) {
         HotelDTO dto = hotelMapper.toDTO(hotel);
-        dto.setCreatedAt(hotel.getCreatedAt() != null ? hotel.getCreatedAt() : (hotel.getUpdatedAt() != null ? hotel.getUpdatedAt() : java.time.LocalDateTime.now()));
+        dto.setCreatedAt(hotel.getCreatedAt() != null ? hotel.getCreatedAt()
+                : (hotel.getUpdatedAt() != null ? hotel.getUpdatedAt() : java.time.LocalDateTime.now()));
         dto.setUpdatedAt(hotel.getUpdatedAt());
         return dto;
     }
 
     private Map<String, List<RoomDTO>> mapRoomsByHotelIds(List<Hotel> hotels) {
-        List<String> hotelIds = hotels.stream().map(Hotel::getHotelID).filter(Objects::nonNull).collect(Collectors.toList());
-        if (hotelIds.isEmpty()) return Map.of();
+        List<String> hotelIds = hotels.stream().map(Hotel::getHotelID).filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        if (hotelIds.isEmpty())
+            return Map.of();
         return roomRepository.findByHotelIdIn(hotelIds).stream()
-                .collect(Collectors.groupingBy(Room::getHotelId, Collectors.collectingAndThen(Collectors.toList(), roomMapper::toDTOs)));
+                .collect(Collectors.groupingBy(Room::getHotelId,
+                        Collectors.collectingAndThen(Collectors.toList(), roomMapper::toDTOs)));
     }
 
     private List<HotelDTO> enrichHotelsWithRooms(List<Hotel> hotels) {
@@ -63,7 +67,8 @@ public class HotelService {
             if (dto.getLowestPrice() == null && !rooms.isEmpty()) {
                 dto.setLowestPrice(rooms.stream()
                         .flatMap(r -> {
-                            if (r.getOptions() != null) return r.getOptions().stream().map(Room.RoomOption::getPrice);
+                            if (r.getOptions() != null)
+                                return r.getOptions().stream().map(Room.RoomOption::getPrice);
                             return java.util.stream.Stream.of(r.getBasePrice());
                         })
                         .filter(Objects::nonNull)
@@ -168,7 +173,8 @@ public class HotelService {
 
     private List<RoomDTO> filterActiveApprovedRooms(List<RoomDTO> rooms) {
         return rooms.stream()
-                // Gracefully accept legacy rooms without status by treating them as approved/active
+                // Gracefully accept legacy rooms without status by treating them as
+                // approved/active
                 .filter(r -> r.getApprovalStatus() == null || r.getApprovalStatus() == ApprovalStatus.APPROVED)
                 .filter(r -> r.getStatus() == null || r.getStatus() == RoomStatusType.ACTIVE)
                 .peek(r -> {
@@ -185,16 +191,16 @@ public class HotelService {
     // 2. Get Featured Hotels
     public List<HotelDTO> findFeatured() {
         return hotelRepository.findByFeaturedTrue().stream()
-            .filter(this::isApprovedActive)
-            .map(this::toDTOWithDerived)
+                .filter(this::isApprovedActive)
+                .map(this::toDTOWithDerived)
                 .collect(Collectors.toList());
     }
 
     // 2.1. Get Unique Locations from Hotels
     public List<Map<String, Object>> getUniqueLocations() {
         List<Hotel> allHotels = hotelRepository.findAll().stream()
-            .filter(this::isApprovedActive)
-            .collect(Collectors.toList());
+                .filter(this::isApprovedActive)
+                .collect(Collectors.toList());
 
         // Group by locationId và đếm số hotels
         Map<String, Long> locationCounts = allHotels.stream()

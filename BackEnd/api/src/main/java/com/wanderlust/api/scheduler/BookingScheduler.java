@@ -105,19 +105,23 @@ public class BookingScheduler {
 
     /**
      * JOB 2: Auto-Complete Bookings
-     * Runs every hour
-     * Find bookings where: endDate + 1 day < now AND status != COMPLETED AND
-     * !userConfirmed
+     * Runs every 30 minutes (faster response than hourly)
+     * Find bookings where: endDate + 24 hours < now AND status = CONFIRMED AND !userConfirmed
      * Then mark as COMPLETED with autoCompleted = true
+     * 
+     * Logic theo ảnh:
+     * - Nếu user quên xác nhận sau 24h từ endDate → Tự động hoàn thành
+     * - Sau khi hoàn thành → Chuyển tiền cho Vendor (hoặc Admin nếu dịch vụ của Admin)
+     * - Commission 5% sẽ được trừ tự động trong processBookingCompletionTransfer()
      */
-    @Scheduled(cron = "0 0 * * * *") // Every hour at minute 0
+    @Scheduled(cron = "0 */30 * * * *") // Every 30 minutes (more responsive)
     @Transactional
     public void autoCompleteBookingsJob() {
         log.info("🔄 [Scheduler] Starting auto-completion job...");
 
-        LocalDateTime cutoffTime = LocalDateTime.now().minusDays(1);
+        LocalDateTime cutoffTime = LocalDateTime.now().minusHours(24); // Exactly 24 hours from endDate
 
-        // Find bookings to auto-complete
+        // Find bookings to auto-complete (after 24h window expires)
         List<Booking> bookingsToComplete = bookingRepository.findAll().stream()
                 .filter(b -> b.getEndDate() != null && b.getEndDate().isBefore(cutoffTime))
                 .filter(b -> b.getStatus() == BookingStatus.CONFIRMED) // Only CONFIRMED, not yet COMPLETED
@@ -125,28 +129,38 @@ public class BookingScheduler {
                 .filter(b -> !Boolean.TRUE.equals(b.getAutoCompleted())) // Not auto-completed yet
                 .toList();
 
-        log.info("📊 Found {} bookings to auto-complete", bookingsToComplete.size());
+        log.info("📊 Found {} bookings to auto-complete (past 24h window)", bookingsToComplete.size());
 
         for (Booking booking : bookingsToComplete) {
             try {
+                // Mark as completed with auto-complete flag
                 booking.setStatus(BookingStatus.COMPLETED);
                 booking.setAutoCompleted(true);
                 booking.setUpdatedAt(LocalDateTime.now());
                 bookingRepository.save(booking);
 
-                log.info("✅ Auto-completed booking: {}", booking.getBookingCode());
+                log.info("✅ Auto-completed booking: {} (User did not confirm within 24h)", 
+                        booking.getBookingCode());
 
-                // Chuyển tiền cho vendor/admin sau khi hoàn thành
+                // Transfer money to Vendor/Admin after completion
+                // This handles the money flow according to the image:
+                // - Admin services: Money already with Admin
+                // - Vendor services: Transfer (P - V - Commission) to Vendor
                 try {
                     moneyTransferService.processBookingCompletionTransfer(booking.getId());
-                    log.info("✅ Money transferred for booking: {}", booking.getBookingCode());
+                    log.info("💰 Money transferred for booking: {} | VendorID: {} | Amount: {}", 
+                            booking.getBookingCode(), 
+                            booking.getVendorId() != null ? booking.getVendorId() : "ADMIN",
+                            booking.getTotalPrice());
                 } catch (Exception e) {
                     log.error("❌ Failed to transfer money for booking {}: {}",
                             booking.getBookingCode(), e.getMessage());
+                    // Note: Booking is still marked COMPLETED even if transfer fails
+                    // Manual intervention may be needed for failed transfers
                 }
 
-                // TODO: Create notification for user
-                // notificationService.createCompletionNotification(booking);
+                // TODO: Create notification for user about auto-completion
+                // notificationService.createAutoCompletionNotification(booking);
 
             } catch (Exception e) {
                 log.error("❌ Failed to auto-complete booking {}: {}",
@@ -154,6 +168,7 @@ public class BookingScheduler {
             }
         }
 
-        log.info("✅ [Scheduler] Auto-completion job completed");
+        log.info("✅ [Scheduler] Auto-completion job completed. Processed {} bookings.", 
+                bookingsToComplete.size());
     }
 }

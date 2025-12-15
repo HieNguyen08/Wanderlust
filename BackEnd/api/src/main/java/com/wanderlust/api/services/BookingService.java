@@ -55,6 +55,15 @@ public class BookingService {
         List<Booking> bookings = bookingRepository.findByVendorId(vendorId, defaultSort);
         return bookingMapper.toDTOs(bookings);
     }
+
+    public List<BookingDTO> findRefundRequestedWithCompletedPayment() {
+        List<Booking> bookings = bookingRepository.findByStatusAndPaymentStatus(
+                BookingStatus.REFUND_REQUESTED,
+                PaymentStatus.COMPLETED,
+                defaultSort
+        );
+        return bookingMapper.toDTOs(bookings);
+    }
     // ==========================================================
 
     // --- GET: Chi tiết 1 booking ---
@@ -206,10 +215,14 @@ public class BookingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", id));
 
         // Kiểm tra thời gian cho phép refund: trước endDate + 24h
-        LocalDateTime refundDeadline = booking.getEndDate().plusHours(24);
-        if (LocalDateTime.now().isAfter(refundDeadline)) {
-            throw new RuntimeException("Refund deadline has passed. You can only request refund within 24 hours after booking end date.");
+        // Nếu không có endDate, cho phép refund (ví dụ: dịch vụ không có thời gian kết thúc cụ thể)
+        if (booking.getEndDate() != null) {
+            LocalDateTime refundDeadline = booking.getEndDate().plusHours(24);
+            if (LocalDateTime.now().isAfter(refundDeadline)) {
+                throw new RuntimeException("Refund deadline has passed. You can only request refund within 24 hours after booking end date.");
+            }
         }
+        // Nếu endDate = null, cho phép refund bất cứ lúc nào (trước khi hoàn thành)
 
         booking.setStatus(BookingStatus.REFUND_REQUESTED);
         booking.setCancellationReason(reason);

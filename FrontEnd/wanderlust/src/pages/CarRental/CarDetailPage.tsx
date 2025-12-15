@@ -56,7 +56,7 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
         try {
           setLoading(true);
           const data = await carRentalApi.getCarById(carId);
-          
+
           // Map backend data to frontend format
           const mappedCar = {
             id: data.id,
@@ -69,7 +69,7 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
             images: data.images || [],
             gasoline: data.fuelType || "Gasoline",
             transmission: data.transmission || "Manual",
-            capacity: `${data.seats || 5} People`,
+            capacity: `${data.seats || 5} ${t('carDetail.people')}`,
             seats: data.seats,
             doors: data.doors,
             luggage: data.luggage,
@@ -92,7 +92,7 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
             totalReviews: data.totalReviews || 0,
             totalTrips: data.totalTrips || 0,
           };
-          
+
           setCar(mappedCar);
         } catch (error) {
           console.error("Error loading car details:", error);
@@ -118,7 +118,7 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
   useEffect(() => {
     const fetchRecommendedCars = async () => {
       if (!car?.id) return; // Wait for car to load
-      
+
       try {
         // Fetch ALL cars instead of just popular ones
         const response = await carRentalApi.getAllCars();
@@ -136,7 +136,7 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
           image: backendCar.images?.[0]?.url || "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800&h=600&fit=crop",
           gasoline: backendCar.fuelType || "Gasoline",
           transmission: backendCar.transmission || "Manual",
-          capacity: `${backendCar.seats || 5} People`,
+          capacity: `${backendCar.seats || 5} ${t('carDetail.people')}`,
           seats: backendCar.seats,
           price: backendCar.pricePerDay ? Math.round(backendCar.pricePerDay / 24000) : 0,
           originalPrice: undefined,
@@ -255,23 +255,23 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
   const specifications = [
     { label: t('carDetail.carType'), value: car.type },
     { label: t('carDetail.capacity'), value: car.capacity },
-    { label: t('carDetail.transmission'), value: car.transmission },
-    { label: t('carDetail.fuel'), value: car.gasoline },
+    { label: t('carDetail.transmission'), value: car.transmission === "Manual" ? t('carDetail.manual') : (car.transmission === "Automatic" ? t('carDetail.auto') : car.transmission) },
+    { label: t('carDetail.fuel'), value: car.gasoline === "Gasoline" ? t('carDetail.gasoline') : car.gasoline },
     { label: t('carDetail.year'), value: car.year || "2023" },
     { label: t('carDetail.color'), value: car.color || "Đen" },
-    { label: t('carDetail.doors'), value: car.doors ? `${car.doors} doors` : "N/A" },
-    { label: t('carDetail.luggage'), value: car.luggage ? `${car.luggage} bags` : "N/A" },
+    { label: t('carDetail.doors'), value: car.doors ? `${car.doors} ${t('carDetail.doors')}` : "N/A" },
+    { label: t('carDetail.luggage'), value: car.luggage ? `${car.luggage} ${t('carDetail.bag')}` : "N/A" },
     { label: t('carDetail.licensePlate'), value: car.licensePlate || "N/A" },
-    { label: t('carDetail.mileageLimit'), value: car.mileageLimit ? `${car.mileageLimit} km/day` : t('carDetail.unlimited') },
-    { label: t('carDetail.minRentalDays'), value: car.minRentalDays ? `${car.minRentalDays} days` : "1 day" },
-    { label: t('carDetail.fuelPolicy'), value: car.fuelPolicy || "SAME_TO_SAME" },
+    { label: t('carDetail.mileageLimit'), value: car.mileageLimit ? `${car.mileageLimit} ${t('carDetail.kmPerDay')}` : t('carDetail.unlimited') },
+    { label: t('carDetail.minRentalDays'), value: car.minRentalDays ? `${car.minRentalDays} ${t('carDetail.day')}` : `1 ${t('carDetail.day')}` },
+    { label: t('carDetail.fuelPolicy'), value: car.fuelPolicy === "SAME_TO_SAME" ? t('carDetail.sameToSame') : (car.fuelPolicy || "SAME_TO_SAME") },
   ];
 
   const reviews = [
     {
       id: 1,
       name: "Nguyễn Văn A",
-      role: "Khách hàng VIP",
+      role: t('carDetail.vipCustomer'),
       date: "21/10/2024",
       rating: 5,
       content: "Dịch vụ tuyệt vời! Xe sạch sẽ, tiện nghi đầy đủ. Nhân viên hỗ trợ rất nhiệt tình. Chắc chắn sẽ quay lại sử dụng dịch vụ.",
@@ -280,7 +280,7 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
     {
       id: 2,
       name: "Trần Thị B",
-      role: "Khách hàng",
+      role: t('carDetail.customer'),
       date: "18/10/2024",
       rating: 5,
       content: "Xe đẹp, giá cả hợp lý. Quy trình thuê xe nhanh chóng, tiện lợi. Rất hài lòng với trải nghiệm này!",
@@ -289,7 +289,7 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
     {
       id: 3,
       name: "Lê Văn C",
-      role: "Khách hàng",
+      role: t('carDetail.customer'),
       date: "15/10/2024",
       rating: 4,
       content: "Xe tốt, dịch vụ chuyên nghiệp. Có thể cải thiện thêm về thời gian giao xe để nhanh hơn.",
@@ -560,7 +560,7 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
               <div className="flex items-end justify-between mb-8">
                 <div>
                   <h2 className="text-2xl text-gray-900 mb-1">{t('carDetail.recommendedCars')}</h2>
-                  <p className="text-gray-600">Các lựa chọn tuyệt vời khác cho bạn</p>
+                  <p className="text-gray-600">{t('carDetail.otherOptions')}</p>
                 </div>
                 <Button
                   variant="ghost"
@@ -620,7 +620,7 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
                         <div className="flex items-center gap-1 mb-4">
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                           <span className="text-sm">{recCar.rating}</span>
-                          <span className="text-sm text-gray-500">(Tuyệt vời)</span>
+                          <span className="text-sm text-gray-500">({t('carDetail.great')})</span>
                         </div>
                       )}
 
@@ -630,7 +630,7 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
                             <span className="text-lg text-blue-600 font-semibold">
                               {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(recCar.price)}
                             </span>
-                            <span className="text-xs text-gray-500">/ngày</span>
+                            <span className="text-xs text-gray-500">{t('carDetail.perDay')}</span>
                           </div>
                           {recCar.originalPrice && (
                             <p className="text-sm text-gray-400 line-through">
@@ -681,20 +681,20 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
                     <span className="text-2xl text-blue-600 font-bold">
                       {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(car.price)}
                     </span>
-                    <span className="text-gray-500">/ngày</span>
+                    <span className="text-gray-500">{t('carDetail.perDay')}</span>
                   </div>
                   {car.pricePerHour > 0 && (
                     <div className="flex items-baseline gap-2">
                       <span className="text-sm text-gray-600">
                         {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(car.pricePerHour)}
                       </span>
-                      <span className="text-xs text-gray-500">/giờ</span>
+                      <span className="text-xs text-gray-500">{t('carDetail.perHour')}</span>
                     </div>
                   )}
                 </div>
                 {car.minRentalDays && (
                   <Badge variant="outline" className="text-xs">
-                    Tối thiểu {car.minRentalDays} ngày
+                    {t('carDetail.minimumDays', { days: car.minRentalDays })}
                   </Badge>
                 )}
               </div>
@@ -704,7 +704,7 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg space-y-2 text-sm">
                   {car.deposit && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Đặt cọc:</span>
+                      <span className="text-gray-600">{t('carDetail.depositLabel')}</span>
                       <span className="font-semibold text-gray-900">
                         {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(car.deposit)}
                       </span>
@@ -712,7 +712,7 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
                   )}
                   {car.insurance && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Bảo hiểm:</span>
+                      <span className="text-gray-600">{t('carDetail.insuranceLabel')}</span>
                       <span className="font-semibold text-gray-900">
                         {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(car.insurance.price)}
                       </span>

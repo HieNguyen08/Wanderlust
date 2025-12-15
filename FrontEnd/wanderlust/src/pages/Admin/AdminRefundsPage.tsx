@@ -31,7 +31,8 @@ import { Label } from "../../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Textarea } from "../../components/ui/textarea";
 import type { PageType } from "../../MainApp";
-import { adminWalletApi } from "../../utils/api";
+import { adminWalletApi, tokenService } from "../../utils/api";
+import { adminBookingApi } from "../../api/adminBookingApi";
 
 interface AdminRefundsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -52,6 +53,7 @@ interface RefundRequest {
   originalAmount: number;
   refundPercentage: number;
   refundAmount: number;
+  penaltyAmount?: number;
   requestDate: string;
   status: RefundStatus;
   cancellationReason?: string;
@@ -79,34 +81,71 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
     loadRefunds();
   }, []);
 
+  const normalizeStatus = (rawStatus: string | undefined): RefundStatus => {
+    const lower = (rawStatus || '').toLowerCase();
+    if (lower === 'refund_requested' || lower === 'pending') return 'pending';
+    if (lower === 'refund_approved' || lower === 'approved') return 'approved';
+    if (lower === 'refund_processing' || lower === 'processing') return 'processing';
+    if (lower === 'refund_completed' || lower === 'completed') return 'completed';
+    if (lower === 'refund_rejected' || lower === 'rejected') return 'rejected';
+    return 'pending';
+  };
+
+  const parseAmount = (value: any) => {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : 0;
+  };
+
   const loadRefunds = async () => {
     try {
       setLoading(true);
-      const data = await adminWalletApi.getPendingRefunds(0, 100);
-      // Map backend data to frontend format
-      const mappedRefunds = data.content?.map((item: any) => ({
-        id: item.transactionId || item.id,
-        bookingId: item.bookingId || '',
-        bookingCode: item.bookingCode || '',
-        serviceType: item.serviceType || 'hotel',
-        serviceName: item.serviceName || '',
-        userId: item.userId || '',
-        userName: item.userName || '',
-        userEmail: item.userEmail || '',
-        vendorName: item.vendorName || '',
-        originalAmount: item.originalAmount || item.amount || 0,
-        refundPercentage: item.refundPercentage || 100,
-        refundAmount: item.refundAmount || item.amount || 0,
-        requestDate: item.requestDate || item.createdAt || new Date().toISOString(),
-        status: (item.status?.toLowerCase() || 'pending') as RefundStatus,
-        cancellationReason: item.reason || item.cancellationReason,
-        paymentMethod: item.paymentMethod || 'VNPay',
-        transactionId: item.transactionId || item.id,
-        processedBy: item.processedBy,
-        processedAt: item.processedAt,
-        rejectionReason: item.rejectionReason,
-        estimatedCompletionDate: item.estimatedCompletionDate,
-      })) || [];
+
+      // If not authenticated, avoid spamming unauthorized calls
+      if (!tokenService.getToken()) {
+        toast.error(t('common.unauthorized', 'Bạn cần đăng nhập lại để xem hoàn tiền'));
+        return;
+      }
+
+      // Prefer explicit admin refund-requests endpoint; fallback to legacy wallet pending
+      let data;
+      try {
+        const bookings = await adminBookingApi.getRefundRequests();
+        data = { content: bookings };
+      } catch (innerErr: any) {
+        if (innerErr?.message === 'UNAUTHORIZED') {
+          toast.error(t('common.unauthorized', 'Bạn cần đăng nhập lại để xem hoàn tiền'));
+          return;
+        }
+        data = await adminWalletApi.getPendingRefunds({ page: 0, size: 100 });
+      }
+      // Map backend data (booking-driven) to frontend format
+      const mappedRefunds = data.content?.map((item: any) => {
+        const guestInfo = item.guestInfo || item.metadata?.contactInfo || {};
+        return {
+          id: item.transactionId || item.refundId || item.id,
+          bookingId: item.bookingId || item.id || '',
+          bookingCode: item.bookingCode || '',
+          serviceType: (item.serviceType || item.bookingType || 'hotel').toLowerCase(),
+          serviceName: item.serviceName || item.metadata?.serviceName || item.flightId || '',
+          userId: item.userId || '',
+          userName: item.userName || guestInfo.fullName || '',
+          userEmail: item.userEmail || guestInfo.email || '',
+          vendorName: item.vendorName || item.vendor?.name || '',
+          originalAmount: parseAmount(item.originalAmount ?? item.totalPrice ?? item.amount),
+          refundPercentage: item.refundPercentage || 100,
+          refundAmount: parseAmount(item.refundAmount ?? item.amount ?? item.totalPrice),
+          penaltyAmount: parseAmount(item.penaltyAmount),
+          requestDate: item.requestDate || item.createdAt || item.bookingDate || new Date().toISOString(),
+          status: normalizeStatus(item.status),
+          cancellationReason: item.reason || item.cancellationReason,
+          paymentMethod: item.paymentMethod || 'WALLET',
+          transactionId: item.transactionId || item.id,
+          processedBy: item.processedBy,
+          processedAt: item.processedAt,
+          rejectionReason: item.rejectionReason,
+          estimatedCompletionDate: item.estimatedCompletionDate,
+        } as RefundRequest;
+      }) || [];
       setRefundRequests(mappedRefunds);
     } catch (error) {
       console.error('Error loading refunds:', error);
@@ -213,10 +252,7 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
     if (!selectedRefund) return;
     
     try {
-      await adminWalletApi.approveRefund(
-        selectedRefund.transactionId,
-        `Approved by admin - Booking ${selectedRefund.bookingCode}`
-      );
+      await adminBookingApi.approveRefundRequest(selectedRefund.bookingId);
       toast.success(t('admin.refundApproved', { code: selectedRefund.bookingCode }));
       setIsApproveDialogOpen(false);
       loadRefunds(); // Reload data
@@ -240,7 +276,7 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
     }
     
     try {
-      await adminWalletApi.rejectRefund(selectedRefund.transactionId, rejectionReason);
+      await adminBookingApi.rejectRefundRequest(selectedRefund.bookingId, rejectionReason);
       toast.success(t('admin.refundRejected', { code: selectedRefund.bookingCode }));
       setIsRejectDialogOpen(false);
       loadRefunds(); // Reload data
@@ -493,6 +529,12 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
                     <p className="text-gray-600">{t('admin.requestDate')}</p>
                     <p>{selectedRefund.requestDate}</p>
                   </div>
+                  {selectedRefund.cancellationReason && (
+                    <div className="col-span-2">
+                      <p className="text-gray-600">{t('admin.refundReason', 'Lý do hoàn tiền')}</p>
+                      <p className="text-gray-900 whitespace-pre-line">{selectedRefund.cancellationReason}</p>
+                    </div>
+                  )}
                 </div>
               </Card>
 
@@ -541,6 +583,12 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
                       <span className="text-gray-600">{t('admin.refundPercentage')}</span>
                       <span>{selectedRefund.refundPercentage}%</span>
                     </div>
+                    {selectedRefund.penaltyAmount && selectedRefund.penaltyAmount > 0 && (
+                      <div className="flex justify-between text-sm text-red-700">
+                        <span>{t('admin.penaltyFee')}</span>
+                        <span>-{selectedRefund.penaltyAmount.toLocaleString('vi-VN')}đ</span>
+                      </div>
+                    )}
                     <div className="flex justify-between pt-2 border-t">
                       <span>{t('admin.refundAmount')}</span>
                       <span className="text-xl text-green-600">
@@ -621,6 +669,11 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
                 <p className="text-sm mb-2">{t('admin.bookingCode')}: {selectedRefund.bookingCode}</p>
                 <p className="text-sm mb-2">{t('admin.customer')}: {selectedRefund.userName}</p>
                 <p className="text-sm">{t('admin.refundAmount')}: <span className="text-lg">{selectedRefund.refundAmount.toLocaleString('vi-VN')}đ</span></p>
+                {selectedRefund.penaltyAmount && selectedRefund.penaltyAmount > 0 && (
+                  <p className="text-sm text-red-700 mt-2">
+                    {t('admin.penaltyFee')}: {selectedRefund.penaltyAmount.toLocaleString('vi-VN')}đ
+                  </p>
+                )}
               </Card>
 
               <Card className="p-4 bg-green-50 border-green-200">

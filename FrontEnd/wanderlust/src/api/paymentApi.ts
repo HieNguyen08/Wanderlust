@@ -1,4 +1,4 @@
-import { API_BASE_URL, tokenService } from '../utils/api';
+import { API_BASE_URL, authenticatedFetch, tokenService } from '../utils/api';
 
 export type PaymentMethod = 'STRIPE' | 'WALLET';
 
@@ -7,6 +7,11 @@ export interface CreatePaymentRequest {
   userId: string;
   userEmail?: string;
   amount: number;
+  payableAmount?: number;
+  originalAmount?: number;
+  discountAmount?: number;
+  voucherCode?: string;
+  voucherMeta?: unknown;
   currency?: string;
   paymentMethod: PaymentMethod;
 }
@@ -43,8 +48,13 @@ export interface PaymentHistoryItem {
   userId: string;
   userEmail: string;
   amount: string | number;
+  originalAmount?: string | number;
+  discountAmount?: string | number;
+  voucherCode?: string;
+  voucherMeta?: unknown;
   currency: string;
   paymentMethod: string;
+  paymentGateway?: string | null;
   status: string;
   gatewayTransactionId?: string;
   createdAt: string;
@@ -115,7 +125,7 @@ export const getPaymentByBookingId = async (bookingId: string): Promise<PaymentR
     throw new Error('Authentication required');
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/payments/booking/${bookingId}`, {
+  const response = await authenticatedFetch(`/api/payments/booking/${bookingId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -182,7 +192,7 @@ export const getPaymentHistoryByUserId = async (userId: string): Promise<Payment
   console.log('📞 Fetching payment history for userId:', userId);
   console.log('🔐 Token:', token ? 'Present' : 'Missing');
 
-  const response = await fetch(`${API_BASE_URL}/api/payments/user/${userId}`, {
+  const response = await authenticatedFetch(`/api/payments/user/${userId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -199,8 +209,9 @@ export const getPaymentHistoryByUserId = async (userId: string): Promise<Payment
   }
 
   const data = await response.json();
-  console.log('✅ Payment history data:', data);
-  return data;
+  const normalized = Array.isArray(data) ? data : (data?.data ?? []);
+  console.log('✅ Payment history data:', normalized);
+  return normalized;
 };
 
 export const paymentApi = {

@@ -7,6 +7,7 @@ import type { PageType } from "../../MainApp";
 import { Footer } from "../../components/Footer";
 import { Header } from "../../components/Header";
 import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
+import { VoucherCarousel } from "../../components/VoucherCarousel";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
@@ -17,7 +18,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Label } from "../../components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
-import { carRentalApi, locationApi } from "../../utils/api";
+import { carRentalApi, locationApi, promotionApi, tokenService, userVoucherApi } from "../../utils/api";
 
 interface CarRentalLandingPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -26,8 +27,10 @@ interface CarRentalLandingPageProps {
 }
 
 interface LocationItem {
+  id?: string;
   code: string;
   name: string;
+  country: string;
   airport?: string;
 }
 
@@ -50,6 +53,11 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
   const [popularCars, setPopularCars] = useState<any[]>([]);
   const [recommendedCars, setRecommendedCars] = useState<any[]>([]);
 
+  // Vouchers/Promotions
+  const [promotions, setPromotions] = useState<any[]>([]);
+  const [loadingPromotions, setLoadingPromotions] = useState(true);
+  const [savedVouchers, setSavedVouchers] = useState<string[]>([]);
+
   // Search form state
   const [pickupLocation, setPickupLocation] = useState<LocationItem | null>(null);
   const [pickupDate, setPickupDate] = useState<Date>();
@@ -60,6 +68,7 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
   const [sameLocation, setSameLocation] = useState(true);
   const [withDriver, setWithDriver] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [popularSortMode, setPopularSortMode] = useState<"trips" | "createdAt">("trips");
 
   // Ref for search section
   const searchSectionRef = useRef<HTMLDivElement>(null);
@@ -72,46 +81,107 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
   const [dropoffDateOpen, setDropoffDateOpen] = useState(false);
   const [dropoffTimeOpen, setDropoffTimeOpen] = useState(false);
 
-  // Fetch locations from backend
+  // Load saved vouchers from backend
+  useEffect(() => {
+    const loadSavedVouchers = async () => {
+      try {
+        if (tokenService.isAuthenticated()) {
+          const available = await userVoucherApi.getAvailable();
+          setSavedVouchers(available.map((v: any) => v.voucherCode));
+        }
+      } catch (error: any) {
+        // Silently fail if not authenticated
+        if (error.message !== 'UNAUTHORIZED') {
+          console.error('Error loading saved vouchers:', error);
+        }
+      }
+    };
+
+    loadSavedVouchers();
+  }, []);
+
+  // Fetch car promotions on mount (filter by CAR or ALL)
+  useEffect(() => {
+    const fetchCarPromotions = async () => {
+      try {
+        setLoadingPromotions(true);
+        // Fetch all active promotions
+        const allPromotions = await promotionApi.getActive();
+        
+        // Filter by category: CAR or ALL
+        const filteredPromotions = allPromotions.filter((promo: any) => {
+          const category = promo.category?.toUpperCase();
+          return category === 'CAR' || category === 'ALL';
+        });
+        
+        console.log('✅ Filtered car promotions:', filteredPromotions);
+        setPromotions(filteredPromotions);
+      } catch (error) {
+        console.error('Error fetching car promotions:', error);
+        toast.error('Không thể tải ưu đãi');
+      } finally {
+        setLoadingPromotions(false);
+      }
+    };
+
+    fetchCarPromotions();
+  }, []);
+
+  // Fetch locations from backend (CITY type only)
   useEffect(() => {
     const fetchLocations = async () => {
       try {
         setLoadingLocations(true);
-        const response = await locationApi.getAllLocations({ page: 0, size: 100 });
+        const response = await locationApi.getLocationsByType('CITY');
 
-        // Response has .content for paginated data
-        const locationsData = response.content || [];
+        console.log("📍 City Locations API response:", response);
 
-        // Map backend data to LocationItem format
-        const mappedLocations: LocationItem[] = locationsData.map((loc: any) => ({
-          code: loc.airport_Code || loc.location_ID || "N/A",
-          name: loc.city,
-          airport: loc.airport_Name || `Sân bay ${loc.city}`
+        // Check if response is paginated or array
+        const locationsArray = Array.isArray(response) ? response : (response.content || []);
+
+        if (!Array.isArray(locationsArray)) {
+          console.error("❌ Invalid locations response format:", response);
+          throw new Error("Invalid response format");
+        }
+
+        // Map location data to LocationItem format
+        const mappedLocations: LocationItem[] = locationsArray.map((loc: any) => ({
+          id: loc.id,
+          code: loc.code || "N/A",
+          name: loc.name,
+          country: loc.metadata?.country || "Việt Nam",
+          airport: loc.metadata?.airport || `${loc.name}`
         }));
 
-        // Fallback if no data
+        console.log("✅ Mapped city locations:", mappedLocations);
+
+        // Fallback if no data from backend
         if (mappedLocations.length === 0) {
+          console.log("⚠️ No city locations from backend, using fallback data");
           const fallbackLocations: LocationItem[] = [
-            { code: "SGN", name: "TP. Hồ Chí Minh", airport: "Sân bay Tân Sơn Nhất" },
-            { code: "HAN", name: "Hà Nội", airport: "Sân bay Nội Bài" },
-            { code: "DAD", name: "Đà Nẵng", airport: "Sân bay Đà Nẵng" },
-            { code: "CXR", name: "Nha Trang", airport: "Sân bay Cam Ranh" },
-            { code: "PQC", name: "Phú Quốc", airport: "Sân bay Phú Quốc" },
+            { code: "SGN", name: "Ho Chi Minh City", country: "Vietnam", airport: "Sân bay Tân Sơn Nhất" },
+            { code: "HAN", name: "Hanoi", country: "Vietnam", airport: "Sân bay Nội Bài" },
+            { code: "DAD", name: "Da Nang", country: "Vietnam", airport: "Sân bay Đà Nẵng" },
+            { code: "NHA", name: "Nha Trang", country: "Vietnam", airport: "Sân bay Cam Ranh" },
+            { code: "PQC", name: "Phu Quoc", country: "Vietnam", airport: "Sân bay Phú Quốc" },
           ];
           setLocations(fallbackLocations);
         } else {
           setLocations(mappedLocations);
         }
       } catch (error) {
-        console.error("Failed to fetch locations:", error);
-        // Use fallback data on error
+        console.error("❌ Failed to fetch city locations:", error);
+        toast.error("Không thể tải danh sách địa điểm");
+
+        // Fallback data if API fails
         const fallbackLocations: LocationItem[] = [
-          { code: "SGN", name: "TP. Hồ Chí Minh", airport: "Sân bay Tân Sơn Nhất" },
-          { code: "HAN", name: "Hà Nội", airport: "Sân bay Nội Bài" },
-          { code: "DAD", name: "Đà Nẵng", airport: "Sân bay Đà Nẵng" },
-          { code: "CXR", name: "Nha Trang", airport: "Sân bay Cam Ranh" },
-          { code: "PQC", name: "Phú Quốc", airport: "Sân bay Phú Quốc" },
+          { code: "SGN", name: "Ho Chi Minh City", country: "Vietnam", airport: "Sân bay Tân Sơn Nhất" },
+          { code: "HAN", name: "Hanoi", country: "Vietnam", airport: "Sân bay Nội Bài" },
+          { code: "DAD", name: "Da Nang", country: "Vietnam", airport: "Sân bay Đà Nẵng" },
+          { code: "NHA", name: "Nha Trang", country: "Vietnam", airport: "Sân bay Cam Ranh" },
+          { code: "PQC", name: "Phu Quoc", country: "Vietnam", airport: "Sân bay Phú Quốc" },
         ];
+        console.log("🔄 Using fallback locations:", fallbackLocations);
         setLocations(fallbackLocations);
       } finally {
         setLoadingLocations(false);
@@ -145,14 +215,26 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
           pricePerHour: car.pricePerHour ? parseFloat(car.pricePerHour) : 0,
           liked: false,
           rating: car.averageRating || (4.5 + Math.random() * 0.5),
+          totalTrips: car.totalTrips || 0,
+          city: car.city, // Add city from backend
+          createdAt: car.createdAt ? new Date(car.createdAt) : null,
           features: car.features || [],
           insurance: car.insurance,
           deposit: car.deposit ? parseFloat(car.deposit) : 0,
         }));
 
-        // Sort by rating for popular cars
-        const sortedByRating = [...mappedCars].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        setPopularCars(sortedByRating.slice(0, 4));
+        // Sort for popular cars: totalTrips desc; if all zero, sort by created date old → new
+        const allTripsZero = mappedCars.every((car) => (car.totalTrips || 0) === 0);
+        const sortedByTripsOrDate = [...mappedCars].sort((a, b) => {
+          if (allTripsZero) {
+            const aDate = a.createdAt ? a.createdAt.getTime() : 0;
+            const bDate = b.createdAt ? b.createdAt.getTime() : 0;
+            return aDate - bDate; // oldest first
+          }
+          return (b.totalTrips || 0) - (a.totalTrips || 0);
+        });
+        setPopularCars(sortedByTripsOrDate.slice(0, 4));
+        setPopularSortMode(allTripsZero ? "createdAt" : "trips");
 
         // Random selection for recommended cars
         const shuffled = [...mappedCars].sort(() => Math.random() - 0.5);
@@ -215,6 +297,7 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
       setIsSearching(false);
       const searchParams = {
         pickupLocation: pickupLocation?.name,
+        pickupLocationCode: pickupLocation?.code,
         pickupDate: pickupDate ? format(pickupDate, "dd/MM/yyyy", { locale: vi }) : null,
         pickupTime,
         dropoffLocation: sameLocation ? pickupLocation?.name : dropoffLocation?.name,
@@ -397,8 +480,8 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
                                         }`}
                                     />
                                     <div className="flex flex-col">
-                                      <span>{city.name} ({city.code})</span>
-                                      <span className="text-xs text-gray-500">{city.airport}</span>
+                                      <span>{city.name}</span>
+                                      <span className="text-xs text-gray-500">{city.country}</span>
                                     </div>
                                   </CommandItem>
                                 ))
@@ -569,8 +652,8 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
                                         }`}
                                     />
                                     <div className="flex flex-col">
-                                      <span>{city.name} ({city.code})</span>
-                                      <span className="text-xs text-gray-500">{city.airport}</span>
+                                      <span>{city.name}</span>
+                                      <span className="text-xs text-gray-500">{city.country}</span>
                                     </div>
                                   </CommandItem>
                                 ))
@@ -669,7 +752,36 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
             </div>
           </Card>
         </div>
+        {/* Voucher Carousel Section */}
+        {!loadingPromotions && promotions.length > 0 && (
+          <section className="mb-12">
+            <VoucherCarousel
+              vouchers={promotions}
+              savedVouchers={savedVouchers}
+              onSaveVoucher={async (voucher: any) => {
+                try {
+                  // Check authentication
+                  if (!tokenService.isAuthenticated()) {
+                    toast.error('Vui lòng đăng nhập để lưu voucher');
+                    onNavigate('login');
+                    return;
+                  }
 
+                  // Save voucher to wallet
+                  await userVoucherApi.saveToWallet(voucher.code);
+                  setSavedVouchers([...savedVouchers, voucher.code]);
+                  toast.success('Đã lưu voucher vào ví thành công!');
+                } catch (error: any) {
+                  console.error('Error saving voucher:', error);
+                  toast.error(error.message || 'Không thể lưu voucher');
+                }
+              }}
+              onNavigate={onNavigate}
+              title="Ưu đãi dành cho bạn"
+              subtitle="Tiết kiệm chi phí thuê xe với các mã giảm giá hấp dẫn"
+            />
+          </section>
+        )}
         {/* Popular Cars */}
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6">
@@ -677,7 +789,11 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
               <h2 className="text-2xl text-gray-900 mb-1">Xe phổ biến</h2>
               <p className="text-gray-600">Những dòng xe được yêu thích nhất</p>
             </div>
-            <Button variant="ghost" onClick={() => onNavigate("car-list")} className="text-blue-600 hover:text-blue-700">
+            <Button
+              variant="ghost"
+              onClick={() => onNavigate("car-list", { sortMode: popularSortMode })}
+              className="text-blue-600 hover:text-blue-700"
+            >
               Xem tất cả →
             </Button>
           </div>
@@ -704,7 +820,7 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
         {/* Show More */}
         <div className="flex flex-col items-center gap-4">
           <Button
-            onClick={scrollToSearch}
+            onClick={() => onNavigate("car-list", { sortMode: popularSortMode })}
             size="lg"
             className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
           >

@@ -14,16 +14,16 @@ import {
   Settings,
   Star,
   Users,
-  Wallet,
   X
 } from "lucide-react";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
+import { adminUserApi } from "../api/adminUserApi";
 import avatarMan from '../assets/images/avatarman.jpeg';
 import avatarOther from '../assets/images/avatarother.jpeg';
 import avatarWoman from '../assets/images/avatarwoman.jpeg';
 import type { PageType } from "../MainApp";
-import { tokenService } from "../utils/api";
+import { adminApi, adminWalletApi, tokenService, vendorApi } from "../utils/api";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -33,13 +33,100 @@ interface AdminLayoutProps {
   currentPage: PageType;
   onNavigate: (page: PageType, data?: any) => void;
   onLogout?: () => void;
-  activePage?: "admin-dashboard" | "admin-users" | "admin-bookings" | "admin-flights" | "admin-activities" | "admin-reviews" | "admin-reports" | "admin-settings" | "admin-refunds" | "admin-refund-wallet" | "admin-pending-services" | "admin-vouchers";
+  activePage?: "admin-dashboard" | "admin-users" | "admin-bookings" | "admin-flights" | "admin-services" | "admin-reviews" | "admin-reports" | "admin-settings" | "admin-refunds" | "admin-pending-services" | "admin-vouchers";
+  adminServicesLabel?: string;
 }
 
-export function AdminLayout({ children, currentPage, onNavigate, onLogout, activePage = "admin-dashboard" }: AdminLayoutProps) {
+export function AdminLayout({ children, currentPage, onNavigate, onLogout, activePage, adminServicesLabel }: AdminLayoutProps) {
   const { t, i18n } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
+  const [counts, setCounts] = useState({
+    users: 0,
+    bookings: 0,
+    services: 0,
+    reviews: 0,
+    refunds: 0
+  });
+
+  // Calculate actual active page
+  const current = activePage || currentPage || "admin-dashboard";
+
+  // Helper to normalize response to array
+  const normalizeList = (data: any) => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.content)) return data.content;
+    return [];
+  };
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        // Parallel fetch for dashboard counts
+        const [
+          usersData,
+          bookingsData,
+          reviewsData,
+          refundsData,
+          hotelsData,
+          activitiesData,
+          carsData
+        ] = await Promise.all([
+          // Users: getAllUsers returns List<User>
+          adminUserApi.getAllUsers().catch(() => []),
+
+          // Bookings: getAllBookings returns List<BookingDTO>, ignores status param, so we filter client-side
+          adminApi.getAllBookings().catch(() => []),
+
+          // Pending reviews: returns List<?>
+          adminApi.getPendingReviews().catch(() => []),
+
+          // Pending refunds: returns Page<PendingRefundDTO>
+          adminWalletApi.getPendingRefunds({ page: 0, size: 1 }).catch(() => ({ totalElements: 0 })),
+
+          // Services (manual filter for pending)
+          vendorApi.getServices("hotels", { size: 100 }).catch(() => ({ content: [] })),
+          vendorApi.getServices("activities", { size: 100 }).catch(() => ({ content: [] })),
+          vendorApi.getServices("car-rentals", { size: 100 }).catch(() => ({ content: [] }))
+        ]);
+
+        const allBookings = normalizeList(bookingsData);
+        const pendingBookingsCount = allBookings.filter((b: any) => b.status === 'PENDING').length;
+
+        const allUsers = normalizeList(usersData);
+        // User count is total users
+        const usersCount = allUsers.length;
+
+        // Helper to count pending services locally
+        const countPending = (list: any[]) => normalizeList(list).filter((i: any) =>
+          (!i.approvalStatus || i.approvalStatus === 'PENDING') && !i.adminNote
+        ).length;
+
+        const pendingServices =
+          countPending(hotelsData) +
+          countPending(activitiesData) +
+          countPending(carsData);
+
+        // Reviews might return list or page
+        const pendingReviewsCount = normalizeList(reviewsData).length;
+
+        // Refunds returns Page object with totalElements
+        const refundsCount = refundsData.totalElements ?? normalizeList(refundsData).length;
+
+        setCounts({
+          users: usersCount,
+          bookings: pendingBookingsCount,
+          services: pendingServices,
+          reviews: pendingReviewsCount,
+          refunds: refundsCount
+        });
+      } catch (error) {
+        console.error("Failed to fetch sidebar counts", error);
+      }
+    };
+
+    fetchCounts();
+  }, []);
 
   // Get user data from localStorage
   const userData = tokenService.getUserData() || {};
@@ -103,14 +190,14 @@ export function AdminLayout({ children, currentPage, onNavigate, onLogout, activ
       label: t('admin.manageUsers'),
       icon: Users,
       page: "admin-users" as PageType,
-      badge: "2,450",
+      badge: counts.users > 0 ? counts.users.toLocaleString() : null,
     },
     {
       id: "admin-bookings",
       label: t('admin.manageBookings'),
       icon: BookOpen,
       page: "admin-bookings" as PageType,
-      badge: "127",
+      badge: counts.bookings > 0 ? counts.bookings.toLocaleString() : null,
     },
     {
       id: "admin-flights",
@@ -120,25 +207,25 @@ export function AdminLayout({ children, currentPage, onNavigate, onLogout, activ
       badge: null,
     },
     {
-      id: "admin-activities",
-      label: t('admin.manageActivities'),
+      id: "admin-services",
+      label: adminServicesLabel || t('admin.manageServices'),
       icon: Activity,
-      page: "admin-activities" as PageType,
-      badge: null,
+      page: "admin-services" as PageType,
+      badge: counts.services > 0 ? counts.services.toString() : null,
     },
     {
       id: "admin-pending-services",
       label: t('admin.approveServices'),
       icon: ClipboardCheck,
       page: "admin-pending-services" as PageType,
-      badge: "8",
+      badge: counts.services > 0 ? counts.services.toString() : null,
     },
     {
       id: "admin-reviews",
       label: t('admin.manageReviews'),
       icon: Star,
       page: "admin-reviews" as PageType,
-      badge: "15",
+      badge: counts.reviews > 0 ? counts.reviews.toString() : null,
     },
     {
       id: "admin-vouchers",
@@ -152,14 +239,7 @@ export function AdminLayout({ children, currentPage, onNavigate, onLogout, activ
       label: t('admin.manageRefunds'),
       icon: DollarSign,
       page: "admin-refunds" as PageType,
-      badge: "3",
-    },
-    {
-      id: "admin-refund-wallet",
-      label: t('admin.refundToWallet'),
-      icon: Wallet,
-      page: "admin-refund-wallet" as PageType,
-      badge: "2",
+      badge: counts.refunds > 0 ? counts.refunds.toString() : null,
     },
     {
       id: "admin-reports",
@@ -285,7 +365,7 @@ export function AdminLayout({ children, currentPage, onNavigate, onLogout, activ
           <nav className="p-4 space-y-1 overflow-y-auto h-full">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const isActive = activePage === item.id;
+              const isActive = current === item.id;
               return (
                 <button
                   key={item.id}

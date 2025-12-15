@@ -35,6 +35,7 @@ import com.wanderlust.api.repository.UserRepository; // Đã import User Reposit
 import com.wanderlust.api.repository.WalletRepository;
 import com.wanderlust.api.repository.WalletTransactionRepository;
 import com.wanderlust.api.services.AdminWalletService;
+import com.wanderlust.api.services.MoneyTransferService;
 import com.wanderlust.api.services.TransactionService;
 import com.wanderlust.api.services.WalletService;
 
@@ -47,6 +48,7 @@ public class AdminWalletServiceImpl implements AdminWalletService {
     private final TransactionService transactionService;
     private final WalletService walletService;
     private final ModelMapper modelMapper;
+    private final MoneyTransferService moneyTransferService;
 
     // Đã inject UserRepository
     private final UserRepository userRepository;
@@ -57,13 +59,15 @@ public class AdminWalletServiceImpl implements AdminWalletService {
             TransactionService transactionService,
             @Lazy WalletService walletService,
             ModelMapper modelMapper,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            MoneyTransferService moneyTransferService) {
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.transactionService = transactionService;
         this.walletService = walletService;
         this.modelMapper = modelMapper;
         this.userRepository = userRepository;
+        this.moneyTransferService = moneyTransferService;
     } 
 
     @Override
@@ -88,9 +92,13 @@ public class AdminWalletServiceImpl implements AdminWalletService {
         transaction.setProcessedBy(adminId);
         transactionRepository.save(transaction);
 
-        // 2. Cập nhật (cộng tiền) vào ví user
-        // [ĐÃ KÍCH HOẠT]
-        walletService.updateBalance(transaction.getWalletId(), transaction.getAmount(), transaction.getType());
+        // 2. Chuyển tiền: trừ ví admin, cộng ví user (nếu có bookingId)
+        if (transaction.getBookingId() != null) {
+            moneyTransferService.processRefund(transaction.getBookingId(), adminId, false);
+        } else {
+            // Fallback: nếu không gắn booking, chỉ cộng ví user như cũ
+            walletService.updateBalance(transaction.getWalletId(), transaction.getAmount(), transaction.getType());
+        }
     }
 
     @Override

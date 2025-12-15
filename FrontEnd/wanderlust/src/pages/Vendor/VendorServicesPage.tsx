@@ -1,37 +1,37 @@
 import {
-    CheckCircle2,
-    Clock,
-    Edit,
-    Eye,
-    MoreVertical,
-    Plus,
-    RefreshCw,
-    Search,
-    Trash2,
-    XCircle
+  CheckCircle2,
+  Clock,
+  Edit,
+  Eye,
+  MoreVertical,
+  Plus,
+  RefreshCw,
+  Search,
+  Trash2,
+  XCircle
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
 import { VendorLayout } from "../../components/VendorLayout";
+import { StatusBadge } from "../../components/admin/StatusBadge";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 import { Input } from "../../components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { AddServiceDialog } from "../../components/vendor/AddServiceDialog";
 import { HotelWizardDialog } from "../../components/vendor/HotelWizardDialog";
 import { ServiceDetailDialog } from "../../components/vendor/ServiceDetailDialog";
-import { vendorApi, hotelApi, carRentalApi, activityApi } from "../../utils/api";
-import { StatusBadge } from "../../components/admin/StatusBadge";
+import { activityApi, carRentalApi, hotelApi, vendorApi } from "../../utils/api";
 
 interface VendorServicesPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -176,6 +176,16 @@ export default function VendorServicesPage({
       ?? minRoomPrice
       ?? undefined;
 
+    const normalizeStatus = (val: any): OperationalStatus => {
+      const raw = String(val || "").toUpperCase();
+      if (raw === "AVAILABLE") return "ACTIVE";
+      if (raw === "ACTIVE") return "ACTIVE";
+      if (raw === "PAUSED") return "PAUSED";
+      if (raw === "REJECTED") return "REJECTED";
+      if (raw === "PENDING" || raw === "PENDING_REVIEW") return "PENDING_REVIEW";
+      return "PENDING_REVIEW";
+    };
+
     const carNameFallback = [item.brand, item.model, item.year].filter(Boolean).join(" ");
 
     return {
@@ -188,7 +198,7 @@ export default function VendorServicesPage({
       pricePerHour: item.pricePerHour ? Number(item.pricePerHour) : undefined,
       lowestPrice: item.lowestPrice ? Number(item.lowestPrice) : undefined,
       approvalStatus: (item.approvalStatus || "PENDING") as ApprovalStatus,
-      status: (item.status || "PENDING_REVIEW") as OperationalStatus,
+      status: normalizeStatus(item.status),
       submittedAt: item.createdAt || new Date().toISOString(),
       reviewedAt: item.reviewedAt,
       adminNote: item.adminNote,

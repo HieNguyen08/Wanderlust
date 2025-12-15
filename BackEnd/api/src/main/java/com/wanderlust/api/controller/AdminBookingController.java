@@ -1,20 +1,29 @@
 package com.wanderlust.api.controller;
 
-import com.wanderlust.api.dto.BookingDTO;
-import com.wanderlust.api.dto.BookingStatisticsDTO; // <--- THÊM MỚI
-import com.wanderlust.api.services.BookingService;
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
+import java.util.List;
+
+import org.springframework.http.HttpStatus; // <--- THÊM MỚI
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.wanderlust.api.dto.BookingDTO;
+import com.wanderlust.api.dto.BookingStatisticsDTO;
+import com.wanderlust.api.services.BookingService;
+
+import lombok.AllArgsConstructor;
 
 @CrossOrigin
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/admin/bookings")
+@RequestMapping("/api/v1/admin/bookings")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminBookingController {
 
@@ -25,6 +34,13 @@ public class AdminBookingController {
     public ResponseEntity<List<BookingDTO>> getAllBookings() {
         List<BookingDTO> allBookings = bookingService.findAll();
         return new ResponseEntity<>(allBookings, HttpStatus.OK);
+    }
+
+    // GET /api/admin/bookings/refund-requests - Các booking yêu cầu hoàn tiền (đã thanh toán)
+    @GetMapping("/refund-requests")
+    public ResponseEntity<List<BookingDTO>> getRefundRequestedBookings() {
+        List<BookingDTO> refundRequests = bookingService.findRefundRequestedWithCompletedPayment();
+        return new ResponseEntity<>(refundRequests, HttpStatus.OK);
     }
 
     // GET /api/admin/bookings/statistics - Thống kê bookings

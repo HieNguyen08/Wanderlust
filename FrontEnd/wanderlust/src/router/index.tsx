@@ -4,17 +4,17 @@ import { withPageProps } from "./withPageProps";
 
 // Import page wrappers for pages with dynamic data
 import {
-    ActivityDetailPageWrapper,
-    CarDetailPageWrapper,
-    CheckoutPageWrapper,
-    GuideDetailPageWrapper,
-    HotelDetailPageWrapper,
-    LocationDetailPageWrapper,
-    PaymentSuccessPageWrapper,
-    SeatSelectionPageWrapper,
-    TourDetailPageWrapper,
-    TravelArticlePageWrapper,
-    VisaArticleDetailPageWrapper,
+  ActivityDetailPageWrapper,
+  CarDetailPageWrapper,
+  CheckoutPageWrapper,
+  GuideDetailPageWrapper,
+  HotelDetailPageWrapper,
+  LocationDetailPageWrapper,
+  PaymentSuccessPageWrapper,
+  SeatSelectionPageWrapper,
+  TourDetailPageWrapper,
+  TravelArticlePageWrapper,
+  VisaArticleDetailPageWrapper,
 } from "../components/PageWrappers";
 
 // ===== PAGE IMPORTS (Organized by Feature) =====
@@ -38,13 +38,13 @@ import { ActivitiesPage, ActivityReviewPage } from "../pages/Activities";
 
 // Visa
 import {
-    VisaApplicationPage,
-    VisaConfirmationPage,
-    VisaConsultationPage,
-    VisaDocumentsPage,
-    VisaLandingPage,
-    VisaPaymentPage,
-    VisaTrackingPage
+  VisaApplicationPage,
+  VisaConfirmationPage,
+  VisaConsultationPage,
+  VisaDocumentsPage,
+  VisaLandingPage,
+  VisaPaymentPage,
+  VisaTrackingPage
 } from "../pages/Visa";
 
 // Travel Guide
@@ -57,41 +57,41 @@ import PaymentCancelPage from "../pages/Booking/PaymentCancelPage";
 
 // Profile (User)
 import {
-    BookingHistoryPage,
-    PaymentHistoryPage,
-    ProfilePage,
-    SavedItemsPage,
-    SettingsPage,
-    TopUpWalletPage,
-    UserVouchersPage,
-    UserWalletPage
+  BookingHistoryPage,
+  PaymentHistoryPage,
+  ProfilePage,
+  SavedItemsPage,
+  SettingsPage,
+  TopUpWalletPage,
+  UserVouchersPage,
+  UserWalletPage
 } from "../pages/Profile";
 
 // Admin
 import {
-    AdminActivitiesPage,
-    AdminBookingsPage,
-    AdminDashboard,
-    AdminFlightsPage,
-    AdminPendingServicesPage,
-    AdminRefundsPage,
-    AdminRefundWalletPage,
-    AdminReportsPage,
-    AdminReviewsPage,
-    AdminSettingsPage,
-    AdminUsersPage,
-    AdminVouchersPage
+  AdminBookingsPage,
+  AdminDashboard,
+  AdminFlightsPage,
+  AdminPendingServicesPage,
+  AdminRefundsPage,
+  AdminReportsPage,
+  AdminReviewsPage,
+  AdminServicesPage,
+  AdminSettingsPage,
+  AdminUsersPage,
+  AdminVouchersPage
 } from "../pages/Admin";
 
 // Vendor
 import {
-    VendorBookingsPage,
-    VendorDashboard,
-    VendorReportsPage,
-    VendorReviewsPage,
-    VendorServicesPage,
-    VendorSettingsPage,
-    VendorVouchersPage
+  VendorBookingsPage,
+  VendorDashboard,
+  VendorRefundsPage,
+  VendorReportsPage,
+  VendorReviewsPage,
+  VendorServicesPage,
+  VendorSettingsPage,
+  VendorVouchersPage
 } from "../pages/Vendor";
 
 // Others
@@ -142,17 +142,17 @@ const AdminDashboardWrapped = withPageProps(AdminDashboard);
 const AdminUsersPageWrapped = withPageProps(AdminUsersPage);
 const AdminBookingsPageWrapped = withPageProps(AdminBookingsPage);
 const AdminFlightsPageWrapped = withPageProps(AdminFlightsPage);
-const AdminActivitiesPageWrapped = withPageProps(AdminActivitiesPage);
+const AdminServicesPageWrapped = withPageProps(AdminServicesPage);
 const AdminReviewsPageWrapped = withPageProps(AdminReviewsPage);
 const AdminReportsPageWrapped = withPageProps(AdminReportsPage);
 const AdminSettingsPageWrapped = withPageProps(AdminSettingsPage);
 const AdminRefundsPageWrapped = withPageProps(AdminRefundsPage);
-const AdminRefundWalletPageWrapped = withPageProps(AdminRefundWalletPage);
 const AdminPendingServicesPageWrapped = withPageProps(AdminPendingServicesPage);
 const AdminVouchersPageWrapped = withPageProps(AdminVouchersPage);
 const VendorDashboardWrapped = withPageProps(VendorDashboard);
 const VendorServicesPageWrapped = withPageProps(VendorServicesPage);
 const VendorBookingsPageWrapped = withPageProps(VendorBookingsPage);
+const VendorRefundsPageWrapped = withPageProps(VendorRefundsPage);
 const VendorReviewsPageWrapped = withPageProps(VendorReviewsPage);
 const VendorReportsPageWrapped = withPageProps(VendorReportsPage);
 const VendorSettingsPageWrapped = withPageProps(VendorSettingsPage);
@@ -241,12 +241,13 @@ export const router = createBrowserRouter([
       { path: "/admin/users", element: <AdminUsersPageWrapped /> },
       { path: "/admin/bookings", element: <AdminBookingsPageWrapped /> },
       { path: "/admin/flights", element: <AdminFlightsPageWrapped /> },
-      { path: "/admin/activities", element: <AdminActivitiesPageWrapped /> },
+      { path: "/admin/services", element: <AdminServicesPageWrapped /> },
+      { path: "/admin/hotels", element: <AdminServicesPageWrapped /> },
+      { path: "/admin/activities", element: <AdminServicesPageWrapped /> },
       { path: "/admin/reviews", element: <AdminReviewsPageWrapped /> },
       { path: "/admin/reports", element: <AdminReportsPageWrapped /> },
       { path: "/admin/settings", element: <AdminSettingsPageWrapped /> },
       { path: "/admin/refunds", element: <AdminRefundsPageWrapped /> },
-      { path: "/admin/refund-wallet", element: <AdminRefundWalletPageWrapped /> },
       { path: "/admin/pending-services", element: <AdminPendingServicesPageWrapped /> },
       { path: "/admin/vouchers", element: <AdminVouchersPageWrapped /> },
       
@@ -254,6 +255,7 @@ export const router = createBrowserRouter([
       { path: "/vendor", element: <VendorDashboardWrapped /> },
       { path: "/vendor/services", element: <VendorServicesPageWrapped /> },
       { path: "/vendor/bookings", element: <VendorBookingsPageWrapped /> },
+      { path: "/vendor/refunds", element: <VendorRefundsPageWrapped /> },
       { path: "/vendor/reviews", element: <VendorReviewsPageWrapped /> },
       { path: "/vendor/reports", element: <VendorReportsPageWrapped /> },
       { path: "/vendor/settings", element: <VendorSettingsPageWrapped /> },

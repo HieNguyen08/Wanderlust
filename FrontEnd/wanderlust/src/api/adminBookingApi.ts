@@ -1,5 +1,7 @@
 import { authenticatedFetch } from "../utils/api";
 
+const ADMIN_BOOKINGS_BASE = "/api/v1/admin/bookings";
+
 export type BookingType = "FLIGHT" | "HOTEL" | "CAR_RENTAL" | "ACTIVITY";
 export type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED" | "REFUND_REQUESTED";
 export type PaymentStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "REFUNDED";
@@ -83,7 +85,7 @@ export interface BookingStatistics {
 
 export const adminBookingApi = {
   getAllBookings: async (): Promise<AdminBooking[]> => {
-    const response = await authenticatedFetch("/api/admin/bookings");
+    const response = await authenticatedFetch(ADMIN_BOOKINGS_BASE);
     if (!response.ok) {
       throw new Error("Failed to fetch bookings");
     }
@@ -92,7 +94,7 @@ export const adminBookingApi = {
   },
 
   getBookingById: async (id: string): Promise<AdminBooking> => {
-    const response = await authenticatedFetch(`/api/admin/bookings/${id}`);
+    const response = await authenticatedFetch(`${ADMIN_BOOKINGS_BASE}/${id}`);
     if (!response.ok) {
       throw new Error("Failed to fetch booking");
     }
@@ -100,15 +102,44 @@ export const adminBookingApi = {
   },
 
   getStatistics: async (): Promise<BookingStatistics> => {
-    const response = await authenticatedFetch("/api/admin/bookings/statistics");
+    const response = await authenticatedFetch(`${ADMIN_BOOKINGS_BASE}/statistics`);
     if (!response.ok) {
       throw new Error("Failed to fetch statistics");
     }
     return response.json();
   },
 
+  getRefundRequests: async (): Promise<AdminBooking[]> => {
+    const response = await authenticatedFetch(`${ADMIN_BOOKINGS_BASE}/refund-requests`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch refund requests");
+    }
+    return response.json();
+  },
+
+  approveRefundRequest: async (bookingId: string): Promise<AdminBooking> => {
+    const response = await authenticatedFetch(`/api/bookings/${bookingId}/approve-refund`, {
+      method: "POST",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to approve refund request");
+    }
+    return response.json();
+  },
+
+  rejectRefundRequest: async (bookingId: string, reason?: string): Promise<AdminBooking> => {
+    const response = await authenticatedFetch(`/api/bookings/${bookingId}/reject-refund`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to reject refund request");
+    }
+    return response.json();
+  },
+
   updateBooking: async (id: string, bookingData: Partial<AdminBooking>): Promise<AdminBooking> => {
-    const response = await authenticatedFetch(`/api/admin/bookings/${id}`, {
+    const response = await authenticatedFetch(`${ADMIN_BOOKINGS_BASE}/${id}`, {
       method: "PUT",
       body: JSON.stringify(bookingData),
     });
@@ -121,7 +152,7 @@ export const adminBookingApi = {
   },
 
   deleteBooking: async (id: string): Promise<string> => {
-    const response = await authenticatedFetch(`/api/admin/bookings/${id}`, {
+    const response = await authenticatedFetch(`${ADMIN_BOOKINGS_BASE}/${id}`, {
       method: "DELETE",
     });
 

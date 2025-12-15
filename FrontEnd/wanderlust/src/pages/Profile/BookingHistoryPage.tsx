@@ -1,46 +1,49 @@
 import {
-    Activity,
-    AlertCircle,
-    Ban,
-    Calendar,
-    Car,
-    CheckCircle,
-    CreditCard,
-    Download, Eye,
-    FileText,
-    Hotel,
-    Mail,
-    MapPin,
-    Phone,
-    Plane,
-    Printer,
-    QrCode,
-    Star,
-    Users,
-    XCircle
+  Activity,
+  AlertCircle,
+  Ban,
+  Calendar,
+  Car,
+  CheckCircle,
+  CreditCard,
+  Download, Eye,
+  FileText,
+  Hotel,
+  Mail,
+  MapPin,
+  Phone,
+  Plane,
+  Printer,
+  QrCode,
+  RefreshCw,
+  Star,
+  Users,
+  XCircle
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { bookingApi } from "../../api/bookingApi";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { ProfileLayout } from "../../components/ProfileLayout";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "../../components/ui/dialog";
 import { Label } from "../../components/ui/label";
+import { Separator } from "../../components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Textarea } from "../../components/ui/textarea";
 import { useNotification } from "../../contexts/NotificationContext";
 import type { PageType } from "../../MainApp";
-import { bookingApi, tokenService } from "../../utils/api";
+import { tokenService } from "../../utils/api";
 import { type FrontendRole } from "../../utils/roleMapper";
 
 interface BookingHistoryPageProps {
@@ -71,6 +74,7 @@ interface Booking {
     method: string;
     transactionId: string;
     paidAt: string;
+    paymentStatus: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "REFUNDED";
   };
   cancellationPolicy?: {
     refundPercentage: number;
@@ -83,6 +87,24 @@ interface Booking {
     email: string;
   };
   hasReview?: boolean;
+  // Additional fields from booking entity
+  basePrice?: number;
+  taxes?: number;
+  fees?: number;
+  discount?: number;
+  voucherCode?: string;
+  voucherDiscount?: number;
+  numberOfGuests?: {
+    adults?: number;
+    children?: number;
+    infants?: number;
+  };
+  vendorConfirmed?: boolean;
+  userConfirmed?: boolean;
+  autoCompleted?: boolean;
+  cancellationReason?: string;
+  cancelledAt?: string;
+  cancelledBy?: string;
   // Original backend data
   rawData?: any;
 }
@@ -102,8 +124,12 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [refundReason, setRefundReason] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isRequestingRefund, setIsRequestingRefund] = useState(false);
+  const [isConfirmingCompletion, setIsConfirmingCompletion] = useState(false);
 
   // Review form states
   const [rating, setRating] = useState(0);
@@ -192,7 +218,8 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
       paymentDetails: {
         method: apiBooking.paymentMethod || 'Chưa thanh toán',
         transactionId: apiBooking.id,
-        paidAt: apiBooking.bookingDate ? new Date(apiBooking.bookingDate).toLocaleString('vi-VN') : 'N/A'
+        paidAt: apiBooking.bookingDate ? new Date(apiBooking.bookingDate).toLocaleString('vi-VN') : 'N/A',
+        paymentStatus: apiBooking.paymentStatus || 'PENDING'
       },
       cancellationPolicy: {
         refundPercentage: 80,
@@ -205,6 +232,20 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
         email: 'support@wanderlust.vn'
       },
       hasReview: false,
+      // Additional fields from booking entity
+      basePrice: apiBooking.basePrice,
+      taxes: apiBooking.taxes,
+      fees: apiBooking.fees,
+      discount: apiBooking.discount,
+      voucherCode: apiBooking.voucherCode,
+      voucherDiscount: apiBooking.voucherDiscount,
+      numberOfGuests: apiBooking.numberOfGuests,
+      vendorConfirmed: apiBooking.vendorConfirmed,
+      userConfirmed: apiBooking.userConfirmed,
+      autoCompleted: apiBooking.autoCompleted,
+      cancellationReason: apiBooking.cancellationReason,
+      cancelledAt: apiBooking.cancelledAt,
+      cancelledBy: apiBooking.cancelledBy,
       rawData: apiBooking
     };
   };
@@ -281,51 +322,95 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
       return;
     }
 
+    const isPaid = selectedBooking.paymentDetails?.paymentStatus === "COMPLETED";
+
     try {
       setIsCancelling(true);
-      await bookingApi.cancelBooking(selectedBooking.id, cancelReason);
+      
+      if (isPaid) {
+        // For paid bookings, cancel and request refund
+        await bookingApi.cancelBooking(selectedBooking.id, cancelReason || 'User cancelled');
+        toast.success(t('profile.bookingHistory.cancelWithRefundSuccess', 'Đã gửi yêu cầu hủy và hoàn tiền'));
+        
+        addNotification({
+          type: 'booking',
+          title: 'Yêu cầu hủy và hoàn tiền',
+          message: `Yêu cầu hủy booking ${selectedBooking.bookingCode} đã được gửi. Vui lòng chờ xử lý hoàn tiền.`,
+          link: '/booking-history',
+          data: { bookingId: selectedBooking.id }
+        });
+      } else {
+        // For unpaid bookings, just delete/cancel immediately
+        await bookingApi.cancelBooking(selectedBooking.id, cancelReason || 'User cancelled unpaid booking');
+        toast.success(t('profile.bookingHistory.cancelSuccess', 'Đã hủy booking'));
+        
+        addNotification({
+          type: 'booking',
+          title: 'Đã hủy booking',
+          message: `Booking ${selectedBooking.bookingCode} đã được hủy.`,
+          link: '/booking-history',
+          data: { bookingId: selectedBooking.id }
+        });
+      }
 
-      // Update local state
-      setBookings(prevBookings =>
-        prevBookings.map(b =>
-          b.id === selectedBooking.id ? { ...b, status: 'cancelled' } : b
-        )
-      );
-
-      toast.success('Đã hủy đặt chỗ thành công');
       setIsCancelDialogOpen(false);
       setCancelReason("");
       setSelectedBooking(null);
 
-      // Reload bookings to get updated data
+      // Reload bookings
       const bookingsData = await bookingApi.getMyBookings();
-      const transformedBookings = Array.isArray(bookingsData)
-        ? bookingsData.map(transformBookingData)
-        : [];
+      const transformedBookings = Array.isArray(bookingsData) ? bookingsData.map(transformBookingData) : [];
       setBookings(transformedBookings);
     } catch (error: any) {
       console.error('Failed to cancel booking:', error);
-      toast.error('Không thể hủy đặt chỗ. Vui lòng thử lại.');
+      toast.error(t('profile.bookingHistory.cancelError', 'Không thể hủy booking'));
     } finally {
       setIsCancelling(false);
     }
   };
 
   // Handle refund request
-  const handleRequestRefund = async (bookingId: string) => {
-    try {
-      await bookingApi.requestRefund(bookingId);
-      toast.success('Đã gửi yêu cầu hoàn tiền thành công');
+  const handleRequestRefund = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setRefundReason('');
+    setIsRefundDialogOpen(true);
+  };
 
+  const handleConfirmRefund = async () => {
+    if (!selectedBooking || !refundReason.trim()) {
+      toast.error('Vui lòng nhập lý do hoàn tiền');
+      return;
+    }
+
+    try {
+      setIsRequestingRefund(true);
+      await bookingApi.requestRefund(selectedBooking.id, refundReason);
+
+      toast.success('Đã gửi yêu cầu hoàn tiền. Vui lòng chờ Admin xử lý.');
+      
+      addNotification({
+        type: 'booking',
+        title: 'Yêu cầu hoàn tiền',
+        message: `Yêu cầu hoàn tiền cho booking ${selectedBooking.bookingCode} đã được gửi. Admin sẽ xem xét và xử lý trong vòng 5-7 ngày.`,
+        link: '/booking-history',
+        data: { bookingId: selectedBooking.id }
+      });
+      
       // Reload bookings
       const bookingsData = await bookingApi.getMyBookings();
       const transformedBookings = Array.isArray(bookingsData)
         ? bookingsData.map(transformBookingData)
         : [];
       setBookings(transformedBookings);
+
+      setIsRefundDialogOpen(false);
+      setRefundReason('');
+      setSelectedBooking(null);
     } catch (error: any) {
       console.error('Failed to request refund:', error);
       toast.error('Không thể gửi yêu cầu hoàn tiền');
+    } finally {
+      setIsRequestingRefund(false);
     }
   };
 
@@ -432,27 +517,32 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
     setIsCancelDialogOpen(true);
   };
 
-  const handleConfirmCancel = () => {
-    if (!selectedBooking) return;
-
-    // Mock cancel request - in real app, would trigger backend process
-    alert(t('profile.bookingHistory.cancelRequestSent', `Đã gửi yêu cầu hủy booking {{code}}.\n\nTheo chính sách, bạn sẽ được hoàn {{percent}}% ({{amount}}đ).\n\nTrạng thái: Đang chờ xử lý hoàn tiền.\nThời gian hoàn tiền dự kiến: 5-7 ngày làm việc.`, {
-      code: selectedBooking.bookingCode,
-      percent: selectedBooking.cancellationPolicy?.refundPercentage,
-      amount: selectedBooking.cancellationPolicy?.refundAmount.toLocaleString('vi-VN')
-    }));
-
-    setIsCancelDialogOpen(false);
-
-    // In real app, this would update the booking status to "cancelled - pending refund"
-    // and create a refund request for admin to process
+  // Handle payment now for unpaid bookings
+  const handlePayNow = (booking: Booking) => {
+    // Navigate to payment page with booking data
+    onNavigate('payment-methods', {
+      ...booking.rawData,
+      bookingId: booking.id,
+      totalPrice: booking.price,
+      type: booking.type
+    });
   };
 
   // Handle booking completion confirmation
   const handleConfirmCompletion = async (booking: Booking) => {
     try {
-      await bookingApi.completeBooking(booking.id);
-      toast.success('Đã xác nhận hoàn thành chuyến đi');
+      setIsConfirmingCompletion(true);
+      await bookingApi.confirmCompletion(booking.id);
+      
+      toast.success('Đã xác nhận hoàn thành dịch vụ. Cảm ơn bạn đã sử dụng Wanderlust!');
+      
+      addNotification({
+        type: 'booking',
+        title: 'Hoàn thành dịch vụ',
+        message: `Bạn đã xác nhận hoàn thành dịch vụ ${booking.title}. Tiền sẽ được chuyển cho nhà cung cấp.`,
+        link: '/booking-history',
+        data: { bookingId: booking.id }
+      });
 
       // Reload bookings to get updated data
       const bookingsData = await bookingApi.getMyBookings();
@@ -462,7 +552,9 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
       setBookings(transformedBookings);
     } catch (error: any) {
       console.error('Failed to confirm completion:', error);
-      toast.error('Không thể xác nhận hoàn thành');
+      toast.error(error.message || 'Không thể xác nhận hoàn thành');
+    } finally {
+      setIsConfirmingCompletion(false);
     }
   };
 
@@ -559,13 +651,19 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
             </div>
 
             <TabsContent value={activeTab}>
-              <div className="space-y-4">
-                {filteredBookings.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-gray-500">{t('profile.bookingHistory.noBookings', 'Không có booking nào')}</p>
-                  </div>
-                ) : (
-                  filteredBookings.map((booking) => {
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-500">{t('common.loading', 'Đang tải...')}</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredBookings.length === 0 ? (
+                    <div className="text-center py-12">
+                      <p className="text-gray-500">{t('profile.bookingHistory.noBookings', 'Không có booking nào')}</p>
+                    </div>
+                  ) : (
+                    filteredBookings.map((booking) => {
                     const Icon = getTypeIcon(booking.type);
                     return (
                       <Card key={booking.id} className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -634,6 +732,91 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                                   {t('profile.bookingHistory.viewDetails', 'Xem chi tiết')}
                                 </Button>
 
+                                {/* For UNPAID bookings - show Pay Now and Cancel buttons */}
+                                {booking.status === "upcoming" && booking.paymentDetails?.paymentStatus !== "COMPLETED" && (
+                                  <>
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      className="gap-2 bg-blue-600 hover:bg-blue-700"
+                                      onClick={() => handlePayNow(booking)}
+                                    >
+                                      <CreditCard className="w-4 h-4" />
+                                      {t('profile.bookingHistory.payNow', 'Thanh toán ngay')}
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="gap-2 text-red-600 border-red-300 hover:bg-red-50"
+                                      onClick={() => handleRequestCancel(booking)}
+                                    >
+                                      <Ban className="w-4 h-4" />
+                                      {t('profile.bookingHistory.cancel', 'Hủy')}
+                                    </Button>
+                                  </>
+                                )}
+
+                                {/* For PAID bookings */}
+                                {booking.status === "upcoming" && booking.paymentDetails?.paymentStatus === "COMPLETED" && (
+                                  <>
+                                    {/* Show Confirm Completion from endDate until booking is completed */}
+                                    {(() => {
+                                      const endDateObj = booking.rawData?.endDate ? new Date(booking.rawData.endDate) : null;
+                                      const hasPassedEndDate = endDateObj ? new Date() >= endDateObj : false;
+                                      return hasPassedEndDate && !booking.userConfirmed && (
+                                        <Button
+                                          variant="default"
+                                          size="sm"
+                                          className="gap-2 bg-green-600 hover:bg-green-700"
+                                          onClick={() => handleConfirmCompletion(booking)}
+                                          disabled={isConfirmingCompletion}
+                                        >
+                                          <CheckCircle className="w-4 h-4" />
+                                          {t('profile.bookingHistory.confirmCompletion', 'Xác nhận hoàn thành')}
+                                        </Button>
+                                      );
+                                    })()}
+
+                                    {/* Show Request Refund from payment completion until endDate + 24h */}
+                                    {(() => {
+                                      const endDateObj = booking.rawData?.endDate ? new Date(booking.rawData.endDate) : null;
+                                      const refundDeadline = endDateObj ? new Date(endDateObj.getTime() + 24 * 60 * 60 * 1000) : null;
+                                      // Show if: no endDate OR current time <= endDate + 24h
+                                      const canRequestRefund = !endDateObj || (refundDeadline && new Date() <= refundDeadline);
+                                      return canRequestRefund && !booking.userConfirmed && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="gap-2 text-orange-600 border-orange-300 hover:bg-orange-50"
+                                          onClick={() => handleRequestRefund(booking)}
+                                        >
+                                          <RefreshCw className="w-4 h-4" />
+                                          {t('profile.bookingHistory.requestRefund', 'Yêu cầu hoàn tiền')}
+                                        </Button>
+                                      );
+                                    })()}
+
+                                    {/* Show Cancel (with refund) before endDate for paid bookings */}
+                                    {(() => {
+                                      const endDateObj = booking.rawData?.endDate ? new Date(booking.rawData.endDate) : null;
+                                      // Show if: no endDate OR current time < endDate
+                                      const canCancel = !endDateObj || new Date() < endDateObj;
+                                      return canCancel && (
+                                        <Button
+                                          variant="destructive"
+                                          size="sm"
+                                          className="gap-2"
+                                          onClick={() => handleRequestCancel(booking)}
+                                        >
+                                          <Ban className="w-4 h-4" />
+                                          {t('profile.bookingHistory.cancelAndRefund', 'Hủy & Hoàn tiền')}
+                                        </Button>
+                                      );
+                                    })()}
+                                  </>
+                                )}
+
+                                {/* For COMPLETED bookings - show review option */}
                                 {booking.status === "completed" && !booking.hasReview && (
                                   <Button
                                     size="sm"
@@ -656,32 +839,6 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                                     {t('profile.bookingHistory.reviewed', 'Đã đánh giá')}
                                   </Button>
                                 )}
-
-                                {booking.status === "upcoming" && (
-                                  <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    className="gap-2"
-                                    onClick={() => handleRequestCancel(booking)}
-                                  >
-                                    <Ban className="w-4 h-4" />
-                                    {t('profile.bookingHistory.requestCancel', 'Yêu cầu hủy')}
-                                  </Button>
-                                )}
-
-                                {/* Show Confirm Completion for upcoming bookings past endDate */}
-                                {booking.status === "upcoming" && booking.endDate &&
-                                  new Date() > new Date(booking.endDate) && (
-                                    <Button
-                                      variant="default"
-                                      size="sm"
-                                      className="gap-2 bg-green-600 hover:bg-green-700"
-                                      onClick={() => handleConfirmCompletion(booking)}
-                                    >
-                                      <CheckCircle className="w-4 h-4" />
-                                      {t('profile.bookingHistory.confirmCompletion', 'Xác nhận hoàn thành')}
-                                    </Button>
-                                  )}
                               </div>
                             </div>
                           </div>
@@ -689,8 +846,9 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                       </Card>
                     );
                   })
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </Card>
@@ -698,7 +856,7 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
 
       {/* Detail Dialog */}
       <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">{/* Increased width from max-w-3xl to max-w-5xl */}
           <DialogHeader>
             <DialogTitle>{t('profile.bookingHistory.orderDetails', 'Chi tiết đơn hàng')} - {selectedBooking?.bookingCode}</DialogTitle>
             <DialogDescription>
@@ -802,9 +960,46 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                   {t('profile.bookingHistory.paymentInfo', 'Thông tin thanh toán')}
                 </h3>
                 <div className="space-y-2">
+                  {selectedBooking.basePrice && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">{t('profile.bookingHistory.basePrice', 'Giá gốc')}</span>
+                      <span>{selectedBooking.basePrice.toLocaleString('vi-VN')}đ</span>
+                    </div>
+                  )}
+                  {selectedBooking.taxes && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">{t('profile.bookingHistory.taxes', 'Thuế')}</span>
+                      <span>{selectedBooking.taxes.toLocaleString('vi-VN')}đ</span>
+                    </div>
+                  )}
+                  {selectedBooking.fees && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">{t('profile.bookingHistory.fees', 'Phí dịch vụ')}</span>
+                      <span>{selectedBooking.fees.toLocaleString('vi-VN')}đ</span>
+                    </div>
+                  )}
+                  {selectedBooking.voucherCode && (
+                    <div className="flex justify-between text-green-600">
+                      <span>{t('profile.bookingHistory.voucherDiscount', 'Giảm giá')} ({selectedBooking.voucherCode})</span>
+                      <span>-{(selectedBooking.voucherDiscount || 0).toLocaleString('vi-VN')}đ</span>
+                    </div>
+                  )}
+                  <div className="border-t pt-2 flex justify-between text-lg font-semibold">
+                    <span>{t('profile.bookingHistory.totalAmount', 'Tổng cộng')}</span>
+                    <span className="text-xl text-blue-600">{selectedBooking.price.toLocaleString('vi-VN')}đ</span>
+                  </div>
+                  <Separator className="my-3" />
                   <div className="flex justify-between">
                     <span className="text-gray-600">{t('profile.bookingHistory.paymentMethod', 'Phương thức thanh toán')}</span>
                     <span>{selectedBooking.paymentDetails?.method}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">{t('profile.bookingHistory.paymentStatus', 'Trạng thái thanh toán')}</span>
+                    <Badge variant={selectedBooking.paymentDetails?.paymentStatus === 'COMPLETED' ? 'default' : 'secondary'}>
+                      {selectedBooking.paymentDetails?.paymentStatus === 'COMPLETED' ? t('profile.bookingHistory.paid', 'Đã thanh toán') : 
+                       selectedBooking.paymentDetails?.paymentStatus === 'PENDING' ? t('profile.bookingHistory.pending', 'Chờ thanh toán') :
+                       selectedBooking.paymentDetails?.paymentStatus}
+                    </Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">{t('profile.bookingHistory.transactionId', 'Mã giao dịch')}</span>
@@ -814,18 +1009,54 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                     <span className="text-gray-600">{t('profile.bookingHistory.paymentTime', 'Thời gian thanh toán')}</span>
                     <span>{selectedBooking.paymentDetails?.paidAt}</span>
                   </div>
-                  <div className="border-t pt-2 flex justify-between">
-                    <span>{t('profile.bookingHistory.totalAmount', 'Tổng cộng')}</span>
-                    <span className="text-xl text-blue-600">{selectedBooking.price.toLocaleString('vi-VN')}đ</span>
-                  </div>
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <div className="flex items-center gap-2 text-green-800">
-                      <CheckCircle className="w-5 h-5" />
-                      <span>{t('profile.bookingHistory.paid', 'Đã thanh toán')}</span>
+                  {selectedBooking.paymentDetails?.paymentStatus === 'COMPLETED' && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-3">
+                      <div className="flex items-center gap-2 text-green-800">
+                        <CheckCircle className="w-5 h-5" />
+                        <span>{t('profile.bookingHistory.paid', 'Đã thanh toán')}</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
+                  {selectedBooking.paymentDetails?.paymentStatus === 'PENDING' && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
+                      <div className="flex items-center gap-2 text-amber-800">
+                        <AlertCircle className="w-5 h-5" />
+                        <span>{t('profile.bookingHistory.awaitingPayment', 'Chờ thanh toán')}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card>
+
+              {/* Guest Information */}
+              {selectedBooking.numberOfGuests && (
+                <Card className="p-6">
+                  <h3 className="mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-blue-600" />
+                    {t('profile.bookingHistory.guestInfo', 'Thông tin khách')}
+                  </h3>
+                  <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                    {selectedBooking.numberOfGuests.adults && (
+                      <div>
+                        <p className="text-sm text-gray-600">{t('profile.bookingHistory.adults', 'Người lớn')}</p>
+                        <p className="text-lg font-semibold">{selectedBooking.numberOfGuests.adults}</p>
+                      </div>
+                    )}
+                    {selectedBooking.numberOfGuests.children && (
+                      <div>
+                        <p className="text-sm text-gray-600">{t('profile.bookingHistory.children', 'Trẻ em')}</p>
+                        <p className="text-lg font-semibold">{selectedBooking.numberOfGuests.children}</p>
+                      </div>
+                    )}
+                    {selectedBooking.numberOfGuests.infants && (
+                      <div>
+                        <p className="text-sm text-gray-600">{t('profile.bookingHistory.infants', 'Em bé')}</p>
+                        <p className="text-lg font-semibold">{selectedBooking.numberOfGuests.infants}</p>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              )}
 
               {/* Vendor Info */}
               <Card className="p-6">
@@ -849,20 +1080,34 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                 </div>
               </Card>
 
-              {/* Cancellation Policy */}
-              {selectedBooking.status === "upcoming" && selectedBooking.cancellationPolicy && (
+              {/* Refund & Completion Policy */}
+              {selectedBooking.status === "upcoming" && (
                 <Card className="p-6 bg-amber-50 border-amber-200">
                   <h3 className="mb-3 flex items-center gap-2 text-amber-900">
                     <AlertCircle className="w-5 h-5" />
-                    {t('profile.bookingHistory.refundPolicy', 'Chính sách Hủy & Hoàn tiền')}
+                    {t('profile.bookingHistory.refundPolicy', 'Chính sách Hoàn thành & Hoàn tiền')}
                   </h3>
-                  <div className="space-y-2 text-sm text-amber-900">
-                    <p>• {t('profile.bookingHistory.refundInfo', 'Hoàn {{percent}}% nếu hủy {{deadline}}', {
-                      percent: selectedBooking.cancellationPolicy.refundPercentage,
-                      deadline: selectedBooking.cancellationPolicy.deadline
-                    })}</p>
-                    <p>• {t('profile.bookingHistory.refundAmount2', 'Số tiền hoàn')}: <span className="font-semibold">{selectedBooking.cancellationPolicy.refundAmount.toLocaleString('vi-VN')}đ</span></p>
-                    <p>• {t('profile.bookingHistory.refundDuration', 'Thời gian hoàn tiền: 5-7 ngày làm việc')}</p>
+                  <div className="space-y-3 text-sm text-amber-900">
+                    <div className="bg-white p-3 rounded-lg border border-amber-300">
+                      <p className="font-semibold mb-2">📅 Xác nhận hoàn thành:</p>
+                      <p>• Sau khi dịch vụ kết thúc (ngày kết thúc: {selectedBooking.endDate}), bạn có <span className="font-semibold">24 giờ</span> để xác nhận hoàn thành.</p>
+                      <p>• Nếu không xác nhận, hệ thống sẽ tự động hoàn thành sau 24h.</p>
+                      <p>• Xác nhận hoàn thành có nghĩa là bạn hài lòng với dịch vụ.</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg border border-amber-300">
+                      <p className="font-semibold mb-2">💰 Chính sách hoàn tiền:</p>
+                      <p>• Bạn chỉ có thể yêu cầu hoàn tiền trong vòng <span className="font-semibold">24 giờ sau ngày kết thúc</span> dịch vụ.</p>
+                      <p>• Sau khi xác nhận hoàn thành, bạn <span className="font-semibold text-red-600">không thể</span> yêu cầu hoàn tiền.</p>
+                      <p>• Nếu Admin phê duyệt hoàn tiền, có thể áp dụng phí phạt <span className="font-semibold">5%</span> tổng giá trị đơn hàng (tùy trường hợp).</p>
+                      <p>• Thời gian xử lý hoàn tiền: 5-7 ngày làm việc.</p>
+                    </div>
+                    {selectedBooking.cancellationPolicy && (
+                      <div className="bg-white p-3 rounded-lg border border-amber-300">
+                        <p className="font-semibold mb-2">⚠️ Hủy booking trước thời gian:</p>
+                        <p>• Hoàn {selectedBooking.cancellationPolicy.refundPercentage}% nếu hủy {selectedBooking.cancellationPolicy.deadline}</p>
+                        <p>• Số tiền hoàn: <span className="font-semibold">{selectedBooking.cancellationPolicy.refundAmount.toLocaleString('vi-VN')}đ</span></p>
+                      </div>
+                    )}
                   </div>
                 </Card>
               )}
@@ -884,14 +1129,124 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
           )}
 
           <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={handlePrintTicket}>
-              <Printer className="w-4 h-4 mr-2" />
-              {t('profile.bookingHistory.print', 'In vé')}
-            </Button>
-            <Button onClick={() => alert(t('profile.bookingHistory.downloadPDF', 'Tải xuống PDF'))}>
-              <Download className="w-4 h-4 mr-2" />
-              {t('profile.bookingHistory.download', 'Tải xuống')}
-            </Button>
+            <div className="flex gap-2 flex-wrap w-full">
+              <Button variant="outline" onClick={handlePrintTicket}>
+                <Printer className="w-4 h-4 mr-2" />
+                {t('profile.bookingHistory.print', 'In vé')}
+              </Button>
+              <Button variant="outline" onClick={() => alert(t('profile.bookingHistory.downloadPDF', 'Tải xuống PDF'))}>
+                <Download className="w-4 h-4 mr-2" />
+                {t('profile.bookingHistory.download', 'Tải xuống')}
+              </Button>
+
+              {/* Action buttons based on payment status */}
+              {selectedBooking && (
+                <>
+                  {/* For UNPAID bookings - show Pay Now and Cancel */}
+                  {selectedBooking.status === "upcoming" && selectedBooking.paymentDetails?.paymentStatus !== "COMPLETED" && (
+                    <>
+                      <Button
+                        className="bg-blue-600 hover:bg-blue-700"
+                        onClick={() => {
+                          setIsDetailDialogOpen(false);
+                          handlePayNow(selectedBooking);
+                        }}
+                      >
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        {t('profile.bookingHistory.payNow', 'Thanh toán ngay')}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          setIsDetailDialogOpen(false);
+                          handleRequestCancel(selectedBooking);
+                        }}
+                      >
+                        <Ban className="w-4 h-4 mr-2" />
+                        {t('profile.bookingHistory.cancel', 'Hủy booking')}
+                      </Button>
+                    </>
+                  )}
+
+                  {/* For PAID bookings - show Confirm Completion, Request Refund, or Cancel */}
+                  {selectedBooking.status === "upcoming" && selectedBooking.paymentDetails?.paymentStatus === "COMPLETED" && (
+                    <>
+                      {/* Show Confirm Completion from endDate until booking is completed */}
+                      {(() => {
+                        const endDateObj = selectedBooking.rawData?.endDate ? new Date(selectedBooking.rawData.endDate) : null;
+                        const hasPassedEndDate = endDateObj ? new Date() >= endDateObj : false;
+                        return hasPassedEndDate && !selectedBooking.userConfirmed && (
+                          <Button
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                              setIsDetailDialogOpen(false);
+                              handleConfirmCompletion(selectedBooking);
+                            }}
+                            disabled={isConfirmingCompletion}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            {t('profile.bookingHistory.confirmCompletion', 'Xác nhận hoàn thành')}
+                          </Button>
+                        );
+                      })()}
+
+                      {/* Show Request Refund from payment completion until endDate + 24h */}
+                      {(() => {
+                        const endDateObj = selectedBooking.rawData?.endDate ? new Date(selectedBooking.rawData.endDate) : null;
+                        const refundDeadline = endDateObj ? new Date(endDateObj.getTime() + 24 * 60 * 60 * 1000) : null;
+                        // Show if: no endDate OR current time <= endDate + 24h
+                        const canRequestRefund = !endDateObj || (refundDeadline && new Date() <= refundDeadline);
+                        return canRequestRefund && !selectedBooking.userConfirmed && (
+                          <Button
+                            variant="outline"
+                            className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                            onClick={() => {
+                              setIsDetailDialogOpen(false);
+                              handleRequestRefund(selectedBooking);
+                            }}
+                          >
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            {t('profile.bookingHistory.requestRefund', 'Yêu cầu hoàn tiền')}
+                          </Button>
+                        );
+                      })()}
+
+                      {/* Show Cancel (with refund) before endDate */}
+                      {(() => {
+                        const endDateObj = selectedBooking.rawData?.endDate ? new Date(selectedBooking.rawData.endDate) : null;
+                        // Show if: no endDate OR current time < endDate
+                        const canCancel = !endDateObj || new Date() < endDateObj;
+                        return canCancel && (
+                          <Button
+                            variant="destructive"
+                            onClick={() => {
+                              setIsDetailDialogOpen(false);
+                              handleRequestCancel(selectedBooking);
+                            }}
+                          >
+                            <Ban className="w-4 h-4 mr-2" />
+                            {t('profile.bookingHistory.cancelAndRefund', 'Hủy & Hoàn tiền')}
+                          </Button>
+                        );
+                      })()}
+                    </>
+                  )}
+
+                  {/* For COMPLETED bookings - show Review option */}
+                  {selectedBooking.status === "completed" && !selectedBooking.hasReview && (
+                    <Button
+                      onClick={() => {
+                        setIsDetailDialogOpen(false);
+                        handleWriteReview(selectedBooking);
+                      }}
+                    >
+                      <Star className="w-4 h-4 mr-2" />
+                      {t('profile.bookingHistory.writeReview', 'Viết đánh giá')}
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1028,6 +1383,68 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
             </Button>
             <Button variant="destructive" onClick={handleCancelBooking} disabled={isCancelling}>
               {isCancelling ? t('profile.bookingHistory.cancelling', 'Đang hủy...') : t('profile.bookingHistory.confirmCancelButton', 'Xác nhận hủy')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Refund Request Dialog */}
+      <Dialog open={isRefundDialogOpen} onOpenChange={setIsRefundDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('profile.bookingHistory.requestRefund', 'Yêu cầu hoàn tiền')}</DialogTitle>
+            <DialogDescription>
+              {t('profile.bookingHistory.refundRequestDesc', 'Bạn muốn yêu cầu hoàn tiền cho booking này?')}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedBooking && (
+            <div className="space-y-4">
+              <Card className="p-4 bg-blue-50 border-blue-200">
+                <h4 className="mb-2">{t('profile.bookingHistory.bookingInfo', 'Thông tin booking')}</h4>
+                <p className="text-sm"><span className="text-gray-600">{t('profile.bookingHistory.bookingCode')}:</span> {selectedBooking.bookingCode}</p>
+                <p className="text-sm"><span className="text-gray-600">{t('profile.bookingHistory.service', 'Dịch vụ')}:</span> {selectedBooking.title}</p>
+                <p className="text-sm"><span className="text-gray-600">{t('profile.bookingHistory.value', 'Giá trị')}:</span> {selectedBooking.price.toLocaleString('vi-VN')}đ</p>
+              </Card>
+
+              <Card className="p-4 bg-amber-50 border-amber-200">
+                <h4 className="mb-2 text-amber-900">
+                  <AlertCircle className="w-4 h-4 inline mr-1" />
+                  {t('profile.bookingHistory.refundPolicy', 'Chính sách hoàn tiền')}
+                </h4>
+                <div className="text-sm text-amber-900 space-y-2">
+                  <p>• Yêu cầu hoàn tiền chỉ có thể thực hiện trong vòng 24 giờ sau khi dịch vụ kết thúc.</p>
+                  <p>• Sau khi xác nhận hoàn thành, bạn <span className="font-semibold">không thể</span> yêu cầu hoàn tiền.</p>
+                  <p>• Có thể áp dụng phí phạt <span className="font-semibold">5%</span> giá trị đơn hàng tùy vào xét duyệt của Admin.</p>
+                  <p>• Thời gian xử lý: 5-7 ngày làm việc.</p>
+                </div>
+              </Card>
+
+              <div>
+                <Label htmlFor="refundReason">{t('profile.bookingHistory.refundReason', 'Lý do hoàn tiền')}</Label>
+                <Textarea
+                  id="refundReason"
+                  placeholder={t('profile.bookingHistory.enterRefundReason', 'Vui lòng mô tả lý do bạn muốn hoàn tiền...')}
+                  value={refundReason}
+                  onChange={(e) => setRefundReason(e.target.value)}
+                  rows={4}
+                  className="mt-2"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRefundDialogOpen(false)} disabled={isRequestingRefund}>
+              {t('common.cancel', 'Hủy')}
+            </Button>
+            <Button 
+              variant="default" 
+              onClick={handleConfirmRefund} 
+              disabled={isRequestingRefund || !refundReason.trim()}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {isRequestingRefund ? t('profile.bookingHistory.requesting', 'Đang gửi...') : t('profile.bookingHistory.confirmRefund', 'Xác nhận yêu cầu')}
             </Button>
           </DialogFooter>
         </DialogContent>

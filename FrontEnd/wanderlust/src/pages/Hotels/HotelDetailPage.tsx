@@ -26,6 +26,9 @@ interface Hotel {
   description?: string;
   phone?: string;
   email?: string;
+  city?: string;
+  country?: string;
+  locationId?: string;
 }
 
 interface HotelDetailPageProps {
@@ -94,6 +97,9 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
           description: hotelData.description,
           phone: hotelData.phone,
           email: hotelData.email,
+          city: hotelData.city,
+          country: hotelData.country,
+          locationId: hotelData.locationId,
         };
 
         const mappedRooms = normalizeRooms(roomsData).map((room: any) => {
@@ -377,7 +383,10 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
                     </div>
                     <div className="flex items-center gap-2 text-gray-600">
                       <MapPin className="w-5 h-5" />
-                      <span>{hotel.address}</span>
+                      <span>
+                        {hotel.address}
+                        {hotel.city && hotel.country && `, ${hotel.city}, ${hotel.country}`}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -414,12 +423,11 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
               {/* Description */}
               <div className="bg-white rounded-xl p-6 shadow-sm">
                 <h2 className="text-2xl mb-4">Giới thiệu</h2>
-                <p className="text-gray-700 leading-relaxed text-lg">
-                  Khách sạn {hotel.name} là lựa chọn hoàn hảo cho kỳ nghỉ của bạn.
-                  Với vị trí thuận lợi tại {hotel.address}, bạn có thể dễ dàng di chuyển
-                  đến các điểm tham quan nổi tiếng. Khách sạn cung cấp đầy đủ các tiện nghi
-                  hiện đại và dịch vụ chuyên nghiệp để đảm bảo kỳ nghỉ của bạn thật thoải mái
-                  và đáng nhớ.
+                <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-line">
+                  {hotel.description
+                    ? hotel.description
+                    : `Khách sạn ${hotel.name} là lựa chọn phù hợp cho kỳ nghỉ của bạn tại ${[hotel.address, hotel.city, hotel.country].filter(Boolean).join(", ")}.
+Cơ sở lưu trú cung cấp các tiện nghi hiện đại và dịch vụ chuyên nghiệp để chuyến đi của bạn thoải mái và đáng nhớ.`}
                 </p>
               </div>
 
@@ -433,7 +441,7 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
                     </div>
                     <div>
                       <p className="text-xs text-gray-600">Điện thoại</p>
-                      <p className="text-blue-600">1900-xxxx-xxx</p>
+                      <p className="text-blue-600">{hotel.phone || "Đang cập nhật"}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -442,7 +450,7 @@ export default function HotelDetailPage({ hotel: initialHotel, hotelId, onNaviga
                     </div>
                     <div>
                       <p className="text-xs text-gray-600">Email</p>
-                      <p className="text-blue-600">info@hotel.com</p>
+                      <p className="text-blue-600">{hotel.email || "Đang cập nhật"}</p>
                     </div>
                   </div>
                 </div>
