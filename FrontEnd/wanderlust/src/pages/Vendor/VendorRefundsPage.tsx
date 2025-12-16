@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { vendorApi, type VendorRefund } from '../../api/vendorApi';
+import { useSmartPagination } from '../../hooks/useSmartPagination';
+import { PaginationUI } from '../../components/ui/PaginationUI';
+import { useCallback } from 'react';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
@@ -15,7 +18,6 @@ import {
   DialogTitle,
 } from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
-import { Textarea } from '../../components/ui/textarea';
 import { VendorLayout } from '../../components/VendorLayout';
 import type { PageType } from '../../MainApp';
 
@@ -26,29 +28,33 @@ interface VendorRefundsPageProps {
 
 type RefundStatus = "pending" | "approved" | "processing" | "completed" | "rejected";
 
-export default function VendorRefundsPage({ 
+export default function VendorRefundsPage({
   onNavigate,
-  vendorType = "hotel" 
+  vendorType = "hotel"
 }: VendorRefundsPageProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<RefundStatus | "all">("pending");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRefund, setSelectedRefund] = useState<VendorRefund | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
-  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [refundRequests, setRefundRequests] = useState<VendorRefund[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadRefunds();
-  }, []);
 
-  const loadRefunds = async () => {
+
+  const fetchData = useCallback(async (page: number, size: number) => {
     try {
-      setLoading(true);
-      const data = await vendorApi.getVendorRefunds();
+      const data = await vendorApi.getVendorRefunds({
+        page,
+        size,
+        search: searchQuery,
+        status: activeTab === 'all' ? undefined : activeTab
+      });
+
+      // Status Normalizer (moved inside for safety or kept here)
+      // Since mapping is partially done in API, we just need to ensure frontend status is correct
+      // But API returns status "pending" mostly. The page had normalizeStatus function locally.
+      // Let's rely on the API returning `rawStatus` which we can use or just trust the status logic.
+      // Actually, API returns "pending" hardcoded. We should fix API or rely on local normalization if rawStatus exists.
+      // Let's assume the API change passed `rawStatus` (I added it).
 
       const normalizeStatus = (status?: string): RefundStatus => {
         const lower = (status || '').toLowerCase();
@@ -57,49 +63,41 @@ export default function VendorRefundsPage({
         if (lower === 'refund_processing' || lower === 'processing') return 'processing';
         if (lower === 'refund_completed' || lower === 'completed') return 'completed';
         if (lower === 'refund_rejected' || lower === 'rejected') return 'rejected';
-        return 'pending';
+        return 'pending'; // Default fallback
       };
 
-      const toNumber = (value: any) => {
-        const num = Number(value);
-        return Number.isFinite(num) ? num : 0;
+      const mapped = data.content.map((item: any) => ({
+        ...item,
+        status: normalizeStatus(item.rawStatus || item.status)
+      }));
+
+      return {
+        items: mapped,
+        total: data.totalElements
       };
-
-      const mapped = data.map((item: any) => {
-        const guestInfo = item.guestInfo || item.metadata?.contactInfo || {};
-        return {
-          id: item.transactionId || item.refundId || item.id,
-          bookingId: item.bookingId || item.id,
-          bookingCode: item.bookingCode || '',
-          serviceType: (item.serviceType || item.bookingType || 'HOTEL').toUpperCase(),
-          serviceName: item.serviceName || item.metadata?.serviceName || item.flightId || '',
-          userId: item.userId || '',
-          userName: item.userName || guestInfo.fullName || '',
-          userEmail: item.userEmail || guestInfo.email || '',
-          vendorName: item.vendorName || item.vendor?.name || '',
-          originalAmount: toNumber(item.originalAmount ?? item.totalPrice ?? item.amount),
-          refundPercentage: item.refundPercentage || 100,
-          refundAmount: toNumber(item.refundAmount ?? item.amount ?? item.totalPrice),
-          penaltyAmount: toNumber(item.penaltyAmount),
-          requestDate: item.requestDate || item.createdAt || item.bookingDate || new Date().toISOString(),
-          status: normalizeStatus(item.status),
-          reason: item.reason || item.cancellationReason || '',
-          paymentMethod: item.paymentMethod || 'WALLET',
-          transactionId: item.transactionId || item.id,
-          processedBy: item.processedBy,
-          processedAt: item.processedAt,
-          rejectionReason: item.rejectionReason,
-        } as VendorRefund;
-      });
-
-      setRefundRequests(mapped);
     } catch (error) {
       console.error("Failed to load refunds:", error);
       toast.error(t('vendor.cannotLoadRefunds', 'Không thể tải danh sách hoàn tiền'));
-    } finally {
-      setLoading(false);
+      return { items: [], total: 0 };
     }
-  };
+  }, [activeTab, searchQuery, t]);
+
+  const {
+    currentItems: refundRequests,
+    isTableLoading: loading,
+    goToPage,
+    currentPage,
+    totalPages,
+    refresh: reloadRefunds
+  } = useSmartPagination({
+    fetchData,
+    initialPageSize: 10
+  });
+
+  // Reset to first page when parameters change
+  useEffect(() => {
+    goToPage(0);
+  }, [activeTab, searchQuery]);
 
   const STATUS_CONFIG: Record<RefundStatus, { label: string; color: string; icon: any }> = {
     pending: {
@@ -140,14 +138,8 @@ export default function VendorRefundsPage({
   };
 
   // Filter refunds
-  const filteredRefunds = refundRequests.filter(refund => {
-    const matchStatus = activeTab === "all" || refund.status === activeTab;
-    const matchSearch = searchQuery === "" || 
-      refund.bookingCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      refund.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      refund.serviceName.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchStatus && matchSearch;
-  });
+  // Filter refunds - already done by API
+  const filteredRefunds = refundRequests;
 
   // Calculate stats
   const stats = [
@@ -187,54 +179,27 @@ export default function VendorRefundsPage({
     setIsDetailDialogOpen(true);
   };
 
-  const handleApproveClick = (refund: VendorRefund) => {
+  const handleDecision = async (refund: VendorRefund, approved: boolean) => {
     setSelectedRefund(refund);
-    setIsApproveDialogOpen(true);
-  };
-
-  const handleConfirmApprove = async () => {
-    if (!selectedRefund) return;
-    
     try {
-      await vendorApi.approveRefund(selectedRefund.id);
-      toast.success(t('vendor.refundApproved', 'Đã phê duyệt yêu cầu hoàn tiền'));
-      setIsApproveDialogOpen(false);
+      await vendorApi.setRefundDecision(refund.id, approved);
+      toast.success(
+        approved
+          ? t('vendor.refundApproved', 'Đã đồng ý hoàn tiền')
+          : t('vendor.refundRejected', 'Đã không đồng ý hoàn tiền')
+      );
+      setIsDetailDialogOpen(false);
       setSelectedRefund(null);
-      loadRefunds(); // Reload
+      await reloadRefunds();
     } catch (error) {
-      toast.error(t('vendor.cannotApproveRefund', 'Không thể phê duyệt hoàn tiền'));
-    }
-  };
-
-  const handleRejectClick = (refund: VendorRefund) => {
-    setSelectedRefund(refund);
-    setRejectionReason("");
-    setIsRejectDialogOpen(true);
-  };
-
-  const handleConfirmReject = async () => {
-    if (!selectedRefund) return;
-    if (!rejectionReason.trim()) {
-      toast.error(t('vendor.enterRejectionReason', 'Vui lòng nhập lý do từ chối'));
-      return;
-    }
-    
-    try {
-      await vendorApi.rejectRefund(selectedRefund.id, rejectionReason);
-      toast.success(t('vendor.refundRejected', 'Đã từ chối yêu cầu hoàn tiền'));
-      setIsRejectDialogOpen(false);
-      setSelectedRefund(null);
-      setRejectionReason("");
-      loadRefunds(); // Reload
-    } catch (error) {
-      toast.error(t('vendor.cannotRejectRefund', 'Không thể từ chối hoàn tiền'));
+      toast.error(t('vendor.cannotApproveRefund', 'Không thể cập nhật quyết định hoàn tiền'));
     }
   };
 
   return (
-    <VendorLayout 
-      currentPage="vendor-refunds" 
-      onNavigate={onNavigate} 
+    <VendorLayout
+      currentPage="vendor-refunds"
+      onNavigate={onNavigate}
       activePage="vendor-refunds"
       vendorType={vendorType}
     >
@@ -314,7 +279,7 @@ export default function VendorRefundsPage({
                   {filteredRefunds.map((refund) => {
                     const statusConfig = STATUS_CONFIG[refund.status];
                     const StatusIcon = statusConfig.icon;
-                    
+
                     return (
                       <tr key={refund.id} className="border-b last:border-0">
                         <td className="py-4">
@@ -350,6 +315,12 @@ export default function VendorRefundsPage({
                             <StatusIcon className="w-3 h-3" />
                             {statusConfig.label}
                           </Badge>
+                          {refund.vendorRefundApproved === true && (
+                            <div className="text-xs text-green-600 mt-1">{t('vendor.vendorApproved', 'Bạn đã đồng ý hoàn tiền')}</div>
+                          )}
+                          {refund.vendorRefundApproved === false && (
+                            <div className="text-xs text-red-600 mt-1">{t('vendor.vendorRejected', 'Bạn không đồng ý hoàn tiền')}</div>
+                          )}
                         </td>
                         <td className="py-4">
                           <div className="flex gap-2">
@@ -366,14 +337,16 @@ export default function VendorRefundsPage({
                                   variant="default"
                                   size="sm"
                                   className="bg-green-600 hover:bg-green-700"
-                                  onClick={() => handleApproveClick(refund)}
+                                  disabled={refund.vendorRefundApproved === true}
+                                  onClick={() => handleDecision(refund, true)}
                                 >
                                   <CheckCircle className="w-4 h-4" />
                                 </Button>
                                 <Button
                                   variant="destructive"
                                   size="sm"
-                                  onClick={() => handleRejectClick(refund)}
+                                  disabled={refund.vendorRefundApproved === false}
+                                  onClick={() => handleDecision(refund, false)}
                                 >
                                   <XCircle className="w-4 h-4" />
                                 </Button>
@@ -388,6 +361,13 @@ export default function VendorRefundsPage({
               </table>
             </div>
           )}
+          <div className="mt-8 flex justify-center">
+            <PaginationUI
+              currentPage={currentPage + 1}
+              totalPages={totalPages}
+              onPageChange={(p) => goToPage(p - 1)}
+            />
+          </div>
         </Card>
       </div>
 
@@ -400,7 +380,7 @@ export default function VendorRefundsPage({
               {t('vendor.refundDetailsDesc', 'Thông tin chi tiết về yêu cầu hoàn tiền')}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedRefund && (
             <div className="space-y-4">
               <Card className="p-4 bg-gray-50">
@@ -437,7 +417,7 @@ export default function VendorRefundsPage({
                   )}
                 </div>
               </Card>
-              
+
               <Card className="p-4">
                 <p className="text-sm text-gray-600 mb-2">{t('vendor.reason', 'Lý do')}</p>
                 <p className="text-sm">{selectedRefund.reason}</p>
@@ -451,99 +431,10 @@ export default function VendorRefundsPage({
               )}
             </div>
           )}
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
               {t('common.close', 'Đóng')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Approve Dialog */}
-      <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('vendor.confirmApprove', 'Xác nhận phê duyệt')}</DialogTitle>
-            <DialogDescription>
-              {t('vendor.confirmApproveDesc', 'Bạn có chắc chắn muốn phê duyệt yêu cầu hoàn tiền này?')}
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedRefund && (
-            <Card className="p-4 bg-green-50">
-              <p className="text-sm mb-2">
-                <strong>{t('vendor.bookingCode', 'Mã Booking')}:</strong> {selectedRefund.bookingCode}
-              </p>
-              <p className="text-sm mb-2">
-                <strong>{t('vendor.refundAmount', 'Số tiền hoàn')}:</strong>{' '}
-                <span className="text-green-600 font-bold">{selectedRefund.refundAmount.toLocaleString('vi-VN')}đ</span>
-              </p>
-              <p className="text-sm text-gray-600 mt-3">
-                {t('vendor.approveNote', 'Sau khi phê duyệt, yêu cầu sẽ được chuyển sang Admin xử lý thanh toán.')}
-              </p>
-            </Card>
-          )}
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsApproveDialogOpen(false)}>
-              {t('common.cancel', 'Hủy')}
-            </Button>
-            <Button 
-              className="bg-green-600 hover:bg-green-700" 
-              onClick={handleConfirmApprove}
-            >
-              {t('vendor.approve', 'Phê duyệt')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reject Dialog */}
-      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('vendor.confirmReject', 'Xác nhận từ chối')}</DialogTitle>
-            <DialogDescription>
-              {t('vendor.confirmRejectDesc', 'Vui lòng nhập lý do từ chối yêu cầu hoàn tiền')}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {selectedRefund && (
-              <Card className="p-4 bg-red-50">
-                <p className="text-sm mb-2">
-                  <strong>{t('vendor.bookingCode', 'Mã Booking')}:</strong> {selectedRefund.bookingCode}
-                </p>
-                <p className="text-sm">
-                  <strong>{t('vendor.customer', 'Khách hàng')}:</strong> {selectedRefund.userName}
-                </p>
-              </Card>
-            )}
-            
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                {t('vendor.rejectionReason', 'Lý do từ chối')}
-              </label>
-              <Textarea
-                placeholder={t('vendor.enterRejectionReason', 'Nhập lý do từ chối...')}
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                rows={4}
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>
-              {t('common.cancel', 'Hủy')}
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleConfirmReject}
-              disabled={!rejectionReason.trim()}
-            >
-              {t('vendor.reject', 'Từ chối')}
             </Button>
           </DialogFooter>
         </DialogContent>

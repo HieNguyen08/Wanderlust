@@ -245,7 +245,9 @@ export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserW
                   <>
                     <span>•</span>
                     <span className="text-orange-600">
-                      Hoa hồng: {transaction.commissionAmount.toLocaleString("vi-VN")}đ
+                      {(transaction.description || '').toLowerCase().includes('penalty')
+                        ? 'Phí phạt'
+                        : 'Hoa hồng'}: {transaction.commissionAmount.toLocaleString("vi-VN")}đ
                     </span>
                   </>
                 )}

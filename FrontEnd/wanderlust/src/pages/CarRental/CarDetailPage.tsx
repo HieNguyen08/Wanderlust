@@ -11,7 +11,6 @@ import {
   Settings,
   Shield,
   Star,
-  ThumbsUp,
   Users
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -20,6 +19,7 @@ import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { Header } from "../../components/Header";
+import { ReviewList } from "../../components/reviews/ReviewList";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -267,36 +267,6 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
     { label: t('carDetail.fuelPolicy'), value: car.fuelPolicy === "SAME_TO_SAME" ? t('carDetail.sameToSame') : (car.fuelPolicy || "SAME_TO_SAME") },
   ];
 
-  const reviews = [
-    {
-      id: 1,
-      name: "Nguyễn Văn A",
-      role: t('carDetail.vipCustomer'),
-      date: "21/10/2024",
-      rating: 5,
-      content: "Dịch vụ tuyệt vời! Xe sạch sẽ, tiện nghi đầy đủ. Nhân viên hỗ trợ rất nhiệt tình. Chắc chắn sẽ quay lại sử dụng dịch vụ.",
-      avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop",
-    },
-    {
-      id: 2,
-      name: "Trần Thị B",
-      role: t('carDetail.customer'),
-      date: "18/10/2024",
-      rating: 5,
-      content: "Xe đẹp, giá cả hợp lý. Quy trình thuê xe nhanh chóng, tiện lợi. Rất hài lòng với trải nghiệm này!",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-    },
-    {
-      id: 3,
-      name: "Lê Văn C",
-      role: t('carDetail.customer'),
-      date: "15/10/2024",
-      rating: 4,
-      content: "Xe tốt, dịch vụ chuyên nghiệp. Có thể cải thiện thêm về thời gian giao xe để nhanh hơn.",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
-    },
-  ];
-
   // Show loading state
   if (loading || !car) {
     return (
@@ -508,52 +478,7 @@ export default function CarDetailPage({ car: initialCar, carId, onNavigate, user
               </div>
             </Card>
 
-            {/* Reviews */}
-            <Card className="p-6 border-0 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl text-gray-900">{t('carDetail.reviews')}</h2>
-                <Badge className="bg-linear-to-r from-blue-600 to-indigo-600">
-                  {reviews.length} {t('carDetail.reviews')}
-                </Badge>
-              </div>
-
-              <div className="space-y-6">
-                {reviews.map((review) => (
-                  <div key={review.id} className="border-t pt-6 first:border-t-0 first:pt-0">
-                    <div className="flex items-start gap-4 mb-3">
-                      <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden shrink-0">
-                        <ImageWithFallback
-                          src={review.avatar}
-                          alt={review.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h4 className="text-gray-900">{review.name}</h4>
-                            <p className="text-sm text-gray-500">{review.role}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm text-gray-500 mb-1">{review.date}</p>
-                            <div className="flex gap-1">
-                              {[...Array(review.rating)].map((_, i) => (
-                                <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                        <p className="text-gray-700 leading-relaxed mb-3">{review.content}</p>
-                        <button className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
-                          <ThumbsUp className="w-4 h-4" />
-                          <span className="text-sm">{t('carDetail.helpful')}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+            <ReviewList targetType="CAR" targetId={car.id} title={t('carDetail.reviews')} />
 
             {/* Recommended Cars */}
             <div>

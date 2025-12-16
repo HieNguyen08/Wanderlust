@@ -1,12 +1,12 @@
 {
   "about": {
-    "aboutWanderlust": "About Wanderlust",
+    "aboutWanderlust": "Wanderlust",
     "backToHome": "Back to homepage",
     "coreValues": "Core Values",
     "destinations": "Destinations",
     "globalDesc": "Connecting over 10,000 destinations worldwide, from Southeast Asia to Europe and America.",
     "globalTitle": "Global",
-    "heroSubtitle": "From Southeast Asia to the world, at your fingertips",
+    "heroSubtitle": "Live, Your Way",
     "missionDesc": "Deliver excellent and easy travel experiences for everyone, connecting you with the world.",
     "missionTitle": "Mission",
     "ourStory": "Our Story",
@@ -15,8 +15,10 @@
     "qualityDesc": "Committed to top-quality service with the most competitive prices in the market.",
     "qualityTitle": "Quality",
     "satisfiedCustomers": "Satisfied Customers",
-    "storyPara1": "Wanderlust was founded with a simple mission: Make travel easy and affordable for everyone. We believe everyone deserves to explore the world.",
-    "storyPara2": "With over 10 years of experience in the travel industry, we have served over 1 million customers, helping them create memorable experiences around the world.",
+    "storyPara1": "Wanderlust is the leading travel and lifestyle super app in Southeast Asia. We help you discover and purchase a wide range of travel products, local services, and financial services. Wanderlust's comprehensive product portfolio includes transportation booking services such as flights, buses, trains, car rentals, airport transfers, as well as the largest hotel inventory in Southeast Asia. Moreover, to help you fulfill your lifestyle aspirations, we complement our services with a wide array of attractions, local activities, as well as health and beauty spas. Therefore, whatever your lifestyle choice, you are just one click away!",
+    "storyPara2": "Wanderlust believes that happiness can come in many forms for different people at different times. Therefore, with our reputation and over 10 years of experience, we promise you a rich variety of options to light up your state of happiness. Whether you are looking for an exciting experience or resting in a 5-star resort, a relaxing spa day or a thrilling adventure, a convenient first-class flight or an exciting road trip, for both domestic and international travel, you have it all in one Wanderlust app.",
+    "storyPara3": "With 24/7 customer service in local languages as well as over 30 different local payment methods, Wanderlust has been downloaded over 100 million times, becoming the most popular travel and lifestyle app in Southeast Asia.",
+    "storyPara4": "What are you waiting for? Book a carefully planned trip or a last-minute decision vacation with us. With all your unique travel and lifestyle choices, as always, Wanderlust will accompany you.",
     "support": "Support",
     "teamDesc": "Professional team with years of experience in travel and technology industries.",
     "teamTitle": "Team"
@@ -944,6 +946,9 @@
     }
   },
   "flights": {
+    "customerReviews": "Customer Reviews",
+    "reviewsDesc": "See real reviews from customers who have used the service",
+    "allFlightReviews": "Flight Reviews",
     "stops_one": "1 stop",
     "stops_other": "{{count}} stops",
     "noUpcomingFlights": "No upcoming flights departing today.",
@@ -1243,7 +1248,7 @@
     "popularTours": "Popular Tour Packages",
     "popularToursDesc": "Most loved travel packages",
     "testimonials": "What Our Customers Say",
-    "testimonialsDesc": "Over 10,000+ satisfied customers",
+    "testimonialsDesc": "Over 1000+ satisfied customers",
     "tours": {
       "cruise": "Luxury Cruise",
       "cruiseDesc": "Premium ocean experience",

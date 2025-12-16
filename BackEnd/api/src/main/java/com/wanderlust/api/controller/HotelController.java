@@ -1,8 +1,10 @@
 package com.wanderlust.api.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -10,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -32,7 +35,6 @@ public class HotelController {
     private final HotelService hotelService;
     private final HotelMapper hotelMapper;
 
-    @Autowired
     public HotelController(HotelService hotelService, HotelMapper hotelMapper) {
         this.hotelService = hotelService;
         this.hotelMapper = hotelMapper;
@@ -57,42 +59,52 @@ public class HotelController {
 
     // GET /api/hotels/locations - Get unique locations from hotels
     @GetMapping("/hotels/locations")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<?> getHotelLocations() {
         return ResponseEntity.ok(hotelService.getUniqueLocations());
     }
 
-    // GET /api/hotels - Search (location, dates, etc)
+    // GET /api/hotels - Search (location, dates, etc) (With Pagination)
     @GetMapping("/hotels")
-    public ResponseEntity<List<HotelDTO>> searchHotels(@ModelAttribute HotelSearchCriteria criteria) {
-        return ResponseEntity.ok(hotelService.searchHotels(criteria));
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<Page<HotelDTO>> searchHotels(
+            @ModelAttribute HotelSearchCriteria criteria,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(hotelService.searchHotels(criteria, page, size));
     }
 
     // GET /api/hotels/featured
     @GetMapping("/hotels/featured")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<HotelDTO>> getFeaturedHotels() {
         return ResponseEntity.ok(hotelService.findFeatured());
     }
 
     // GET /api/hotels/location/{locationId}
     @GetMapping("/hotels/location/{locationId}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<HotelDTO>> getHotelsByLocation(@PathVariable String locationId) {
         return ResponseEntity.ok(hotelService.findByLocationId(locationId));
     }
 
     // GET /api/hotels/:id
     @GetMapping("/hotels/{id}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<HotelDTO> getHotelById(@PathVariable String id) {
         return ResponseEntity.ok(hotelService.findById(id));
     }
 
     // GET /api/hotels/:id/rooms
     @GetMapping("/hotels/{id}/rooms")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<RoomDTO>> getHotelRooms(@PathVariable String id) {
         return ResponseEntity.ok(hotelService.findRoomsByHotelId(id));
     }
 
     // GET /api/hotels/:id/reviews (Placeholder - cần ReviewService)
     @GetMapping("/hotels/{id}/reviews")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<String> getHotelReviews(@PathVariable String id) {
         return ResponseEntity.ok("Review list placeholder for hotel " + id);
     }
@@ -110,13 +122,24 @@ public class HotelController {
     // GET /api/vendor/hotels
     @GetMapping("/vendor/hotels")
     @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
-    public ResponseEntity<List<HotelDTO>> getVendorHotels(Authentication authentication) {
+    public ResponseEntity<Page<HotelDTO>> getVendorHotels(
+            Authentication authentication,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") int size) {
         String userId = getUserIdFromAuthentication(authentication);
-        List<HotelDTO> hotels;
+        Page<HotelDTO> hotels;
+
         if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            hotels = hotelService.findAll();
+            // Admin sees all hotels (paginated)
+            // Note: HotelService.findAll() returns List, so we need a paginated version or
+            // manual pagination
+            // For now, let's use searchHotels logic with empty criteria or create
+            // findAll(Pageable)
+            // But strict requirement says use searchHotels for pagination usually.
+            // Let's use hotelService.searchHotels with empty criteria which returns Page
+            hotels = hotelService.searchHotels(new HotelSearchCriteria(), page, size);
         } else {
-            hotels = hotelService.findByVendorId(userId);
+            hotels = hotelService.findByVendorId(userId, page, size);
         }
 
         return ResponseEntity.ok(hotels);
@@ -156,14 +179,16 @@ public class HotelController {
 
     @PostMapping("/admin/hotels/{id}/reject")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<HotelDTO> rejectHotel(@PathVariable String id, @RequestBody(required = false) java.util.Map<String, String> body) {
+    public ResponseEntity<HotelDTO> rejectHotel(@PathVariable String id,
+            @RequestBody(required = false) java.util.Map<String, String> body) {
         String reason = body != null ? body.get("reason") : null;
         return ResponseEntity.ok(hotelMapper.toDTO(hotelService.reject(id, reason)));
     }
 
     @PostMapping("/admin/hotels/{id}/request-revision")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<HotelDTO> requestRevisionHotel(@PathVariable String id, @RequestBody(required = false) java.util.Map<String, String> body) {
+    public ResponseEntity<HotelDTO> requestRevisionHotel(@PathVariable String id,
+            @RequestBody(required = false) java.util.Map<String, String> body) {
         String reason = body != null ? body.get("reason") : null;
         return ResponseEntity.ok(hotelMapper.toDTO(hotelService.requestRevision(id, reason)));
     }
@@ -178,5 +203,21 @@ public class HotelController {
     @PreAuthorize("hasRole('ADMIN') or (hasRole('VENDOR') and @webSecurity.isHotelOwner(authentication, #id))")
     public ResponseEntity<HotelDTO> resumeHotel(@PathVariable String id) {
         return ResponseEntity.ok(hotelMapper.toDTO(hotelService.resume(id)));
+    }
+
+    // PATCH /api/hotels/{id}/rating - update aggregates
+    @PatchMapping("/hotels/{id}/rating")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<HotelDTO> updateHotelRating(
+            @PathVariable String id,
+            @RequestBody Map<String, Object> payload) {
+        BigDecimal avg = payload.get("averageRating") != null
+                ? new BigDecimal(payload.get("averageRating").toString())
+                : null;
+        Integer total = payload.get("totalReviews") != null
+                ? Integer.parseInt(payload.get("totalReviews").toString())
+                : null;
+        HotelDTO updated = hotelMapper.toDTO(hotelService.updateRatingStats(id, avg, total));
+        return ResponseEntity.ok(updated);
     }
 }

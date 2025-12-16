@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -359,6 +360,19 @@ public class BookingController {
             @RequestBody(required = false) Map<String, String> payload) {
         String reason = payload != null ? payload.get("reason") : "User requested refund";
         BookingDTO result = bookingService.requestRefund(id, reason);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    /**
+     * Update review flag (hasReview) for a booking
+     */
+    @PatchMapping("/{id}/review-status")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<BookingDTO> updateReviewStatus(
+            @PathVariable String id,
+            @RequestBody(required = false) Map<String, Boolean> payload) {
+        Boolean hasReview = payload != null ? payload.get("hasReview") : Boolean.TRUE;
+        BookingDTO result = bookingService.updateHasReview(id, hasReview);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

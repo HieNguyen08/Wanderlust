@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from "sonner@2.0.3";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
+import { ReviewList } from "../../components/reviews/ReviewList";
 import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui/accordion";
 import { Button } from "../../components/ui/button";
@@ -195,45 +196,9 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       return;
     }
 
+    // Navigate to FlightDetailPage with search params
+    setIsSearching(true);
     try {
-      // Show loading overlay
-      setIsSearching(true);
-
-      // Format date to yyyy-MM-dd for API
-      const formattedDate = format(departDate, "yyyy-MM-dd");
-
-      // Search flights via API
-      console.log("🔍 Searching flights:", {
-        from: fromAirport.code,
-        to: toAirport.code,
-        date: formattedDate,
-        directOnly: false
-      });
-
-      const outboundFlights = await flightApi.searchFlights({
-        from: fromAirport.code,
-        to: toAirport.code,
-        date: formattedDate,
-        directOnly: false,
-        cabinClass: cabinClass
-      });
-
-      console.log("✅ Found outbound flights:", outboundFlights);
-
-      let returnFlights = [];
-      if (tripType === "round-trip" && returnDate) {
-        const formattedReturnDate = format(returnDate, "yyyy-MM-dd");
-        returnFlights = await flightApi.searchFlights({
-          from: toAirport.code,
-          to: fromAirport.code,
-          date: formattedReturnDate,
-          directOnly: false,
-          cabinClass: cabinClass
-        });
-        console.log("✅ Found return flights:", returnFlights);
-      }
-
-      // Navigate to FlightDetailPage with results
       onNavigate("flight-detail", {
         tripType,
         from: fromAirport,
@@ -247,8 +212,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
           total: adults + children + infants
         },
         cabinClass,
-        outboundFlights,
-        returnFlights
+        // outboundFlights and returnFlights are now fetched in the detail page
       });
     } catch (error: any) {
       console.error("❌ Error searching flights:", error);
@@ -257,6 +221,7 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       setIsSearching(false);
     }
   };
+
 
   const handlePopularFlightClick = (from: string, to: string) => {
     const fromAirportData = airports.find(a => a.city === from);
@@ -921,6 +886,23 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
             <CarouselNext className="hidden md:flex" />
           </Carousel>
         )}
+      </section>
+
+      {/* Flight Reviews Section */}
+      <section className="max-w-7xl mx-auto px-4 md:px-8 py-20 bg-gray-50">
+        <div className="mb-8">
+          <h2 className="text-3xl mb-2">{t('flights.customerReviews') || 'Đánh giá từ hành khách'}</h2>
+          <p className="text-gray-600">{t('flights.reviewsDesc') || 'Xem đánh giá thực tế từ khách hàng đã sử dụng dịch vụ'}</p>
+        </div>
+
+        <ReviewList
+          targetType="FLIGHT"
+          targetId="ALL_FLIGHTS"
+          title={t('flights.allFlightReviews') || 'Đánh giá chuyến bay'}
+          limit={5}
+          showViewAllButton={true}
+          sortByRating={true}
+        />
       </section>
 
       {/* FAQ Section */}

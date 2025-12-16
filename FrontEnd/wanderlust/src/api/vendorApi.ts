@@ -42,6 +42,7 @@ export interface VendorRefund {
   processedBy?: string;
   processedAt?: string;
   rejectionReason?: string;
+  vendorRefundApproved?: boolean;
 }
 
 export const vendorApi = {
@@ -96,47 +97,88 @@ export const vendorApi = {
     };
   },
 
-  // Get vendor refund requests (filterable by status)
-  getVendorRefunds: async (params?: { status?: string; page?: number; size?: number }): Promise<VendorRefund[]> => {
-    const query = new URLSearchParams();
-    if (params?.status) query.append("status", params.status);
-    if (params?.page !== undefined) query.append("page", String(params.page));
-    if (params?.size !== undefined) query.append("size", String(params.size));
+  // Get vendor refund requests (paginated)
+  getVendorRefunds: async (params?: {
+    page?: number;
+    size?: number;
+    search?: string;
+    status?: string;
+  }): Promise<{ content: VendorRefund[]; totalElements: number; totalPages: number }> => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append("page", params.page.toString());
+    if (params?.size !== undefined) queryParams.append("size", params.size.toString());
+    if (params?.search) queryParams.append("search", params.search);
+    if (params?.status) queryParams.append("status", params.status);
 
-    const url = `/api/vendor/refunds${query.toString() ? `?${query.toString()}` : ""}`;
+    const url = `/api/vendor/refunds${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
     const response = await authenticatedFetch(url);
+
     if (!response.ok) {
       throw new Error("Failed to fetch vendor refunds");
     }
-    return response.json();
+
+    const data = await response.json();
+    // Support both Page response and List response (fallback)
+    const rawItems = data.content || (Array.isArray(data) ? data : []);
+    const totalElements = data.totalElements || rawItems.length;
+    const totalPages = data.totalPages || 1;
+
+    const mappedItems = rawItems.map((item: any) => {
+      const amount = Number(item.totalPrice ?? item.refundAmount ?? 0);
+      const serviceName = item.serviceName || item.metadata?.serviceName || item.bookingType || "";
+      const guestInfo = item.guestInfo || item.metadata?.contactInfo || {};
+
+      return {
+        id: item.id,
+        bookingId: item.id,
+        bookingCode: item.bookingCode || "",
+        serviceType: (item.bookingType || "").toString().toUpperCase(),
+        serviceName,
+        userId: item.userId,
+        userName: guestInfo.fullName || "",
+        userEmail: guestInfo.email || "",
+        vendorName: item.vendorName || "",
+        originalAmount: amount,
+        refundPercentage: 100,
+        refundAmount: amount,
+        penaltyAmount: 0,
+        requestDate: item.bookingDate || item.createdAt || new Date().toISOString(),
+        status: "pending", // Default, will be overridden by component logic or we can map it here if needed.
+        // Actually the component ignores api-status and calculates it? 
+        // No, component uses `normalizeStatus`.
+        // Let's pass the status through if available.
+        // Actually, let's map status correctly if possible.
+        // Backend booking status: REFUND_REQUESTED, CANCELLED, etc.
+        // We can map backend status to frontend status string here to be safe.
+        // But for now, let's keep it minimal and let component handle it or pass rough status.
+        reason: item.cancellationReason || "",
+        paymentMethod: item.paymentMethod || "",
+        transactionId: item.transactionId,
+        vendorRefundApproved: item.vendorRefundApproved,
+        // Pass original status so component can normalize
+        rawStatus: item.status
+      } as VendorRefund;
+    });
+
+    return {
+      content: mappedItems,
+      totalElements,
+      totalPages
+    };
   },
 
-  // Vendor approve refund (for vendor-created vouchers)
-  approveRefund: async (refundId: string, notes?: string): Promise<VendorRefund> => {
-    const response = await authenticatedFetch(`/api/vendor/refunds/${refundId}/approve`, {
-      method: "POST",
+  // Vendor records refund decision
+  setRefundDecision: async (bookingId: string, approved: boolean): Promise<VendorRefund> => {
+    const response = await authenticatedFetch(`/api/vendor/refunds/${bookingId}/approval`, {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ notes }),
+      body: JSON.stringify({ approved }),
     });
-    if (!response.ok) {
-      throw new Error("Failed to approve refund");
-    }
-    return response.json();
-  },
 
-  // Vendor reject refund
-  rejectRefund: async (refundId: string, reason: string): Promise<VendorRefund> => {
-    const response = await authenticatedFetch(`/api/vendor/refunds/${refundId}/reject`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ reason }),
-    });
     if (!response.ok) {
-      throw new Error("Failed to reject refund");
+      throw new Error("Failed to update refund decision");
     }
     return response.json();
   },

@@ -7,10 +7,10 @@ import {
   Copy,
   Filter,
   Hotel, Plane,
+  Search,
   Sparkles,
   Tag,
-  Ticket,
-  Search
+  Ticket
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner@2.0.3";
@@ -20,8 +20,8 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
-import { Input } from "../../components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
 import type { PageType } from "../../MainApp";
 import { promotionApi, tokenService, userVoucherApi } from "../../utils/api";
 
@@ -45,6 +45,11 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
   // Filters
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginatedCache, setPaginatedCache] = useState<Map<number, any[]>>(new Map());
+  const itemsPerPage = 9;
 
   // Load saved vouchers from backend
   useEffect(() => {
@@ -160,13 +165,22 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
 
-  // Filter vouchers (still allow category/type filters)
+  // Filter vouchers
   const filteredVouchers = allVouchers.filter(voucher => {
     const categoryValue = (voucher.category || '').toLowerCase();
-    const matchesCategory =
-      selectedCategories.length === 0 ||
-      selectedCategories.includes('all') ||
-      selectedCategories.some(cat => cat === categoryValue);
+    
+    // Category filter logic: if no categories selected, show all
+    // if 'all' is selected, show only promotions with category='ALL'
+    // otherwise show promotions matching selected categories
+    let matchesCategory = true;
+    if (selectedCategories.length > 0) {
+      if (selectedCategories.includes('all')) {
+        matchesCategory = categoryValue === 'all';
+      } else {
+        matchesCategory = selectedCategories.some(cat => cat === categoryValue);
+      }
+    }
+    
     if (!matchesCategory) {
       return false;
     }
@@ -179,7 +193,80 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
       .map((value) => value.toLowerCase());
     return haystack.some((value) => value.includes(normalizedSearch));
   });
-  const visibleVouchers = filteredVouchers;
+
+  // Pagination logic with smart caching
+  const totalPages = Math.ceil(filteredVouchers.length / itemsPerPage);
+  
+  // Calculate which pages to load (current page ± 2)
+  const pagesToLoad = [];
+  for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+    pagesToLoad.push(i);
+  }
+
+  // Load missing pages into cache
+  useEffect(() => {
+    const newCache = new Map(paginatedCache);
+    let hasNewPages = false;
+
+    pagesToLoad.forEach(page => {
+      if (!newCache.has(page)) {
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        newCache.set(page, filteredVouchers.slice(startIndex, endIndex));
+        hasNewPages = true;
+      }
+    });
+
+    if (hasNewPages) {
+      setPaginatedCache(newCache);
+    }
+  }, [currentPage, filteredVouchers, pagesToLoad]);
+
+  // Clear cache when filters change
+  useEffect(() => {
+    setPaginatedCache(new Map());
+    setCurrentPage(1);
+  }, [selectedCategories, selectedTypes, searchQuery]);
+
+  // Get current page data from cache
+  const visibleVouchers = paginatedCache.get(currentPage) || [];
+
+  // Generate page numbers for pagination UI
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    
+    if (totalPages <= 7) {
+      // Show all pages if 7 or fewer
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+      
+      if (currentPage > 3) {
+        pages.push('...');
+      }
+      
+      // Show current page and neighbors
+      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+        if (!pages.includes(i)) {
+          pages.push(i);
+        }
+      }
+      
+      if (currentPage < totalPages - 2) {
+        pages.push('...');
+      }
+      
+      // Always show last page
+      if (!pages.includes(totalPages)) {
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
 
   const handleCopyCode = async (code: string) => {
     try {
@@ -624,11 +711,60 @@ export default function PromotionsPage({ onNavigate }: PromotionsPageProps) {
                 <p className="text-gray-600">Thử thay đổi bộ lọc hoặc quay lại sau.</p>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {visibleVouchers.map(voucher => (
-                  <PromotionCard key={voucher.id} voucher={voucher} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {visibleVouchers.map(voucher => (
+                    <PromotionCard key={voucher.id} voucher={voucher} />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-8 flex items-center justify-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="gap-2"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Trước
+                    </Button>
+
+                    <div className="flex items-center gap-1">
+                      {getPageNumbers().map((page, idx) => (
+                        page === '...' ? (
+                          <span key={`ellipsis-${idx}`} className="px-2 text-gray-400">
+                            ...
+                          </span>
+                        ) : (
+                          <Button
+                            key={page}
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(page as number)}
+                            className={currentPage === page ? "bg-blue-600 text-white" : ""}
+                          >
+                            {page}
+                          </Button>
+                        )
+                      ))}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="gap-2"
+                    >
+                      Sau
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

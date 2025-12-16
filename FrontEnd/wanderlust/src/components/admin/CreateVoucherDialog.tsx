@@ -1,16 +1,16 @@
+import { format } from "date-fns";
+import { Calendar as CalendarIcon, X } from "lucide-react";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
+import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { Calendar } from "../ui/calendar";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Textarea } from "../ui/textarea";
-import { Switch } from "../ui/switch";
-import { Badge } from "../ui/badge";
-import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Calendar as CalendarIcon, X } from "lucide-react";
-import { format } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Switch } from "../ui/switch";
+import { Textarea } from "../ui/textarea";
 
 interface CreateVoucherDialogProps {
   open: boolean;
@@ -31,7 +31,6 @@ export function CreateVoucherDialog({ open, onOpenChange, onVoucherCreated }: Cr
     startDate: new Date(),
     endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days later
     totalUsesLimit: "",
-    userUseLimit: "1",
     status: "ACTIVE",
     conditions: [] as { type: string; value: string; label: string }[],
     image: "",
@@ -54,7 +53,6 @@ export function CreateVoucherDialog({ open, onOpenChange, onVoucherCreated }: Cr
       startDate: format(formData.startDate, "yyyy-MM-dd"),
       endDate: format(formData.endDate, "yyyy-MM-dd"),
       totalUsesLimit: formData.totalUsesLimit ? parseInt(formData.totalUsesLimit) : null,
-      userUseLimit: parseInt(formData.userUseLimit),
       totalUsed: 0,
       createdBy: "ADMIN",
       createdById: "admin_001",
@@ -79,7 +77,6 @@ export function CreateVoucherDialog({ open, onOpenChange, onVoucherCreated }: Cr
       startDate: new Date(),
       endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       totalUsesLimit: "",
-      userUseLimit: "1",
       status: "ACTIVE",
       conditions: [],
       image: "",
@@ -301,28 +298,18 @@ export function CreateVoucherDialog({ open, onOpenChange, onVoucherCreated }: Cr
           <div className="space-y-4">
             <h3 className="text-lg">Giới hạn sử dụng</h3>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="totalUsesLimit">Tổng số lượt sử dụng</Label>
-                <Input
-                  id="totalUsesLimit"
-                  type="number"
-                  value={formData.totalUsesLimit}
-                  onChange={(e) => setFormData({ ...formData, totalUsesLimit: e.target.value })}
-                  placeholder="Không giới hạn"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="userUseLimit">Số lượt/người dùng *</Label>
-                <Input
-                  id="userUseLimit"
-                  type="number"
-                  value={formData.userUseLimit}
-                  onChange={(e) => setFormData({ ...formData, userUseLimit: e.target.value })}
-                  required
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="totalUsesLimit">Tổng số lượt sử dụng</Label>
+              <Input
+                id="totalUsesLimit"
+                type="number"
+                value={formData.totalUsesLimit}
+                onChange={(e) => setFormData({ ...formData, totalUsesLimit: e.target.value })}
+                placeholder="Không giới hạn"
+              />
+              <p className="text-xs text-gray-500">
+                Để trống nếu không giới hạn tổng số lần sử dụng voucher
+              </p>
             </div>
           </div>
 

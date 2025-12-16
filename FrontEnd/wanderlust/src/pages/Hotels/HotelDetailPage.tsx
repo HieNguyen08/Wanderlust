@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { Header } from "../../components/Header";
+import { ReviewList } from "../../components/reviews/ReviewList";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
@@ -455,6 +456,12 @@ Cơ sở lưu trú cung cấp các tiện nghi hiện đại và dịch vụ chu
                   </div>
                 </div>
               </div>
+
+              <ReviewList
+                targetType="HOTEL"
+                targetId={hotel.id}
+                title="Khách nói gì về chỗ nghỉ"
+              />
             </div>
 
             {/* Right Column - Quick Info Card */}

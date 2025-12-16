@@ -8,6 +8,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Repository
 public interface ActivityRepository extends MongoRepository<Activity, String> {
 
@@ -16,6 +19,8 @@ public interface ActivityRepository extends MongoRepository<Activity, String> {
 
     // Tìm theo vendor (cho trang quản lý của partner)
     List<Activity> findByVendorId(String vendorId);
+
+    Page<Activity> findByVendorId(String vendorId, Pageable pageable);
 
     // Ví dụ tìm kiếm đơn giản (Search phức tạp sẽ dùng MongoTemplate trong Service)
     List<Activity> findByLocationId(String locationId);

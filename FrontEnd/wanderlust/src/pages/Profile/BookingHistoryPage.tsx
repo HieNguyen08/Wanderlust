@@ -37,13 +37,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Separator } from "../../components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Textarea } from "../../components/ui/textarea";
 import { useNotification } from "../../contexts/NotificationContext";
 import type { PageType } from "../../MainApp";
-import { tokenService } from "../../utils/api";
+import { reviewApi, tokenService } from "../../utils/api";
 import { type FrontendRole } from "../../utils/roleMapper";
 
 interface BookingHistoryPageProps {
@@ -112,7 +113,7 @@ interface Booking {
 export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: BookingHistoryPageProps) {
   const { t } = useTranslation();
   const { addNotification } = useNotification();
-  const [activeTab, setActiveTab] = useState<"upcoming" | "completed" | "cancelled">("upcoming");
+  const [activeTab, setActiveTab] = useState<"upcoming" | "completed" | "cancelled" | "reviewed">("upcoming");
   const [serviceFilter, setServiceFilter] = useState<"all" | "flight" | "hotel" | "car" | "activity">("all");
 
   // Data states
@@ -133,8 +134,23 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
 
   // Review form states
   const [rating, setRating] = useState(0);
+  const [reviewTitle, setReviewTitle] = useState("");
+  const [reviewTitlePlaceholder, setReviewTitlePlaceholder] = useState("");
   const [reviewText, setReviewText] = useState("");
+  const [reviewTextPlaceholder, setReviewTextPlaceholder] = useState("");
   const [hoverRating, setHoverRating] = useState(0);
+  const [detailedRatings, setDetailedRatings] = useState<{ aspect: string; score: number }[]>([
+    { aspect: "cleanliness", score: 5 },
+    { aspect: "service", score: 5 },
+    { aspect: "value", score: 5 },
+  ]);
+  const [newDetailAspect, setNewDetailAspect] = useState("");
+  const [newDetailScore, setNewDetailScore] = useState<number>(5);
+  const [imageLinks, setImageLinks] = useState<string[]>([]);
+  const [newImageLink, setNewImageLink] = useState("");
+  const [travelDate, setTravelDate] = useState("");
+  const [travelType, setTravelType] = useState<"SOLO" | "COUPLE" | "FAMILY" | "FRIENDS" | "BUSINESS">("SOLO");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Transform backend booking data to UI format
   const transformBookingData = (apiBooking: any): Booking => {
@@ -231,7 +247,7 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
         phone: '1900 xxxx',
         email: 'support@wanderlust.vn'
       },
-      hasReview: false,
+      hasReview: apiBooking.hasReview || false,
       // Additional fields from booking entity
       basePrice: apiBooking.basePrice,
       taxes: apiBooking.taxes,
@@ -450,9 +466,17 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
   // Filter bookings by tab and service type, then sort newest first
   const filteredBookings = bookings
     .filter(b => {
-      const matchStatus = b.status === activeTab;
       const matchService = serviceFilter === "all" || b.type === serviceFilter;
-      return matchStatus && matchService;
+
+      if (activeTab === "reviewed") {
+        return matchService && Boolean(b.hasReview);
+      }
+
+      if (activeTab === "completed") {
+        return matchService && b.status === "completed" && !b.hasReview;
+      }
+
+      return matchService && b.status === activeTab;
     })
     .sort((a, b) => {
       const dateA = new Date(a.rawData?.bookingDate || a.rawData?.createdAt || 0).getTime();
@@ -494,22 +518,185 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
   const handleWriteReview = (booking: Booking) => {
     setSelectedBooking(booking);
     setRating(0);
+    setHoverRating(0);
+    const defaultTitles: Record<string, string> = {
+      flight: "Đánh giá chuyến bay",
+      hotel: "Đánh giá khách sạn",
+      car: "Đánh giá dịch vụ thuê xe",
+      activity: "Đánh giá trải nghiệm",
+    };
+    const defaultComments: Record<string, string> = {
+      flight: `Chia sẻ trải nghiệm chuyến bay ${booking.subtitle || ""}`.trim(),
+      hotel: `Đánh giá kỳ nghỉ tại ${booking.title}`,
+      car: `Đánh giá dịch vụ xe ${booking.title}`,
+      activity: `Đánh giá hoạt động ${booking.title}`,
+    };
+    setReviewTitle("");
     setReviewText("");
+    setReviewTitlePlaceholder(defaultTitles[booking.type] || "Đánh giá của tôi");
+    setReviewTextPlaceholder(defaultComments[booking.type] || "");
+    setDetailedRatings([
+      { aspect: "cleanliness", score: 5 },
+      { aspect: "service", score: 5 },
+      { aspect: "value", score: 5 },
+    ]);
+    setImageLinks([]);
+    setNewImageLink("");
+    setTravelDate(booking.rawData?.startDate ? new Date(booking.rawData.startDate).toISOString().slice(0, 10) : "");
+    setTravelType("SOLO");
     setIsReviewDialogOpen(true);
   };
 
-  const handleSubmitReview = () => {
-    if (rating === 0) {
-      alert(t('profile.bookingHistory.pleaseSelectRating', 'Vui lòng chọn số sao đánh giá'));
+  const handleSubmitReview = async () => {
+    const trimmedTitle = reviewTitle.trim();
+    const trimmedComment = reviewText.trim();
+    const hasValidRating = rating > 0;
+    const hasValidTitle = trimmedTitle.length >= 5;
+    const hasValidComment = trimmedComment.length >= 10;
+
+    if (!hasValidRating) {
+      toast.error(t('profile.bookingHistory.pleaseSelectRating', 'Vui lòng chọn số sao đánh giá'));
       return;
     }
-    // Mock submit
-    alert(t('profile.bookingHistory.reviewSubmitted', `Đã gửi đánh giá {{rating}} sao cho {{title}}`, { rating, title: selectedBooking?.title }));
-    setIsReviewDialogOpen(false);
-    // Update booking to mark as reviewed
-    if (selectedBooking) {
-      selectedBooking.hasReview = true;
+
+    if (!hasValidTitle) {
+      toast.error(t('profile.bookingHistory.pleaseEnterReviewTitle', 'Tiêu đề cần tối thiểu 5 ký tự'));
+      return;
     }
+
+    if (!hasValidComment) {
+      toast.error(t('profile.bookingHistory.pleaseEnterReviewComment', 'Nội dung đánh giá cần tối thiểu 10 ký tự'));
+      return;
+    }
+
+    if (!selectedBooking) {
+      toast.error('Không tìm thấy booking để đánh giá');
+      return;
+    }
+
+    // Map booking -> target for backend DTO
+    const targetTypeMap: Record<Booking["type"], string> = {
+      hotel: "HOTEL",
+      flight: "FLIGHT",
+      car: "CAR",
+      activity: "ACTIVITY",
+    };
+
+    const resolveTargetId = () => {
+      const raw = selectedBooking.rawData || {};
+      
+      // For flight, flightId is an array - take first element
+      if (selectedBooking.type === 'flight' && raw.flightId) {
+        return Array.isArray(raw.flightId) ? raw.flightId[0] : raw.flightId;
+      }
+      
+      return (
+        raw.hotelId ||
+        raw.activityId ||
+        raw.carRentalId ||
+        raw.carId ||
+        raw.targetId ||
+        raw.serviceId ||
+        raw.id
+      );
+    };
+
+    const targetId = resolveTargetId();
+    const targetType = targetTypeMap[selectedBooking.type];
+
+    if (!targetId || !targetType) {
+      toast.error('Không xác định được dịch vụ để gửi đánh giá');
+      return;
+    }
+
+    if (travelDate && Number.isNaN(new Date(travelDate).getTime())) {
+      toast.error(t('profile.bookingHistory.invalidTravelDate', 'Ngày trải nghiệm không hợp lệ'));
+      return;
+    }
+
+    try {
+      setIsSubmittingReview(true);
+      const detailObj = detailedRatings.reduce<Record<string, number>>((acc, item) => {
+        if (item.aspect.trim()) {
+          const clampedScore = Math.min(5, Math.max(1, item.score));
+          acc[item.aspect.trim()] = clampedScore;
+        }
+        return acc;
+      }, {});
+
+      const payload = {
+        bookingId: selectedBooking.id,
+        targetId,
+        targetType,
+        rating,
+        title: trimmedTitle,
+        comment: trimmedComment,
+        detailedRatings: detailObj,
+        images: imageLinks.map((url) => ({ url })),
+        travelDate: travelDate || undefined,
+        travelType,
+      };
+
+      await reviewApi.createReview(payload);
+
+      toast.success(t('profile.bookingHistory.reviewSubmitted', `Đã gửi đánh giá {{rating}} sao cho {{title}}`, {
+        rating,
+        title: selectedBooking.title,
+      }));
+
+      setBookings((prev) => prev.map((b) => (b.id === selectedBooking.id ? { ...b, hasReview: true } : b)));
+      setActiveTab("reviewed");
+      setIsReviewDialogOpen(false);
+      setRating(0);
+      setHoverRating(0);
+      setReviewTitle("");
+      setReviewTitlePlaceholder("");
+      setReviewText("");
+      setReviewTextPlaceholder("");
+      setDetailedRatings([
+        { aspect: "cleanliness", score: 5 },
+        { aspect: "service", score: 5 },
+        { aspect: "value", score: 5 },
+      ]);
+      setImageLinks([]);
+      setNewImageLink("");
+      setTravelDate("");
+      setTravelType("SOLO");
+    } catch (error: any) {
+      console.error('Submit review failed', error);
+      if (error?.message === 'UNAUTHORIZED') {
+        toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để gửi đánh giá.');
+      } else {
+        toast.error(error?.message || 'Không thể gửi đánh giá');
+      }
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  const handleAddDetailRating = () => {
+    if (!newDetailAspect.trim()) return;
+    const score = Math.min(5, Math.max(1, Number(newDetailScore)));
+    setDetailedRatings((prev) => [...prev, { aspect: newDetailAspect.trim(), score: score || 5 }]);
+    setNewDetailAspect("");
+    setNewDetailScore(5);
+  };
+
+  const handleRemoveDetailRating = (aspect: string) => {
+    setDetailedRatings((prev) => prev.filter((item) => item.aspect !== aspect));
+  };
+
+  const handleAddImageLink = () => {
+    if (!newImageLink.trim()) return;
+    setImageLinks((prev) => {
+      if (prev.length >= 5) return prev;
+      return [...prev, newImageLink.trim()];
+    });
+    setNewImageLink("");
+  };
+
+  const handleRemoveImageLink = (url: string) => {
+    setImageLinks((prev) => prev.filter((item) => item !== url));
   };
 
   const handleRequestCancel = (booking: Booking) => {
@@ -589,7 +776,7 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
         <Card className="p-6">
           {/* Tabs for Status */}
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-            <TabsList className="grid grid-cols-3 w-full max-w-xl mb-6">
+            <TabsList className="grid grid-cols-4 w-full max-w-2xl mb-6">
               <TabsTrigger value="upcoming">
                 <AlertCircle className="w-4 h-4 mr-2" />
                 {t('profile.bookingHistory.upcoming')}
@@ -597,6 +784,10 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
               <TabsTrigger value="completed">
                 <CheckCircle className="w-4 h-4 mr-2" />
                 {t('profile.bookingHistory.completed')}
+              </TabsTrigger>
+              <TabsTrigger value="reviewed">
+                <Star className="w-4 h-4 mr-2" />
+                {t('profile.bookingHistory.reviewed', 'Đã đánh giá')}
               </TabsTrigger>
               <TabsTrigger value="cancelled">
                 <XCircle className="w-4 h-4 mr-2" />
@@ -665,6 +856,7 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                   ) : (
                     filteredBookings.map((booking) => {
                     const Icon = getTypeIcon(booking.type);
+                    const isReviewedTab = activeTab === "reviewed";
                     return (
                       <Card key={booking.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                         <div className="flex flex-col md:flex-row">
@@ -731,113 +923,116 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
                                   <Eye className="w-4 h-4" />
                                   {t('profile.bookingHistory.viewDetails', 'Xem chi tiết')}
                                 </Button>
-
-                                {/* For UNPAID bookings - show Pay Now and Cancel buttons */}
-                                {booking.status === "upcoming" && booking.paymentDetails?.paymentStatus !== "COMPLETED" && (
+                                {!isReviewedTab && (
                                   <>
-                                    <Button
-                                      variant="default"
-                                      size="sm"
-                                      className="gap-2 bg-blue-600 hover:bg-blue-700"
-                                      onClick={() => handlePayNow(booking)}
-                                    >
-                                      <CreditCard className="w-4 h-4" />
-                                      {t('profile.bookingHistory.payNow', 'Thanh toán ngay')}
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="gap-2 text-red-600 border-red-300 hover:bg-red-50"
-                                      onClick={() => handleRequestCancel(booking)}
-                                    >
-                                      <Ban className="w-4 h-4" />
-                                      {t('profile.bookingHistory.cancel', 'Hủy')}
-                                    </Button>
-                                  </>
-                                )}
-
-                                {/* For PAID bookings */}
-                                {booking.status === "upcoming" && booking.paymentDetails?.paymentStatus === "COMPLETED" && (
-                                  <>
-                                    {/* Show Confirm Completion from endDate until booking is completed */}
-                                    {(() => {
-                                      const endDateObj = booking.rawData?.endDate ? new Date(booking.rawData.endDate) : null;
-                                      const hasPassedEndDate = endDateObj ? new Date() >= endDateObj : false;
-                                      return hasPassedEndDate && !booking.userConfirmed && (
+                                    {/* For UNPAID bookings - show Pay Now and Cancel buttons */}
+                                    {booking.status === "upcoming" && booking.paymentDetails?.paymentStatus !== "COMPLETED" && (
+                                      <>
                                         <Button
                                           variant="default"
                                           size="sm"
-                                          className="gap-2 bg-green-600 hover:bg-green-700"
-                                          onClick={() => handleConfirmCompletion(booking)}
-                                          disabled={isConfirmingCompletion}
+                                          className="gap-2 bg-blue-600 hover:bg-blue-700"
+                                          onClick={() => handlePayNow(booking)}
                                         >
-                                          <CheckCircle className="w-4 h-4" />
-                                          {t('profile.bookingHistory.confirmCompletion', 'Xác nhận hoàn thành')}
+                                          <CreditCard className="w-4 h-4" />
+                                          {t('profile.bookingHistory.payNow', 'Thanh toán ngay')}
                                         </Button>
-                                      );
-                                    })()}
-
-                                    {/* Show Request Refund from payment completion until endDate + 24h */}
-                                    {(() => {
-                                      const endDateObj = booking.rawData?.endDate ? new Date(booking.rawData.endDate) : null;
-                                      const refundDeadline = endDateObj ? new Date(endDateObj.getTime() + 24 * 60 * 60 * 1000) : null;
-                                      // Show if: no endDate OR current time <= endDate + 24h
-                                      const canRequestRefund = !endDateObj || (refundDeadline && new Date() <= refundDeadline);
-                                      return canRequestRefund && !booking.userConfirmed && (
                                         <Button
                                           variant="outline"
                                           size="sm"
-                                          className="gap-2 text-orange-600 border-orange-300 hover:bg-orange-50"
-                                          onClick={() => handleRequestRefund(booking)}
-                                        >
-                                          <RefreshCw className="w-4 h-4" />
-                                          {t('profile.bookingHistory.requestRefund', 'Yêu cầu hoàn tiền')}
-                                        </Button>
-                                      );
-                                    })()}
-
-                                    {/* Show Cancel (with refund) before endDate for paid bookings */}
-                                    {(() => {
-                                      const endDateObj = booking.rawData?.endDate ? new Date(booking.rawData.endDate) : null;
-                                      // Show if: no endDate OR current time < endDate
-                                      const canCancel = !endDateObj || new Date() < endDateObj;
-                                      return canCancel && (
-                                        <Button
-                                          variant="destructive"
-                                          size="sm"
-                                          className="gap-2"
+                                          className="gap-2 text-red-600 border-red-300 hover:bg-red-50"
                                           onClick={() => handleRequestCancel(booking)}
                                         >
                                           <Ban className="w-4 h-4" />
-                                          {t('profile.bookingHistory.cancelAndRefund', 'Hủy & Hoàn tiền')}
+                                          {t('profile.bookingHistory.cancel', 'Hủy')}
                                         </Button>
-                                      );
-                                    })()}
+                                      </>
+                                    )}
+
+                                    {/* For PAID bookings */}
+                                    {booking.status === "upcoming" && booking.paymentDetails?.paymentStatus === "COMPLETED" && (
+                                      <>
+                                        {/* Show Confirm Completion from endDate until booking is completed */}
+                                        {(() => {
+                                          const endDateObj = booking.rawData?.endDate ? new Date(booking.rawData.endDate) : null;
+                                          const hasPassedEndDate = endDateObj ? new Date() >= endDateObj : false;
+                                          return hasPassedEndDate && !booking.userConfirmed && (
+                                            <Button
+                                              variant="default"
+                                              size="sm"
+                                              className="gap-2 bg-green-600 hover:bg-green-700"
+                                              onClick={() => handleConfirmCompletion(booking)}
+                                              disabled={isConfirmingCompletion}
+                                            >
+                                              <CheckCircle className="w-4 h-4" />
+                                              {t('profile.bookingHistory.confirmCompletion', 'Xác nhận hoàn thành')}
+                                            </Button>
+                                          );
+                                        })()}
+
+                                        {/* Show Request Refund from payment completion until endDate + 24h */}
+                                        {(() => {
+                                          const endDateObj = booking.rawData?.endDate ? new Date(booking.rawData.endDate) : null;
+                                          const refundDeadline = endDateObj ? new Date(endDateObj.getTime() + 24 * 60 * 60 * 1000) : null;
+                                          // Show if: no endDate OR current time <= endDate + 24h
+                                          const canRequestRefund = !endDateObj || (refundDeadline && new Date() <= refundDeadline);
+                                          return canRequestRefund && !booking.userConfirmed && (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className="gap-2 text-orange-600 border-orange-300 hover:bg-orange-50"
+                                              onClick={() => handleRequestRefund(booking)}
+                                            >
+                                              <RefreshCw className="w-4 h-4" />
+                                              {t('profile.bookingHistory.requestRefund', 'Yêu cầu hoàn tiền')}
+                                            </Button>
+                                          );
+                                        })()}
+
+                                        {/* Show Cancel (with refund) before endDate for paid bookings */}
+                                        {(() => {
+                                          const endDateObj = booking.rawData?.endDate ? new Date(booking.rawData.endDate) : null;
+                                          // Show if: no endDate OR current time < endDate
+                                          const canCancel = !endDateObj || new Date() < endDateObj;
+                                          return canCancel && (
+                                            <Button
+                                              variant="destructive"
+                                              size="sm"
+                                              className="gap-2"
+                                              onClick={() => handleRequestCancel(booking)}
+                                            >
+                                              <Ban className="w-4 h-4" />
+                                              {t('profile.bookingHistory.cancelAndRefund', 'Hủy & Hoàn tiền')}
+                                            </Button>
+                                          );
+                                        })()}
+                                      </>
+                                    )}
+
+                                    {/* For COMPLETED bookings - show review option */}
+                                    {booking.status === "completed" && !booking.hasReview && (
+                                      <Button
+                                        size="sm"
+                                        className="gap-2"
+                                        onClick={() => handleWriteReview(booking)}
+                                      >
+                                        <Star className="w-4 h-4" />
+                                        {t('profile.bookingHistory.writeReview', 'Viết đánh giá')}
+                                      </Button>
+                                    )}
+
+                                    {booking.status === "completed" && booking.hasReview && (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-2"
+                                        disabled
+                                      >
+                                        <CheckCircle className="w-4 h-4" />
+                                        {t('profile.bookingHistory.reviewed', 'Đã đánh giá')}
+                                      </Button>
+                                    )}
                                   </>
-                                )}
-
-                                {/* For COMPLETED bookings - show review option */}
-                                {booking.status === "completed" && !booking.hasReview && (
-                                  <Button
-                                    size="sm"
-                                    className="gap-2"
-                                    onClick={() => handleWriteReview(booking)}
-                                  >
-                                    <Star className="w-4 h-4" />
-                                    {t('profile.bookingHistory.writeReview', 'Viết đánh giá')}
-                                  </Button>
-                                )}
-
-                                {booking.status === "completed" && booking.hasReview && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-2"
-                                    disabled
-                                  >
-                                    <CheckCircle className="w-4 h-4" />
-                                    {t('profile.bookingHistory.reviewed', 'Đã đánh giá')}
-                                  </Button>
                                 )}
                               </div>
                             </div>
@@ -1261,7 +1456,7 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* Star Rating */}
             <div>
               <Label>Đánh giá của bạn</Label>
@@ -1295,17 +1490,115 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
               )}
             </div>
 
-            {/* Review Text */}
+            <div>
+              <Label htmlFor="title">Tiêu đề</Label>
+              <Input
+                id="title"
+                value={reviewTitle}
+                onChange={(e) => setReviewTitle(e.target.value)}
+                placeholder={reviewTitlePlaceholder || "Ví dụ: Trải nghiệm tuyệt vời tại khách sạn"}
+                className="mt-2"
+              />
+            </div>
+
             <div>
               <Label htmlFor="review">{t('profile.bookingHistory.yourReview', 'Nhận xét của bạn')}</Label>
               <Textarea
                 id="review"
-                placeholder={t('profile.bookingHistory.shareExperience', 'Chia sẻ trải nghiệm của bạn...')}
+                placeholder={reviewTextPlaceholder || t('profile.bookingHistory.shareExperience', 'Chia sẻ trải nghiệm của bạn...')}
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
                 rows={5}
                 className="mt-2"
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Ngày trải nghiệm</Label>
+                <Input
+                  type="date"
+                  value={travelDate}
+                  onChange={(e) => setTravelDate(e.target.value)}
+                  className="mt-2"
+                />
+              </div>
+              <div>
+                <Label>Hình thức chuyến đi</Label>
+                <select
+                  className="mt-2 w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={travelType}
+                  onChange={(e) => setTravelType(e.target.value as any)}
+                >
+                  <option value="SOLO">Đi một mình</option>
+                  <option value="COUPLE">Cặp đôi</option>
+                  <option value="FAMILY">Gia đình</option>
+                  <option value="FRIENDS">Bạn bè</option>
+                  <option value="BUSINESS">Công tác</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <Label>Điểm chi tiết (không bắt buộc)</Label>
+                <span className="text-xs text-gray-500">Tối đa 5 mục</span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mt-2">
+                {detailedRatings.map((item) => (
+                  <span key={item.aspect} className="px-3 py-1 bg-gray-100 rounded-full text-sm flex items-center gap-2">
+                    {item.aspect}: {item.score}/5
+                    <Button size="sm" variant="ghost" className="h-7" onClick={() => handleRemoveDetailRating(item.aspect)}>
+                      ×
+                    </Button>
+                  </span>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                <Input
+                  placeholder="cleanliness"
+                  value={newDetailAspect}
+                  onChange={(e) => setNewDetailAspect(e.target.value)}
+                />
+                <Input
+                  type="number"
+                  min={1}
+                  max={5}
+                  value={newDetailScore}
+                  onChange={(e) => setNewDetailScore(Number(e.target.value))}
+                />
+                <Button onClick={handleAddDetailRating} disabled={detailedRatings.length >= 5}>
+                  Thêm điểm
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <Label>Hình ảnh (tối đa 5 đường link)</Label>
+              </div>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  placeholder="https://..."
+                  value={newImageLink}
+                  onChange={(e) => setNewImageLink(e.target.value)}
+                />
+                <Button variant="outline" onClick={handleAddImageLink} disabled={imageLinks.length >= 5}>
+                  Thêm ảnh
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {imageLinks.map((url) => (
+                  <span key={url} className="px-3 py-1 bg-gray-100 rounded-full text-sm flex items-center gap-2">
+                    {url.length > 30 ? `${url.slice(0, 30)}...` : url}
+                    <Button size="sm" variant="ghost" className="h-7" onClick={() => handleRemoveImageLink(url)}>
+                      ×
+                    </Button>
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -1313,8 +1606,18 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
             <Button variant="outline" onClick={() => setIsReviewDialogOpen(false)}>
               {t('profile.bookingHistory.cancel', 'Hủy')}
             </Button>
-            <Button onClick={handleSubmitReview}>
-              {t('profile.bookingHistory.submitReview', 'Gửi đánh giá')}
+            <Button
+              onClick={handleSubmitReview}
+              disabled={
+                isSubmittingReview ||
+                rating === 0 ||
+                reviewTitle.trim().length < 5 ||
+                reviewText.trim().length < 10
+              }
+            >
+              {isSubmittingReview
+                ? t('profile.bookingHistory.submittingReview', 'Đang gửi...')
+                : t('profile.bookingHistory.submitReview', 'Gửi đánh giá')}
             </Button>
           </DialogFooter>
         </DialogContent>

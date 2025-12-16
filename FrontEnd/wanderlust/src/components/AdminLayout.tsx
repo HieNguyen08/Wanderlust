@@ -18,12 +18,13 @@ import {
 } from "lucide-react";
 import { ReactNode, useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
+import { adminBookingApi } from "../api/adminBookingApi";
 import { adminUserApi } from "../api/adminUserApi";
 import avatarMan from '../assets/images/avatarman.jpeg';
 import avatarOther from '../assets/images/avatarother.jpeg';
 import avatarWoman from '../assets/images/avatarwoman.jpeg';
 import type { PageType } from "../MainApp";
-import { adminApi, adminWalletApi, tokenService, vendorApi } from "../utils/api";
+import { adminApi, tokenService, vendorApi } from "../utils/api";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -81,8 +82,8 @@ export function AdminLayout({ children, currentPage, onNavigate, onLogout, activ
           // Pending reviews: returns List<?>
           adminApi.getPendingReviews().catch(() => []),
 
-          // Pending refunds: returns Page<PendingRefundDTO>
-          adminWalletApi.getPendingRefunds({ page: 0, size: 1 }).catch(() => ({ totalElements: 0 })),
+          // Pending refunds: bookings with refund requested
+          adminBookingApi.getRefundRequests().catch(() => []),
 
           // Services (manual filter for pending)
           vendorApi.getServices("hotels", { size: 100 }).catch(() => ({ content: [] })),
@@ -111,7 +112,11 @@ export function AdminLayout({ children, currentPage, onNavigate, onLogout, activ
         const pendingReviewsCount = normalizeList(reviewsData).length;
 
         // Refunds returns Page object with totalElements
-        const refundsCount = refundsData.totalElements ?? normalizeList(refundsData).length;
+        const refundsList = normalizeList(refundsData);
+        const refundsCount = refundsList.filter((r: any) => {
+          const status = (r.status || '').toString().toUpperCase();
+          return status === 'REFUND_REQUESTED' || status === 'PENDING';
+        }).length;
 
         setCounts({
           users: usersCount,

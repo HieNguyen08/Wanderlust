@@ -36,6 +36,7 @@ public class ReviewCommentDTO {
 
     private ReviewStatus status;
     private Integer helpfulCount;
+    private Integer notHelpfulCount;
 
     private String vendorResponse;
     private LocalDateTime vendorRespondedAt;
@@ -43,6 +44,17 @@ public class ReviewCommentDTO {
     private Boolean verified;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // User info for display
+    private String userFullName;
+    private String userAvatar;
+    private String userCity;
+
+    // Flight metadata (optional)
+    private String flightNumber;
+    private String airlineCode;
+    private String airlineName;
+    private String airlineLogo;
 
     // Inner DTO cho Image
     @Data

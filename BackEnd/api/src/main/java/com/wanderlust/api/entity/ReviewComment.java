@@ -75,6 +75,15 @@ public class ReviewComment {
     // --- Verification ---
     private Boolean verified; // Check xem đúng là user đã book không
 
+    // --- Flight metadata (optional, cho review flight) ---
+    private String flightNumber; // VD: "VN123"
+    private String airlineCode;  // VD: "VN"
+    private String airlineName;  // VD: "Vietnam Airlines"
+    private String airlineLogo;  // URL logo hãng bay
+
+    // --- Voting ---
+    // removed duplicate notHelpfulCount field
+
     // --- Audit ---
     @CreatedDate
     private LocalDateTime createdAt;

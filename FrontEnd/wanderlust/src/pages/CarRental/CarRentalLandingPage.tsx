@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Calendar as CalendarIcon, Check, ChevronDown, Clock, Fuel, Heart, Settings, Shield, Star, Users, Zap } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
 import { Footer } from "../../components/Footer";
@@ -18,6 +18,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Label } from "../../components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
+import { PaginationUI } from "../../components/ui/PaginationUI";
 import { carRentalApi, locationApi, promotionApi, tokenService, userVoucherApi } from "../../utils/api";
 
 interface CarRentalLandingPageProps {
@@ -53,6 +54,15 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
   const [popularCars, setPopularCars] = useState<any[]>([]);
   const [recommendedCars, setRecommendedCars] = useState<any[]>([]);
 
+  const [popularCache, setPopularCache] = useState<Map<number, any[]>>(new Map());
+  const [recommendedCache, setRecommendedCache] = useState<Map<number, any[]>>(new Map());
+  const [popularLoadingPages, setPopularLoadingPages] = useState<Set<number>>(new Set());
+  const [recommendedLoadingPages, setRecommendedLoadingPages] = useState<Set<number>>(new Set());
+  const [popularTotalPages, setPopularTotalPages] = useState(0);
+  const [recommendedTotalPages, setRecommendedTotalPages] = useState(0);
+  const [popularCurrentPage, setPopularCurrentPage] = useState(1);
+  const [recommendedCurrentPage, setRecommendedCurrentPage] = useState(1);
+
   // Vouchers/Promotions
   const [promotions, setPromotions] = useState<any[]>([]);
   const [loadingPromotions, setLoadingPromotions] = useState(true);
@@ -70,6 +80,8 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
   const [isSearching, setIsSearching] = useState(false);
   const [popularSortMode, setPopularSortMode] = useState<"trips" | "createdAt">("trips");
 
+  const ITEMS_PER_PAGE = 6;
+
   // Ref for search section
   const searchSectionRef = useRef<HTMLDivElement>(null);
 
@@ -80,6 +92,121 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
   const [dropoffLocationOpen, setDropoffLocationOpen] = useState(false);
   const [dropoffDateOpen, setDropoffDateOpen] = useState(false);
   const [dropoffTimeOpen, setDropoffTimeOpen] = useState(false);
+
+  const mapCars = (cars: any[]) => cars.map((car: any) => ({
+    id: car.id,
+    name: `${car.brand} ${car.model}`,
+    brand: car.brand,
+    model: car.model,
+    year: car.year,
+    type: car.type || "SUV",
+    image: car.images?.[0]?.url || "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800",
+    gasoline: car.fuelType || "Gasoline",
+    transmission: car.transmission || "Manual",
+    capacity: `${car.seats || 5} People`,
+    seats: car.seats,
+    price: car.pricePerDay ? parseFloat(car.pricePerDay) : 0,
+    pricePerHour: car.pricePerHour ? parseFloat(car.pricePerHour) : 0,
+    liked: false,
+    rating: car.averageRating ?? car.rating ?? 0,
+    totalTrips: car.totalTrips || 0,
+    city: car.city,
+    createdAt: car.createdAt ? new Date(car.createdAt) : null,
+    features: car.features || [],
+    insurance: car.insurance,
+    deposit: car.deposit ? parseFloat(car.deposit) : 0,
+  }));
+
+  const getPagesToLoad = (page: number, total: number) => {
+    const pages = [page];
+    if (page > 1) pages.push(page - 1);
+    if (page > 2) pages.push(page - 2);
+    if (total === 0 || page < total) pages.push(page + 1);
+    if (total === 0 || page < total - 1) pages.push(page + 2);
+    return pages;
+  };
+
+  const loadPopularPages = async (pagesToLoad: number[]) => {
+    const pagesToFetch = pagesToLoad.filter((p) => !popularCache.has(p) && !popularLoadingPages.has(p));
+    if (pagesToFetch.length === 0) return;
+
+    setPopularLoadingPages((prev) => {
+      const next = new Set(prev);
+      pagesToFetch.forEach((p) => next.add(p));
+      return next;
+    });
+
+    try {
+      const results = await Promise.all(pagesToFetch.map(async (page) => {
+        const resp = await carRentalApi.getAllCars({ page: page - 1, size: ITEMS_PER_PAGE, sortBy: 'totalTrips', sortDir: 'desc' });
+        const raw = Array.isArray(resp) ? resp : (resp?.content || []);
+        const totalPages = resp?.totalPages || (resp?.totalElements ? Math.max(1, Math.ceil(resp.totalElements / ITEMS_PER_PAGE)) : Math.max(1, Math.ceil(raw.length / ITEMS_PER_PAGE)));
+        const pageData = resp?.content ? raw : raw.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+        const mapped = mapCars(pageData).sort((a, b) => (b.totalTrips || 0) - (a.totalTrips || 0));
+        return { page, mapped, totalPages };
+      }));
+
+      setPopularCache((prev) => {
+        const next = new Map(prev);
+        results.forEach(({ page, mapped }) => next.set(page, mapped));
+        return next;
+      });
+
+      setPopularTotalPages((prev) => {
+        const maxPages = Math.max(prev, ...results.map((r) => r.totalPages));
+        return maxPages;
+      });
+    } catch (error) {
+      console.error('❌ Failed to load popular cars pages:', error);
+    } finally {
+      setPopularLoadingPages((prev) => {
+        const next = new Set(prev);
+        pagesToFetch.forEach((p) => next.delete(p));
+        return next;
+      });
+    }
+  };
+
+  const loadRecommendedPages = async (pagesToLoad: number[]) => {
+    const pagesToFetch = pagesToLoad.filter((p) => !recommendedCache.has(p) && !recommendedLoadingPages.has(p));
+    if (pagesToFetch.length === 0) return;
+
+    setRecommendedLoadingPages((prev) => {
+      const next = new Set(prev);
+      pagesToFetch.forEach((p) => next.add(p));
+      return next;
+    });
+
+    try {
+      const results = await Promise.all(pagesToFetch.map(async (page) => {
+        const resp = await carRentalApi.getAllCars({ page: page - 1, size: ITEMS_PER_PAGE, sortBy: 'averageRating', sortDir: 'desc' });
+        const raw = Array.isArray(resp) ? resp : (resp?.content || []);
+        const totalPages = resp?.totalPages || (resp?.totalElements ? Math.max(1, Math.ceil(resp.totalElements / ITEMS_PER_PAGE)) : Math.max(1, Math.ceil(raw.length / ITEMS_PER_PAGE)));
+        const pageData = resp?.content ? raw : raw.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+        const mapped = mapCars(pageData).sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        return { page, mapped, totalPages };
+      }));
+
+      setRecommendedCache((prev) => {
+        const next = new Map(prev);
+        results.forEach(({ page, mapped }) => next.set(page, mapped));
+        return next;
+      });
+
+      setRecommendedTotalPages((prev) => {
+        const maxPages = Math.max(prev, ...results.map((r) => r.totalPages));
+        return maxPages;
+      });
+    } catch (error) {
+      console.error('❌ Failed to load recommended cars pages:', error);
+    } finally {
+      setRecommendedLoadingPages((prev) => {
+        const next = new Set(prev);
+        pagesToFetch.forEach((p) => next.delete(p));
+        return next;
+      });
+    }
+  };
 
   // Load saved vouchers from backend
   useEffect(() => {
@@ -191,61 +318,27 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
     fetchLocations();
   }, []);
 
-  // Fetch cars from backend
+  // Prefetch popular and recommended car pages with caching (+/-2 pages)
   useEffect(() => {
-    const fetchCars = async () => {
-      try {
-        // Fetch all cars from backend
-        const allCars = await carRentalApi.getAllCars();
-        
-        // Map backend data to frontend format
-        const mappedCars = (Array.isArray(allCars) ? allCars : []).map((car: any) => ({
-          id: car.id,
-          name: `${car.brand} ${car.model}`,
-          brand: car.brand,
-          model: car.model,
-          year: car.year,
-          type: car.type || "SUV",
-          image: car.images?.[0]?.url || "https://images.unsplash.com/photo-1698413935252-04ed6377296d?w=800",
-          gasoline: car.fuelType || "Gasoline",
-          transmission: car.transmission || "Manual",
-          capacity: `${car.seats || 5} People`,
-          seats: car.seats,
-          price: car.pricePerDay ? parseFloat(car.pricePerDay) : 0,
-          pricePerHour: car.pricePerHour ? parseFloat(car.pricePerHour) : 0,
-          liked: false,
-          rating: car.averageRating || (4.5 + Math.random() * 0.5),
-          totalTrips: car.totalTrips || 0,
-          city: car.city, // Add city from backend
-          createdAt: car.createdAt ? new Date(car.createdAt) : null,
-          features: car.features || [],
-          insurance: car.insurance,
-          deposit: car.deposit ? parseFloat(car.deposit) : 0,
-        }));
-
-        // Sort for popular cars: totalTrips desc; if all zero, sort by created date old → new
-        const allTripsZero = mappedCars.every((car) => (car.totalTrips || 0) === 0);
-        const sortedByTripsOrDate = [...mappedCars].sort((a, b) => {
-          if (allTripsZero) {
-            const aDate = a.createdAt ? a.createdAt.getTime() : 0;
-            const bDate = b.createdAt ? b.createdAt.getTime() : 0;
-            return aDate - bDate; // oldest first
-          }
-          return (b.totalTrips || 0) - (a.totalTrips || 0);
-        });
-        setPopularCars(sortedByTripsOrDate.slice(0, 4));
-        setPopularSortMode(allTripsZero ? "createdAt" : "trips");
-
-        // Random selection for recommended cars
-        const shuffled = [...mappedCars].sort(() => Math.random() - 0.5);
-        setRecommendedCars(shuffled.slice(0, 4));
-      } catch (error) {
-        console.error("Failed to fetch cars:", error);
-      }
-    };
-
-    fetchCars();
+    loadPopularPages([1, 2, 3]);
+    loadRecommendedPages([1, 2, 3]);
   }, []);
+
+  useEffect(() => {
+    const pages = getPagesToLoad(popularCurrentPage, popularTotalPages);
+    loadPopularPages(pages);
+  }, [popularCurrentPage, popularTotalPages]);
+
+  useEffect(() => {
+    const pages = getPagesToLoad(recommendedCurrentPage, recommendedTotalPages);
+    loadRecommendedPages(pages);
+  }, [recommendedCurrentPage, recommendedTotalPages]);
+
+  const popularDisplay = useMemo(() => popularCache.get(popularCurrentPage) || [], [popularCache, popularCurrentPage]);
+  const recommendedDisplay = useMemo(() => recommendedCache.get(recommendedCurrentPage) || [], [recommendedCache, recommendedCurrentPage]);
+
+  const isPopularLoading = popularCache.size === 0 && popularLoadingPages.size > 0;
+  const isRecommendedLoading = recommendedCache.size === 0 && recommendedLoadingPages.size > 0;
 
   // Scroll to search section
   const scrollToSearch = () => {
@@ -786,11 +879,24 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
               Xem tất cả →
             </Button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {popularCars.map((car) => (
-              <CarCard key={car.id} car={car} onNavigate={onNavigate} />
-            ))}
-          </div>
+          {isPopularLoading ? (
+            <div className="text-center py-12 text-gray-500">Đang tải xe phổ biến...</div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {popularDisplay.map((car) => (
+                  <CarCard key={`${car.id}-popular`} car={car} onNavigate={onNavigate} />
+                ))}
+              </div>
+              <div className="mt-6 flex justify-center">
+                <PaginationUI
+                  currentPage={popularCurrentPage}
+                  totalPages={popularTotalPages || Math.max(1, popularCache.size)}
+                  onPageChange={setPopularCurrentPage}
+                />
+              </div>
+            </>
+          )}
         </section>
 
         {/* Recommended Cars */}
@@ -799,11 +905,24 @@ export default function CarRentalLandingPage({ onNavigate, userRole, onLogout }:
             <h2 className="text-2xl text-gray-900 mb-1">Xe đề xuất</h2>
             <p className="text-gray-600">Lựa chọn phù hợp cho chuyến đi của bạn</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {recommendedCars.map((car) => (
-              <CarCard key={car.id} car={car} onNavigate={onNavigate} />
-            ))}
-          </div>
+          {isRecommendedLoading ? (
+            <div className="text-center py-12 text-gray-500">Đang tải xe đề xuất...</div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {recommendedDisplay.map((car) => (
+                  <CarCard key={`${car.id}-recommended`} car={car} onNavigate={onNavigate} />
+                ))}
+              </div>
+              <div className="mt-6 flex justify-center">
+                <PaginationUI
+                  currentPage={recommendedCurrentPage}
+                  totalPages={recommendedTotalPages || Math.max(1, recommendedCache.size)}
+                  onPageChange={setRecommendedCurrentPage}
+                />
+              </div>
+            </>
+          )}
         </section>
 
         {/* Show More */}

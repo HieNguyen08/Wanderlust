@@ -32,7 +32,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     const loadDashboardData = async () => {
       try {
         setLoading(true);
-        const [stats, allBookings, hotels, reviews] = await Promise.all([
+        const [stats, allBookings, hotelsResponse, reviews] = await Promise.all([
           adminApi.getBookingStatistics(),
           adminApi.getAllBookings(),
           hotelApi.searchHotels(),
@@ -42,12 +42,16 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         setStatistics(stats);
         
         // Lấy 5 booking mới nhất
-        const sortedBookings = allBookings
+        const bookingsArray = Array.isArray(allBookings) ? allBookings : allBookings?.content ?? [];
+        const sortedBookings = bookingsArray
           .sort((a: any, b: any) => new Date(b.bookingDate || b.createdAt || 0).getTime() - new Date(a.bookingDate || a.createdAt || 0).getTime())
           .slice(0, 5);
         setRecentBookings(sortedBookings);
         
         // Sắp xếp khách sạn theo đánh giá (averageRating) từ cao đến thấp
+        const hotels = Array.isArray(hotelsResponse)
+          ? hotelsResponse
+          : hotelsResponse?.content ?? [];
         const sortedHotels = hotels
           .filter((h: any) => h.averageRating && h.averageRating > 0)
           .sort((a: any, b: any) => (b.averageRating || 0) - (a.averageRating || 0))
@@ -55,7 +59,8 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         setTopHotels(sortedHotels);
         
         // Lấy 3 review mới nhất
-        const sortedReviews = reviews
+        const reviewsArray = Array.isArray(reviews) ? reviews : reviews?.content ?? [];
+        const sortedReviews = reviewsArray
           .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
           .slice(0, 3);
         setLatestReviews(sortedReviews);

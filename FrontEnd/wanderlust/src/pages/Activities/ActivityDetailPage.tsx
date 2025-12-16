@@ -1,15 +1,15 @@
 import {
-    Calendar,
-    Check,
-    Clock,
-    Heart,
-    MapPin,
-    RefreshCw,
-    Share2,
-    Shield,
-    Star,
-    Ticket,
-    Users
+  Calendar,
+  Check,
+  Clock,
+  Heart,
+  MapPin,
+  RefreshCw,
+  Share2,
+  Shield,
+  Star,
+  Ticket,
+  Users
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { Header } from "../../components/Header";
+import { ReviewList } from "../../components/reviews/ReviewList";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -317,6 +318,12 @@ export default function ActivityDetailPage({ activity: initialActivityProp, acti
                 </div>
               </div>
             </Card>
+
+            <ReviewList
+              targetType="ACTIVITY"
+              targetId={activity.id}
+              title={t('activitiesPage.reviews', 'Đánh giá hoạt động')}
+            />
           </div>
 
           {/* Right Column - Booking Card */}

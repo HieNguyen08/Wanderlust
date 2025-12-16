@@ -9,15 +9,15 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.wanderlust.api.dto.VendorBookingResponse;
+import com.wanderlust.api.dto.BookingDTO;
 import com.wanderlust.api.services.BookingService;
 import com.wanderlust.api.services.CustomOAuth2User;
 import com.wanderlust.api.services.CustomUserDetails;
@@ -27,13 +27,12 @@ import lombok.AllArgsConstructor;
 @CrossOrigin
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/vendor/bookings")
+@RequestMapping("/api/vendor/refunds")
 @PreAuthorize("hasRole('VENDOR')")
-public class VendorBookingController {
+public class VendorRefundController {
 
     private final BookingService bookingService;
 
-    // Helper để lấy UserID từ Authentication
     private String getVendorIdFromAuthentication(Authentication authentication) {
         Object principal = authentication.getPrincipal();
         String userId;
@@ -52,35 +51,29 @@ public class VendorBookingController {
         return userId;
     }
 
-    // ... imports
+    // ...
 
     @GetMapping
-    public ResponseEntity<Page<VendorBookingResponse>> getVendorBookings(
+    public ResponseEntity<Page<BookingDTO>> getVendorRefunds(
             Authentication authentication,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         String vendorId = getVendorIdFromAuthentication(authentication);
-        return new ResponseEntity<>(bookingService.findVendorBookingsView(vendorId, search, status, page, size),
-                HttpStatus.OK);
+        return new ResponseEntity<>(
+                bookingService.findVendorRefundRequestsPaginated(vendorId, search, status, page, size), HttpStatus.OK);
     }
 
-    @PostMapping("/{id}/confirm")
+    @PatchMapping("/{id}/approval")
     @PreAuthorize("@webSecurity.isBookingVendor(authentication, #id)")
-    public ResponseEntity<VendorBookingResponse> confirmBooking(@PathVariable String id) {
-        bookingService.confirmBooking(id);
-        return new ResponseEntity<>(bookingService.getVendorBookingView(id), HttpStatus.OK);
-    }
-
-    @PostMapping("/{id}/reject")
-    @PreAuthorize("@webSecurity.isBookingVendor(authentication, #id)")
-    public ResponseEntity<VendorBookingResponse> rejectBooking(
+    public ResponseEntity<BookingDTO> updateVendorRefundApproval(
             @PathVariable String id,
-            @RequestBody(required = false) Map<String, String> payload) {
-
-        String reason = payload != null ? payload.get("reason") : "Vendor rejected";
-        bookingService.rejectBooking(id, reason);
-        return new ResponseEntity<>(bookingService.getVendorBookingView(id), HttpStatus.OK);
+            @RequestBody Map<String, Object> payload,
+            Authentication authentication) {
+        String vendorId = getVendorIdFromAuthentication(authentication);
+        boolean approved = payload != null && Boolean.TRUE.equals(payload.get("approved"));
+        BookingDTO updated = bookingService.updateVendorRefundApproval(id, vendorId, approved);
+        return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 }

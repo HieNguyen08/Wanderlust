@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,11 +33,16 @@ public class FlightController {
     private FlightService flightService;
 
     @GetMapping
-    public ResponseEntity<List<Flight>> getAllFlights() {
-        return ResponseEntity.ok(flightService.getAllFlights());
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<Page<Flight>> getAllFlights(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(flightService.getAllFlights(search, page, size));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Flight> getFlightById(@PathVariable String id) {
         return flightService.getFlightById(id)
                 .map(ResponseEntity::ok)
@@ -44,7 +50,8 @@ public class FlightController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Flight>> searchFlights(
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<Page<Flight>> searchFlights(
             @RequestParam String from,
             @RequestParam String to,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
@@ -53,15 +60,18 @@ public class FlightController {
             @RequestParam(required = false) java.math.BigDecimal minPrice,
             @RequestParam(required = false) java.math.BigDecimal maxPrice,
             @RequestParam(required = false) String cabinClass,
-            @RequestParam(required = false) String departureTimeRange) {
+            @RequestParam(required = false) String departureTimeRange,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size) {
 
-        List<Flight> flights = flightService.searchFlights(
+        Page<Flight> flights = flightService.searchFlights(
                 from, to, date, directOnly, airlines,
-                minPrice, maxPrice, cabinClass, departureTimeRange);
+                minPrice, maxPrice, cabinClass, departureTimeRange, page, size);
         return ResponseEntity.ok(flights);
     }
 
     @GetMapping("/range")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<Flight>> getFlightsByDateRange(
             @RequestParam String from,
             @RequestParam String to,
@@ -73,6 +83,7 @@ public class FlightController {
     }
 
     @GetMapping("/nearest")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<Flight>> getNearestFlights(
             @RequestParam(defaultValue = "50") int limit) {
         List<Flight> flights = flightService.getNearestFlights(limit);
@@ -80,12 +91,14 @@ public class FlightController {
     }
 
     @GetMapping("/by-airline/{airlineCode}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<Flight>> getFlightsByAirline(@PathVariable String airlineCode) {
         List<Flight> flights = flightService.getFlightsByAirline(airlineCode);
         return ResponseEntity.ok(flights);
     }
 
     @GetMapping("/by-type")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<Flight>> getFlightsByType(
             @RequestParam Boolean isInternational) {
         List<Flight> flights = flightService.getFlightsByType(isInternational);

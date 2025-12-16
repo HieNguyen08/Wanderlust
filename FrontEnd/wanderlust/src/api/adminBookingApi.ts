@@ -1,4 +1,4 @@
-import { authenticatedFetch } from "../utils/api";
+import { authenticatedFetch, tokenService } from "../utils/api";
 
 const ADMIN_BOOKINGS_BASE = "/api/v1/admin/bookings";
 
@@ -58,6 +58,7 @@ export interface AdminBooking {
   cancelledAt?: string;
   cancelledBy?: string;
   vendorConfirmed?: boolean;
+  vendorRefundApproved?: boolean | null;
 
   createdAt?: string;
   updatedAt?: string;
@@ -177,10 +178,15 @@ export const adminBookingApi = {
   // Load service details for a booking
   loadServiceDetails: async (booking: AdminBooking): Promise<ServiceDetails | null> => {
     try {
+      // Skip detail fetches when not authenticated to avoid noisy 401 spam in admin view
+      if (!tokenService.isAuthenticated()) {
+        return null;
+      }
+
       switch (booking.bookingType) {
         case "FLIGHT":
           if (booking.flightId) {
-            const response = await authenticatedFetch(`/api/v1/flights/${booking.flightId}`);
+            const response = await authenticatedFetch(`/api/flights/${booking.flightId}`);
             if (response.ok) {
               const flight = await response.json();
               return {
@@ -196,7 +202,7 @@ export const adminBookingApi = {
         
         case "HOTEL":
           if (booking.hotelId) {
-            const response = await authenticatedFetch(`/api/v1/hotels/${booking.hotelId}`);
+            const response = await authenticatedFetch(`/api/hotels/${booking.hotelId}`);
             if (response.ok) {
               const hotel = await response.json();
               return {
@@ -212,7 +218,7 @@ export const adminBookingApi = {
         
         case "CAR_RENTAL":
           if (booking.carRentalId) {
-            const response = await authenticatedFetch(`/api/v1/car-rentals/${booking.carRentalId}`);
+            const response = await authenticatedFetch(`/api/car-rentals/${booking.carRentalId}`);
             if (response.ok) {
               const car = await response.json();
               return {
@@ -228,7 +234,7 @@ export const adminBookingApi = {
         
         case "ACTIVITY":
           if (booking.activityId) {
-            const response = await authenticatedFetch(`/api/v1/activities/${booking.activityId}`);
+            const response = await authenticatedFetch(`/api/activities/${booking.activityId}`);
             if (response.ok) {
               const activity = await response.json();
               return {
@@ -242,8 +248,11 @@ export const adminBookingApi = {
           }
           break;
       }
-    } catch (error) {
-      console.error('Failed to load service details:', error);
+    } catch (error: any) {
+      // Silently ignore auth failures so the bookings table still renders
+      if (error?.message !== 'UNAUTHORIZED') {
+        console.error('Failed to load service details:', error);
+      }
     }
     return null;
   },

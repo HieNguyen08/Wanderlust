@@ -61,6 +61,10 @@ public class BookingDTO {
     private LocalDateTime cancelledAt;
     private String cancelledBy;
     private Boolean vendorConfirmed;
+    private Boolean vendorRefundApproved;
+
+    // --- Review flag ---
+    private Boolean hasReview;
 
     // --- Completion Tracking ---
     private Boolean userConfirmed;  // Người dùng xác nhận hoàn thành

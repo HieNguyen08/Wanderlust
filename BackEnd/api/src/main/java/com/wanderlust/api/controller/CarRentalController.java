@@ -1,5 +1,26 @@
 package com.wanderlust.api.controller;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.wanderlust.api.dto.carRental.CarPriceCalculationDTO;
 import com.wanderlust.api.dto.carRental.CarPriceResponseDTO;
 import com.wanderlust.api.dto.carRental.CarRentalDTO;
@@ -10,15 +31,6 @@ import com.wanderlust.api.services.CustomOAuth2User;
 import com.wanderlust.api.services.CustomUserDetails;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/car-rentals")
@@ -46,35 +58,47 @@ public class CarRentalController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CarRentalDTO>> searchCarRentals(
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<Page<CarRentalDTO>> searchCarRentals(
             @RequestParam(required = false) String locationId,
             @RequestParam(required = false) String brand,
-            @RequestParam(required = false) String type,
+            @RequestParam(required = false) List<String> types,
             @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice) {
-        List<CarRental> cars = carRentalService.searchCars(locationId, brand, type, minPrice, maxPrice);
-        return ResponseEntity.ok(carRentalMapper.toDTOs(cars));
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Integer minSeats,
+            @RequestParam(required = false) Boolean withDriver,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) com.wanderlust.api.entity.types.ApprovalStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size) {
+        Page<CarRental> carsPage = carRentalService.searchCars(locationId, brand, types, minPrice, maxPrice, minSeats,
+                withDriver, keyword, status, page, size);
+        return ResponseEntity.ok(carsPage.map(carRentalMapper::toDTO));
     }
 
     @GetMapping("/popular")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<CarRentalDTO>> getPopularCars() {
         List<CarRental> cars = carRentalService.findPopularCars();
         return ResponseEntity.ok(carRentalMapper.toDTOs(cars));
     }
 
     @GetMapping("/location/{locationId}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<CarRentalDTO>> getCarsByLocation(@PathVariable String locationId) {
         List<CarRental> cars = carRentalService.findByLocationId(locationId);
         return ResponseEntity.ok(carRentalMapper.toDTOs(cars));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<CarRentalDTO> getCarRentalById(@PathVariable String id) {
         CarRental car = carRentalService.findById(id);
         return ResponseEntity.ok(carRentalMapper.toDTO(car));
     }
 
     @GetMapping("/{id}/availability")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<?> checkAvailability(
             @PathVariable String id,
             @RequestParam String startDate,
@@ -143,14 +167,16 @@ public class CarRentalController {
 
     @PostMapping("/{id}/reject")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CarRentalDTO> reject(@PathVariable String id, @RequestBody(required = false) java.util.Map<String, String> body) {
+    public ResponseEntity<CarRentalDTO> reject(@PathVariable String id,
+            @RequestBody(required = false) java.util.Map<String, String> body) {
         String reason = body != null ? body.get("reason") : null;
         return ResponseEntity.ok(carRentalMapper.toDTO(carRentalService.reject(id, reason)));
     }
 
     @PostMapping("/{id}/request-revision")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CarRentalDTO> requestRevision(@PathVariable String id, @RequestBody(required = false) java.util.Map<String, String> body) {
+    public ResponseEntity<CarRentalDTO> requestRevision(@PathVariable String id,
+            @RequestBody(required = false) java.util.Map<String, String> body) {
         String reason = body != null ? body.get("reason") : null;
         return ResponseEntity.ok(carRentalMapper.toDTO(carRentalService.requestRevision(id, reason)));
     }
@@ -165,5 +191,21 @@ public class CarRentalController {
     @PreAuthorize("hasRole('ADMIN') or (hasRole('VENDOR') and @webSecurity.isCarRentalOwner(authentication, #id))")
     public ResponseEntity<CarRentalDTO> resume(@PathVariable String id) {
         return ResponseEntity.ok(carRentalMapper.toDTO(carRentalService.resume(id)));
+    }
+
+    // PATCH /api/car-rentals/{id}/rating - update aggregates
+    @PatchMapping("/{id}/rating")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CarRentalDTO> updateCarRentalRating(
+            @PathVariable String id,
+            @RequestBody Map<String, Object> payload) {
+        BigDecimal avg = payload.get("averageRating") != null
+                ? new BigDecimal(payload.get("averageRating").toString())
+                : null;
+        Integer total = payload.get("totalReviews") != null
+                ? Integer.parseInt(payload.get("totalReviews").toString())
+                : null;
+        CarRentalDTO dto = carRentalMapper.toDTO(carRentalService.updateRatingStats(id, avg, total));
+        return ResponseEntity.ok(dto);
     }
 }

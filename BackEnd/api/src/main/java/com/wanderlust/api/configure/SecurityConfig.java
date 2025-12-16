@@ -61,18 +61,18 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.POST, "/api/advertisements/*/track-click").permitAll();
 
                     // D. API GET Public (Cho phép khách xem/tìm kiếm)
+                    // Sử dụng @PreAuthorize("permitAll()") ở controller để kiểm soát chi tiết
                     auth.requestMatchers(HttpMethod.GET,
-                        "/api/activities", "/api/activities/**",
-                        "/api/car-rentals", "/api/car-rentals/**",
-                        "/api/flights", "/api/flights/**",
-                        "/api/hotels", "/api/hotels/**",
-                        "/api/locations", "/api/locations/**",
-                        "/api/promotions", "/api/promotions/**",
-                        "/api/promotions/active/category/**", // Cho phép khách xem khuyến mãi theo danh mục
-                        "/api/reviews", "/api/reviews/{id}", // Cho xem list & chi tiết
-                        "/api/rooms/{id}", "/api/rooms/{id}/availability", // Cho xem chi tiết phòng
-                        "/api/travelguides", "/api/travelguides/**",
-                        "/api/visa-articles", "/api/visa-articles/**"
+                        "/api/activities/**",
+                        "/api/car-rentals/**",
+                        "/api/flights/**",
+                        "/api/hotels/**",
+                        "/api/locations/**",
+                        "/api/promotions/**",
+                        "/api/reviews/**",
+                        "/api/rooms/**",
+                        "/api/travelguides/**",
+                        "/api/visa-articles/**"
                     ).permitAll();
                     
                     //-----------------------------------------------------

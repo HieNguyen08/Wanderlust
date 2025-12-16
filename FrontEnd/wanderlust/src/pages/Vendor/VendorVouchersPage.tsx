@@ -38,6 +38,9 @@ import {
 import { VendorLayout } from "../../components/VendorLayout";
 import type { PageType } from "../../MainApp";
 import { tokenService, vendorPromotionApi } from "../../utils/api";
+import { useSmartPagination } from "../../hooks/useSmartPagination";
+import { PaginationUI } from "../../components/ui/PaginationUI";
+import { useCallback } from "react";
 
 interface CreateVendorVoucherDialogProps {
   open: boolean;
@@ -59,7 +62,6 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
     startDate: new Date(),
     endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     totalUsesLimit: "",
-    userUseLimit: "1",
     applyToCategory: "",
     images: []
   });
@@ -84,7 +86,6 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
       startDate: format(formData.startDate, "yyyy-MM-dd"),
       endDate: format(formData.endDate, "yyyy-MM-dd"),
       totalUsesLimit: formData.totalUsesLimit ? parseInt(formData.totalUsesLimit) : null,
-      userUseLimit: formData.userUseLimit ? parseInt(formData.userUseLimit) : 1,
       category,
       vendorId,
       adminCreateCheck: false,
@@ -98,7 +99,7 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
 
     onVoucherCreated(voucher);
     onOpenChange(false);
-    
+
     // Reset form
     setFormData({
       title: "",
@@ -111,7 +112,6 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
       startDate: new Date(),
       endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       totalUsesLimit: "",
-      userUseLimit: "1",
       applyToCategory: "",
       images: []
     });
@@ -147,8 +147,7 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
         <Alert className="bg-yellow-50 border-yellow-200">
           <AlertCircle className="h-4 w-4 text-yellow-600" />
           <AlertDescription className="text-yellow-900">
-            Voucher của bạn sẽ tự động áp dụng cho các dịch vụ do bạn cung cấp. 
-            Sau khi tạo, voucher sẽ được gửi đến Admin để phê duyệt.
+            Voucher của bạn sẽ tự động áp dụng cho các dịch vụ do bạn cung cấp.
           </AlertDescription>
         </Alert>
 
@@ -207,7 +206,7 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
             </div>
 
             <div className="space-y-3">
-              <Label>{t('vendor.hotelImages', 'Ảnh khách sạn (tối đa 5)')}</Label>
+              <Label>{t('vendor.voucherImages', 'Ảnh Voucher (tối đa 5)')}</Label>
               <div className="flex gap-2">
                 <Input
                   placeholder={t('vendor.imageUrlPlaceholder', 'URL ảnh')}
@@ -322,28 +321,18 @@ export function CreateVendorVoucherDialog({ open, onOpenChange, vendorId, onVouc
           <div className="space-y-4">
             <h3 className="text-lg">{t('vendor.usageLimits')}</h3>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="totalUsesLimit">{t('vendor.totalUsageLimit')}</Label>
-                <Input
-                  id="totalUsesLimit"
-                  type="number"
-                  value={formData.totalUsesLimit}
-                  onChange={(e) => setFormData({ ...formData, totalUsesLimit: e.target.value })}
-                  placeholder={t('vendor.unlimited')}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="userUseLimit">{t('vendor.limitsPerUser')} *</Label>
-                <Input
-                  id="userUseLimit"
-                  type="number"
-                  value={formData.userUseLimit}
-                  onChange={(e) => setFormData({ ...formData, userUseLimit: e.target.value })}
-                  required
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="totalUsesLimit">{t('vendor.totalUsageLimit')}</Label>
+              <Input
+                id="totalUsesLimit"
+                type="number"
+                value={formData.totalUsesLimit}
+                onChange={(e) => setFormData({ ...formData, totalUsesLimit: e.target.value })}
+                placeholder={t('vendor.unlimited')}
+              />
+              <p className="text-xs text-gray-500">
+                Để trống nếu không giới hạn tổng số lần sử dụng
+              </p>
             </div>
           </div>
 
@@ -432,25 +421,14 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
     const manual = promo.isActive ?? promo.isActiveManual;
     return manual && startOk ? "ACTIVE" : "INACTIVE";
   };
-  const [vouchers, setVouchers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [pageSize] = useState(10);
-  const [total, setTotal] = useState(0);
 
-  useEffect(() => {
-    loadVouchers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, statusFilter, page]);
-
-  const loadVouchers = async () => {
+  const fetchData = useCallback(async (page: number, size: number) => {
     try {
-      setLoading(true);
       const res = await vendorPromotionApi.list({
         search: searchQuery,
         status: statusFilter !== "ALL" ? statusFilter : undefined,
         page,
-        size: pageSize,
+        size,
       });
       const content = res?.content || [];
       const mapped = content.map((promo: any) => {
@@ -481,21 +459,53 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
           isActiveManual: promo.isActiveManual,
         };
       });
-      setVouchers(mapped);
-      setTotal(res?.totalElements ?? mapped.length);
+
+      return {
+        items: mapped,
+        total: res?.totalElements || 0
+      };
     } catch (error: any) {
       console.error("Failed to load vendor vouchers", error);
       toast.error(error?.message || t('vendor.cannotLoadVouchers'));
-    } finally {
-      setLoading(false);
+      return { items: [], total: 0 };
     }
-  };
+  }, [searchQuery, statusFilter, t]);
+
+  const {
+    currentItems: vouchers,
+    isTableLoading: loading,
+    goToPage,
+    currentPage,
+    totalPages,
+    refresh: reloadVouchers
+  } = useSmartPagination({
+    fetchData,
+    initialPageSize: 10
+  });
+
+  // Reset page when filters change
+  useEffect(() => {
+    goToPage(0);
+  }, [searchQuery, statusFilter]);
+
+  // const [vouchers, setVouchers] = useState<any[]>([]);
+  // const [loading, setLoading] = useState(false);
+  // const [page, setPage] = useState(0);
+  // const [pageSize] = useState(10);
+  // const [total, setTotal] = useState(0);
+
+  // useEffect(() => {
+  //   loadVouchers();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [searchQuery, statusFilter, page]);
+
+  // const loadVouchers = async () => { ... } // Replaced by fetchData
 
   const handleVoucherCreated = async (voucher: any) => {
     try {
       await vendorPromotionApi.create(voucher);
       toast.success(t('vendor.voucherCreated'));
-      await loadVouchers();
+      await reloadVouchers();
     } catch (error: any) {
       console.error('Failed to create voucher', error);
       toast.error(error?.message || t('vendor.cannotCreateVoucher'));
@@ -511,7 +521,7 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
     try {
       await vendorPromotionApi.toggle(voucherId, activate);
       toast.success(activate ? t('vendor.voucherActivated') : t('vendor.voucherPaused'));
-      await loadVouchers();
+      await reloadVouchers();
     } catch (error: any) {
       console.error('Failed to toggle voucher', error);
       toast.error(error?.message || t('vendor.cannotUpdateVoucher'));
@@ -522,13 +532,14 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
     try {
       await vendorPromotionApi.delete(voucherId);
       toast.success(t('vendor.voucherDeleted'));
-      await loadVouchers();
+      await reloadVouchers();
     } catch (error: any) {
       console.error('Failed to delete voucher', error);
       toast.error(error?.message || t('vendor.cannotDeleteVoucher'));
     }
   };
 
+  // Client-side filtering removed as backend handles it
   const filteredVouchers = vouchers;
   const pagedVouchers = vouchers;
 
@@ -675,8 +686,8 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {voucher.type === "PERCENTAGE" 
-                        ? `${voucher.value}%` 
+                      {voucher.type === "PERCENTAGE"
+                        ? `${voucher.value}%`
                         : `₫${voucher.value.toLocaleString()}`}
                       {voucher.maxDiscount && (
                         <div className="text-xs text-gray-500">
@@ -707,8 +718,8 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
                       </div>
                       {voucher.totalUsesLimit && voucher.totalUsesLimit > 0 && (
                         <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                          <div 
-                            className="bg-blue-600 h-1.5 rounded-full" 
+                          <div
+                            className="bg-blue-600 h-1.5 rounded-full"
                             style={{ width: `${Math.min(100, (voucher.totalUsed / voucher.totalUsesLimit) * 100)}%` }}
                           />
                         </div>
@@ -749,14 +760,12 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
           </Table>
         </Card>
 
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">
-            {t('common.showing')} {filteredVouchers.length === 0 ? 0 : page * pageSize + 1}-{Math.min(total, (page + 1) * pageSize)} {t('common.of')} {total}
-          </p>
-          <div className="flex gap-2">
-            <Button variant="outline" disabled={page === 0} onClick={() => setPage(Math.max(0, page - 1))}>{t('common.prev')}</Button>
-            <Button variant="outline" disabled={(page + 1) * pageSize >= total} onClick={() => setPage(page + 1)}>{t('common.next')}</Button>
-          </div>
+        <div className="mt-8 flex justify-center">
+          <PaginationUI
+            currentPage={currentPage + 1}
+            totalPages={totalPages}
+            onPageChange={(p) => goToPage(p - 1)}
+          />
         </div>
       </div>
 

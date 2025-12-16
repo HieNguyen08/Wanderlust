@@ -17,16 +17,15 @@ import {
     Search,
     Users
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../MainApp";
-import { flightApi } from "../utils/api";
+import { flightApi, locationApi } from "../utils/api";
 import { SearchLoadingOverlay } from "./SearchLoadingOverlay";
 import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./ui/command";
-import { Input } from "./ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "./ui/utils";
 
@@ -39,7 +38,22 @@ type ServiceType = "flights" | "hotels" | "car-rental" | "activities";
 type TripType = "one-way" | "round-trip" | "multi-city";
 type CarDriverType = "without" | "with";
 
-const airports = [
+interface LocationItem {
+    id: string;
+    code: string;
+    name: string;
+    country: string;
+    airport?: string;
+}
+
+interface AirportItem {
+    code: string;
+    city: string;
+    name: string;
+    country: string;
+}
+
+const airports: AirportItem[] = [
     { code: "SGN", city: "TP. Hồ Chí Minh", name: "Sân bay Tân Sơn Nhất", country: "Việt Nam" },
     { code: "HAN", city: "Hà Nội", name: "Sân bay Nội Bài", country: "Việt Nam" },
     { code: "DAD", city: "Đà Nẵng", name: "Sân bay Đà Nẵng", country: "Việt Nam" },
@@ -51,10 +65,14 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
     const { t } = useTranslation();
     const [activeService, setActiveService] = useState<ServiceType>("flights");
 
+    // Locations from backend
+    const [locations, setLocations] = useState<LocationItem[]>([]);
+    const [loadingLocations, setLoadingLocations] = useState(false);
+
     // Flight states
     const [tripType, setTripType] = useState<TripType>("round-trip");
-    const [fromAirport, setFromAirport] = useState<typeof airports[0] | null>(null);
-    const [toAirport, setToAirport] = useState<typeof airports[0] | null>(null);
+    const [fromAirport, setFromAirport] = useState<AirportItem | null>(null);
+    const [toAirport, setToAirport] = useState<AirportItem | null>(null);
     const [flightDepartDate, setFlightDepartDate] = useState<Date>();
     const [flightReturnDate, setFlightReturnDate] = useState<Date>();
     const [adults, setAdults] = useState(1);
@@ -68,7 +86,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
     const [openFlightDates, setOpenFlightDates] = useState(false);
 
     // Hotel states
-    const [hotelLocation, setHotelLocation] = useState("");
+    const [hotelLocation, setHotelLocation] = useState<LocationItem | null>(null);
     const [hotelCheckIn, setHotelCheckIn] = useState<Date>();
     const [hotelCheckOut, setHotelCheckOut] = useState<Date>();
     const [hotelGuests, setHotelGuests] = useState(2);
@@ -76,19 +94,57 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
     const [hotelRooms, setHotelRooms] = useState(1);
     const [openHotelLocation, setOpenHotelLocation] = useState(false);
     const [openHotelGuests, setOpenHotelGuests] = useState(false);
+    const [openHotelDates, setOpenHotelDates] = useState(false);
 
     // Car Rental states
-    const [carLocation, setCarLocation] = useState("");
+    const [carLocation, setCarLocation] = useState<LocationItem | null>(null);
     const [carStartDate, setCarStartDate] = useState<Date>();
     const [carEndDate, setCarEndDate] = useState<Date>();
     const [carDriverType, setCarDriverType] = useState<CarDriverType>("without");
+    const [openCarLocation, setOpenCarLocation] = useState(false);
+    const [openCarDates, setOpenCarDates] = useState(false);
 
     // Activity states
-    const [activityLocation, setActivityLocation] = useState("");
+    const [activityLocation, setActivityLocation] = useState<LocationItem | null>(null);
     const [activityDate, setActivityDate] = useState<Date>();
     const [activityAdults, setActivityAdults] = useState(1);
     const [activityChildren, setActivityChildren] = useState(0);
+    const [openActivityLocation, setOpenActivityLocation] = useState(false);
+    const [openActivityDate, setOpenActivityDate] = useState(false);
     const [openActivityGuests, setOpenActivityGuests] = useState(false);
+
+    // Fetch locations from backend
+    useEffect(() => {
+        const fetchLocations = async () => {
+            try {
+                setLoadingLocations(true);
+                const response = await locationApi.getLocationsByType('CITY');
+                const locationsArray = Array.isArray(response) ? response : (response.content || []);
+                
+                const mappedLocations: LocationItem[] = locationsArray.map((loc: any) => ({
+                    id: loc.id,
+                    code: loc.code || "N/A",
+                    name: loc.name,
+                    country: loc.metadata?.country || "Việt Nam",
+                    airport: loc.metadata?.airport || loc.name
+                }));
+                
+                setLocations(mappedLocations);
+            } catch (error) {
+                console.error("Failed to fetch locations:", error);
+                // Set fallback data
+                setLocations([
+                    { id: "1", code: "SGN", name: "TP. Hồ Chí Minh", country: "Việt Nam", airport: "Sân bay Tân Sơn Nhất" },
+                    { id: "2", code: "HAN", name: "Hà Nội", country: "Việt Nam", airport: "Sân bay Nội Bài" },
+                    { id: "3", code: "DAD", name: "Đà Nẵng", country: "Việt Nam", airport: "Sân bay Đà Nẵng" },
+                ]);
+            } finally {
+                setLoadingLocations(false);
+            }
+        };
+        
+        fetchLocations();
+    }, []);
 
     const serviceTabs = [
         { id: "flights", label: t("searchHub.flights"), icon: Plane },
@@ -154,38 +210,81 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
     };
 
     const handleHotelSearch = () => {
-        const searchData = {
-            type: "hotel",
-            location: hotelLocation,
-            checkIn: hotelCheckIn,
-            checkOut: hotelCheckOut,
-            guests: { adults: hotelGuests, children: hotelChildren, rooms: hotelRooms },
-        };
-        onSearch?.(searchData);
-        onNavigate("hotel-list", searchData);
+        if (!hotelLocation) {
+            toast.error(t('hotels.locationPlaceholder') || 'Vui lòng chọn địa điểm');
+            return;
+        }
+        if (hotelCheckIn && hotelCheckOut && hotelCheckOut <= hotelCheckIn) {
+            toast.error("Ngày trả phòng phải sau ngày nhận phòng");
+            return;
+        }
+
+        setIsSearching(true);
+        setTimeout(() => {
+            setIsSearching(false);
+            const searchData = {
+                destination: hotelLocation.name,
+                destinationId: hotelLocation.id,
+                city: hotelLocation.name,
+                bookingInfo: {
+                    checkIn: hotelCheckIn ? format(hotelCheckIn, "dd/MM/yyyy") : null,
+                    checkOut: hotelCheckOut ? format(hotelCheckOut, "dd/MM/yyyy") : null,
+                    guests: { adults: hotelGuests, children: hotelChildren, rooms: hotelRooms },
+                }
+            };
+            onSearch?.(searchData);
+            onNavigate("hotel-list", searchData);
+        }, 1500);
     };
 
     const handleCarSearch = () => {
-        const searchData = {
-            type: "car",
-            location: carLocation,
-            startDate: carStartDate,
-            endDate: carEndDate,
-            driverType: carDriverType,
-        };
-        onSearch?.(searchData);
-        onNavigate("car-list", searchData);
+        if (!carLocation) {
+            toast.error("Vui lòng chọn địa điểm nhận xe");
+            return;
+        }
+        if (carStartDate && carEndDate && carEndDate < carStartDate) {
+            toast.error("Ngày trả xe không được trước ngày nhận xe");
+            return;
+        }
+
+        setIsSearching(true);
+        setTimeout(() => {
+            setIsSearching(false);
+            const searchData = {
+                pickupLocationId: carLocation.id,
+                pickupLocation: carLocation.name,
+                pickupLocationCode: carLocation.code,
+                pickupDate: carStartDate ? format(carStartDate, "dd/MM/yyyy", { locale: vi }) : null,
+                pickupTime: "09:00",
+                dropoffLocation: carLocation.name,
+                dropoffDate: carEndDate ? format(carEndDate, "dd/MM/yyyy", { locale: vi }) : null,
+                dropoffTime: "09:00",
+                withDriver: carDriverType === "with",
+            };
+            onSearch?.(searchData);
+            onNavigate("car-list", { searchData });
+        }, 1500);
     };
 
     const handleActivitySearch = () => {
-        const searchData = {
-            type: "activity",
-            location: activityLocation,
-            date: activityDate,
-            guests: { adults: activityAdults, children: activityChildren },
-        };
-        onSearch?.(searchData);
-        onNavigate("activities", searchData);
+        if (!activityLocation) {
+            toast.error("Vui lòng chọn địa điểm");
+            return;
+        }
+
+        setIsSearching(true);
+        setTimeout(() => {
+            setIsSearching(false);
+            const searchData = {
+                locationId: activityLocation.id,
+                location: activityLocation.name,
+                date: activityDate ? format(activityDate, "yyyy-MM-dd") : undefined,
+                adults: activityAdults,
+                children: activityChildren,
+            };
+            onSearch?.(searchData);
+            onNavigate("activities", searchData);
+        }, 1500);
     };
 
     return (
@@ -332,7 +431,7 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                                     <PopoverTrigger asChild>
                                         <button className="flex items-center gap-3 p-4 text-left hover:bg-gray-50 transition-colors">
                                             <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                                            <div className="flex-1 min-w-0"><div className="text-xs text-gray-500">{t("searchHub.location")}</div><div className="font-semibold truncate">{hotelLocation || t("searchHub.selectLocation")}</div></div>
+                                            <div className="flex-1 min-w-0"><div className="text-xs text-gray-500">{t("searchHub.location")}</div><div className="font-semibold truncate">{hotelLocation?.name || (loadingLocations ? "Đang tải..." : t("searchHub.selectLocation"))}</div></div>
                                             <ChevronsUpDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
                                         </button>
                                     </PopoverTrigger>
@@ -340,12 +439,12 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                                         <Command>
                                             <CommandInput placeholder={t("searchHub.searchLocation")} />
                                             <CommandList>
-                                                <CommandEmpty>{t("searchHub.noLocationFound")}</CommandEmpty>
+                                                <CommandEmpty>{loadingLocations ? "Đang tải..." : t("searchHub.noLocationFound")}</CommandEmpty>
                                                 <CommandGroup>
-                                                    {[{ code: "HCM", name: "TP. Hồ Chí Minh", count: 450 }, { code: "HN", name: "Hà Nội", count: 380 }, { code: "DN", name: "Đà Nẵng", count: 220 }, { code: "NT", name: "Nha Trang", count: 180 }, { code: "PQ", name: "Phú Quốc", count: 165 }, { code: "HA", name: "Hội An", count: 140 }, { code: "VT", name: "Vũng Tàu", count: 125 }, { code: "DL", name: "Đà Lạt", count: 155 }].map((location) => (
-                                                        <CommandItem key={location.code} value={location.name} onSelect={() => { setHotelLocation(location.name); setOpenHotelLocation(false); }}>
-                                                            <Check className={cn("mr-2 h-4 w-4", hotelLocation === location.name ? "opacity-100" : "opacity-0")} />
-                                                            <div className="flex items-center justify-between w-full"><div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-gray-400" /><span>{location.name}</span></div><span className="text-xs text-gray-500">{t("searchHub.hotelsCount", { count: location.count })}</span></div>
+                                                    {locations.map((location) => (
+                                                        <CommandItem key={location.id} value={`${location.name} ${location.code}`} onSelect={() => { setHotelLocation(location); setOpenHotelLocation(false); }}>
+                                                            <Check className={cn("mr-2 h-4 w-4", hotelLocation?.id === location.id ? "opacity-100" : "opacity-0")} />
+                                                            <div className="flex items-center justify-between w-full"><div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-gray-400" /><span>{location.name}</span></div><span className="text-xs text-gray-500">{location.country}</span></div>
                                                         </CommandItem>
                                                     ))}
                                                 </CommandGroup>
@@ -353,14 +452,14 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                                         </Command>
                                     </PopoverContent>
                                 </Popover>
-                                <Popover>
+                                <Popover open={openHotelDates} onOpenChange={setOpenHotelDates}>
                                     <PopoverTrigger asChild>
                                         <button className="flex items-center gap-3 p-4 text-left hover:bg-gray-50 transition-colors">
                                             <CalendarIcon className="w-5 h-5 text-blue-600 shrink-0" />
                                             <div className="flex-1 min-w-0"><div className="text-xs text-gray-500">{t("searchHub.checkInCheckOut")}</div><div className="font-semibold truncate">{hotelCheckIn && hotelCheckOut ? `${format(hotelCheckIn, "dd/MM")} - ${format(hotelCheckOut, "dd/MM")}` : t("searchHub.selectDate")}</div></div>
                                         </button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start"><Calendar mode="range" selected={{ from: hotelCheckIn, to: hotelCheckOut }} onSelect={(range) => { setHotelCheckIn(range?.from); setHotelCheckOut(range?.to); }} numberOfMonths={2} /></PopoverContent>
+                                    <PopoverContent className="w-auto p-0" align="start"><Calendar mode="range" selected={{ from: hotelCheckIn, to: hotelCheckOut }} onSelect={(range) => { setHotelCheckIn(range?.from); setHotelCheckOut(range?.to); }} numberOfMonths={2} disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} /></PopoverContent>
                                 </Popover>
                                 <Popover open={openHotelGuests} onOpenChange={setOpenHotelGuests}>
                                     <PopoverTrigger asChild>
@@ -391,17 +490,49 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                             <button onClick={() => setCarDriverType("with")} className={cn("px-4 py-2 rounded-lg text-sm transition-all border-2", carDriverType === "with" ? "bg-blue-100 text-blue-700 border-yellow-400 shadow-md" : "bg-gray-50 text-gray-600 hover:bg-gray-100 border-transparent")}>{t("searchHub.withDriver")}</button>
                         </div>
                         <div className="grid md:grid-cols-[2fr_1fr_1fr_auto] gap-2">
-                            <div className="border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 transition-colors">
-                                <div className="text-xs text-gray-500">{t("searchHub.pickupLocation")}</div>
-                                <Input value={carLocation} onChange={(e) => setCarLocation(e.target.value)} placeholder={t("searchHub.enterLocation")} className="border-none p-0 h-6 focus-visible:ring-0 font-semibold" />
-                            </div>
-                            <Popover>
+                            <Popover open={openCarLocation} onOpenChange={setOpenCarLocation}>
+                                <PopoverTrigger asChild>
+                                    <button className="w-full p-4 border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-xs text-gray-500">{t("searchHub.pickupLocation")}</div>
+                                                <div className="font-semibold truncate">{carLocation?.name || (loadingLocations ? "Đang tải..." : t("searchHub.selectLocation"))}</div>
+                                            </div>
+                                            <ChevronsUpDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                        </div>
+                                    </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-0" align="start">
+                                    <Command>
+                                        <CommandInput placeholder={t("searchHub.searchLocation")} />
+                                        <CommandList>
+                                            <CommandEmpty>{loadingLocations ? "Đang tải..." : t("searchHub.noLocationFound")}</CommandEmpty>
+                                            <CommandGroup>
+                                                {locations.map((location) => (
+                                                    <CommandItem key={location.id} value={`${location.name} ${location.code}`} onSelect={() => { setCarLocation(location); setOpenCarLocation(false); }}>
+                                                        <Check className={cn("mr-2 h-4 w-4", carLocation?.id === location.id ? "opacity-100" : "opacity-0")} />
+                                                        <div className="flex items-center gap-2">
+                                                            <MapPin className="w-4 h-4 text-gray-400" />
+                                                            <div>
+                                                                <div className="font-semibold">{location.name}</div>
+                                                                <div className="text-xs text-gray-500">{location.country}</div>
+                                                            </div>
+                                                        </div>
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                            <Popover open={openCarDates} onOpenChange={setOpenCarDates}>
                                 <PopoverTrigger asChild><button className="w-full p-4 border-2 border-gray-200 rounded-xl text-left hover:border-blue-400"><div className="text-xs text-gray-500">{t("searchHub.pickupDate")}</div><div className="font-semibold">{carStartDate ? format(carStartDate, "dd/MM/yyyy") : t("searchHub.selectDate")}</div></button></PopoverTrigger>
-                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={carStartDate} onSelect={setCarStartDate} /></PopoverContent>
+                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={carStartDate} onSelect={setCarStartDate} disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} /></PopoverContent>
                             </Popover>
                             <Popover>
                                 <PopoverTrigger asChild><button className="w-full p-4 border-2 border-gray-200 rounded-xl text-left hover:border-blue-400"><div className="text-xs text-gray-500">{t("searchHub.returnDateCar")}</div><div className="font-semibold">{carEndDate ? format(carEndDate, "dd/MM/yyyy") : t("searchHub.selectDate")}</div></button></PopoverTrigger>
-                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={carEndDate} onSelect={setCarEndDate} /></PopoverContent>
+                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={carEndDate} onSelect={setCarEndDate} disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} /></PopoverContent>
                             </Popover>
                             <Button onClick={handleCarSearch} className="h-full w-14 bg-blue-600 hover:bg-blue-700"><Search className="w-5 h-5" /></Button>
                         </div>
@@ -412,13 +543,45 @@ export function HeroSearchHub({ onNavigate, onSearch }: HeroSearchHubProps) {
                 {activeService === "activities" && (
                     <div className="space-y-4 relative z-10">
                         <div className="grid md:grid-cols-[2fr_1fr_1fr_auto] gap-2">
-                            <div className="border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 transition-colors">
-                                <div className="text-xs text-gray-500">{t("searchHub.location")}</div>
-                                <Input value={activityLocation} onChange={(e) => setActivityLocation(e.target.value)} placeholder={t("searchHub.enterLocation")} className="border-none p-0 h-6 focus-visible:ring-0 font-semibold" />
-                            </div>
-                            <Popover>
+                            <Popover open={openActivityLocation} onOpenChange={setOpenActivityLocation}>
+                                <PopoverTrigger asChild>
+                                    <button className="w-full p-4 border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-xs text-gray-500">{t("searchHub.location")}</div>
+                                                <div className="font-semibold truncate">{activityLocation?.name || (loadingLocations ? "Đang tải..." : t("searchHub.selectLocation"))}</div>
+                                            </div>
+                                            <ChevronsUpDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                        </div>
+                                    </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-0" align="start">
+                                    <Command>
+                                        <CommandInput placeholder={t("searchHub.searchLocation")} />
+                                        <CommandList>
+                                            <CommandEmpty>{loadingLocations ? "Đang tải..." : t("searchHub.noLocationFound")}</CommandEmpty>
+                                            <CommandGroup>
+                                                {locations.map((location) => (
+                                                    <CommandItem key={location.id} value={`${location.name} ${location.code}`} onSelect={() => { setActivityLocation(location); setOpenActivityLocation(false); }}>
+                                                        <Check className={cn("mr-2 h-4 w-4", activityLocation?.id === location.id ? "opacity-100" : "opacity-0")} />
+                                                        <div className="flex items-center gap-2">
+                                                            <MapPin className="w-4 h-4 text-gray-400" />
+                                                            <div>
+                                                                <div className="font-semibold">{location.name}</div>
+                                                                <div className="text-xs text-gray-500">{location.country}</div>
+                                                            </div>
+                                                        </div>
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                            <Popover open={openActivityDate} onOpenChange={setOpenActivityDate}>
                                 <PopoverTrigger asChild><button className="w-full p-4 border-2 border-gray-200 rounded-xl text-left hover:border-blue-400"><div className="text-xs text-gray-500">{t("searchHub.date")}</div><div className="font-semibold">{activityDate ? format(activityDate, "dd/MM/yyyy") : t("searchHub.selectDate")}</div></button></PopoverTrigger>
-                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={activityDate} onSelect={setActivityDate} /></PopoverContent>
+                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={activityDate} onSelect={setActivityDate} disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} /></PopoverContent>
                             </Popover>
                             <Popover open={openActivityGuests} onOpenChange={setOpenActivityGuests}>
                                 <PopoverTrigger asChild><button className="w-full p-4 border-2 border-gray-200 rounded-xl text-left hover:border-blue-400"><div className="text-xs text-gray-500">{t("searchHub.numberOfPeople")}</div><div className="font-semibold">{activityAdults + activityChildren} {t("searchHub.passengers")}</div></button></PopoverTrigger>

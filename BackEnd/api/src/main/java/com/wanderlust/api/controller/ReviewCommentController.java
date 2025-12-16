@@ -1,8 +1,8 @@
 package com.wanderlust.api.controller;
 
-import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +23,7 @@ import com.wanderlust.api.dto.reviewComment.ReviewCommentAdminUpdateDTO;
 import com.wanderlust.api.dto.reviewComment.ReviewCommentCreateDTO;
 import com.wanderlust.api.dto.reviewComment.ReviewCommentDTO;
 import com.wanderlust.api.dto.reviewComment.ReviewCommentUpdateDTO;
+import com.wanderlust.api.entity.ReviewVote;
 import com.wanderlust.api.entity.types.ReviewTargetType;
 import com.wanderlust.api.services.CustomUserDetails;
 import com.wanderlust.api.services.ReviewCommentService;
@@ -63,6 +64,7 @@ public class ReviewCommentController {
      * Lấy chi tiết 1 review
      */
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<ReviewCommentDTO> getReviewById(@PathVariable String id) {
         ReviewCommentDTO review = reviewCommentService.findById(id);
         return ResponseEntity.ok(review);
@@ -72,13 +74,42 @@ public class ReviewCommentController {
      * GET /api/reviews
      * Lấy reviews đã duyệt theo target (hotel, activity...)
      * VD: /api/reviews?targetType=HOTEL&targetId=123
+     * Hoặc lấy tất cả theo type: /api/reviews?targetType=FLIGHT (không cần
+     * targetId)
      */
     @GetMapping
-    public ResponseEntity<List<ReviewCommentDTO>> getApprovedReviewsByTarget(
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<Page<ReviewCommentDTO>> getApprovedReviewsByTarget(
             @RequestParam ReviewTargetType targetType,
-            @RequestParam String targetId) {
-        List<ReviewCommentDTO> reviews = reviewCommentService.findAllApprovedByTarget(targetType, targetId);
+            @RequestParam(required = false) String targetId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<ReviewCommentDTO> reviews;
+
+        if (targetId == null || targetId.trim().isEmpty() ||
+                targetId.equalsIgnoreCase("ALL") || targetId.equalsIgnoreCase("ALL_FLIGHTS")) {
+            // Lấy tất cả reviews theo targetType
+            reviews = reviewCommentService.findAllApprovedByType(targetType, page, size);
+        } else {
+            // Lấy reviews cho targetId cụ thể
+            reviews = reviewCommentService.findAllApprovedByTarget(targetType, targetId, page, size);
+        }
+
         return ResponseEntity.ok(reviews);
+    }
+
+    /**
+     * POST /api/reviews/{id}/vote
+     * Toggle helpful / not helpful for authenticated user
+     */
+    @PostMapping("/{id}/vote")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ReviewCommentDTO> voteReview(
+            @PathVariable String id,
+            @RequestParam ReviewVote.VoteType voteType) {
+        String userId = getCurrentUserId();
+        ReviewCommentDTO updated = reviewCommentService.toggleVote(id, voteType, userId);
+        return ResponseEntity.ok(updated);
     }
 
     // ==========================================
@@ -90,10 +121,12 @@ public class ReviewCommentController {
      * Lấy tất cả review của user đang đăng nhập
      */
     @GetMapping("/my-reviews")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<List<ReviewCommentDTO>> getMyReviews() {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<ReviewCommentDTO>> getMyReviews(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         String userId = getCurrentUserId();
-        List<ReviewCommentDTO> reviews = reviewCommentService.findAllByUserId(userId);
+        Page<ReviewCommentDTO> reviews = reviewCommentService.findAllByUserId(userId, page, size);
         return ResponseEntity.ok(reviews);
     }
 
@@ -102,7 +135,7 @@ public class ReviewCommentController {
      * User tạo review mới
      */
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ReviewCommentDTO> createReview(@RequestBody ReviewCommentCreateDTO createDTO) {
         String userId = getCurrentUserId();
         ReviewCommentDTO newReview = reviewCommentService.create(createDTO, userId);
@@ -114,7 +147,7 @@ public class ReviewCommentController {
      * User cập nhật review của chính mình
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ReviewCommentDTO> updateMyReview(
             @PathVariable String id,
             @RequestBody ReviewCommentUpdateDTO updateDTO) {
@@ -128,7 +161,7 @@ public class ReviewCommentController {
      * User xóa review của chính mình
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteMyReview(@PathVariable String id) {
         String userId = getCurrentUserId();
         reviewCommentService.deleteUserReview(id, userId);
@@ -150,18 +183,27 @@ public class ReviewCommentController {
             @RequestBody Map<String, String> response) {
         String vendorId = getCurrentUserId();
         String responseText = response.get("response");
+        if (responseText == null) {
+            responseText = response.get("responseContent");
+        }
         ReviewCommentDTO updatedReview = reviewCommentService.respondToReview(id, responseText, vendorId);
         return ResponseEntity.ok(updatedReview);
     }
 
     /**
      * GET /api/reviews/vendor/{vendorId}
-     * [PARTNER] Lấy tất cả reviews về dịch vụ của vendor   
+     * [PARTNER] Lấy tất cả reviews về dịch vụ của vendor (Paginated, Search,
+     * Status)
      */
     @GetMapping("/vendor/{vendorId}")
     @PreAuthorize("hasRole('VENDOR') or hasRole('ADMIN')")
-    public ResponseEntity<List<ReviewCommentDTO>> getReviewsByVendor(@PathVariable String vendorId) {
-        List<ReviewCommentDTO> reviews = reviewCommentService.findAllByVendorId(vendorId);
+    public ResponseEntity<Page<ReviewCommentDTO>> getReviewsByVendor(
+            @PathVariable String vendorId,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<ReviewCommentDTO> reviews = reviewCommentService.getReviewsByVendor(vendorId, search, status, page, size);
         return ResponseEntity.ok(reviews);
     }
 
@@ -174,8 +216,12 @@ public class ReviewCommentController {
      */
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<ReviewCommentDTO>> getAllReviewsForAdmin() {
-        List<ReviewCommentDTO> reviews = reviewCommentService.findAllForAdmin();
+    public ResponseEntity<Page<ReviewCommentDTO>> getAllReviewsForAdmin(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<ReviewCommentDTO> reviews = reviewCommentService.findAllForAdmin(search, status, page, size);
         return ResponseEntity.ok(reviews);
     }
 
@@ -185,8 +231,10 @@ public class ReviewCommentController {
      */
     @GetMapping("/admin/pending")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<ReviewCommentDTO>> getPendingReviews() {
-        List<ReviewCommentDTO> reviews = reviewCommentService.findAllPending();
+    public ResponseEntity<Page<ReviewCommentDTO>> getPendingReviews(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<ReviewCommentDTO> reviews = reviewCommentService.findAllPending(page, size);
         return ResponseEntity.ok(reviews);
     }
 

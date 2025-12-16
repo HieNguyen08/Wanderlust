@@ -15,6 +15,9 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
 import { vendorApi, type VendorBooking } from "../../api/vendorApi";
+import { useSmartPagination } from "../../hooks/useSmartPagination";
+import { useCallback } from "react";
+import { PaginationUI } from "../../components/ui/PaginationUI";
 import { VendorCancelOrderDialog } from "../../components/VendorCancelOrderDialog";
 import { VendorLayout } from "../../components/VendorLayout";
 import { Badge } from "../../components/ui/badge";
@@ -43,7 +46,7 @@ interface VendorBookingsPageProps {
   vendorType?: "hotel" | "activity" | "car" | "airline";
 }
 
-export default function VendorBookingsPage({ 
+export default function VendorBookingsPage({
   onNavigate,
   vendorType = "hotel"
 }: VendorBookingsPageProps) {
@@ -54,24 +57,48 @@ export default function VendorBookingsPage({
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<VendorBooking | null>(null);
-  const [bookings, setBookings] = useState<VendorBooking[]>([]);
-  const [loading, setLoading] = useState(true);
+  // const [bookings, setBookings] = useState<VendorBooking[]>([]);
+  // const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadBookings();
-  }, []);
-
-  const loadBookings = async () => {
+  const fetchData = useCallback(async (page: number, size: number) => {
     try {
-      setLoading(true);
-      const data = await vendorApi.getVendorBookings();
-      setBookings(data);
+      const data = await vendorApi.getVendorBookings({
+        page,
+        size,
+        search: searchQuery,
+        status: activeTab === 'all' ? undefined : activeTab
+      });
+
+      const list = Array.isArray(data?.content) ? data.content : [];
+      return {
+        items: list,
+        total: data.totalElements || 0
+      };
     } catch (error) {
       toast.error(t('vendor.cannotLoadBookings'));
-    } finally {
-      setLoading(false);
+      return { items: [], total: 0 };
     }
-  };
+  }, [activeTab, searchQuery, t]);
+
+  const {
+    currentItems: bookings,
+    isTableLoading: loading,
+    goToPage,
+    currentPage,
+    totalPages,
+    refresh: reloadBookings
+  } = useSmartPagination({
+    fetchData,
+    initialPageSize: 10
+  });
+
+  // Reset to first page when parameters change
+  useEffect(() => {
+    goToPage(0);
+  }, [activeTab, searchQuery]);
+
+  // Removed manual loadBookings
+  // useEffect load removed as managed by pagination hook
 
   const stats = useMemo(() => {
     const pending = bookings.filter(b => b.status === "pending").length;
@@ -120,14 +147,7 @@ export default function VendorBookingsPage({
     }
   };
 
-  const filteredBookings = bookings.filter(booking => {
-    const query = searchQuery.toLowerCase();
-    const searchableFields = [booking.id, booking.bookingCode, booking.customer, booking.service];
-    const matchesSearch = searchableFields.some((value) => value?.toLowerCase().includes(query));
-
-    const matchesTab = activeTab === "all" || booking.status === activeTab;
-    return matchesSearch && matchesTab;
-  });
+  const filteredBookings = bookings; // Already filtered by API
 
   const handleViewDetail = (booking: VendorBooking) => {
     setSelectedBooking(booking);
@@ -137,8 +157,7 @@ export default function VendorBookingsPage({
   const handleConfirmBooking = async (bookingId: string) => {
     try {
       await vendorApi.confirmBooking(bookingId);
-      toast.success(`${t('vendor.bookingConfirmed')} ${bookingId}`);
-      loadBookings(); // Reload data
+      reloadBookings(); // Reload data
     } catch (error) {
       toast.error(t('vendor.cannotConfirmBooking'));
     }
@@ -156,7 +175,7 @@ export default function VendorBookingsPage({
         toast.error(`${t('vendor.bookingCancelled')} ${bookingToCancel.id}`);
         setIsCancelDialogOpen(false);
         setBookingToCancel(null);
-        loadBookings(); // Reload data
+        reloadBookings(); // Reload data
       } catch (error) {
         toast.error(t('vendor.cannotCancelBooking'));
       }
@@ -164,9 +183,9 @@ export default function VendorBookingsPage({
   };
 
   return (
-    <VendorLayout 
-      currentPage="vendor-bookings" 
-      onNavigate={onNavigate} 
+    <VendorLayout
+      currentPage="vendor-bookings"
+      onNavigate={onNavigate}
       activePage="vendor-bookings"
       vendorType={vendorType}
     >
@@ -207,7 +226,7 @@ export default function VendorBookingsPage({
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
-              <TabsTrigger value="all">{t('common.all')} ({bookings.length})</TabsTrigger>
+              <TabsTrigger value="all">{t('common.all')}</TabsTrigger>
               <TabsTrigger value="pending">{t('vendor.pendingProcessing')}</TabsTrigger>
               <TabsTrigger value="confirmed">{t('common.confirmed')}</TabsTrigger>
               <TabsTrigger value="completed">{t('common.completed')}</TabsTrigger>
@@ -295,7 +314,7 @@ export default function VendorBookingsPage({
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   className="gap-2"
                                   onClick={() => handleViewDetail(booking)}
                                 >
@@ -303,7 +322,7 @@ export default function VendorBookingsPage({
                                   {t('vendor.viewDetails')}
                                 </DropdownMenuItem>
                                 {booking.status === "pending" && (
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     className="gap-2 text-green-600"
                                     onClick={() => handleConfirmBooking(booking.id)}
                                   >
@@ -312,7 +331,7 @@ export default function VendorBookingsPage({
                                   </DropdownMenuItem>
                                 )}
                                 {booking.status !== "cancelled" && booking.status !== "completed" && (
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     className="gap-2 text-red-600"
                                     onClick={() => handleOpenCancelDialog(booking)}
                                   >
@@ -335,6 +354,15 @@ export default function VendorBookingsPage({
               </div>
             </TabsContent>
           </Tabs>
+
+          {/* Pagination UI */}
+          <div className="mt-8 flex justify-center">
+            <PaginationUI
+              currentPage={currentPage + 1}
+              totalPages={totalPages}
+              onPageChange={(p) => goToPage(p - 1)}
+            />
+          </div>
         </Card>
       </div>
 
@@ -351,19 +379,21 @@ export default function VendorBookingsPage({
       />
 
       {/* Cancel Order Dialog - 3 Steps */}
-      {bookingToCancel && (
-        <VendorCancelOrderDialog
-          open={isCancelDialogOpen}
-          onOpenChange={setIsCancelDialogOpen}
-          order={{
-            id: bookingToCancel.id,
-            customerName: bookingToCancel.customer,
-            serviceName: bookingToCancel.service,
-            amount: bookingToCancel.amount,
-          }}
-          onConfirm={handleCancelBooking}
-        />
-      )}
-    </VendorLayout>
+      {
+        bookingToCancel && (
+          <VendorCancelOrderDialog
+            open={isCancelDialogOpen}
+            onOpenChange={setIsCancelDialogOpen}
+            order={{
+              id: bookingToCancel.id,
+              customerName: bookingToCancel.customer,
+              serviceName: bookingToCancel.service,
+              amount: bookingToCancel.amount,
+            }}
+            onConfirm={handleCancelBooking}
+          />
+        )
+      }
+    </VendorLayout >
   );
 }

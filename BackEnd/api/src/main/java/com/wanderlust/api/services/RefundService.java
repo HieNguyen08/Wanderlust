@@ -21,6 +21,72 @@ public class RefundService {
 
     private final RefundRepository refundRepository;
     private final BookingRepository bookingRepository;
+    private final org.springframework.data.mongodb.core.MongoTemplate mongoTemplate;
+
+    /**
+     * Get all refunds with pagination and search (Admin)
+     */
+    public org.springframework.data.domain.Page<Refund> getAllRefunds(String search, String status,
+            org.springframework.data.domain.Pageable pageable) {
+        org.springframework.data.mongodb.core.query.Query query = new org.springframework.data.mongodb.core.query.Query()
+                .with(pageable);
+        List<org.springframework.data.mongodb.core.query.Criteria> criteriaList = new java.util.ArrayList<>();
+
+        // 1. Filter by Status
+        if (org.springframework.util.StringUtils.hasText(status) && !"all".equalsIgnoreCase(status)) {
+            criteriaList
+                    .add(org.springframework.data.mongodb.core.query.Criteria.where("status").is(status.toUpperCase()));
+        }
+
+        // 2. Filter by Search (Booking Code from Booking collection, or User Name/Email
+        // if possible to join,
+        // but for simplicity and performance without complex lookups, we might just
+        // search Booking Code if we store it in Refund or join properly)
+        // Since Refund has bookingId, we can look up Booking.
+        // However, standard join in Mongo is Lookup.
+
+        // Let's use simple find for now if search is empty, or complex lookup if search
+        // is present?
+        // Actually, to filter by Booking Code, we MUST join or query separate.
+
+        // Alternative: If search is present, find matching Bookings first, then find
+        // Refunds for those bookings.
+        // This is often faster/simpler in code than writing a complex aggregation
+        // pipeline if not strictly required.
+
+        if (org.springframework.util.StringUtils.hasText(search)) {
+            String regex = search.trim();
+            // Find bookings matching the code
+            List<Booking> matchedBookings = mongoTemplate.find(
+                    org.springframework.data.mongodb.core.query.Query.query(
+                            new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                                    org.springframework.data.mongodb.core.query.Criteria.where("bookingCode")
+                                            .regex(regex, "i"),
+                                    org.springframework.data.mongodb.core.query.Criteria.where("guestInfo.fullName")
+                                            .regex(regex, "i"),
+                                    org.springframework.data.mongodb.core.query.Criteria.where("guestInfo.email")
+                                            .regex(regex, "i"))),
+                    Booking.class);
+
+            List<String> bookingIds = matchedBookings.stream().map(Booking::getId).toList();
+
+            // Allow searching by Refund ID as well
+            criteriaList.add(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                    org.springframework.data.mongodb.core.query.Criteria.where("bookingId").in(bookingIds),
+                    org.springframework.data.mongodb.core.query.Criteria.where("id").regex(regex, "i")));
+        }
+
+        if (!criteriaList.isEmpty()) {
+            query.addCriteria(new org.springframework.data.mongodb.core.query.Criteria()
+                    .andOperator(criteriaList.toArray(new org.springframework.data.mongodb.core.query.Criteria[0])));
+        }
+
+        long total = mongoTemplate.count(org.springframework.data.mongodb.core.query.Query.of(query).limit(0).skip(0),
+                Refund.class);
+        List<Refund> refunds = mongoTemplate.find(query, Refund.class);
+
+        return new org.springframework.data.domain.PageImpl<>(refunds, pageable, total);
+    }
 
     /**
      * User requests a refund

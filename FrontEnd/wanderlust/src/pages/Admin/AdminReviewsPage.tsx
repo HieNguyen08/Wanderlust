@@ -1,27 +1,29 @@
 import {
-    Activity,
-    AlertCircle,
-    Car,
-    CheckCircle,
-    Eye,
-    Hotel,
-    Search,
-    Star,
-    Trash2,
-    XCircle
+  Activity,
+  AlertCircle,
+  Car,
+  CheckCircle,
+  Eye,
+  Hotel,
+  Search,
+  Star,
+  Trash2,
+  XCircle
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from 'react-i18next';
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
 import { AdminLayout } from "../../components/AdminLayout";
 import { ReviewDetailDialog } from "../../components/admin/ReviewDetailDialog";
+import { PaginationUI } from "../../components/ui/PaginationUI";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { useSmartPagination } from "../../hooks/useSmartPagination";
 import { reviewApi } from "../../utils/api";
 
 interface AdminReviewsPageProps {
@@ -33,7 +35,7 @@ interface Review {
   user: string;
   userImage?: string;
   service: string;
-  serviceType: "hotel" | "activity" | "car";
+  serviceType: "hotel" | "activity" | "car" | "flight" | "other";
   rating: number;
   comment: string;
   images?: string[];
@@ -43,48 +45,65 @@ interface Review {
 
 export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) {
   const { t } = useTranslation();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("pending");
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadReviews();
-  }, [activeTab]);
+  const {
+    items: reviews,
+    loading,
+    searchQuery,
+    setSearchQuery,
+    activeTab,
+    setActiveTab,
+    pagination,
+    handlePageChange,
+    reloadItems: reloadReviews,
+    totalElements // optional if we want to use it for counts
+  } = useSmartPagination<Review>({
+    key: 'admin-reviews',
+    fetchData: async (page, size, query, tab) => {
+      const apiStatus = tab === 'all' ? '' : tab;
+      const response = await reviewApi.getAllReviewsForAdmin({
+        page,
+        size,
+        search: query,
+        status: apiStatus
+      });
 
-  const loadReviews = async () => {
-    try {
-      setLoading(true);
-      let data;
-      if (activeTab === 'pending') {
-        data = await reviewApi.getPendingReviews();
-      } else {
-        data = await reviewApi.getAllReviewsForAdmin();
-      }
-      
-      // Map backend data to frontend format
-      const mappedReviews = data.map((review: any) => ({
-        id: review.id || review.reviewId,
-        user: review.userName || review.user || 'Anonymous',
-        userImage: review.userImage,
-        service: review.targetName || review.service || '',
-        serviceType: (review.targetType?.toLowerCase() || 'hotel') as "hotel" | "activity" | "car",
-        rating: review.rating || 5,
-        comment: review.comment || review.content || '',
-        images: review.images || [],
-        date: review.createdAt || review.date || new Date().toISOString(),
-        status: (review.status?.toLowerCase() || 'pending') as "pending" | "approved" | "rejected",
-      }));
-      setReviews(mappedReviews);
-    } catch (error) {
-      console.error('Error loading reviews:', error);
-      toast.error(t('admin.cannotLoadReviews'));
-    } finally {
-      setLoading(false);
-    }
-  };
+      const content = response?.content ?? [];
+      const mappedItems = content.map((review: any) => {
+        const status = (review.status || '').toString().toLowerCase();
+        const targetType = (review.targetType || 'hotel').toString().toLowerCase();
+        const serviceLabel = review.targetName || review.title || `${review.targetType || ''} ${review.targetId || ''}`;
+        return {
+          id: review.id || review.reviewId,
+          user: review.userFullName || review.user || 'Ẩn danh',
+          userImage: review.userAvatar,
+          service: serviceLabel,
+          serviceType: ['hotel', 'activity', 'car', 'flight'].includes(targetType) ? (targetType as any) : 'other',
+          rating: review.rating || 0,
+          comment: review.comment || review.content || '',
+          images: (review.images || []).map((img: any) => img?.url || img).filter(Boolean),
+          date: review.createdAt || review.updatedAt || new Date().toISOString(),
+          status: status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'pending',
+        } as Review;
+      });
+
+      return {
+        items: mappedItems,
+        total: response?.totalElements ?? mappedItems.length,
+        totalPages: response?.totalPages ?? 1
+      };
+    },
+    defaultTab: 'pending'
+  });
+
+  const displayReviews = reviews || [];
+
+  // Note: Counts are tricky with server-side pagination. 
+  // We either need a separate stats endpoint or accept that we don't know the exact counts of other tabs.
+  // For now, we can show '...' or remove counts, OR use totalElements when that tab is active.
+  const counts = { pending: '...', approved: '...', rejected: '...' };
 
   const handleViewDetail = (review: Review) => {
     setSelectedReview(review);
@@ -95,10 +114,10 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
     try {
       await reviewApi.moderateReview(review.id, {
         status: 'APPROVED',
-        moderatorNotes: 'Approved by admin'
+        moderatorNotes: 'Approved by admin',
       });
       toast.success(t('admin.reviewApproved', { id: review.id }));
-      loadReviews(); // Reload data
+      reloadReviews();
     } catch (error) {
       console.error('Error approving review:', error);
       toast.error(t('admin.cannotApproveReview'));
@@ -112,7 +131,7 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
         moderatorNotes: 'Rejected by admin'
       });
       toast.error(t('admin.reviewRejected', { id: review.id }));
-      loadReviews(); // Reload data
+      reloadReviews();
     } catch (error) {
       console.error('Error rejecting review:', error);
       toast.error(t('admin.cannotRejectReview'));
@@ -121,90 +140,22 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
 
   const handleDelete = async (review: Review) => {
     if (!confirm(t('admin.confirmDeleteReview'))) return;
-    
+
     try {
       await reviewApi.deleteReviewByAdmin(review.id);
       toast.success(t('admin.reviewDeleted', { id: review.id }));
-      loadReviews(); // Reload data
+      reloadReviews();
     } catch (error) {
       console.error('Error deleting review:', error);
       toast.error(t('admin.cannotDeleteReview'));
     }
   };
 
-  // Mock data for fallback
-  const mockReviews: Review[] = [
-    {
-      id: "R001",
-      user: "Nguyễn Văn A",
-      service: "JW Marriott Phu Quoc",
-      serviceType: "hotel",
-      rating: 5,
-      comment: "Khách sạn tuyệt vời! Dịch vụ chuyên nghiệp, phòng sạch sẽ, view biển đẹp. Nhân viên rất thân thiện và nhiệt tình. Chắc chắn sẽ quay lại.",
-      images: [
-        "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=200&h=150&fit=crop",
-        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=150&fit=crop",
-      ],
-      date: "2 giờ trước",
-      status: "pending",
-    },
-    {
-      id: "R002",
-      user: "Trần Thị B",
-      service: "InterContinental Danang",
-      serviceType: "hotel",
-      rating: 4,
-      comment: "Phòng đẹp, view biển tuyệt vời. Buffet sáng đa dạng. Giá hơi cao so với chất lượng.",
-      date: "5 giờ trước",
-      status: "pending",
-    },
-    {
-      id: "R003",
-      user: "Lê Văn C",
-      service: "Vé VinWonders Nha Trang",
-      serviceType: "activity",
-      rating: 5,
-      comment: "Trải nghiệm tuyệt vời! Trò chơi đa dạng, phù hợp cả gia đình. Giá vé hợp lý.",
-      date: "1 ngày trước",
-      status: "pending",
-    },
-    {
-      id: "R004",
-      user: "Phạm Thị D",
-      service: "Toyota Camry 2024",
-      serviceType: "car",
-      rating: 4,
-      comment: "Xe mới, sạch sẽ. Thủ tục thuê nhanh gọn. Tuy nhiên giá thuê hơi cao.",
-      date: "2 ngày trước",
-      status: "approved",
-    },
-    {
-      id: "R005",
-      user: "Hoàng Văn E",
-      service: "Vinpearl Nha Trang",
-      serviceType: "hotel",
-      rating: 3,
-      comment: "Tạm ổn nhưng giá hơi cao so với chất lượng. Phòng cần được bảo trì thêm.",
-      date: "3 ngày trước",
-      status: "approved",
-    },
-    {
-      id: "R006",
-      user: "Võ Thị F",
-      service: "Tour Thái Lan",
-      serviceType: "activity",
-      rating: 1,
-      comment: "Rất thất vọng. Hướng dẫn viên không chuyên nghiệp, lịch trình không đúng như quảng cáo.",
-      date: "5 ngày trước",
-      status: "rejected",
-    },
-  ];
-
   const stats = [
-    { label: t('admin.pendingReviews'), value: "15", color: "yellow", icon: AlertCircle },
-    { label: t('admin.approvedReviews'), value: "1,234", color: "green", icon: CheckCircle },
-    { label: t('admin.rejectedReviews'), value: "45", color: "red", icon: XCircle },
-    { label: t('admin.averageRating'), value: "4.6★", color: "yellow", icon: Star },
+    { label: t('admin.pendingReviews'), value: counts.pending.toString(), color: "yellow", icon: AlertCircle },
+    { label: t('admin.approvedReviews'), value: counts.approved.toString(), color: "green", icon: CheckCircle },
+    { label: t('admin.rejectedReviews'), value: counts.rejected.toString(), color: "red", icon: XCircle },
+    { label: t('admin.averageRating'), value: `~`, color: "yellow", icon: Star },
   ];
 
   const getServiceTypeIcon = (type: string) => {
@@ -216,7 +167,7 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
       case "car":
         return <Car className="w-4 h-4" />;
       default:
-        return null;
+        return null; // Flight icon not imported yet?
     }
   };
 
@@ -233,14 +184,6 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
     }
   };
 
-  const filteredReviews = reviews.filter(review => {
-    const matchesSearch = review.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         review.service.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         review.comment.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTab = activeTab === "all" || review.status === activeTab;
-    return matchesSearch && matchesTab;
-  });
-
   return (
     <AdminLayout currentPage="admin-reviews" onNavigate={onNavigate} activePage="admin-reviews">
       <div className="space-y-6">
@@ -250,7 +193,7 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
           <p className="text-gray-600">{t('admin.manageReviewsDesc')}</p>
         </div>
 
-        {/* Stats */}
+        {/* Stats - Reduced functionality as we don't have global stats endpoint yet */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
@@ -280,26 +223,24 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
-              <TabsTrigger value="pending">
-                {t('admin.pending')} ({reviews.filter(r => r.status === 'pending').length})
-              </TabsTrigger>
-              <TabsTrigger value="approved">
-                {t('admin.approved')} ({reviews.filter(r => r.status === 'approved').length})
-              </TabsTrigger>
-              <TabsTrigger value="rejected">
-                {t('admin.rejected')} ({reviews.filter(r => r.status === 'rejected').length})
-              </TabsTrigger>
-              <TabsTrigger value="all">{t('common.all')} ({reviews.length})</TabsTrigger>
+              <TabsTrigger value="pending">{t('admin.pending')}</TabsTrigger>
+              <TabsTrigger value="approved">{t('admin.approved')}</TabsTrigger>
+              <TabsTrigger value="rejected">{t('admin.rejected')}</TabsTrigger>
+              <TabsTrigger value="all">{t('common.all')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">
               <div className="space-y-4">
-                {filteredReviews.map((review) => (
+                {loading && <p className="text-sm text-gray-500">{t('common.loading')}</p>}
+                {!loading && displayReviews.length === 0 && (
+                  <p className="text-sm text-gray-600">{t('admin.noReviews')}</p>
+                )}
+                {displayReviews.map((review) => (
                   <Card key={review.id} className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold shrink-0">
-                          {review.user.charAt(0)}
+                          {review.user ? review.user.charAt(0) : 'U'}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
@@ -317,15 +258,14 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
                               {[...Array(5)].map((_, i) => (
                                 <Star
                                   key={i}
-                                  className={`w-4 h-4 ${
-                                    i < review.rating
-                                      ? "fill-yellow-400 text-yellow-400"
-                                      : "text-gray-300"
-                                  }`}
+                                  className={`w-4 h-4 ${i < review.rating
+                                    ? "fill-yellow-400 text-yellow-400"
+                                    : "text-gray-300"
+                                    }`}
                                 />
                               ))}
                             </div>
-                            <span className="text-sm text-gray-500">{review.date}</span>
+                            <span className="text-sm text-gray-500">{new Date(review.date).toLocaleDateString()}</span>
                           </div>
                           <p className="text-gray-700 mb-3">{review.comment}</p>
                           {review.images && review.images.length > 0 && (
@@ -351,9 +291,9 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
                         <span className="text-sm text-gray-600">ID: {review.id}</span>
                       </div>
                       <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="gap-2"
                           onClick={() => handleViewDetail(review)}
                         >
@@ -362,17 +302,17 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
                         </Button>
                         {review.status === "pending" && (
                           <>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="gap-2 text-red-600 hover:text-red-700"
                               onClick={() => handleReject(review)}
                             >
                               <XCircle className="w-4 h-4" />
                               {t('admin.reject')}
                             </Button>
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               className="gap-2"
                               onClick={() => handleApprove(review)}
                             >
@@ -382,9 +322,9 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
                           </>
                         )}
                         {review.status === "approved" && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="gap-2 text-red-600 hover:text-red-700"
                             onClick={() => handleReject(review)}
                           >
@@ -392,9 +332,9 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
                             {t('admin.remove')}
                           </Button>
                         )}
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                           onClick={() => handleDelete(review)}
                         >
@@ -406,6 +346,13 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
                   </Card>
                 ))}
               </div>
+
+              <div className="mt-6">
+                <PaginationUI
+                  pagination={pagination}
+                  onPageChange={handlePageChange}
+                />
+              </div>
             </TabsContent>
           </Tabs>
         </Card>
@@ -416,9 +363,9 @@ export default function AdminReviewsPage({ onNavigate }: AdminReviewsPageProps) 
         open={isDetailOpen}
         onOpenChange={setIsDetailOpen}
         review={selectedReview}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        onDelete={handleDelete}
+        onApprove={async (r) => { await handleApprove(r); setIsDetailOpen(false); }}
+        onReject={async (r) => { await handleReject(r); setIsDetailOpen(false); }}
+        onDelete={async (r) => { await handleDelete(r); setIsDetailOpen(false); }}
       />
     </AdminLayout>
   );

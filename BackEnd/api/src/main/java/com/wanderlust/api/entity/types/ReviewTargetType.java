@@ -7,7 +7,9 @@ public enum ReviewTargetType {
     HOTEL,
     FLIGHT,
     CAR,
-    ACTIVITY;
+    ACTIVITY,
+    WEBSITE, // Đánh giá website/nền tảng Wanderlust
+    ALL; // Đánh giá chung cho toàn bộ nền tảng
 
     @JsonValue
     public String toValue() {

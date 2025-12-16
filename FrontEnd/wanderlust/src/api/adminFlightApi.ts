@@ -26,14 +26,22 @@ export interface AdminFlight {
 }
 
 export const adminFlightApi = {
-    getAllFlights: async (): Promise<AdminFlight[]> => {
-        const response = await authenticatedFetch("/api/flights");
+    getAllFlights: async (params?: { page?: number; size?: number; search?: string }): Promise<{ items: AdminFlight[]; total: number }> => {
+        const query = new URLSearchParams({
+            page: (params?.page || 0).toString(),
+            size: (params?.size || 10).toString(),
+            search: params?.search || "",
+        });
+        const response = await authenticatedFetch(`/api/flights?${query.toString()}`);
         if (!response.ok) {
             throw new Error("Failed to fetch flights");
         }
         const data = await response.json();
 
-        return data.map((flight: any) => {
+        // Backend now returns Page<Flight>
+        const content = data.content || [];
+
+        const items = content.map((flight: any) => {
             // Extract prices safely
             const economyPrice = flight.cabinClasses?.economy?.fromPrice || 0;
             const premiumEconomyPrice = flight.cabinClasses?.premiumEconomy?.fromPrice || 0;
@@ -77,6 +85,17 @@ export const adminFlightApi = {
                 date,
             };
         });
+
+        return {
+            items,
+            total: data.totalElements || 0
+        };
+    },
+
+    // Legacy support or alias if needed, but better to update calls
+    getAllFlightsList: async (): Promise<AdminFlight[]> => {
+        const res = await adminFlightApi.getAllFlights({ size: 1000 });
+        return res.items;
     },
 
     createFlight: async (flightData: any) => {

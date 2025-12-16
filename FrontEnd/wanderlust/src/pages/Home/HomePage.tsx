@@ -4,10 +4,12 @@ import { useTranslation } from "react-i18next";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
 import { HeroSearchHub } from "../../components/HeroSearchHub";
+import { ReviewList } from "../../components/reviews/ReviewList";
 import { SearchLoadingOverlay } from "../../components/SearchLoadingOverlay";
 import { Button } from "../../components/ui/button";
+import { WebsiteReviewPrompt } from "../../components/WebsiteReviewPrompt";
 import type { PageType } from "../../MainApp";
-import { locationApi } from "../../utils/api";
+import { activityApi, locationApi, reviewApi } from "../../utils/api";
 
 interface HomePageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -18,22 +20,117 @@ export default function HomePage({ onNavigate }: HomePageProps) {
   const { t } = useTranslation();
   const [isSearching, setIsSearching] = useState(false);
   const [searchType, setSearchType] = useState<"flight" | "hotel" | "car" | "activity">("hotel");
-  const [destinationsPage, setDestinationsPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [locationCache, setLocationCache] = useState<Map<number, any[]>>(new Map());
   const [featuredLocations, setFeaturedLocations] = useState<any[]>([]);
+  const [loadingPages, setLoadingPages] = useState<Set<number>>(new Set());
+  const [topActivities, setTopActivities] = useState<any[]>([]);
+  const [websiteReviewsCount, setWebsiteReviewsCount] = useState(0);
+  
+  const ITEMS_PER_PAGE = 6;
+
+  // Smart pagination: preload adjacent pages
+  const loadPages = async (pagesToLoad: number[]) => {
+    const newLoadingPages = new Set(loadingPages);
+    const pagesToFetch = pagesToLoad.filter(page => !locationCache.has(page) && !newLoadingPages.has(page));
+    
+    if (pagesToFetch.length === 0) return;
+    
+    pagesToFetch.forEach(page => newLoadingPages.add(page));
+    setLoadingPages(newLoadingPages);
+    
+    try {
+      const fetchPromises = pagesToFetch.map(async (page) => {
+        const response = await locationApi.getAllLocations({
+          page: page - 1, // API uses 0-based pagination
+          size: ITEMS_PER_PAGE,
+          sortBy: 'popularity',
+          sortDir: 'desc'
+        });
+        return { page, data: response };
+      });
+      
+      const results = await Promise.all(fetchPromises);
+      
+      setLocationCache(prev => {
+        const newCache = new Map(prev);
+        results.forEach(({ page, data }) => {
+          newCache.set(page, data.content || data);
+          if (data.totalPages) setTotalPages(data.totalPages);
+        });
+        return newCache;
+      });
+    } catch (error) {
+      console.error("Error fetching locations:", error);
+    } finally {
+      setLoadingPages(prev => {
+        const newSet = new Set(prev);
+        pagesToFetch.forEach(page => newSet.delete(page));
+        return newSet;
+      });
+    }
+  };
+  
+  // Calculate which pages to preload based on current page
+  const getPagesToLoad = (page: number) => {
+    const pages = [page];
+    // Preload ±2 pages
+    if (page > 1) pages.push(page - 1);
+    if (page > 2) pages.push(page - 2);
+    if (page < totalPages) pages.push(page + 1);
+    if (page < totalPages - 1) pages.push(page + 2);
+    return pages;
+  };
 
   useEffect(() => {
-    const fetchLocations = async () => {
+    const initializeData = async () => {
       try {
-        // Fetch featured locations or just all locations for now
-        // Assuming we want to show popular cities
-        const data = await locationApi.getLocationsByType('CITY');
-        setFeaturedLocations(data);
+        // Initial load: fetch first 3 pages
+        await loadPages([1, 2, 3]);
+        
+        // Fetch top-rated activities
+        const activitiesResponse = await activityApi.getAllActivities();
+        const activities = Array.isArray(activitiesResponse)
+          ? activitiesResponse
+          : activitiesResponse?.content ?? [];
+        const sortedActivities = activities
+          .filter((a: any) => a.averageRating > 0)
+          .sort((a: any, b: any) => (b.averageRating || 0) - (a.averageRating || 0))
+          .slice(0, 4);
+        setTopActivities(sortedActivities);
       } catch (error) {
-        console.error("Error fetching locations:", error);
+        console.error("Error initializing data:", error);
       }
     };
-    fetchLocations();
+    
+    initializeData();
+
+    // Fetch website reviews count
+    const fetchWebsiteReviewsCount = async () => {
+      try {
+        const reviews = await reviewApi.getReviewsByTarget('WEBSITE', 'WANDERLUST');
+        setWebsiteReviewsCount(reviews?.length || 0);
+      } catch (error) {
+        console.error("Error fetching website reviews count:", error);
+      }
+    };
+    fetchWebsiteReviewsCount();
   }, []);
+  
+  // Load adjacent pages when current page changes
+  useEffect(() => {
+    if (totalPages > 0) {
+      const pagesToLoad = getPagesToLoad(currentPage);
+      loadPages(pagesToLoad);
+    }
+  }, [currentPage, totalPages]);
+  
+  // Update featured locations when page or cache changes
+  useEffect(() => {
+    const locations = locationCache.get(currentPage) || [];
+    setFeaturedLocations(locations);
+  }, [currentPage, locationCache]);
 
   const handleSearch = (data: any) => {
     // Determine search type and set loading
@@ -95,197 +192,210 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       <div className="w-full">
         {/* Featured Destinations Section */}
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">
-          <div className="flex items-center justify-between mb-10">
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
-                <Sparkles className="w-6 h-6 text-yellow-500" />
-                <h2 className="text-3xl md:text-4xl text-red-600">{t('home.featuredDestinations')}</h2>
-              </div>
-              <p className="text-gray-600 text-base md:text-lg">{t('home.featuredDestinationsDesc')}</p>
-            </div>
-            <div className="hidden md:flex gap-2">
+          <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
+            <Sparkles className="w-6 h-6 text-yellow-500" />
+            <h2 className="text-3xl md:text-4xl text-red-600">{t('home.featuredDestinations')}</h2>
+          </div>
+          <p className="text-gray-600 text-base md:text-lg mb-10 text-center md:text-left">{t('home.featuredDestinationsDesc')}</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {featuredLocations.length === 0 ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-xl overflow-hidden shadow-lg animate-pulse">
+                  <div className="h-64 bg-gray-300" />
+                  <div className="p-4 bg-white">
+                    <div className="h-4 bg-gray-300 rounded mb-2" />
+                    <div className="h-3 bg-gray-200 rounded" />
+                  </div>
+                </div>
+              ))
+            ) : (
+              featuredLocations.map((destination) => (
+                <div
+                  key={destination.id}
+                  className="group cursor-pointer rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2"
+                  onClick={() => onNavigate("location-detail", { id: destination.id })}
+                >
+                  <div className="relative h-64 overflow-hidden">
+                    <ImageWithFallback
+                      src={destination.image || "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"}
+                      alt={destination.name}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+                    {destination.featured && (
+                      <div className="absolute top-4 right-4">
+                        <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs">Featured</span>
+                      </div>
+                    )}
+                    <div className="absolute bottom-4 left-4 right-4 text-white">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="text-xl mb-1">{destination.name}</h3>
+                          <p className="text-sm text-gray-200 line-clamp-2">{destination.description || 'Explore this amazing destination'}</p>
+                        </div>
+                        <MapPinned className="w-5 h-5 shrink-0 mt-1" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 bg-white">
+                    <div className="flex items-center justify-between">
+                      <p className="text-blue-600 text-lg">Explore</p>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNavigate("location-detail", { id: destination.id });
+                        }}
+                      >
+                        {t('common.viewDetails')} →
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          
+          {/* Smart Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2">
               <button
-                onClick={() => setDestinationsPage(Math.max(0, destinationsPage - 1))}
-                disabled={destinationsPage === 0}
-                className="p-2 rounded-full border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
+              
+              <div className="flex gap-2">
+                {currentPage > 2 && (
+                  <>
+                    <button
+                      onClick={() => setCurrentPage(1)}
+                      className="px-4 py-2 rounded-lg border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all"
+                    >
+                      1
+                    </button>
+                    {currentPage > 3 && <span className="px-2 py-2 text-gray-500">...</span>}
+                  </>
+                )}
+                
+                {[currentPage - 1, currentPage, currentPage + 1].map(page => {
+                  if (page < 1 || page > totalPages) return null;
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                        page === currentPage
+                          ? 'border-blue-500 bg-blue-500 text-white'
+                          : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+                
+                {currentPage < totalPages - 1 && (
+                  <>
+                    {currentPage < totalPages - 2 && <span className="px-2 py-2 text-gray-500">...</span>}
+                    <button
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="px-4 py-2 rounded-lg border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all"
+                    >
+                      {totalPages}
+                    </button>
+                  </>
+                )}
+              </div>
+              
               <button
-                onClick={() => setDestinationsPage(Math.min(1, destinationsPage + 1))}
-                disabled={destinationsPage === 1}
-                className="p-2 rounded-full border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
-          </div>
-
-          <div className="relative overflow-hidden">
-            <div
-              className="flex transition-transform duration-500 ease-in-out gap-6"
-              style={{ transform: `translateX(-${destinationsPage * 100}%)` }}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-w-full">
-                {featuredLocations.slice(0, 6).map((destination) => (
-                  <div
-                    key={destination.id || destination.code}
-                    className="group cursor-pointer rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2"
-                    onClick={() => onNavigate("location-detail", { id: destination.id })}
-                  >
-                    <div className="relative h-64 overflow-hidden">
-                      <ImageWithFallback
-                        src={destination.image || "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=600&fit=crop"}
-                        alt={destination.name}
-                        className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
-                      {destination.featured && (
-                        <div className="absolute top-4 right-4">
-                          <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs">Featured</span>
-                        </div>
-                      )}
-                      <div className="absolute bottom-4 left-4 right-4 text-white">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="text-xl mb-1">{destination.name}</h3>
-                            <p className="text-sm text-gray-200 line-clamp-2">{destination.description}</p>
-                          </div>
-                          <MapPinned className="w-5 h-5 shrink-0 mt-1" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-4 bg-white">
-                      <div className="flex items-center justify-between">
-                        <p className="text-blue-600 text-lg">Explore</p>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onNavigate("location-detail", { id: destination.id });
-                          }}
-                        >
-                          {t('common.viewDetails')} →
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Popular Tours Section */}
         <div className="bg-gray-50 py-16 md:py-20">
           <div className="max-w-7xl mx-auto px-4 md:px-8">
-            <div className="text-center mb-10">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <Compass className="w-6 h-6 text-blue-600" />
-                <h2 className="text-3xl md:text-4xl text-red-600">{t('home.popularTours')}</h2>
+            <div className="flex items-center justify-between mb-10">
+              <div className="text-center md:text-left flex-1">
+                <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
+                  <Compass className="w-6 h-6 text-blue-600" />
+                  <h2 className="text-3xl md:text-4xl text-red-600">{t('home.popularTours')}</h2>
+                </div>
+                <p className="text-gray-600 text-base md:text-lg">{t('home.popularToursDesc')}</p>
               </div>
-              <p className="text-gray-600 text-base md:text-lg">{t('home.popularToursDesc')}</p>
+              <Button
+                onClick={() => onNavigate('activities')}
+                className="bg-blue-600 hover:bg-blue-700 text-white hidden md:flex"
+              >
+                {t('common.viewAll')} →
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                {
-                  id: 1,
-                  titleKey: "home.tours.family",
-                  descKey: "home.tours.familyDesc",
-                  duration: "5N4Đ",
-                  price: "15.900.000đ",
-                  priceNumber: 15900000,
-                  image: "https://images.unsplash.com/photo-1552249352-02a0817a2d95?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYW1pbHklMjB2YWNhdGlvbiUyMGJlYWNofGVufDF8fHx8MTc2MTkyNzg1MHww&ixlib=rb-4.1.0&q=80&w=1080",
-                  rating: 4.8,
-                  reviews: 256,
-                  destination: "Phuket, Thái Lan"
-                },
-                {
-                  id: 2,
-                  titleKey: "home.tours.honeymoon",
-                  descKey: "home.tours.honeymoonDesc",
-                  duration: "7N6Đ",
-                  price: "42.500.000đ",
-                  priceNumber: 42500000,
-                  image: "https://images.unsplash.com/photo-1644727783395-8bffbeba5273?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxob25leW1vb24lMjByb21hbnRpYyUyMHN1bnNldHxlbnwxfHx8fDE3NjE5ODkxMjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-                  rating: 4.9,
-                  reviews: 189,
-                  destination: "Maldives"
-                },
-                {
-                  id: 3,
-                  titleKey: "home.tours.safari",
-                  descKey: "home.tours.safariDesc",
-                  duration: "6N5Đ",
-                  price: "38.900.000đ",
-                  priceNumber: 38900000,
-                  image: "https://images.unsplash.com/photo-1602410125631-7e736e36797c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZHZlbnR1cmUlMjBzYWZhcmklMjB3aWxkbGlmZXxlbnwxfHx8fDE3NjE5ODkxMjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-                  rating: 4.7,
-                  reviews: 142,
-                  destination: "Kenya"
-                },
-                {
-                  id: 4,
-                  titleKey: "home.tours.cruise",
-                  descKey: "home.tours.cruiseDesc",
-                  duration: "10N9Đ",
-                  price: "65.000.000đ",
-                  priceNumber: 65000000,
-                  image: "https://images.unsplash.com/photo-1746900830074-baf6ddf20bca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcnVpc2UlMjBzaGlwJTIwb2NlYW58ZW58MXx8fHwxNzYxOTE1NjExfDA&ixlib=rb-4.1.0&q=80&w=1080",
-                  rating: 5.0,
-                  reviews: 312,
-                  destination: "Caribbean"
-                }
-              ].map((tour, index) => {
-                // Convert to TourDetailPage format
-                const tourData = {
-                  id: tour.id,
-                  name: t(tour.titleKey),
-                  location: tour.destination,
-                  image: tour.image,
-                  price: tour.priceNumber,
-                  rating: tour.rating,
-                  reviews: tour.reviews,
-                  duration: tour.duration
-                };
-
-                return (
+              {topActivities.length === 0 ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="rounded-xl overflow-hidden shadow-lg animate-pulse">
+                    <div className="h-64 bg-gray-300" />
+                    <div className="p-4 bg-white">
+                      <div className="h-4 bg-gray-300 rounded mb-2" />
+                      <div className="h-3 bg-gray-200 rounded mb-2" />
+                      <div className="h-3 bg-gray-200 rounded" />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                topActivities.map((activity) => (
                   <div
-                    key={index}
+                    key={activity.id}
                     className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group cursor-pointer"
-                    onClick={() => onNavigate("tour-detail", tourData)}
+                    onClick={() => onNavigate("activity-detail", { id: activity.id })}
                   >
                     <div className="relative h-48 overflow-hidden">
                       <ImageWithFallback
-                        src={tour.image}
-                        alt={t(tour.titleKey)}
+                        src={activity.images?.[0]?.url || "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&h=600&fit=crop"}
+                        alt={activity.name}
                         className="w-full h-full object-cover transition-transform group-hover:scale-110"
                       />
-                      <div className="absolute top-3 left-3 bg-white px-3 py-1 rounded-full text-sm">
-                        {tour.duration}
-                      </div>
+                      {activity.duration && (
+                        <div className="absolute top-3 left-3 bg-white px-3 py-1 rounded-full text-sm flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {activity.duration}
+                        </div>
+                      )}
                     </div>
                     <div className="p-4">
                       <div className="flex items-center gap-1 mb-2">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm">{tour.rating}</span>
+                        <span className="text-sm font-medium">{activity.averageRating?.toFixed(1) || 0}</span>
+                        <span className="text-xs text-gray-500">({activity.totalReviews || 0})</span>
                       </div>
-                      <h3 className="text-lg mb-1">{t(tour.titleKey)}</h3>
-                      <p className="text-sm text-gray-600 mb-3">{t(tour.descKey)}</p>
+                      <h3 className="text-lg font-semibold mb-1 line-clamp-1">{activity.name}</h3>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{activity.description || 'Amazing experience'}</p>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs text-gray-500">{t('common.from')}</p>
-                          <p className="text-blue-600 text-lg">{tour.price}</p>
+                          <p className="text-blue-600 text-lg font-bold">
+                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(activity.price)}
+                          </p>
                         </div>
                         <Button
                           size="sm"
                           className="bg-blue-600 hover:bg-blue-700"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onNavigate("tour-detail", tourData);
+                            onNavigate("activity-detail", { id: activity.id });
                           }}
                         >
                           {t('common.bookNow')}
@@ -293,8 +403,18 @@ export default function HomePage({ onNavigate }: HomePageProps) {
                       </div>
                     </div>
                   </div>
-                );
-              })}
+                ))
+              )}
+            </div>
+            
+            {/* Mobile View All Button */}
+            <div className="flex justify-center mt-8 md:hidden">
+              <Button
+                onClick={() => onNavigate('activities')}
+                className="bg-blue-600 hover:bg-blue-700 text-white w-full max-w-xs"
+              >
+                {t('common.viewAll')} →
+              </Button>
             </div>
           </div>
         </div>
@@ -435,66 +555,27 @@ export default function HomePage({ onNavigate }: HomePageProps) {
           </div>
         </div>
 
-        {/* Customer Testimonials Section */}
+        {/* Customer Testimonials Section (live reviews) */}
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-20">
           <div className="text-center mb-12">
             <div className="flex items-center justify-center gap-2 mb-3">
               <Star className="w-6 h-6 text-yellow-500" />
               <h2 className="text-3xl md:text-4xl text-red-600">{t('home.testimonials')}</h2>
             </div>
-            <p className="text-gray-600 text-base md:text-lg">{t('home.testimonialsDesc')}</p>
+            <p className="text-gray-600 text-base md:text-lg">
+              {t('home.testimonialsDesc')}
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Nguyễn Minh Anh",
-                location: "Hà Nội",
-                avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop",
-                rating: 5,
-                comment: "Trải nghiệm tuyệt vời! Dịch vụ chuyên nghiệp, giá cả hợp lý. Tôi đã có chuyến đi Paris đáng nhớ nhất đời."
-              },
-              {
-                name: "Trần Thị Hương",
-                location: "TP. Hồ Chí Minh",
-                avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
-                rating: 5,
-                comment: "Website dễ sử dụng, booking nhanh chóng. Đội ngũ hỗ trợ nhiệt tình, tư vấn chi tiết. Rất hài lòng!"
-              },
-              {
-                name: "Lê Văn Hùng",
-                location: "Đà Nẵng",
-                avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
-                rating: 5,
-                comment: "Tôi đã đặt tour Nhật Bản cho gia đình. Mọi thứ đều hoàn hảo từ A-Z. Chắc chắn sẽ quay lại!"
-              }
-            ].map((testimonial, index) => (
-              <div
-                key={index}
-                className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
-              >
-                <div className="flex items-center mb-4">
-                  <ImageWithFallback
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    className="w-16 h-16 rounded-full object-cover mr-4"
-                  />
-                  <div>
-                    <h4 className="mb-1">{testimonial.name}</h4>
-                    <p className="text-sm text-gray-500">{testimonial.location}</p>
-                  </div>
-                </div>
+          {/* Website Review Prompt - Show if user has completed bookings */}
+          <WebsiteReviewPrompt className="mb-8" />
 
-                <div className="flex mb-3">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-
-                <p className="text-gray-600 text-sm italic">"{testimonial.comment}"</p>
-              </div>
-            ))}
-          </div>
+          <ReviewList
+            targetType="WEBSITE"
+            targetId="WANDERLUST"
+            title={t('home.testimonials')}
+            limit={3}
+          />
         </div>
       </div>
 

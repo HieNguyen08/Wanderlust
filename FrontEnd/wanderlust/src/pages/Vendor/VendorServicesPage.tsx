@@ -32,6 +32,9 @@ import { AddServiceDialog } from "../../components/vendor/AddServiceDialog";
 import { HotelWizardDialog } from "../../components/vendor/HotelWizardDialog";
 import { ServiceDetailDialog } from "../../components/vendor/ServiceDetailDialog";
 import { activityApi, carRentalApi, hotelApi, vendorApi } from "../../utils/api";
+import { useSmartPagination } from "../../hooks/useSmartPagination";
+import { PaginationUI } from "../../components/ui/PaginationUI";
+import { useCallback } from "react";
 
 interface VendorServicesPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -133,13 +136,12 @@ export default function VendorServicesPage({
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // services and loading managed by useSmartPagination
   const [serviceType, setServiceType] = useState<ServiceType>(initialType);
 
-  useEffect(() => {
-    loadServices();
-  }, [serviceType]);
+  // No initial load effect needed as useSmartPagination handles it, 
+  // but we trigger reset on serviceType change via the other effect.
 
   const servicePath = serviceType === "car" ? "car-rentals" : serviceType === "activity" ? "activities" : "hotels";
   const defaultServiceType: ServiceType = serviceType;
@@ -247,31 +249,58 @@ export default function VendorServicesPage({
     };
   };
 
-  const loadServices = async () => {
+  const fetchData = useCallback(async (page: number, size: number) => {
+    const servicePath = serviceType === "car" ? "car-rentals" : serviceType === "activity" ? "activities" : "hotels";
+    let apiStatus: string | undefined;
+    if (activeTab === 'approved') apiStatus = 'APPROVED';
+    else if (activeTab === 'rejected') apiStatus = 'REJECTED';
+    else if (activeTab === 'pending') apiStatus = 'PENDING';
+
     try {
-      setLoading(true);
-      const data = await vendorApi.getServices(servicePath);
-      const list = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
-      setServices(list.map(mapService));
+      const data = await vendorApi.getServices(servicePath, {
+        page,
+        size,
+        search: searchQuery,
+        status: apiStatus
+      });
+
+      const list = Array.isArray(data?.content) ? data.content : [];
+      const mapped = list.map(item => mapService(item));
+
+      return {
+        items: mapped,
+        total: data.totalElements || 0
+      };
     } catch (error) {
       toast.error(t('vendor.errorLoadingServices'));
-    } finally {
-      setLoading(false);
+      return { items: [], total: 0 };
     }
-  };
+  }, [activeTab, searchQuery, serviceType, t]);
 
-  const filteredServices = services.filter(service => {
-    const name = service.name || "";
-    const desc = service.description || "";
-    const query = (searchQuery || "").toLowerCase();
-    const matchesSearch = name.toLowerCase().includes(query) || desc.toLowerCase().includes(query);
-    const matchesTab =
-      activeTab === "all" ||
-      (activeTab === "approved" && service.approvalStatus === "APPROVED") ||
-      (activeTab === "pending" && service.approvalStatus !== "APPROVED") ||
-      (activeTab === "rejected" && service.approvalStatus === "REJECTED");
-    return matchesSearch && matchesTab;
+  const {
+    currentItems: services,
+    isTableLoading: loading,
+    goToPage,
+    nextPage,
+    prevPage,
+    currentPage,
+    totalPages,
+    totalItems,
+    setPageSize,
+    pageSize,
+    refresh: reloadServices
+  } = useSmartPagination({
+    fetchData,
+    initialPageSize: 9
   });
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    goToPage(0);
+  }, [activeTab, searchQuery, serviceType]);
+
+  // Replace legacy filteredServices with services (as it's now filtered via API)
+  const filteredServices = services;
 
   const getTypeLabel = (type: ServiceType) => {
     switch (type) {
@@ -282,23 +311,23 @@ export default function VendorServicesPage({
   };
 
   const stats = [
-    { 
-      label: t('vendor.activeServices'), 
+    {
+      label: t('vendor.activeServices'),
       value: services.filter(s => s.approvalStatus === "APPROVED" && s.status === "ACTIVE").length,
       color: "green"
     },
-    { 
-      label: t('vendor.pendingApproval'), 
+    {
+      label: t('vendor.pendingApproval'),
       value: services.filter(s => s.approvalStatus !== "APPROVED").length,
       color: "yellow"
     },
-    { 
-      label: t('vendor.needsRevision'), 
+    {
+      label: t('vendor.needsRevision'),
       value: services.filter(s => s.approvalStatus === "REJECTED").length,
       color: "orange"
     },
-    { 
-      label: t('vendor.totalRevenue'), 
+    {
+      label: t('vendor.totalRevenue'),
       value: `₫${(services.reduce((sum, s) => sum + (s.revenue || 0), 0) / 1000000).toFixed(0)}M`,
       color: "blue"
     },
@@ -334,7 +363,7 @@ export default function VendorServicesPage({
       else if (serviceType === "activity") await activityApi.pauseActivity(service.id);
       else await hotelApi.pauseHotel(service.id);
       toast.success(t('vendor.pausedService'));
-      loadServices();
+      reloadServices();
     } catch (err) {
       toast.error(t('vendor.errorLoadingServices'));
     }
@@ -358,7 +387,7 @@ export default function VendorServicesPage({
       else if (serviceType === "activity") await activityApi.resumeActivity(service.id);
       else await hotelApi.resumeHotel(service.id);
       toast.success(t('vendor.resumedService'));
-      loadServices();
+      reloadServices();
     } catch (err) {
       toast.error(t('vendor.errorLoadingServices'));
     }
@@ -404,7 +433,7 @@ export default function VendorServicesPage({
     try {
       await vendorApi.deleteService(servicePath, service.id);
       toast.success(t('vendor.deletedService'));
-      loadServices();
+      reloadServices();
     } catch (err) {
       toast.error(t('vendor.errorLoadingServices'));
     }
@@ -417,13 +446,13 @@ export default function VendorServicesPage({
     } else {
       await vendorApi.createService(targetPath, data);
     }
-    await loadServices();
+    await reloadServices();
   };
 
   return (
-    <VendorLayout 
-      currentPage="vendor-services" 
-      onNavigate={onNavigate} 
+    <VendorLayout
+      currentPage="vendor-services"
+      onNavigate={onNavigate}
       activePage="vendor-services"
       vendorType={serviceType}
     >
@@ -514,7 +543,7 @@ export default function VendorServicesPage({
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ServiceTab)}>
             <TabsList>
               <TabsTrigger value="all">
-                {t('common.all')} ({services.length})
+                {t('common.all')}
               </TabsTrigger>
               <TabsTrigger value="approved" className="gap-2">
                 <CheckCircle2 className="w-4 h-4" />
@@ -535,117 +564,117 @@ export default function VendorServicesPage({
                 <div className="text-center py-8 text-gray-500">{t('common.loading')}</div>
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 {filteredServices.map((service) => {
-                   const priceLabel = service.type === "hotel"
-                     ? "Giá thấp nhất (VND/đêm)"
-                     : service.type === "activity"
-                       ? "Giá (VND/người)"
-                       : "Giá thuê/ngày (VND)";
-                   const priceValue = service.price ?? service.lowestPrice;
+                {filteredServices.map((service) => {
+                  const priceLabel = service.type === "hotel"
+                    ? "Giá thấp nhất (VND/đêm)"
+                    : service.type === "activity"
+                      ? "Giá (VND/người)"
+                      : "Giá thuê/ngày (VND)";
+                  const priceValue = service.price ?? service.lowestPrice;
 
-                   const metaChips = () => {
-                     if (service.type === "hotel") {
-                       return [
-                         service.locationName || service.address,
-                         service.hotelType,
-                         service.starRating ? `${service.starRating}★` : null,
-                       ].filter(Boolean);
-                     }
-                     if (service.type === "activity") {
-                       return [
-                         service.locationName,
-                         service.duration,
-                         service.category,
-                         service.meetingPoint,
-                       ].filter(Boolean);
-                     }
+                  const metaChips = () => {
+                    if (service.type === "hotel") {
                       return [
-                        service.brand && service.model ? `${service.brand} ${service.model}` : service.brand || service.model,
-                        service.year ? `Đời ${service.year}` : null,
-                        service.seats ? `${service.seats} chỗ` : null,
-                        service.doors ? `${service.doors} cửa` : null,
-                        service.luggage ? `${service.luggage} vali` : null,
-                        service.transmission,
-                        service.fuelType,
+                        service.locationName || service.address,
+                        service.hotelType,
+                        service.starRating ? `${service.starRating}★` : null,
                       ].filter(Boolean);
-                   };
+                    }
+                    if (service.type === "activity") {
+                      return [
+                        service.locationName,
+                        service.duration,
+                        service.category,
+                        service.meetingPoint,
+                      ].filter(Boolean);
+                    }
+                    return [
+                      service.brand && service.model ? `${service.brand} ${service.model}` : service.brand || service.model,
+                      service.year ? `Đời ${service.year}` : null,
+                      service.seats ? `${service.seats} chỗ` : null,
+                      service.doors ? `${service.doors} cửa` : null,
+                      service.luggage ? `${service.luggage} vali` : null,
+                      service.transmission,
+                      service.fuelType,
+                    ].filter(Boolean);
+                  };
 
-                   return (
-                     <Card key={service.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                       <div className="relative h-48">
-                         <ImageWithFallback
-                           src={service.image}
-                           alt={service.name}
-                           className="w-full h-full object-cover"
-                         />
-                         <div className="absolute top-3 right-3 flex gap-2">
-                           <StatusBadge type="approval" kind={service.approvalStatus} />
-                           <StatusBadge type="status" kind={service.status} />
-                         </div>
-                         <Badge className="absolute top-3 left-3 bg-white text-gray-900">
-                           {getTypeLabel(service.type)}
-                         </Badge>
-                       </div>
+                  return (
+                    <Card key={service.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <div className="relative h-48">
+                        <ImageWithFallback
+                          src={service.image}
+                          alt={service.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-3 right-3 flex gap-2">
+                          <StatusBadge type="approval" kind={service.approvalStatus} />
+                          <StatusBadge type="status" kind={service.status} />
+                        </div>
+                        <Badge className="absolute top-3 left-3 bg-white text-gray-900">
+                          {getTypeLabel(service.type)}
+                        </Badge>
+                      </div>
 
-                       <div className="p-4 space-y-3">
-                         <div className="flex items-start justify-between gap-3">
-                           <div className="min-w-0">
-                             <h3 className="text-lg text-gray-900 mb-1 line-clamp-1">{service.name}</h3>
-                             {service.description && (
-                               <p className="text-sm text-gray-600 line-clamp-2">{service.description}</p>
-                             )}
-                           </div>
-                           <div className="text-right">
-                             <p className="text-[11px] text-gray-500">{priceLabel}</p>
-                             <p className="text-xl font-semibold text-blue-600 leading-tight">
-                               {priceValue !== undefined && priceValue !== null ? `₫${priceValue.toLocaleString()}` : "Chưa có giá"}
-                             </p>
-                           </div>
-                         </div>
+                      <div className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <h3 className="text-lg text-gray-900 mb-1 line-clamp-1">{service.name}</h3>
+                            {service.description && (
+                              <p className="text-sm text-gray-600 line-clamp-2">{service.description}</p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[11px] text-gray-500">{priceLabel}</p>
+                            <p className="text-xl font-semibold text-blue-600 leading-tight">
+                              {priceValue !== undefined && priceValue !== null ? `₫${priceValue.toLocaleString()}` : "Chưa có giá"}
+                            </p>
+                          </div>
+                        </div>
 
-                         {metaChips().length > 0 && (
-                           <div className="flex flex-wrap gap-2 text-xs text-gray-700">
-                             {metaChips().map((chip, idx) => (
-                               <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 rounded">
-                                 {chip}
-                               </span>
-                             ))}
-                           </div>
-                         )}
+                        {metaChips().length > 0 && (
+                          <div className="flex flex-wrap gap-2 text-xs text-gray-700">
+                            {metaChips().map((chip, idx) => (
+                              <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 rounded">
+                                {chip}
+                              </span>
+                            ))}
+                          </div>
+                        )}
 
-                         {(service.views || service.bookings || service.revenue) && (
-                           <div className="grid grid-cols-3 gap-2 pt-3 border-t text-xs">
-                             <div>
-                               <p className="text-gray-500">{t('vendor.views')}</p>
-                               <p className="text-gray-900 font-medium">{service.views ?? 0}</p>
-                             </div>
-                             <div>
-                               <p className="text-gray-500">{t('vendor.bookings')}</p>
-                               <p className="text-gray-900 font-medium">{service.bookings ?? 0}</p>
-                             </div>
-                             <div>
-                               <p className="text-gray-500">{t('vendor.revenue')}</p>
-                               <p className="text-green-600 font-medium">{service.revenue ? `${(service.revenue / 1000000).toFixed(0)}M` : "—"}</p>
-                             </div>
-                           </div>
-                         )}
+                        {(service.views || service.bookings || service.revenue) && (
+                          <div className="grid grid-cols-3 gap-2 pt-3 border-t text-xs">
+                            <div>
+                              <p className="text-gray-500">{t('vendor.views')}</p>
+                              <p className="text-gray-900 font-medium">{service.views ?? 0}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">{t('vendor.bookings')}</p>
+                              <p className="text-gray-900 font-medium">{service.bookings ?? 0}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">{t('vendor.revenue')}</p>
+                              <p className="text-green-600 font-medium">{service.revenue ? `${(service.revenue / 1000000).toFixed(0)}M` : "—"}</p>
+                            </div>
+                          </div>
+                        )}
 
-                         <div className="flex items-center justify-between pt-3 border-t">
-                           <div className="text-xs text-gray-500 space-y-1">
-                             <p>{t('vendor.submitted')}: {service.submittedAt}</p>
-                             {service.reviewedAt && <p>{t('vendor.reviewed')}: {service.reviewedAt}</p>}
-                           </div>
-                           <div className="flex gap-2">
-                             <Button variant="outline" size="sm" onClick={() => handleViewDetail(service)}>
-                               <Eye className="w-4 h-4" />
-                             </Button>
-                             <DropdownMenu>
-                               <DropdownMenuTrigger asChild>
-                                 <Button variant="outline" size="sm">
-                                   <MoreVertical className="w-4 h-4" />
-                                 </Button>
-                               </DropdownMenuTrigger>
-                               <DropdownMenuContent align="end">
+                        <div className="flex items-center justify-between pt-3 border-t">
+                          <div className="text-xs text-gray-500 space-y-1">
+                            <p>{t('vendor.submitted')}: {service.submittedAt}</p>
+                            {service.reviewedAt && <p>{t('vendor.reviewed')}: {service.reviewedAt}</p>}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => handleViewDetail(service)}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
                                 {service.approvalStatus !== "REJECTED" && (
                                   <DropdownMenuItem className="gap-2" onClick={() => handleEdit(service)}>
                                     <Edit className="w-4 h-4" />
@@ -664,18 +693,18 @@ export default function VendorServicesPage({
                                     {t('vendor.resume')}
                                   </DropdownMenuItem>
                                 )}
-                                 <DropdownMenuItem className="gap-2 text-red-600" onClick={() => handleDelete(service)}>
-                                   <Trash2 className="w-4 h-4" />
-                                   {t('vendor.delete')}
-                                 </DropdownMenuItem>
-                               </DropdownMenuContent>
-                             </DropdownMenu>
-                           </div>
-                         </div>
-                       </div>
-                     </Card>
-                   );
-                 })}
+                                <DropdownMenuItem className="gap-2 text-red-600" onClick={() => handleDelete(service)}>
+                                  <Trash2 className="w-4 h-4" />
+                                  {t('vendor.delete')}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
               </div>
 
               {filteredServices.length === 0 && (
@@ -686,6 +715,15 @@ export default function VendorServicesPage({
             </TabsContent>
           </Tabs>
         </Card>
+
+        {/* Pagination UI */}
+        <div className="mt-8 flex justify-center">
+          <PaginationUI
+            currentPage={currentPage + 1}
+            totalPages={totalPages}
+            onPageChange={(p) => goToPage(p - 1)}
+          />
+        </div>
       </div>
 
       {/* Add Service Dialog */}
@@ -698,7 +736,7 @@ export default function VendorServicesPage({
         onCompleted={() => {
           setIsHotelWizardOpen(false);
           setEditingHotelId(null);
-          loadServices();
+          reloadServices();
         }}
         editingHotelId={editingHotelId || undefined}
       />
@@ -717,7 +755,7 @@ export default function VendorServicesPage({
             setIsAddDialogOpen(false);
             setEditingService(null);
             setAddDialogType(null);
-            toast.success(editingService 
+            toast.success(editingService
               ? t('vendor.editServiceSuccess')
               : t('vendor.addServiceSuccess')
             );

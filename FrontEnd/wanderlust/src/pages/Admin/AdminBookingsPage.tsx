@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { PageType } from "../../MainApp";
 import { AdminBooking, adminBookingApi, BookingStatus, BookingType, PaymentStatus } from "../../api/adminBookingApi";
+import { tokenService } from "../../utils/api";
 import { AdminLayout } from "../../components/AdminLayout";
 import { BookingDetailDialog } from "../../components/admin/BookingDetailDialog";
 import { Badge } from "../../components/ui/badge";
@@ -63,19 +64,38 @@ export default function AdminBookingsPage({ onNavigate }: AdminBookingsPageProps
       try {
         setLoading(true);
         const data = await adminBookingApi.getAllBookings();
-        
-        // Load service details for each booking
+
+        // If unauthenticated, skip detail fetches to avoid 401 spam
+        if (!tokenService.isAuthenticated()) {
+          setBookings(data);
+          toast.warning(t('admin.loginRequired') || 'Please log in to view booking details');
+          return;
+        }
+
+        // Load service details for each booking; ignore individual 401s
         const bookingsWithDetails = await Promise.all(
           data.map(async (booking) => {
-            const serviceDetails = await adminBookingApi.loadServiceDetails(booking);
-            return { ...booking, serviceDetails: serviceDetails || undefined };
+            try {
+              const serviceDetails = await adminBookingApi.loadServiceDetails(booking);
+              return { ...booking, serviceDetails: serviceDetails || undefined };
+            } catch (error: any) {
+              if (error?.message === 'UNAUTHORIZED') {
+                return booking;
+              }
+              console.error('Failed to load booking detail:', error);
+              return booking;
+            }
           })
         );
-        
+
         setBookings(bookingsWithDetails);
       } catch (error) {
         console.error('Failed to load bookings:', error);
-        toast.error(t('admin.cannotLoadBookings'));
+        if ((error as any)?.message === 'UNAUTHORIZED') {
+          toast.error(t('admin.loginRequired') || 'Session expired. Please log in again.');
+        } else {
+          toast.error(t('admin.cannotLoadBookings'));
+        }
       } finally {
         setLoading(false);
       }

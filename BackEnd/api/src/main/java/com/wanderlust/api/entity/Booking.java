@@ -82,10 +82,14 @@ public class Booking {
     // --- Vendor Info ---
     private String vendorId;        // ID của đối tác cung cấp dịch vụ
     private Boolean vendorConfirmed;
+    private Boolean vendorRefundApproved; // Vendor đồng ý (true) / không đồng ý (false) hoàn tiền; null = chưa phản hồi
     
     // --- Completion Tracking --- (NEW)
     private Boolean userConfirmed;  // Người dùng xác nhận hoàn thành
     private Boolean autoCompleted;  // Tự động hoàn thành bởi hệ thống
+
+    // --- Review Tracking ---
+    private Boolean hasReview;      // User đã đánh giá booking này chưa
 
     // --- Additional Data ---
     // Dùng Map để lưu dữ liệu đặc thù của từng loại booking

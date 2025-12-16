@@ -1,12 +1,12 @@
 {
   "about": {
-    "aboutWanderlust": "Về Wanderlust",
+    "aboutWanderlust": "Wanderlust",
     "backToHome": "Quay lại trang chủ",
     "coreValues": "Giá trị cốt lõi",
     "destinations": "Điểm đến",
     "globalDesc": "Kết nối hơn 10,000 điểm đến trên toàn thế giới, từ Đông Nam Á đến châu Âu, Mỹ.",
     "globalTitle": "Toàn cầu",
-    "heroSubtitle": "Từ Đông Nam Á đến thế giới, trong tầm tay bạn",
+    "heroSubtitle": "Sống, đậm chất riêng",
     "missionDesc": "Mang đến trải nghiệm du lịch tuyệt vời và dễ dàng cho mọi người, kết nối bạn với thế giới.",
     "missionTitle": "Sứ mệnh",
     "ourStory": "Câu chuyện của chúng tôi",
@@ -15,8 +15,10 @@
     "qualityDesc": "Cam kết chất lượng dịch vụ hàng đầu với giá cả cạnh tranh nhất thị trường.",
     "qualityTitle": "Chất lượng",
     "satisfiedCustomers": "Khách hàng hài lòng",
-    "storyPara1": "Wanderlust được thành lập với sứ mệnh đơn giản: Làm cho việc du lịch trở nên dễ dàng và phải chăng cho mọi người. Chúng tôi tin rằng mỗi người đều xứng đáng được khám phá thế giới.",
-    "storyPara2": "Với hơn 10 năm kinh nghiệm trong ngành du lịch, chúng tôi đã phục vụ hơn 1 triệu khách hàng, giúp họ tạo ra những kỷ niệm đáng nhớ trên khắp thế giới.",
+    "storyPara1": "Wanderlust là siêu ứng dụng du lịch và tiện ích sống hàng đầu Đông Nam Á, chúng tôi giúp bạn khám phá và mua đa dạng các loại sản phẩm du lịch, dịch vụ địa phương và dịch vụ tài chính. Danh mục sản phẩm toàn diện của Wanderlust bao gồm các dịch vụ đặt phương tiện đi lại như vé máy bay, xe buýt, tàu hỏa, cho thuê ô tô, đưa đón sân bay, cũng như kho khách sạn chỗ ở lớn nhất Đông Nam Á. Không chỉ vậy, để giúp bạn thực hiện nhiều ước vọng về phong cách sống của mình, chúng tôi còn hoàn thiện các dịch vụ của mình với một loạt các điểm tham quan, hoạt động địa phương cũng như các spa chăm sóc sức khỏe và sắc đẹp. Vì vậy, bất kể lựa chọn lối sống của bạn là gì, bạn chỉ cần một cú nhấp chuột!",
+    "storyPara2": "Wanderlust tin rằng hạnh phúc có thể đến dưới nhiều hình thức đối với những người khác nhau trong những thời điểm khác nhau. Vì vậy, với uy tín của chúng tôi và kinh nghiệm hơn 10 năm, chúng tôi hứa hẹn với bạn một loạt các lựa chọn phong phú để thắp sáng trạng thái hạnh phúc của chính bạn. Cho dù bạn đang tìm kiếm một trải nghiệm thú vị hay nghỉ ngơi trong khu nghỉ dưỡng 5 sao, một ngày spa thư giãn hay một chuyến phiêu lưu ly kỳ, một chuyến bay hạng nhất tiện lợi hay chuyến đi đường bộ thú vị, cho cả chuyến đi trong nước và quốc tế, bạn đều có tất cả trong một ứng dụng Wanderlust.",
+    "storyPara3": "Với dịch vụ chăm sóc khách hàng 24/7 bằng các ngôn ngữ địa phương cũng như hơn 30 phương thức thanh toán địa phương khác nhau, Wanderlust đã được tải xuống hơn 100 triệu lần, trở thành ứng dụng du lịch và tiện ích sống phổ biến nhất ở khu vực Đông Nam Á.",
+    "storyPara4": "Bạn còn chờ gì nữa? Đặt một chuyến đi được lên kế hoạch chu đáo hoặc một kỳ nghỉ được quyết định vào phút chót với chúng tôi. Với tất cả các lựa chọn du lịch và phong cách sống độc đáo của bạn, như mọi khi, Wanderlust sẽ đồng hành cùng bạn.",
     "support": "Hỗ trợ",
     "teamDesc": "Đội ngũ chuyên nghiệp với nhiều năm kinh nghiệm trong ngành du lịch và công nghệ.",
     "teamTitle": "Đội ngũ"
@@ -1016,6 +1018,9 @@
     }
   },
   "flights": {
+    "customerReviews": "Đánh giá từ hành khách",
+    "reviewsDesc": "Xem đánh giá thực tế từ khách hàng đã sử dụng dịch vụ",
+    "allFlightReviews": "Đánh giá chuyến bay",
     "stops_one": "1 điểm dừng",
     "stops_other": "{{count}} điểm dừng",
     "noUpcomingFlights": "Không có chuyến bay nào sắp khởi hành trong hôm nay.",
@@ -1315,7 +1320,7 @@
     "popularTours": "Gói tour phổ biến",
     "popularToursDesc": "Những gói tour du lịch được yêu thích nhất",
     "testimonials": "Khách hàng nói gì về chúng tôi",
-    "testimonialsDesc": "Hơn 10,000+ khách hàng hài lòng",
+    "testimonialsDesc": "Hơn 1000+ khách hàng hài lòng",
     "tours": {
       "cruise": "Du thuyền sang trọng",
       "cruiseDesc": "Trải nghiệm biển cả đẳng cấp",
@@ -2469,5 +2474,22 @@
     "transactions": "giao dịch",
     "viewReport": "Xem báo cáo",
     "viewTransactions": "Xem giao dịch"
+  },
+  "reviews": {
+    "rateWebsite": "Đánh giá trải nghiệm của bạn",
+    "updateWebsiteReview": "Cập nhật đánh giá của bạn",
+    "websiteReviewDesc": "Chia sẻ trải nghiệm sử dụng Wanderlust của bạn để chúng tôi có thể phục vụ tốt hơn!",
+    "overallRating": "Đánh giá tổng quan",
+    "reviewTitle": "Tiêu đề",
+    "yourReview": "Đánh giá của bạn",
+    "titlePlaceholder": "Ví dụ: Trải nghiệm tuyệt vời!",
+    "commentPlaceholder": "Chia sẻ trải nghiệm của bạn về dịch vụ, giao diện, tính năng...",
+    "pleaseSelectRating": "Vui lòng chọn đánh giá từ 1-5 sao",
+    "pleaseFillTitle": "Vui lòng nhập tiêu đề đánh giá",
+    "pleaseFillComment": "Vui lòng nhập nội dung đánh giá",
+    "updateSuccess": "Cập nhật đánh giá thành công!",
+    "createSuccess": "Gửi đánh giá thành công!",
+    "noCompletedBookings": "Không tìm thấy booking đã hoàn thành",
+    "submitError": "Có lỗi xảy ra khi gửi đánh giá"
   }
 }

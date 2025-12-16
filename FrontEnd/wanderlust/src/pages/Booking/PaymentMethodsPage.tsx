@@ -1,14 +1,14 @@
 import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Eye,
-  Loader2,
-  MapPin,
-  Plane,
-  Shield,
-  Tag,
-  Users
+    ArrowLeft,
+    Calendar,
+    Clock,
+    Eye,
+    Loader2,
+    MapPin,
+    Plane,
+    Shield,
+    Tag,
+    Users
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -21,11 +21,11 @@ import { PaymentMethodSelector } from "../../components/payment/PaymentMethodSel
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Separator } from "../../components/ui/separator";
@@ -191,8 +191,10 @@ export default function PaymentMethodsPage({
     if (subtotalAmount < appliedVoucher.minOrderValue) return 0;
 
     if (appliedVoucher.type === "FIXED_AMOUNT") {
+      // Fixed amount: discount is capped by subtotal
       return Math.min(appliedVoucher.discount, subtotalAmount);
     } else {
+      // Percentage: calculate discount, then cap by maxDiscount if specified
       const percentDiscount = (subtotalAmount * appliedVoucher.discount) / 100;
       return Math.min(
         percentDiscount,
@@ -219,10 +221,16 @@ export default function PaymentMethodsPage({
   // Apply voucher
   const handleApplyVoucher = async () => {
     const targetCode = voucherCode.trim().toUpperCase();
+    
+    if (!targetCode) {
+      toast.error(t('payment.invalidVoucher', "Vui lòng nhập mã giảm giá"));
+      return;
+    }
+
     const voucher = availableVouchers.find((v) => v.code?.toUpperCase() === targetCode);
 
     if (!voucher) {
-      toast.error(t('payment.invalidVoucher', "Mã giảm giá không hợp lệ"));
+      toast.error(t('payment.invalidVoucher', "Mã giảm giá không hợp lệ hoặc không áp dụng cho dịch vụ này"));
       return;
     }
 
@@ -273,11 +281,13 @@ export default function PaymentMethodsPage({
         console.warn('Failed to increment voucher usage (non-blocking):', usageErr);
       }
 
-      // Step 2: Calculate discount
+      // Step 2: Calculate discount with maxDiscount cap for percentage type
       let discountAmount = 0;
       if (voucher.type === "FIXED_AMOUNT") {
+        // Fixed amount: discount is capped by subtotal
         discountAmount = Math.min(voucher.discount, subtotalAmount);
       } else {
+        // Percentage: calculate discount, then apply maxDiscount limit
         const percentDiscount = (subtotalAmount * voucher.discount) / 100;
         discountAmount = Math.min(
           percentDiscount,

@@ -71,6 +71,7 @@ export function useAppNavigate() {
     "vendor-dashboard": "/vendor",
     "vendor-services": "/vendor/services",
     "vendor-bookings": "/vendor/bookings",
+    "vendor-refunds": "/vendor/refunds",
     "vendor-reviews": "/vendor/reviews",
     "vendor-reports": "/vendor/reports",
     "vendor-settings": "/vendor/settings",
