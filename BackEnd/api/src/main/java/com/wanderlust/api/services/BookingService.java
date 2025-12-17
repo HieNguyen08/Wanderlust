@@ -77,8 +77,21 @@ public class BookingService {
 
     public Page<VendorBookingResponse> findVendorBookingsView(String vendorId, String search, String status, int page,
             int size) {
+
+        // 1. Get all product IDs owned by this vendor
+        List<String> hotelIds = hotelRepository.findByVendorId(vendorId).stream().map(Hotel::getHotelID).toList();
+        List<String> carIds = carRentalRepository.findByVendorId(vendorId).stream().map(CarRental::getId).toList();
+        List<String> activityIds = activityRepository.findByVendorId(vendorId).stream().map(Activity::getId).toList();
+
         Query query = new Query();
-        query.addCriteria(Criteria.where("vendorId").is(vendorId));
+
+        // 2. Build Criteria: Match vendorId OR match any of the product IDs
+        Criteria vendorCriteria = new Criteria().orOperator(
+                Criteria.where("vendorId").is(vendorId),
+                Criteria.where("hotelId").in(hotelIds),
+                Criteria.where("carRentalId").in(carIds),
+                Criteria.where("activityId").in(activityIds));
+        query.addCriteria(vendorCriteria);
 
         if (search != null && !search.trim().isEmpty()) {
             String regex = ".*" + java.util.regex.Pattern.quote(search.trim()) + ".*";

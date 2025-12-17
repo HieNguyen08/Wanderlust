@@ -106,19 +106,19 @@ export default function AdminFlightsPage({ onNavigate }: AdminFlightsPageProps) 
     try {
       const res = await adminFlightApi.getAllFlights({ search: searchQuery, page, size });
       return {
-        items: res.items,
-        total: res.total
+        data: res.items,
+        totalItems: res.total
       };
     } catch (error) {
       console.error("Failed to fetch flights:", error);
       toast.error(t('admin.cannotLoadFlights'));
-      return { items: [], total: 0 };
+      return { data: [], totalItems: 0 };
     }
   }, [searchQuery, t]);
 
   const {
     currentItems: flights,
-    isTableLoading: loading,
+    isLoading: loading,
     goToPage,
     currentPage,
     totalPages,

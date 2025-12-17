@@ -47,17 +47,23 @@ export interface VendorRefund {
 
 export const vendorApi = {
   // Get vendor bookings
-  getVendorBookings: async (): Promise<VendorBooking[]> => {
-    const response = await authenticatedFetch("/api/vendor/bookings");
+  getVendorBookings: async (params?: {
+    page?: number;
+    size?: number;
+    search?: string;
+    status?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append("page", params.page.toString());
+    if (params?.size !== undefined) queryParams.append("size", params.size.toString());
+    if (params?.search) queryParams.append("search", params.search);
+    if (params?.status) queryParams.append("status", params.status);
+
+    const response = await authenticatedFetch(`/api/vendor/bookings?${queryParams.toString()}`);
     if (!response.ok) {
       throw new Error("Failed to fetch vendor bookings");
     }
-    const data = await response.json();
-    if (!Array.isArray(data)) return [];
-    return data.map((item) => ({
-      ...item,
-      amount: typeof item.amount === "string" ? Number(item.amount) : item.amount,
-    }));
+    return response.json();
   },
 
   // Confirm booking

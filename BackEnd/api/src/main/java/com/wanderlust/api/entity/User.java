@@ -16,7 +16,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Document(collection = "users")
 @Data
 @AllArgsConstructor
@@ -43,13 +42,13 @@ public class User {
     private String country;
     private String passportNumber;
     private LocalDate passportExpiryDate;
-    private MembershipLevel membershipLevel;  // BRONZE, SILVER, GOLD, PLATINUM
-    private Integer loyaltyPoints;         // Điểm tích lũy (hiện: 2,450)
-    private Integer totalTrips;            // Tổng số chuyến đi (hiện: 12)
-    private Integer totalReviews;          // Số đánh giá đã viết (hiện: 8)
-    private LocalDateTime createdAt;       // Ngày tạo tài khoản
-    private LocalDateTime updatedAt;       // Lần cập nhật cuối
-    private LocalDateTime lastLoginAt;     // Lần đăng nhập cuố
+    private MembershipLevel membershipLevel; // BRONZE, SILVER, GOLD, PLATINUM
+    private Integer loyaltyPoints; // Điểm tích lũy (hiện: 2,450)
+    private Integer totalTrips; // Tổng số chuyến đi (hiện: 12)
+    private Integer totalReviews; // Số đánh giá đã viết (hiện: 8)
+    private LocalDateTime createdAt; // Ngày tạo tài khoản
+    private LocalDateTime updatedAt; // Lần cập nhật cuối
+    private LocalDateTime lastLoginAt; // Lần đăng nhập cuố
     private NotificationSettings notificationSettings;
     private Boolean isBlocked;
     private String refreshToken;

@@ -59,14 +59,12 @@ public class HotelController {
 
     // GET /api/hotels/locations - Get unique locations from hotels
     @GetMapping("/hotels/locations")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<?> getHotelLocations() {
         return ResponseEntity.ok(hotelService.getUniqueLocations());
     }
 
     // GET /api/hotels - Search (location, dates, etc) (With Pagination)
     @GetMapping("/hotels")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<Page<HotelDTO>> searchHotels(
             @ModelAttribute HotelSearchCriteria criteria,
             @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
@@ -76,35 +74,30 @@ public class HotelController {
 
     // GET /api/hotels/featured
     @GetMapping("/hotels/featured")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<List<HotelDTO>> getFeaturedHotels() {
         return ResponseEntity.ok(hotelService.findFeatured());
     }
 
     // GET /api/hotels/location/{locationId}
     @GetMapping("/hotels/location/{locationId}")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<List<HotelDTO>> getHotelsByLocation(@PathVariable String locationId) {
         return ResponseEntity.ok(hotelService.findByLocationId(locationId));
     }
 
     // GET /api/hotels/:id
     @GetMapping("/hotels/{id}")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<HotelDTO> getHotelById(@PathVariable String id) {
         return ResponseEntity.ok(hotelService.findById(id));
     }
 
     // GET /api/hotels/:id/rooms
     @GetMapping("/hotels/{id}/rooms")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<List<RoomDTO>> getHotelRooms(@PathVariable String id) {
         return ResponseEntity.ok(hotelService.findRoomsByHotelId(id));
     }
 
     // GET /api/hotels/:id/reviews (Placeholder - cần ReviewService)
     @GetMapping("/hotels/{id}/reviews")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<String> getHotelReviews(@PathVariable String id) {
         return ResponseEntity.ok("Review list placeholder for hotel " + id);
     }

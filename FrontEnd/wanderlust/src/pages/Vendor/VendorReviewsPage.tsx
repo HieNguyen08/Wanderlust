@@ -45,6 +45,13 @@ export default function VendorReviewsPage({
   // const [loading, setLoading] = useState(true); // Handled by hook
   // const [reviews, setReviews] = useState<Review[]>([]); // Handled by hook
 
+  // Statistics state
+  const [vendorStats, setVendorStats] = useState({
+    totalReviews: 0,
+    unanswered: 0,
+    averageRating: "0.0"
+  });
+
   const fetchData = useCallback(async (page: number, size: number) => {
     const vendorId = tokenService.getUserData()?.id;
     if (!vendorId) return { items: [], total: 0 };
@@ -76,19 +83,19 @@ export default function VendorReviewsPage({
       }));
 
       return {
-        items: mapped,
-        total: data.totalElements || 0
+        data: mapped,
+        totalItems: data.totalElements || 0
       };
     } catch (error) {
       console.error(error);
       toast.error(t('vendor.cannotLoadReviews'));
-      return { items: [], total: 0 };
+      return { data: [], totalItems: 0 };
     }
   }, [searchQuery, activeTab, t]);
 
   const {
     currentItems: reviews,
-    isTableLoading: loading,
+    isLoading: loading,
     goToPage,
     currentPage,
     totalPages,
@@ -103,28 +110,30 @@ export default function VendorReviewsPage({
     goToPage(0);
   }, [searchQuery, activeTab]);
 
-  // Params for stats - we might need separate API for stats if we want accurate counts across all pages
-  // For now, we only show stats for loaded reviews or hide stats that require full count?
-  // Or we can assume 'reviews' contains everything? NO, it's paginated.
-  // The 'unansweredCount' was filtered from client-side list.
-  // We can fetch stats separately or just rely on 'totalElements' for 'totalReviews'.
-  // 'unansweredCount' is tricky without a dedicated stats API.
-  // Let's set it to valid number if possible, or maybe hide/remove stats for now or just show what's on page (misleading).
-  // Ideally, dashboard/stats endpoint provides this.
-  // Let's use 'reviews.length' for current page stats, but label it "On this page"? No, that's bad UI.
-  // I will skip proper stats implementation for now as it requires backend stats endpoint.
-  // I will put placeholders or just use current list but beware it's partial.
-  const unansweredCount = 0; // Stats need backend support
+  // Fetch vendor review statistics
+  useEffect(() => {
+    const loadVendorStats = async () => {
+      const vendorId = tokenService.getUserData()?.id;
+      if (!vendorId) return;
 
-  const averageRating = reviews.length
-    ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
-    : "0.0";
+      try {
+        const data = await reviewApi.getVendorStats(vendorId);
+        setVendorStats({
+          totalReviews: data.totalReviews || 0,
+          unanswered: data.unrespondedCount || 0,
+          averageRating: Number(data.averageRating || 0).toFixed(1)
+        });
+      } catch (error) {
+        console.error("Failed to load vendor stats:", error);
+      }
+    };
+    loadVendorStats();
+  }, []);
 
   const stats = [
-    { label: t('vendor.totalReviews'), value: reviews.length.toString(), color: "blue" },
-    { label: t('vendor.unanswered'), value: unansweredCount.toString(), color: "yellow" },
-    { label: t('vendor.averageRating'), value: `${averageRating}★`, color: "yellow" },
-    { label: t('vendor.thisMonth'), value: "+", color: "green" },
+    { label: t('vendor.totalReviews'), value: vendorStats.totalReviews.toString(), color: "blue" },
+    { label: t('vendor.unanswered'), value: vendorStats.unanswered.toString(), color: "yellow" },
+    { label: t('vendor.averageRating'), value: `${vendorStats.averageRating}★`, color: "yellow" },
   ];
 
   const ratingDistribution = [1, 2, 3, 4, 5].map((stars) => {
@@ -215,10 +224,10 @@ export default function VendorReviewsPage({
                 <TabsList>
                   <TabsTrigger value="all">{t('common.all')} ({reviews.length})</TabsTrigger>
                   <TabsTrigger value="pending">
-                    {t('vendor.unanswered')} ({unansweredCount})
+                    {t('vendor.unanswered')} ({vendorStats.unanswered})
                   </TabsTrigger>
                   <TabsTrigger value="responded">
-                    {t('vendor.responded')} ({reviews.length - unansweredCount})
+                    {t('vendor.responded')} ({vendorStats.totalReviews - vendorStats.unanswered})
                   </TabsTrigger>
                 </TabsList>
 

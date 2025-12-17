@@ -607,4 +607,73 @@ public class ReviewCommentService {
             review.setNotHelpfulCount(Math.max(0, current + delta));
         }
     }
+
+    // ==========================================
+    // STATISTICS METHODS
+    // ==========================================
+
+    public long countByStatus(ReviewStatus status) {
+        return reviewCommentRepository.countByStatus(status);
+    }
+
+    public java.util.Map<String, Long> getAdminReviewStats() {
+        java.util.Map<String, Long> stats = new java.util.HashMap<>();
+        stats.put("pending", countByStatus(ReviewStatus.PENDING));
+        stats.put("approved", countByStatus(ReviewStatus.APPROVED));
+        stats.put("rejected", countByStatus(ReviewStatus.REJECTED));
+        return stats;
+    }
+
+    public List<ReviewCommentDTO> findPendingReviews() {
+        List<ReviewComment> pendingReviews = reviewCommentRepository.findByStatus(ReviewStatus.PENDING);
+        return pendingReviews.stream()
+                .map(reviewCommentMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public java.util.Map<String, Object> getVendorStats(String vendorId) {
+        List<String> targetIds = new ArrayList<>();
+        List<com.wanderlust.api.entity.Hotel> hotels = hotelRepository.findByVendorId(vendorId);
+        targetIds.addAll(hotels.stream().map(com.wanderlust.api.entity.Hotel::getHotelID).collect(Collectors.toList()));
+        List<com.wanderlust.api.entity.Activity> activities = activityRepository.findByVendorId(vendorId);
+        targetIds.addAll(
+                activities.stream().map(com.wanderlust.api.entity.Activity::getId).collect(Collectors.toList()));
+        List<com.wanderlust.api.entity.CarRental> cars = carRentalRepository.findByVendorId(vendorId);
+        targetIds.addAll(cars.stream().map(com.wanderlust.api.entity.CarRental::getId).collect(Collectors.toList()));
+        if (targetIds.isEmpty()) {
+            java.util.Map<String, Object> emptyStats = new java.util.HashMap<>();
+            emptyStats.put("totalReviews", 0L);
+            emptyStats.put("averageRating", 0.0);
+            emptyStats.put("unrespondedCount", 0L);
+            return emptyStats;
+        }
+        org.springframework.data.mongodb.core.query.Criteria targetCriteria = org.springframework.data.mongodb.core.query.Criteria
+                .where("targetId").in(targetIds);
+        long totalReviews = mongoTemplate.count(new org.springframework.data.mongodb.core.query.Query(targetCriteria),
+                ReviewComment.class);
+        org.springframework.data.mongodb.core.query.Criteria unrespondedCriteria = new org.springframework.data.mongodb.core.query.Criteria()
+                .andOperator(targetCriteria,
+                        new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                                org.springframework.data.mongodb.core.query.Criteria.where("vendorResponse").is(null),
+                                org.springframework.data.mongodb.core.query.Criteria.where("vendorResponse").is("")));
+        long unrespondedCount = mongoTemplate
+                .count(new org.springframework.data.mongodb.core.query.Query(unrespondedCriteria), ReviewComment.class);
+        org.springframework.data.mongodb.core.aggregation.Aggregation aggregation = org.springframework.data.mongodb.core.aggregation.Aggregation
+                .newAggregation(org.springframework.data.mongodb.core.aggregation.Aggregation.match(targetCriteria),
+                        org.springframework.data.mongodb.core.aggregation.Aggregation.group().avg("rating")
+                                .as("avgRating"));
+        org.springframework.data.mongodb.core.aggregation.AggregationResults<java.util.Map> results = mongoTemplate
+                .aggregate(aggregation, ReviewComment.class, java.util.Map.class);
+        double averageRating = 0.0;
+        java.util.Map<String, Object> result = results.getUniqueMappedResult();
+        if (result != null && result.get("avgRating") != null) {
+            averageRating = ((Number) result.get("avgRating")).doubleValue();
+        }
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("totalReviews", totalReviews);
+        stats.put("averageRating", averageRating);
+        stats.put("unrespondedCount", unrespondedCount);
+        return stats;
+    }
+
 }

@@ -2099,8 +2099,20 @@ export const reviewApi = {
   },
 
   // Get all reviews (admin)
-  getAllReviewsForAdmin: async () => {
-    const response = await authenticatedFetch('/api/reviews/admin/all');
+  getAllReviewsForAdmin: async (params?: {
+    page?: number;
+    size?: number;
+    search?: string;
+    status?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.status) queryParams.append('status', params.status);
+
+    const url = `/api/reviews/admin/all${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await authenticatedFetch(url);
     if (!response.ok) {
       throw new Error('Failed to fetch all reviews');
     }
@@ -2140,6 +2152,24 @@ export const reviewApi = {
   // Vote a review (helpful / not helpful)
   voteReview: async (reviewId: string, voteType: 'HELPFUL' | 'NOT_HELPFUL') => {
     return previewApi.voteReview(reviewId, voteType);
+  },
+
+  // Get admin review statistics
+  getAdminStats: async () => {
+    const response = await authenticatedFetch('/api/reviews/admin/stats');
+    if (!response.ok) {
+      throw new Error('Failed to fetch admin review stats');
+    }
+    return response.json();
+  },
+
+  // Get vendor review statistics
+  getVendorStats: async (vendorId: string) => {
+    const response = await authenticatedFetch(`/api/reviews/vendor/${vendorId}/stats`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch vendor review stats');
+    }
+    return response.json();
   },
 };
 
@@ -2440,14 +2470,27 @@ export const vendorApi = {
     return response.text();
   },
 
-  // Get vendor reviews
-  getVendorReviews: async (vendorId: string, page: number = 0, size: number = 10) => {
-    const response = await authenticatedFetch(`/api/reviews/vendor/${vendorId}?page=${page}&size=${size}`);
+  // Get vendor reviews (paginated, with search/status filters)
+  getVendorReviews: async (
+    vendorId: string,
+    params?: { page?: number; size?: number; search?: string; status?: string }
+  ) => {
+    const query = new URLSearchParams();
+    if (params?.page !== undefined) query.append("page", params.page.toString());
+    if (params?.size !== undefined) query.append("size", params.size.toString());
+    if (params?.search) query.append("search", params.search);
+    if (params?.status) query.append("status", params.status);
+
+    const queryString = query.toString();
+    const response = await authenticatedFetch(
+      `/api/reviews/vendor/${vendorId}${queryString ? `?${queryString}` : ""}`
+    );
+
     if (response.status === 401 || response.status === 403) {
-      return [];
+      return { content: [], totalElements: 0, totalPages: 0 };
     }
     if (!response.ok) {
-      throw new Error('Failed to fetch vendor reviews');
+      throw new Error("Failed to fetch vendor reviews");
     }
     return response.json();
   },

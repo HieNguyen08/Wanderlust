@@ -58,7 +58,6 @@ public class CarRentalController {
     }
 
     @GetMapping
-    @PreAuthorize("permitAll()")
     public ResponseEntity<Page<CarRentalDTO>> searchCarRentals(
             @RequestParam(required = false) String locationId,
             @RequestParam(required = false) String brand,
@@ -77,28 +76,24 @@ public class CarRentalController {
     }
 
     @GetMapping("/popular")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<List<CarRentalDTO>> getPopularCars() {
         List<CarRental> cars = carRentalService.findPopularCars();
         return ResponseEntity.ok(carRentalMapper.toDTOs(cars));
     }
 
     @GetMapping("/location/{locationId}")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<List<CarRentalDTO>> getCarsByLocation(@PathVariable String locationId) {
         List<CarRental> cars = carRentalService.findByLocationId(locationId);
         return ResponseEntity.ok(carRentalMapper.toDTOs(cars));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<CarRentalDTO> getCarRentalById(@PathVariable String id) {
         CarRental car = carRentalService.findById(id);
         return ResponseEntity.ok(carRentalMapper.toDTO(car));
     }
 
     @GetMapping("/{id}/availability")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<?> checkAvailability(
             @PathVariable String id,
             @RequestParam String startDate,

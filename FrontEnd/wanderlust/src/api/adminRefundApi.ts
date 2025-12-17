@@ -112,4 +112,18 @@ export const adminRefundApi = {
     }
     return response.json();
   },
+
+  // Get refund statistics
+  getStats: async (): Promise<{
+    pendingCount: number;
+    approvedCount: number;
+    rejectedCount: number;
+    totalRefundedAmount: number;
+  }> => {
+    const response = await authenticatedFetch('/api/refunds/admin/stats');
+    if (!response.ok) {
+      throw new Error("Failed to fetch refund stats");
+    }
+    return response.json();
+  },
 };

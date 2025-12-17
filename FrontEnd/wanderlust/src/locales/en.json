@@ -319,6 +319,8 @@
     "cannotCreateUser": "Cannot create user",
     "cannotDeleteFlight": "Cannot delete flight",
     "cannotDeleteReview": "Cannot delete review",
+    "averageRating": "Average Rating",
+    "noReviews": "No reviews found",
     "cannotDeleteUser": "Cannot delete user",
     "cannotDeleteVoucher": "Cannot delete voucher",
     "cannotLoadBookings": "Cannot load bookings",

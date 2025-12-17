@@ -62,27 +62,39 @@ export default function VendorBookingsPage({
 
   const fetchData = useCallback(async (page: number, size: number) => {
     try {
-      const data = await vendorApi.getVendorBookings({
+      const data: any = await vendorApi.getVendorBookings({
         page,
         size,
         search: searchQuery,
         status: activeTab === 'all' ? undefined : activeTab
       });
 
-      const list = Array.isArray(data?.content) ? data.content : [];
+      const list = (Array.isArray(data?.content) ? data.content : []).map((item: any) => ({
+        id: item.id,
+        bookingCode: item.bookingCode || item.id,
+        customer: item.customer || item.customerName || item.guestInfo?.firstName + ' ' + item.guestInfo?.lastName || "Guest",
+        service: item.service || item.serviceName || item.productName || "Service",
+        date: item.date || item.bookingDate || item.createdAt || new Date().toISOString(),
+        amount: item.amount || item.totalPrice || 0,
+        status: (item.status || "pending").toLowerCase(),
+        payment: (item.paymentStatus || item.payment || "pending").toLowerCase(),
+        // Keep original object for details if needed
+        ...item
+      })) as VendorBooking[];
+
       return {
-        items: list,
-        total: data.totalElements || 0
+        data: list,
+        totalItems: data.totalElements || 0
       };
     } catch (error) {
       toast.error(t('vendor.cannotLoadBookings'));
-      return { items: [], total: 0 };
+      return { data: [], totalItems: 0 };
     }
   }, [activeTab, searchQuery, t]);
 
   const {
     currentItems: bookings,
-    isTableLoading: loading,
+    isLoading: loading,
     goToPage,
     currentPage,
     totalPages,

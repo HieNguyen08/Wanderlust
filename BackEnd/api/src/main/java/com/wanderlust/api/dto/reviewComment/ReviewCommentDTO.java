@@ -20,11 +20,11 @@ public class ReviewCommentDTO {
     private String id;
     private String userId;
     // TODO: Thêm UserInfoDTO (gồm tên, avatar) để hiển thị
-    
+
     private String bookingId;
     private ReviewTargetType targetType;
     private String targetId;
-    
+
     private Double rating;
     private String title;
     private String comment;
@@ -55,6 +55,9 @@ public class ReviewCommentDTO {
     private String airlineCode;
     private String airlineName;
     private String airlineLogo;
+
+    // Admin display
+    private String targetName;
 
     // Inner DTO cho Image
     @Data

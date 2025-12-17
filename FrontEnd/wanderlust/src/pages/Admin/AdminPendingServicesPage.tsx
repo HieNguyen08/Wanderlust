@@ -109,12 +109,12 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
 
     const carQuickFacts = type === "car"
       ? [
-          [item.brand, item.model, item.year].filter(Boolean).join(" "),
-          item.type,
-          item.seats ? `${item.seats} chỗ` : undefined,
-          item.transmission,
-          item.fuelType,
-        ].filter(Boolean).join(" • ")
+        [item.brand, item.model, item.year].filter(Boolean).join(" "),
+        item.type,
+        item.seats ? `${item.seats} chỗ` : undefined,
+        item.transmission,
+        item.fuelType,
+      ].filter(Boolean).join(" • ")
       : undefined;
 
     const descriptionText =
@@ -246,7 +246,7 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
         luggage: item.luggage,
         color: item.color,
         licensePlate: item.licensePlate,
-        fuelPolicy: item.fuelPolicy,
+
         city: item.city,
         country: item.country,
       };
@@ -397,7 +397,7 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
   const filteredServices = useMemo(() => {
     const result = services.filter(service => {
       const query = (searchTerm || searchQuery || "").toLowerCase();
-      const matchesSearch = 
+      const matchesSearch =
         (service.name || "").toLowerCase().includes(query) ||
         (service.vendorName || "").toLowerCase().includes(query);
       const matchesTab = activeTab === "all" || service.status === activeTab;
@@ -929,7 +929,7 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
                           </div>
                         </div>
 
-                        <Button 
+                        <Button
                           className="w-full gap-2"
                           onClick={() => handleReview(service)}
                           variant={service.status === "pending" ? "default" : "outline"}

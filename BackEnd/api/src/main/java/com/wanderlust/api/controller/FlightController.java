@@ -33,7 +33,6 @@ public class FlightController {
     private FlightService flightService;
 
     @GetMapping
-    @PreAuthorize("permitAll()")
     public ResponseEntity<Page<Flight>> getAllFlights(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
@@ -42,7 +41,6 @@ public class FlightController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<Flight> getFlightById(@PathVariable String id) {
         return flightService.getFlightById(id)
                 .map(ResponseEntity::ok)
@@ -50,7 +48,6 @@ public class FlightController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<Page<Flight>> searchFlights(
             @RequestParam String from,
             @RequestParam String to,
@@ -71,7 +68,6 @@ public class FlightController {
     }
 
     @GetMapping("/range")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<List<Flight>> getFlightsByDateRange(
             @RequestParam String from,
             @RequestParam String to,
@@ -83,7 +79,6 @@ public class FlightController {
     }
 
     @GetMapping("/nearest")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<List<Flight>> getNearestFlights(
             @RequestParam(defaultValue = "50") int limit) {
         List<Flight> flights = flightService.getNearestFlights(limit);
@@ -91,14 +86,12 @@ public class FlightController {
     }
 
     @GetMapping("/by-airline/{airlineCode}")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<List<Flight>> getFlightsByAirline(@PathVariable String airlineCode) {
         List<Flight> flights = flightService.getFlightsByAirline(airlineCode);
         return ResponseEntity.ok(flights);
     }
 
     @GetMapping("/by-type")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<List<Flight>> getFlightsByType(
             @RequestParam Boolean isInternational) {
         List<Flight> flights = flightService.getFlightsByType(isInternational);
@@ -106,21 +99,18 @@ public class FlightController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Flight> createFlight(@RequestBody Flight flight) {
         Flight createdFlight = flightService.createFlight(flight);
         return ResponseEntity.ok(createdFlight);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Flight> updateFlight(@PathVariable String id, @RequestBody Flight flight) {
         Flight updatedFlight = flightService.updateFlight(id, flight);
         return ResponseEntity.ok(updatedFlight);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteFlight(@PathVariable String id) {
         flightService.deleteFlight(id);
         return ResponseEntity.noContent().build();

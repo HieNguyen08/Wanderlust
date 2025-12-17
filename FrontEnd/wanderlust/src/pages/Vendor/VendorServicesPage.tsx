@@ -268,18 +268,18 @@ export default function VendorServicesPage({
       const mapped = list.map(item => mapService(item));
 
       return {
-        items: mapped,
-        total: data.totalElements || 0
+        data: mapped,
+        totalItems: data.totalElements || 0
       };
     } catch (error) {
       toast.error(t('vendor.errorLoadingServices'));
-      return { items: [], total: 0 };
+      return { data: [], totalItems: 0 };
     }
   }, [activeTab, searchQuery, serviceType, t]);
 
   const {
     currentItems: services,
-    isTableLoading: loading,
+    isLoading: loading,
     goToPage,
     nextPage,
     prevPage,

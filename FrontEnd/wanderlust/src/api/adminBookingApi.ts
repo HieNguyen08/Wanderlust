@@ -186,15 +186,39 @@ export const adminBookingApi = {
       switch (booking.bookingType) {
         case "FLIGHT":
           if (booking.flightId) {
-            const response = await authenticatedFetch(`/api/flights/${booking.flightId}`);
-            if (response.ok) {
-              const flight = await response.json();
+            // Handle single value, comma-separated string, or array of IDs
+            const rawIds = Array.isArray(booking.flightId)
+              ? booking.flightId
+              : typeof booking.flightId === "string"
+                ? booking.flightId.split(",")
+                : [booking.flightId];
+
+            const flightIds = rawIds
+              .filter((id) => id !== undefined && id !== null)
+              .map((id) => String(id).trim())
+              // Avoid flight-number strings that are not DB IDs (prevents noisy 404s)
+              .filter((id) => id && (id.includes("-") || id.length > 16));
+            const flights = [];
+            
+            for (const flightId of flightIds) {
+              const response = await authenticatedFetch(`/api/flights/${flightId}`);
+              if (response.ok) {
+                flights.push(await response.json());
+              }
+            }
+            
+            if (flights.length > 0) {
+              const flight = flights[0];
+              const flightNames = flights
+                .map(f => `${f.flightNumber || 'N/A'} (${f.airline || 'N/A'})`)
+                .join(' + ');
+              
               return {
-                name: `${flight.departure?.city || 'N/A'} → ${flight.arrival?.city || 'N/A'} - ${flight.airline || 'N/A'} ${flight.flightNumber || ''}`,
+                name: `${flight.departure?.city || 'N/A'} → ${flight.arrival?.city || 'N/A'} - ${flightNames}`,
                 description: `${flight.departure?.airport || ''} → ${flight.arrival?.airport || ''}`,
                 provider: flight.airline,
                 location: `${flight.departure?.city || ''} - ${flight.arrival?.city || ''}`,
-                details: flight
+                details: flights.length === 1 ? flight : { outbound: flights[0], return: flights[1] }
               };
             }
           }

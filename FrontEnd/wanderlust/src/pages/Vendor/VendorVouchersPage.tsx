@@ -461,19 +461,19 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
       });
 
       return {
-        items: mapped,
-        total: res?.totalElements || 0
+        data: mapped,
+        totalItems: res?.totalElements || 0
       };
     } catch (error: any) {
       console.error("Failed to load vendor vouchers", error);
       toast.error(error?.message || t('vendor.cannotLoadVouchers'));
-      return { items: [], total: 0 };
+      return { data: [], totalItems: 0 };
     }
   }, [searchQuery, statusFilter, t]);
 
   const {
     currentItems: vouchers,
-    isTableLoading: loading,
+    isLoading: loading,
     goToPage,
     currentPage,
     totalPages,

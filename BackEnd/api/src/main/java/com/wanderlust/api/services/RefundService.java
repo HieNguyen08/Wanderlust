@@ -2,16 +2,30 @@ package com.wanderlust.api.services;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.wanderlust.api.dto.RefundDTO;
+import com.wanderlust.api.entity.Activity;
 import com.wanderlust.api.entity.Booking;
+import com.wanderlust.api.entity.CarRental;
+import com.wanderlust.api.entity.Hotel;
 import com.wanderlust.api.entity.Refund;
+import com.wanderlust.api.entity.Room;
 import com.wanderlust.api.entity.types.BookingStatus;
+import com.wanderlust.api.entity.types.BookingType;
+import com.wanderlust.api.entity.types.PaymentStatus;
 import com.wanderlust.api.entity.types.RefundStatus;
+import com.wanderlust.api.repository.ActivityRepository;
 import com.wanderlust.api.repository.BookingRepository;
+import com.wanderlust.api.repository.CarRentalRepository;
+import com.wanderlust.api.repository.HotelRepository;
 import com.wanderlust.api.repository.RefundRepository;
+import com.wanderlust.api.repository.RoomRepository;
 
 import lombok.AllArgsConstructor;
 
@@ -19,172 +33,297 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class RefundService {
 
-    private final RefundRepository refundRepository;
-    private final BookingRepository bookingRepository;
-    private final org.springframework.data.mongodb.core.MongoTemplate mongoTemplate;
+        private final RefundRepository refundRepository;
+        private final BookingRepository bookingRepository;
+        private final HotelRepository hotelRepository;
+        private final RoomRepository roomRepository;
+        private final ActivityRepository activityRepository;
+        private final CarRentalRepository carRentalRepository;
+        private final org.springframework.data.mongodb.core.MongoTemplate mongoTemplate;
 
-    /**
-     * Get all refunds with pagination and search (Admin)
-     */
-    public org.springframework.data.domain.Page<Refund> getAllRefunds(String search, String status,
-            org.springframework.data.domain.Pageable pageable) {
-        org.springframework.data.mongodb.core.query.Query query = new org.springframework.data.mongodb.core.query.Query()
-                .with(pageable);
-        List<org.springframework.data.mongodb.core.query.Criteria> criteriaList = new java.util.ArrayList<>();
+        /**
+         * Get all refunds with pagination and search (Admin)
+         */
+        public org.springframework.data.domain.Page<RefundDTO> getAllRefunds(String search, String status,
+                        org.springframework.data.domain.Pageable pageable) {
+                org.springframework.data.mongodb.core.query.Query query = new org.springframework.data.mongodb.core.query.Query()
+                                .with(pageable);
+                List<org.springframework.data.mongodb.core.query.Criteria> criteriaList = new java.util.ArrayList<>();
 
-        // 1. Filter by Status
-        if (org.springframework.util.StringUtils.hasText(status) && !"all".equalsIgnoreCase(status)) {
-            criteriaList
-                    .add(org.springframework.data.mongodb.core.query.Criteria.where("status").is(status.toUpperCase()));
+                if (org.springframework.util.StringUtils.hasText(status) && !"all".equalsIgnoreCase(status)) {
+                        String s = status.toLowerCase();
+                        if ("pending".equals(s)) {
+                                criteriaList.add(org.springframework.data.mongodb.core.query.Criteria.where("status")
+                                                .is(BookingStatus.REFUND_REQUESTED));
+                                criteriaList.add(org.springframework.data.mongodb.core.query.Criteria
+                                                .where("paymentStatus")
+                                                .is(PaymentStatus.COMPLETED));
+                        } else if ("approved".equals(s)) {
+                                criteriaList.add(org.springframework.data.mongodb.core.query.Criteria.where("status")
+                                                .is(BookingStatus.CANCELLED));
+                                // Could also check vendorRefundApproved or adminRefundApproved if needed
+                        } else if ("rejected".equals(s)) {
+                                // Hard to track rejected on Booking entity alone if it reverts to CONFIRMED.
+                                // For now, skip or use a marker
+                        } else if ("completed".equals(s)) {
+                                criteriaList.add(org.springframework.data.mongodb.core.query.Criteria.where("status")
+                                                .is(BookingStatus.CANCELLED));
+                                criteriaList.add(org.springframework.data.mongodb.core.query.Criteria
+                                                .where("paymentStatus")
+                                                .is(PaymentStatus.REFUNDED));
+                        }
+                } else {
+                        // "All" - mostly interested in refund workflows
+                        criteriaList.add(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                                        org.springframework.data.mongodb.core.query.Criteria.where("status")
+                                                        .is(BookingStatus.REFUND_REQUESTED),
+                                        org.springframework.data.mongodb.core.query.Criteria.where("status")
+                                                        .is(BookingStatus.CANCELLED), // Approved/Completed
+                                        org.springframework.data.mongodb.core.query.Criteria.where("paymentStatus")
+                                                        .is(PaymentStatus.REFUNDED)));
+                }
+
+                if (org.springframework.util.StringUtils.hasText(search)) {
+                        String regex = search.trim();
+                        criteriaList.add(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                                        org.springframework.data.mongodb.core.query.Criteria.where("bookingCode")
+                                                        .regex(regex, "i"),
+                                        org.springframework.data.mongodb.core.query.Criteria.where("guestInfo.fullName")
+                                                        .regex(regex, "i"),
+                                        org.springframework.data.mongodb.core.query.Criteria.where("guestInfo.email")
+                                                        .regex(regex, "i")));
+                }
+
+                if (!criteriaList.isEmpty()) {
+                        query.addCriteria(new org.springframework.data.mongodb.core.query.Criteria()
+                                        .andOperator(criteriaList.toArray(
+                                                        new org.springframework.data.mongodb.core.query.Criteria[0])));
+                }
+
+                long total = mongoTemplate.count(
+                                org.springframework.data.mongodb.core.query.Query.of(query).limit(0).skip(0),
+                                Booking.class);
+
+                query.with(pageable);
+                List<Booking> bookings = mongoTemplate.find(query, Booking.class);
+
+                // Map Booking -> RefundDTO
+                List<RefundDTO> dtos = bookings.stream().map(this::bookingToRefundDTO).collect(Collectors.toList());
+
+                return new org.springframework.data.domain.PageImpl<>(dtos, pageable, total);
         }
 
-        // 2. Filter by Search (Booking Code from Booking collection, or User Name/Email
-        // if possible to join,
-        // but for simplicity and performance without complex lookups, we might just
-        // search Booking Code if we store it in Refund or join properly)
-        // Since Refund has bookingId, we can look up Booking.
-        // However, standard join in Mongo is Lookup.
+        private RefundDTO bookingToRefundDTO(Booking booking) {
+                RefundDTO dto = new RefundDTO();
+                // Use Booking ID as pseudo-Refund ID if real one doesn't exist
+                dto.setId(booking.getId());
+                dto.setBookingId(booking.getId());
+                dto.setBookingCode(booking.getBookingCode());
 
-        // Let's use simple find for now if search is empty, or complex lookup if search
-        // is present?
-        // Actually, to filter by Booking Code, we MUST join or query separate.
+                dto.setUserId(booking.getUserId());
+                if (booking.getGuestInfo() != null) {
+                        dto.setUserName(booking.getGuestInfo().getFullName());
+                        dto.setUserEmail(booking.getGuestInfo().getEmail());
+                }
 
-        // Alternative: If search is present, find matching Bookings first, then find
-        // Refunds for those bookings.
-        // This is often faster/simpler in code than writing a complex aggregation
-        // pipeline if not strictly required.
+                dto.setAmount(booking.getTotalPrice());
+                dto.setOriginalAmount(booking.getTotalPrice());
+                dto.setReason(booking.getCancellationReason());
 
-        if (org.springframework.util.StringUtils.hasText(search)) {
-            String regex = search.trim();
-            // Find bookings matching the code
-            List<Booking> matchedBookings = mongoTemplate.find(
-                    org.springframework.data.mongodb.core.query.Query.query(
-                            new org.springframework.data.mongodb.core.query.Criteria().orOperator(
-                                    org.springframework.data.mongodb.core.query.Criteria.where("bookingCode")
-                                            .regex(regex, "i"),
-                                    org.springframework.data.mongodb.core.query.Criteria.where("guestInfo.fullName")
-                                            .regex(regex, "i"),
-                                    org.springframework.data.mongodb.core.query.Criteria.where("guestInfo.email")
-                                            .regex(regex, "i"))),
-                    Booking.class);
+                // Map Status
+                if (booking.getStatus() == BookingStatus.REFUND_REQUESTED) {
+                        dto.setStatus(RefundStatus.PENDING);
+                } else if (booking.getStatus() == BookingStatus.CANCELLED) {
+                        // Could be Approved or Completed
+                        dto.setStatus(RefundStatus.APPROVED);
+                } else {
+                        dto.setStatus(RefundStatus.REJECTED); // Fallback
+                }
 
-            List<String> bookingIds = matchedBookings.stream().map(Booking::getId).toList();
+                dto.setServiceName(resolveServiceName(booking));
+                dto.setServiceType(booking.getBookingType() != null ? booking.getBookingType().name() : "UNKNOWN");
+                dto.setVendorName("Vendor " + booking.getVendorId());
 
-            // Allow searching by Refund ID as well
-            criteriaList.add(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
-                    org.springframework.data.mongodb.core.query.Criteria.where("bookingId").in(bookingIds),
-                    org.springframework.data.mongodb.core.query.Criteria.where("id").regex(regex, "i")));
+                if (booking.getPaymentMethod() != null) {
+                        dto.setPaymentMethod(booking.getPaymentMethod().name());
+                }
+
+                dto.setProcessedBy(booking.getCancelledBy());
+                dto.setProcessedAt(booking.getCancelledAt());
+
+                dto.setCreatedAt(booking.getCreatedAt()); // Or updated at?
+                dto.setUpdatedAt(booking.getUpdatedAt());
+
+                return dto;
         }
 
-        if (!criteriaList.isEmpty()) {
-            query.addCriteria(new org.springframework.data.mongodb.core.query.Criteria()
-                    .andOperator(criteriaList.toArray(new org.springframework.data.mongodb.core.query.Criteria[0])));
+        private String resolveServiceName(Booking booking) {
+                if (booking == null) {
+                        return "N/A";
+                }
+                BookingType type = booking.getBookingType();
+                if (type == BookingType.HOTEL) {
+                        if (booking.getHotelId() != null) {
+                                return hotelRepository.findById(booking.getHotelId()).map(Hotel::getName)
+                                                .orElse("Hotel");
+                        }
+                        if (booking.getRoomIds() != null && !booking.getRoomIds().isEmpty()) {
+                                Optional<Room> room = roomRepository.findById(booking.getRoomIds().get(0));
+                                if (room.isPresent() && room.get().getHotelId() != null) {
+                                        return hotelRepository.findById(room.get().getHotelId()).map(Hotel::getName)
+                                                        .orElse("Hotel");
+                                }
+                        }
+                } else if (type == BookingType.CAR_RENTAL && booking.getCarRentalId() != null) {
+                        return carRentalRepository.findById(booking.getCarRentalId())
+                                        .map(c -> c.getBrand() + " " + c.getModel()).orElse("Car Rental");
+                } else if (type == BookingType.ACTIVITY && booking.getActivityId() != null) {
+                        return activityRepository.findById(booking.getActivityId()).map(Activity::getName)
+                                        .orElse("Activity");
+                } else if (type == BookingType.FLIGHT) {
+                        return "Flight Booking"; // Simplified for now
+                }
+                return "Service";
         }
 
-        long total = mongoTemplate.count(org.springframework.data.mongodb.core.query.Query.of(query).limit(0).skip(0),
-                Refund.class);
-        List<Refund> refunds = mongoTemplate.find(query, Refund.class);
+        /**
+         * User requests a refund
+         */
+        @Transactional
+        public Refund requestRefund(String bookingId, String userId, String reason) {
+                // Validate booking exists and belongs to user
+                Booking booking = bookingRepository.findById(bookingId)
+                                .orElseThrow(() -> new RuntimeException("Booking not found: " + bookingId));
 
-        return new org.springframework.data.domain.PageImpl<>(refunds, pageable, total);
-    }
+                if (!booking.getUserId().equals(userId)) {
+                        throw new RuntimeException("Unauthorized: Booking does not belong to user");
+                }
 
-    /**
-     * User requests a refund
-     */
-    @Transactional
-    public Refund requestRefund(String bookingId, String userId, String reason) {
-        // Validate booking exists and belongs to user
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found: " + bookingId));
+                // Check refund eligibility based on time windows
+                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime startDate = booking.getStartDate();
+                LocalDateTime endDate = booking.getEndDate();
 
-        if (!booking.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized: Booking does not belong to user");
+                // Window 1: Before start date
+                boolean canRefundPreStart = now.isBefore(startDate);
+
+                // Window 2: After end date but within 1 day dispute window
+                boolean canRefundPostEnd = now.isAfter(endDate) &&
+                                now.isBefore(endDate.plusDays(1)) &&
+                                !Boolean.TRUE.equals(booking.getUserConfirmed());
+
+                if (!canRefundPreStart && !canRefundPostEnd) {
+                        throw new RuntimeException("Refund window closed. Cannot request refund.");
+                }
+
+                // Create refund request
+                Refund refund = new Refund();
+                refund.setBookingId(bookingId);
+                refund.setUserId(userId);
+                refund.setReason(reason);
+                refund.setAmount(booking.getTotalPrice());
+                refund.setStatus(RefundStatus.PENDING);
+
+                // Update booking status
+                booking.setStatus(BookingStatus.REFUND_REQUESTED);
+                bookingRepository.save(booking);
+
+                return refundRepository.save(refund);
         }
 
-        // Check refund eligibility based on time windows
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startDate = booking.getStartDate();
-        LocalDateTime endDate = booking.getEndDate();
+        /**
+         * Admin approves refund
+         */
+        @Transactional
+        public Refund approveRefund(String refundId, String adminId, String response) {
+                Refund refund = refundRepository.findById(refundId)
+                                .orElseThrow(() -> new RuntimeException("Refund not found: " + refundId));
 
-        // Window 1: Before start date
-        boolean canRefundPreStart = now.isBefore(startDate);
+                refund.setStatus(RefundStatus.APPROVED);
+                refund.setAdminResponse(response);
+                refund.setProcessedBy(adminId);
+                refund.setProcessedAt(LocalDateTime.now());
 
-        // Window 2: After end date but within 1 day dispute window
-        boolean canRefundPostEnd = now.isAfter(endDate) &&
-                now.isBefore(endDate.plusDays(1)) &&
-                !Boolean.TRUE.equals(booking.getUserConfirmed());
+                // Update booking status
+                Booking booking = bookingRepository.findById(refund.getBookingId())
+                                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                booking.setStatus(BookingStatus.CANCELLED);
+                booking.setCancellationReason("Refund approved: " + response);
+                booking.setCancelledAt(LocalDateTime.now());
+                booking.setCancelledBy(adminId);
+                bookingRepository.save(booking);
 
-        if (!canRefundPreStart && !canRefundPostEnd) {
-            throw new RuntimeException("Refund window closed. Cannot request refund.");
+                return refundRepository.save(refund);
         }
 
-        // Create refund request
-        Refund refund = new Refund();
-        refund.setBookingId(bookingId);
-        refund.setUserId(userId);
-        refund.setReason(reason);
-        refund.setAmount(booking.getTotalPrice());
-        refund.setStatus(RefundStatus.PENDING);
+        /**
+         * Admin rejects refund
+         */
+        @Transactional
+        public Refund rejectRefund(String refundId, String adminId, String response) {
+                Refund refund = refundRepository.findById(refundId)
+                                .orElseThrow(() -> new RuntimeException("Refund not found: " + refundId));
 
-        // Update booking status
-        booking.setStatus(BookingStatus.REFUND_REQUESTED);
-        bookingRepository.save(booking);
+                refund.setStatus(RefundStatus.REJECTED);
+                refund.setAdminResponse(response);
+                refund.setProcessedBy(adminId);
+                refund.setProcessedAt(LocalDateTime.now());
 
-        return refundRepository.save(refund);
-    }
+                // Restore booking to CONFIRMED
+                Booking booking = bookingRepository.findById(refund.getBookingId())
+                                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                booking.setStatus(BookingStatus.CONFIRMED);
+                bookingRepository.save(booking);
 
-    /**
-     * Admin approves refund
-     */
-    @Transactional
-    public Refund approveRefund(String refundId, String adminId, String response) {
-        Refund refund = refundRepository.findById(refundId)
-                .orElseThrow(() -> new RuntimeException("Refund not found: " + refundId));
+                return refundRepository.save(refund);
+        }
 
-        refund.setStatus(RefundStatus.APPROVED);
-        refund.setAdminResponse(response);
-        refund.setProcessedBy(adminId);
-        refund.setProcessedAt(LocalDateTime.now());
+        public List<Refund> getRefundsByUser(String userId) {
+                return refundRepository.findByUserId(userId);
+        }
 
-        // Update booking status
-        Booking booking = bookingRepository.findById(refund.getBookingId())
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
-        booking.setStatus(BookingStatus.CANCELLED);
-        booking.setCancellationReason("Refund approved: " + response);
-        booking.setCancelledAt(LocalDateTime.now());
-        booking.setCancelledBy(adminId);
-        bookingRepository.save(booking);
+        public List<Refund> getPendingRefunds() {
+                return refundRepository.findByStatus(RefundStatus.PENDING);
+        }
 
-        return refundRepository.save(refund);
-    }
+        /**
+         * Get refund statistics for admin dashboard
+         */
+        public Map<String, Object> getRefundStatistics() {
+                Map<String, Object> stats = new java.util.HashMap<>();
 
-    /**
-     * Admin rejects refund
-     */
-    @Transactional
-    public Refund rejectRefund(String refundId, String adminId, String response) {
-        Refund refund = refundRepository.findById(refundId)
-                .orElseThrow(() -> new RuntimeException("Refund not found: " + refundId));
+                // Count by status
+                stats.put("pendingCount", refundRepository.countByStatus(RefundStatus.PENDING));
+                stats.put("approvedCount", refundRepository.countByStatus(RefundStatus.APPROVED));
+                stats.put("rejectedCount", refundRepository.countByStatus(RefundStatus.REJECTED));
 
-        refund.setStatus(RefundStatus.REJECTED);
-        refund.setAdminResponse(response);
-        refund.setProcessedBy(adminId);
-        refund.setProcessedAt(LocalDateTime.now());
+                // Calculate total refunded amount (only APPROVED refunds)
+                org.springframework.data.mongodb.core.aggregation.Aggregation aggregation = org.springframework.data.mongodb.core.aggregation.Aggregation
+                                .newAggregation(
+                                                org.springframework.data.mongodb.core.aggregation.Aggregation.match(
+                                                                org.springframework.data.mongodb.core.query.Criteria
+                                                                                .where("status")
+                                                                                .is(RefundStatus.APPROVED)),
+                                                org.springframework.data.mongodb.core.aggregation.Aggregation.group()
+                                                                .sum("amount").as("totalAmount"));
 
-        // Restore booking to CONFIRMED
-        Booking booking = bookingRepository.findById(refund.getBookingId())
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
-        booking.setStatus(BookingStatus.CONFIRMED);
-        bookingRepository.save(booking);
+                org.springframework.data.mongodb.core.aggregation.AggregationResults<Map> results = mongoTemplate
+                                .aggregate(aggregation, Refund.class, Map.class);
 
-        return refundRepository.save(refund);
-    }
+                Map<String, Object> result = results.getUniqueMappedResult();
 
-    public List<Refund> getRefundsByUser(String userId) {
-        return refundRepository.findByUserId(userId);
-    }
+                java.math.BigDecimal totalRefunded = java.math.BigDecimal.ZERO;
+                if (result != null && result.get("totalAmount") != null) {
+                        Object amountObj = result.get("totalAmount");
+                        if (amountObj instanceof Number) {
+                                totalRefunded = java.math.BigDecimal.valueOf(((Number) amountObj).doubleValue());
+                        } else if (amountObj.toString() != null) {
+                                totalRefunded = new java.math.BigDecimal(amountObj.toString());
+                        }
+                }
 
-    public List<Refund> getPendingRefunds() {
-        return refundRepository.findByStatus(RefundStatus.PENDING);
-    }
+                stats.put("totalRefundedAmount", totalRefunded);
+
+                return stats;
+        }
 }

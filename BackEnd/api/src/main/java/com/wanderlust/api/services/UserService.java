@@ -23,10 +23,10 @@ public class UserService implements BaseServices<User> {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final WalletRepository walletRepository;
-    
-    public UserService(UserRepository userRepository, 
-                      PasswordEncoder passwordEncoder,
-                      @Lazy WalletRepository walletRepository) {
+
+    public UserService(UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            @Lazy WalletRepository walletRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.walletRepository = walletRepository;
@@ -40,32 +40,41 @@ public class UserService implements BaseServices<User> {
     // Add a user (Dùng bởi Admin Controller)
     public User create(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword())); // Encode password
-        
+
         if (user.getRole() == null) {
             user.setRole(Role.USER);
         }
         user.setCreatedAt(LocalDateTime.now());
         user.setIsBlocked(false);
-        if (user.getMembershipLevel() == null) user.setMembershipLevel(com.wanderlust.api.entity.types.MembershipLevel.BRONZE);
-        if (user.getLoyaltyPoints() == null) user.setLoyaltyPoints(0);
-        if (user.getTotalTrips() == null) user.setTotalTrips(0);
-        if (user.getTotalReviews() == null) user.setTotalReviews(0);
-
+        if (user.getMembershipLevel() == null)
+            user.setMembershipLevel(com.wanderlust.api.entity.types.MembershipLevel.BRONZE);
+        if (user.getLoyaltyPoints() == null)
+            user.setLoyaltyPoints(0);
+        if (user.getTotalTrips() == null)
+            user.setTotalTrips(0);
+        if (user.getTotalReviews() == null)
+            user.setTotalReviews(0);
 
         return userRepository.insert(user);
     }
 
     // Update an existing user
     public User update(User user) {
-        User updatedUser  = userRepository.findById(user.getUserId())
+        User updatedUser = userRepository.findById(user.getUserId())
                 .orElseThrow(() -> new RuntimeException("User  not found with id " + user.getUserId()));
 
-        if (user.getFirstName() != null) updatedUser .setFirstName(user.getFirstName());
-        if (user.getLastName() != null) updatedUser .setLastName(user.getLastName());
-        if (user.getAvatar() != null) updatedUser .setAvatar(user.getAvatar());
-        if (user.getGender() != null) updatedUser .setGender(user.getGender()); 
-        if (user.getEmail() != null) updatedUser .setEmail(user.getEmail());
-        if (user.getMobile() != null) updatedUser .setMobile(user.getMobile());
+        if (user.getFirstName() != null)
+            updatedUser.setFirstName(user.getFirstName());
+        if (user.getLastName() != null)
+            updatedUser.setLastName(user.getLastName());
+        if (user.getAvatar() != null)
+            updatedUser.setAvatar(user.getAvatar());
+        if (user.getGender() != null)
+            updatedUser.setGender(user.getGender());
+        if (user.getEmail() != null)
+            updatedUser.setEmail(user.getEmail());
+        if (user.getMobile() != null)
+            updatedUser.setMobile(user.getMobile());
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
             updatedUser.setPassword(passwordEncoder.encode(user.getPassword())); // Encode password
             updatedUser.setPasswordChangeAt(LocalDateTime.now()); // **Ghi lại thời gian**
@@ -85,22 +94,34 @@ public class UserService implements BaseServices<User> {
                 updatedUser.setRole(user.getRole());
             }
         }
-        if (user.getAddress() != null) updatedUser .setAddress(user.getAddress());
-        if (user.getIsBlocked() != null) updatedUser .setIsBlocked(user.getIsBlocked());
-        
-        if (user.getDateOfBirth() != null) updatedUser.setDateOfBirth(user.getDateOfBirth());
-        if (user.getCity() != null) updatedUser.setCity(user.getCity());
-        if (user.getCountry() != null) updatedUser.setCountry(user.getCountry());
-        if (user.getPassportNumber() != null) updatedUser.setPassportNumber(user.getPassportNumber());
-        if (user.getPassportExpiryDate() != null) updatedUser.setPassportExpiryDate(user.getPassportExpiryDate());
-        if (user.getMembershipLevel() != null) updatedUser.setMembershipLevel(user.getMembershipLevel());
-		if (user.getLoyaltyPoints() != null) updatedUser.setLoyaltyPoints(user.getLoyaltyPoints());
-		if (user.getTotalTrips() != null) updatedUser.setTotalTrips(user.getTotalTrips());
-		if (user.getTotalReviews() != null) updatedUser.setTotalReviews(user.getTotalReviews());
-        if (user.getVendorRequestStatus() != null) updatedUser.setVendorRequestStatus(user.getVendorRequestStatus());
+        if (user.getAddress() != null)
+            updatedUser.setAddress(user.getAddress());
+        if (user.getIsBlocked() != null)
+            updatedUser.setIsBlocked(user.getIsBlocked());
+
+        if (user.getDateOfBirth() != null)
+            updatedUser.setDateOfBirth(user.getDateOfBirth());
+        if (user.getCity() != null)
+            updatedUser.setCity(user.getCity());
+        if (user.getCountry() != null)
+            updatedUser.setCountry(user.getCountry());
+        if (user.getPassportNumber() != null)
+            updatedUser.setPassportNumber(user.getPassportNumber());
+        if (user.getPassportExpiryDate() != null)
+            updatedUser.setPassportExpiryDate(user.getPassportExpiryDate());
+        if (user.getMembershipLevel() != null)
+            updatedUser.setMembershipLevel(user.getMembershipLevel());
+        if (user.getLoyaltyPoints() != null)
+            updatedUser.setLoyaltyPoints(user.getLoyaltyPoints());
+        if (user.getTotalTrips() != null)
+            updatedUser.setTotalTrips(user.getTotalTrips());
+        if (user.getTotalReviews() != null)
+            updatedUser.setTotalReviews(user.getTotalReviews());
+        if (user.getVendorRequestStatus() != null)
+            updatedUser.setVendorRequestStatus(user.getVendorRequestStatus());
 
         updatedUser.setUpdatedAt(LocalDateTime.now());
-        return userRepository.save(updatedUser );
+        return userRepository.save(updatedUser);
     }
 
     // Delete a user by ID
@@ -123,20 +144,24 @@ public class UserService implements BaseServices<User> {
                 .orElseThrow(() -> new RuntimeException("User  not found with id " + id));
     }
 
-
-    public Optional<User> findByEmail(String email){
+    public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
     public User registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(Role.USER);
         user.setProvider(AuthProvider.LOCAL);
         user.setIsBlocked(false);
         user.setCreatedAt(LocalDateTime.now());
-        if (user.getMembershipLevel() == null) user.setMembershipLevel(com.wanderlust.api.entity.types.MembershipLevel.BRONZE);
-        if (user.getLoyaltyPoints() == null) user.setLoyaltyPoints(0);
-        if (user.getTotalTrips() == null) user.setTotalTrips(0);
-        if (user.getTotalReviews() == null) user.setTotalReviews(0);
+        if (user.getMembershipLevel() == null)
+            user.setMembershipLevel(com.wanderlust.api.entity.types.MembershipLevel.BRONZE);
+        if (user.getLoyaltyPoints() == null)
+            user.setLoyaltyPoints(0);
+        if (user.getTotalTrips() == null)
+            user.setTotalTrips(0);
+        if (user.getTotalReviews() == null)
+            user.setTotalReviews(0);
         return userRepository.save(user);
     }
 
@@ -151,14 +176,14 @@ public class UserService implements BaseServices<User> {
         return Optional.empty();
     }
 
-        // **PHƯƠNG THỨC MỚI: Tạo người dùng OAuth2 (Google/Facebook)**
+    // **PHƯƠNG THỨC MỚI: Tạo người dùng OAuth2 (Google/Facebook)**
     public User createOauthUser(String email, String name, String avatarUrl, AuthProvider provider, String providerId) {
         User newUser = new User();
         newUser.setEmail(email);
         newUser.setAvatar(avatarUrl);
         newUser.setProvider(provider);
         newUser.setProviderId(providerId);
-        
+
         String[] names = name.split(" ", 2);
         newUser.setFirstName(names[0]);
         if (names.length > 1) {
@@ -176,7 +201,7 @@ public class UserService implements BaseServices<User> {
         newUser.setTotalReviews(0);
 
         User savedUser = userRepository.insert(newUser);
-        
+
         // **TỰ ĐỘNG TẠO WALLET CHO USER MỚI**
         try {
             Wallet newWallet = Wallet.builder()
@@ -196,7 +221,7 @@ public class UserService implements BaseServices<User> {
             System.err.println("❌ Failed to create wallet for new OAuth user: " + savedUser.getUserId());
             e.printStackTrace();
         }
-        
+
         return savedUser;
     }
 

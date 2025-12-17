@@ -157,12 +157,15 @@ export function VendorLayout({
         let pendingReviews = 0;
         if (userData?.id) {
           try {
-            const reviews = await vendorApi.getVendorReviews(userData.id);
+            const reviewsPage = await vendorApi.getVendorReviews(userData.id, { page: 0, size: 50 });
+            const reviews = Array.isArray((reviewsPage as any)?.content)
+              ? (reviewsPage as any).content
+              : Array.isArray(reviewsPage)
+                ? reviewsPage
+                : [];
+
             // ReviewCommentDTO likely has 'hasResponse' or 'response' field.
-            // Based on VendorReviewsPage: activeTab === "pending" && !review.hasResponse
-            pendingReviews = Array.isArray(reviews)
-              ? reviews.filter((r: any) => !r.hasResponse && !r.response).length // Checking both just in case
-              : 0;
+            pendingReviews = reviews.filter((r: any) => !r.hasResponse && !r.response).length;
           } catch (err) {
             console.error("Failed to fetch vendor reviews", err);
           }

@@ -80,6 +80,14 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
 
+  // Statistics state
+  const [refundStats, setRefundStats] = useState({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    totalAmount: 0
+  });
+
   // NOTE: We don't need 'statuses' mapping logic detailed here if backend returns Refund entities. 
   // However, backend might return Booking entities if not fully standardized? 
   // The service returns Refund entities. The frontend API returns RefundRequest[] (mapped from Refund).
@@ -104,7 +112,7 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
     try {
       if (!tokenService.getToken()) {
         toast.error(t('common.unauthorized', 'Bạn cần đăng nhập lại để xem hoàn tiền'));
-        return { items: [], total: 0 };
+        return { data: [], totalItems: 0 };
       }
 
       const res = await adminRefundApi.getAllRefunds({
@@ -114,104 +122,46 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
         status: activeTab
       });
 
-      // Map backend data to frontend model if necessary
-      // The service returns Refund entities. 
-      // We might need to fetch Booking details if they are not joined (our plan said we'd use aggregation).
-
-      // If aggregation was successful, we should have booking details in the 'booking' field or similar?
-      // Wait, the Refund entity has bookingId but NO nested booking details by default unless we did $lookup.
-      // My RefundService change DID NOT do a lookup to populate bookingCode, serviceName, etc into the result. 
-      // It filtered by them but returned Refund objects.
-      // Accessing bookingCode from a Refund object in frontend will fail if it's not there.
-
-      // CORRECTION: The Frontend expects rich data (bookingCode, userName, etc).
-      // The Backend `Refund` entity only has IDs.
-      // I need to either: 
-      // A) Update backend to return a DTO with joined data.
-      // B) Update frontend to fetch booking details for each refund (slow 'N+1').
-
-      // Given I am "Implementing" and just realized this gap:
-      // I should probably have updated the backend to return a DTO or enriched entity.
-      // However, looking at `RefundService.java` implementation again:
-      // I used `mongoTemplate.find(query, Refund.class)`. This returns raw Refunds.
-
-      // Let's assume for a moment the frontend can live with just IDs or I need to do a quick fetch loop here?
-      // Or I can update the backend service to return a DTO. 
-      // "Optimization" suggests DTO. 
-      // But for "Integration - Admin Refunds Pagination", maybe I can do the fetch loop in `adminRefundApi`?
-      // No, that's messy.
-
-      // Let's check `Refund` entity again. 
-      // It has `bookingId`, `userId`, `amount`, `status`, `reason`.
-      // It DOES NOT have `bookingCode`, `serviceName`, `userName`.
-
-      // I will implement a quick DTO mapping in the API layer or frontend layer?
-      // Actually, the previous implementation used `getRefundRequests` which called `adminBookingApi` or `adminWalletApi` which returned enriched data.
-
-      // The simplest path forward to avoid HUGE backend refactor now:
-      // Map the IDs to details by fetching booking/user info? 
-      // OR: Update `AdminRefundsPage` to only display what we have, or load details on demand?
-      // Displaying "Booking ID" instead of "Code" is acceptable for a first pass, 
-      // but `userName` is quite important.
-
-      // Wait, `RefundService.requestRefund` sets `userId`.
-      // `Booking` has `guestInfo`.
-
-      // I'll update the `fetchData` to just return what we have, 
-      // and identifying that I might need to fetch booking details.
-      // Actually, for Admin, we strongly prefer `Booking Code`.
-
-      // Let's assume I will fix the View later or I can live with IDs for now?
-      // No, that's a regression. 
-      // The Plan said "using Aggregation to join with Booking". 
-      // My `RefundService` code did filtering but didn't project the joined fields into a DTO.
-
-      // I will PROCEED with the frontend change, but I'll add a comment/logic to `adminRefundApi` to potentially fetch details 
-      // OR I will simply accept that some fields (like bookingCode) might be missing 
-      // unless I update the implementation.
-
-      // Let's look at `getAllRefunds` in `adminRefundApi.ts` again. 
-      // It returns `RefundRequest[]`.
-
+      // Backend now returns Page<RefundDTO> with enriched data (bookingCode, userName, etc.)
       const mappedItems = res.items.map((item: any) => ({
         id: item.id,
         bookingId: item.bookingId,
-        bookingCode: item.bookingCode || "Loading...", // Placeholder
-        serviceType: "unknown",
-        serviceName: "Loading...",
+        bookingCode: item.bookingCode || item.bookingId, // Fallback if missing
+        serviceType: item.serviceType || "booking",
+        serviceName: item.serviceName || "Service",
         userId: item.userId,
-        userName: "Loading...",
-        userEmail: "",
-        vendorName: "Loading...",
-        originalAmount: item.amount || 0,
+        userName: item.userName || "Guest",
+        userEmail: item.userEmail || "",
+        vendorName: item.vendorName || "Vendor",
+        originalAmount: item.originalAmount || item.amount || 0,
         refundPercentage: 100, // Default
         refundAmount: item.amount || 0,
         penaltyAmount: 0,
         requestDate: item.createdAt,
         status: normalizeStatus(item.status),
         cancellationReason: item.reason,
-        paymentMethod: "WALLET", // Default
-        transactionId: "",
+        paymentMethod: item.paymentMethod || "WALLET", // Default
+        transactionId: item.transactionId || "",
         processedBy: item.processedBy,
         processedAt: item.processedAt,
-        rejectionReason: item.adminResponse,
+        rejectionReason: item.adminResponse || item.rejectionReason,
       }));
 
       return {
-        items: mappedItems,
-        total: res.total
+        data: mappedItems,
+        totalItems: res.total
       };
 
     } catch (error) {
       console.error('Error loading refunds:', error);
       toast.error(t('admin.cannotLoadRefunds'));
-      return { items: [], total: 0 };
+      return { data: [], totalItems: 0 };
     }
   }, [searchQuery, activeTab, t]);
 
   const {
     currentItems: refundRequests,
-    isTableLoading: loading,
+    isLoading: loading,
     goToPage,
     currentPage,
     totalPages,
@@ -224,6 +174,24 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
   // Re-trigger fetch when filters change
   useEffect(() => {
     goToPage(0);
+  }, [searchQuery, activeTab]);
+
+  // Fetch statistics
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const data = await adminRefundApi.getStats();
+        setRefundStats({
+          pending: data.pendingCount || 0,
+          approved: data.approvedCount || 0,
+          rejected: data.rejectedCount || 0,
+          totalAmount: data.totalRefundedAmount || 0
+        });
+      } catch (error) {
+        console.error("Failed to load refund stats:", error);
+      }
+    };
+    loadStats();
   }, [searchQuery, activeTab]);
 
   // Compatibility function for existing handlers
@@ -268,38 +236,32 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
       activity: "🎫",
       visa: "📄"
     };
-    return icons[type] || "📦";
+    return icons[type] || "❓";
   };
+
 
   // Client side filtering removed in favor of backend search/filtering
   const filteredRefunds = refundRequests;
 
-  // Calculate stats
+  // Calculate stats - USE REAL DATA FROM BACKEND
   const stats = [
     {
       label: t('admin.pendingApproval'),
-      value: refundRequests.filter(r => r.status === "pending").length,
-      amount: refundRequests.filter(r => r.status === "pending").reduce((sum, r) => sum + r.refundAmount, 0),
+      value: refundStats.pending,
+      amount: 0,
       icon: Clock,
       color: "text-yellow-600"
     },
     {
-      label: t('admin.processing'),
-      value: refundRequests.filter(r => r.status === "approved" || r.status === "processing").length,
-      amount: refundRequests.filter(r => r.status === "approved" || r.status === "processing").reduce((sum, r) => sum + r.refundAmount, 0),
-      icon: AlertCircle,
-      color: "text-blue-600"
-    },
-    {
-      label: t('admin.completed'),
-      value: refundRequests.filter(r => r.status === "completed").length,
-      amount: refundRequests.filter(r => r.status === "completed").reduce((sum, r) => sum + r.refundAmount, 0),
+      label: t('admin.approved'),
+      value: refundStats.approved,
+      amount: refundStats.totalAmount,
       icon: CheckCircle,
       color: "text-green-600"
     },
     {
       label: t('admin.rejected'),
-      value: refundRequests.filter(r => r.status === "rejected").length,
+      value: refundStats.rejected,
       amount: 0,
       icon: XCircle,
       color: "text-red-600"

@@ -72,19 +72,19 @@ export default function VendorRefundsPage({
       }));
 
       return {
-        items: mapped,
-        total: data.totalElements
+        data: mapped,
+        totalItems: data.totalElements
       };
     } catch (error) {
       console.error("Failed to load refunds:", error);
       toast.error(t('vendor.cannotLoadRefunds', 'Không thể tải danh sách hoàn tiền'));
-      return { items: [], total: 0 };
+      return { data: [], totalItems: 0 };
     }
   }, [activeTab, searchQuery, t]);
 
   const {
     currentItems: refundRequests,
-    isTableLoading: loading,
+    isLoading: loading,
     goToPage,
     currentPage,
     totalPages,

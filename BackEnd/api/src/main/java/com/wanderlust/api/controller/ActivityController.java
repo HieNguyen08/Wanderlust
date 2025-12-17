@@ -40,7 +40,6 @@ public class ActivityController {
     private final ReviewCommentService reviewCommentService;
 
     @GetMapping
-    @PreAuthorize("permitAll()")
     public ResponseEntity<Page<Activity>> searchActivities(
             @RequestParam(required = false) String locationId,
             @RequestParam(required = false) List<ActivityCategory> categories,
@@ -61,7 +60,6 @@ public class ActivityController {
      * Get featured activities
      */
     @GetMapping("/featured")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<List<Activity>> getFeaturedActivities() {
         List<Activity> featured = activityService.getFeatured();
         return new ResponseEntity<>(featured, HttpStatus.OK);
@@ -72,7 +70,6 @@ public class ActivityController {
      * Get activities by location
      */
     @GetMapping("/location/{locationId}")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<List<Activity>> getActivitiesByLocation(@PathVariable String locationId) {
         List<Activity> activities = activityService.findByLocationId(locationId);
         return new ResponseEntity<>(activities, HttpStatus.OK);
@@ -83,7 +80,6 @@ public class ActivityController {
      * Get activity details
      */
     @GetMapping("/{id}")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<Activity> getActivityById(@PathVariable String id) {
         Activity activity = activityService.findById(id);
         return new ResponseEntity<>(activity, HttpStatus.OK);
@@ -94,7 +90,6 @@ public class ActivityController {
      * Check slots/availability (Simple check)
      */
     @GetMapping("/{id}/availability")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<Map<String, Object>> checkAvailabilitySimple(@PathVariable String id) {
         Activity activity = activityService.findById(id);
         // Trả về thông tin cơ bản về số lượng
@@ -111,7 +106,6 @@ public class ActivityController {
      * * --- PHẦN NÀY ĐÃ ĐƯỢC CẬP NHẬT ---
      */
     @GetMapping("/{id}/reviews")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<Page<ReviewCommentDTO>> getActivityReviews(
             @PathVariable String id,
             @RequestParam(defaultValue = "0") int page,

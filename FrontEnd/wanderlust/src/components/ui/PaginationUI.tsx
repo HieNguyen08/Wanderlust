@@ -32,7 +32,7 @@ export const PaginationUI: React.FC<PaginationUIProps> = ({
         if (startPage > 0) {
             pages.push(
                 <Button
-                    key={0}
+                    key="page-first"
                     variant="outline"
                     size="icon"
                     className="w-9 h-9"

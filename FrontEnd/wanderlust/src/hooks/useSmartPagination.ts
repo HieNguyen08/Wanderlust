@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface UseSmartPaginationProps<T> {
     fetchData: (page: number, size: number) => Promise<{ data: T[]; totalItems: number }>;
-    pageSize?: number;
+    initialPageSize?: number;
     preloadRange?: number; // Number of pages to preload before and after current
 }
 
@@ -16,14 +16,17 @@ interface UseSmartPaginationReturn<T> {
     prevPage: () => void;
     totalItems: number;
     refresh: () => void;
+    pageSize: number;
+    setPageSize: (size: number) => void;
 }
 
 export function useSmartPagination<T>({
     fetchData,
-    pageSize = 9,
+    initialPageSize = 9,
     preloadRange = 2,
 }: UseSmartPaginationProps<T>): UseSmartPaginationReturn<T> {
     const [currentPage, setCurrentPage] = useState(0); // 0-indexed
+    const [pageSize, setPageSize] = useState(initialPageSize);
     const [totalItems, setTotalItems] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -41,6 +44,12 @@ export function useSmartPagination<T>({
             mountedRef.current = false;
         };
     }, []);
+
+    // Clear cache when page size changes
+    useEffect(() => {
+        setCache(new Map());
+        setCurrentPage(0);
+    }, [pageSize]);
 
     const totalPages = Math.ceil(totalItems / pageSize);
 
@@ -137,6 +146,8 @@ export function useSmartPagination<T>({
         nextPage,
         prevPage,
         totalItems,
-        refresh
+        refresh,
+        pageSize,
+        setPageSize
     };
 }

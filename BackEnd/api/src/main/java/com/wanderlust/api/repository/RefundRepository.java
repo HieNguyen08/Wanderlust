@@ -15,4 +15,7 @@ public interface RefundRepository extends MongoRepository<Refund, String> {
     List<Refund> findByStatus(RefundStatus status);
 
     List<Refund> findByBookingId(String bookingId);
+
+    // Statistics method
+    long countByStatus(RefundStatus status);
 }
