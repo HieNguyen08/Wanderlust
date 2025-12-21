@@ -26,11 +26,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
 @Service
 @RequiredArgsConstructor
 public class CarRentalService {
@@ -148,16 +143,10 @@ public class CarRentalService {
         return carRentalRepository.findByVendorId(vendorId);
     }
 
-    public Page<CarRental> findByVendorId(String vendorId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return carRentalRepository.findByVendorId(vendorId, pageable);
-    }
-
     // --- Advanced Features ---
 
-    public Page<CarRental> searchCars(String locationId, String brand, List<String> types, BigDecimal minPrice,
-            BigDecimal maxPrice, Integer minSeats, Boolean withDriver, String keyword, ApprovalStatus status, int page,
-            int size) {
+    public List<CarRental> searchCars(String locationId, String brand, String type, BigDecimal minPrice,
+            BigDecimal maxPrice) {
         Query query = new Query();
         List<Criteria> criteriaList = new ArrayList<>();
 
@@ -167,28 +156,14 @@ public class CarRentalService {
         if (brand != null && !brand.isEmpty()) {
             criteriaList.add(Criteria.where("brand").regex(brand, "i"));
         }
-        if (types != null && !types.isEmpty()) {
-            criteriaList.add(Criteria.where("type").in(types));
+        if (type != null && !type.isEmpty()) {
+            criteriaList.add(Criteria.where("type").is(type));
         }
         if (minPrice != null) {
             criteriaList.add(Criteria.where("pricePerDay").gte(minPrice));
         }
         if (maxPrice != null) {
             criteriaList.add(Criteria.where("pricePerDay").lte(maxPrice));
-        }
-        if (minSeats != null) {
-            criteriaList.add(Criteria.where("seats").gte(minSeats));
-        }
-        if (withDriver != null) {
-            criteriaList.add(Criteria.where("withDriver").is(withDriver));
-        }
-
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            String regex = ".*" + java.util.regex.Pattern.quote(keyword.trim()) + ".*";
-            criteriaList.add(new Criteria().orOperator(
-                    Criteria.where("brand").regex(regex, "i"),
-                    Criteria.where("model").regex(regex, "i"),
-                    Criteria.where("description").regex(regex, "i")));
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -201,15 +176,9 @@ public class CarRentalService {
 
         if (isAdmin) {
             // Admin can see all cars regardless of approval/status
-            if (status != null) {
-                criteriaList.add(Criteria.where("approvalStatus").is(status));
-            }
         } else if (isVendor) {
             // Vendors/partners see only their own submissions (any status)
             criteriaList.add(Criteria.where("vendorId").is(getCurrentUserId()));
-            if (status != null) {
-                criteriaList.add(Criteria.where("approvalStatus").is(status));
-            }
         } else {
             // Public users only see approved + available cars
             criteriaList.add(Criteria.where("status").is(CarStatus.AVAILABLE));
@@ -220,12 +189,7 @@ public class CarRentalService {
             query.addCriteria(new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
         }
 
-        long total = mongoTemplate.count(query, CarRental.class);
-        Pageable pageable = PageRequest.of(page, size);
-        query.with(pageable);
-        List<CarRental> content = mongoTemplate.find(query, CarRental.class);
-
-        return new PageImpl<>(content, pageable, total);
+        return mongoTemplate.find(query, CarRental.class);
     }
 
     public CarRental approve(String id) {

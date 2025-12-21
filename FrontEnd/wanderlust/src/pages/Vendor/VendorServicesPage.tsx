@@ -32,9 +32,6 @@ import { AddServiceDialog } from "../../components/vendor/AddServiceDialog";
 import { HotelWizardDialog } from "../../components/vendor/HotelWizardDialog";
 import { ServiceDetailDialog } from "../../components/vendor/ServiceDetailDialog";
 import { activityApi, carRentalApi, hotelApi, vendorApi } from "../../utils/api";
-import { useSmartPagination } from "../../hooks/useSmartPagination";
-import { PaginationUI } from "../../components/ui/PaginationUI";
-import { useCallback } from "react";
 
 interface VendorServicesPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -136,12 +133,13 @@ export default function VendorServicesPage({
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-
-  // services and loading managed by useSmartPagination
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
   const [serviceType, setServiceType] = useState<ServiceType>(initialType);
 
-  // No initial load effect needed as useSmartPagination handles it, 
-  // but we trigger reset on serviceType change via the other effect.
+  useEffect(() => {
+    loadServices();
+  }, [serviceType]);
 
   const servicePath = serviceType === "car" ? "car-rentals" : serviceType === "activity" ? "activities" : "hotels";
   const defaultServiceType: ServiceType = serviceType;
@@ -249,58 +247,31 @@ export default function VendorServicesPage({
     };
   };
 
-  const fetchData = useCallback(async (page: number, size: number) => {
-    const servicePath = serviceType === "car" ? "car-rentals" : serviceType === "activity" ? "activities" : "hotels";
-    let apiStatus: string | undefined;
-    if (activeTab === 'approved') apiStatus = 'APPROVED';
-    else if (activeTab === 'rejected') apiStatus = 'REJECTED';
-    else if (activeTab === 'pending') apiStatus = 'PENDING';
-
+  const loadServices = async () => {
     try {
-      const data = await vendorApi.getServices(servicePath, {
-        page,
-        size,
-        search: searchQuery,
-        status: apiStatus
-      });
-
-      const list = Array.isArray(data?.content) ? data.content : [];
-      const mapped = list.map(item => mapService(item));
-
-      return {
-        data: mapped,
-        totalItems: data.totalElements || 0
-      };
+      setLoading(true);
+      const data = await vendorApi.getServices(servicePath);
+      const list = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
+      setServices(list.map(mapService));
     } catch (error) {
       toast.error(t('vendor.errorLoadingServices'));
-      return { data: [], totalItems: 0 };
+    } finally {
+      setLoading(false);
     }
-  }, [activeTab, searchQuery, serviceType, t]);
+  };
 
-  const {
-    currentItems: services,
-    isLoading: loading,
-    goToPage,
-    nextPage,
-    prevPage,
-    currentPage,
-    totalPages,
-    totalItems,
-    setPageSize,
-    pageSize,
-    refresh: reloadServices
-  } = useSmartPagination({
-    fetchData,
-    initialPageSize: 9
+  const filteredServices = services.filter(service => {
+    const name = service.name || "";
+    const desc = service.description || "";
+    const query = (searchQuery || "").toLowerCase();
+    const matchesSearch = name.toLowerCase().includes(query) || desc.toLowerCase().includes(query);
+    const matchesTab =
+      activeTab === "all" ||
+      (activeTab === "approved" && service.approvalStatus === "APPROVED") ||
+      (activeTab === "pending" && service.approvalStatus !== "APPROVED") ||
+      (activeTab === "rejected" && service.approvalStatus === "REJECTED");
+    return matchesSearch && matchesTab;
   });
-
-  // Reset to first page when filters change
-  useEffect(() => {
-    goToPage(0);
-  }, [activeTab, searchQuery, serviceType]);
-
-  // Replace legacy filteredServices with services (as it's now filtered via API)
-  const filteredServices = services;
 
   const getTypeLabel = (type: ServiceType) => {
     switch (type) {
@@ -363,7 +334,7 @@ export default function VendorServicesPage({
       else if (serviceType === "activity") await activityApi.pauseActivity(service.id);
       else await hotelApi.pauseHotel(service.id);
       toast.success(t('vendor.pausedService'));
-      reloadServices();
+      loadServices();
     } catch (err) {
       toast.error(t('vendor.errorLoadingServices'));
     }
@@ -387,7 +358,7 @@ export default function VendorServicesPage({
       else if (serviceType === "activity") await activityApi.resumeActivity(service.id);
       else await hotelApi.resumeHotel(service.id);
       toast.success(t('vendor.resumedService'));
-      reloadServices();
+      loadServices();
     } catch (err) {
       toast.error(t('vendor.errorLoadingServices'));
     }
@@ -433,7 +404,7 @@ export default function VendorServicesPage({
     try {
       await vendorApi.deleteService(servicePath, service.id);
       toast.success(t('vendor.deletedService'));
-      reloadServices();
+      loadServices();
     } catch (err) {
       toast.error(t('vendor.errorLoadingServices'));
     }
@@ -446,7 +417,7 @@ export default function VendorServicesPage({
     } else {
       await vendorApi.createService(targetPath, data);
     }
-    await reloadServices();
+    await loadServices();
   };
 
   return (
@@ -543,7 +514,7 @@ export default function VendorServicesPage({
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ServiceTab)}>
             <TabsList>
               <TabsTrigger value="all">
-                {t('common.all')}
+                {t('common.all')} ({services.length})
               </TabsTrigger>
               <TabsTrigger value="approved" className="gap-2">
                 <CheckCircle2 className="w-4 h-4" />
@@ -715,15 +686,6 @@ export default function VendorServicesPage({
             </TabsContent>
           </Tabs>
         </Card>
-
-        {/* Pagination UI */}
-        <div className="mt-8 flex justify-center">
-          <PaginationUI
-            currentPage={currentPage + 1}
-            totalPages={totalPages}
-            onPageChange={(p) => goToPage(p - 1)}
-          />
-        </div>
       </div>
 
       {/* Add Service Dialog */}
@@ -736,7 +698,7 @@ export default function VendorServicesPage({
         onCompleted={() => {
           setIsHotelWizardOpen(false);
           setEditingHotelId(null);
-          reloadServices();
+          loadServices();
         }}
         editingHotelId={editingHotelId || undefined}
       />

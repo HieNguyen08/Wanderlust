@@ -15,12 +15,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { adminBookingApi } from "../../api/adminBookingApi";
-import { adminRefundApi, RefundRequest, RefundStatus } from "../../api/adminRefundApi";
 import { AdminLayout } from "../../components/AdminLayout";
 import { Badge } from "../../components/ui/badge";
-import { PaginationUI } from "../../components/ui/PaginationUI";
-import { useSmartPagination } from "../../hooks/useSmartPagination";
-import { useCallback } from "react";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
@@ -79,28 +75,21 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [refundRequests, setRefundRequests] = useState<RefundRequest[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Statistics state
-  const [refundStats, setRefundStats] = useState({
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-    totalAmount: 0
-  });
-
-  // NOTE: We don't need 'statuses' mapping logic detailed here if backend returns Refund entities. 
-  // However, backend might return Booking entities if not fully standardized? 
-  // The service returns Refund entities. The frontend API returns RefundRequest[] (mapped from Refund).
-  // We need to ensure the data structure matches.
+  useEffect(() => {
+    loadRefunds();
+  }, []);
 
   const normalizeStatus = (rawStatus: string | undefined): RefundStatus => {
     const lower = (rawStatus || '').toLowerCase();
-    if (lower === 'refund_requested' || lower === 'pending') return 'pending' as RefundStatus;
-    if (lower === 'refund_approved' || lower === 'approved') return 'approved' as RefundStatus;
-    if (lower === 'refund_processing' || lower === 'processing') return 'processing' as RefundStatus;
-    if (lower === 'refund_completed' || lower === 'completed') return 'completed' as RefundStatus;
-    if (lower === 'refund_rejected' || lower === 'rejected') return 'rejected' as RefundStatus;
-    return 'pending' as RefundStatus;
+    if (lower === 'refund_requested' || lower === 'pending') return 'pending';
+    if (lower === 'refund_approved' || lower === 'approved') return 'approved';
+    if (lower === 'refund_processing' || lower === 'processing') return 'processing';
+    if (lower === 'refund_completed' || lower === 'completed') return 'completed';
+    if (lower === 'refund_rejected' || lower === 'rejected') return 'rejected';
+    return 'pending';
   };
 
   const parseAmount = (value: any) => {
@@ -108,97 +97,66 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
     return Number.isFinite(num) ? num : 0;
   };
 
-  const fetchData = useCallback(async (page: number, size: number) => {
+  const loadRefunds = async () => {
     try {
+      setLoading(true);
+
+      // If not authenticated, avoid spamming unauthorized calls
       if (!tokenService.getToken()) {
         toast.error(t('common.unauthorized', 'Bạn cần đăng nhập lại để xem hoàn tiền'));
-        return { data: [], totalItems: 0 };
+        return;
       }
 
-      const res = await adminRefundApi.getAllRefunds({
-        page,
-        size,
-        search: searchQuery,
-        status: activeTab
-      });
-
-      // Backend now returns Page<RefundDTO> with enriched data (bookingCode, userName, etc.)
-      const mappedItems = res.items.map((item: any) => ({
-        id: item.id,
-        bookingId: item.bookingId,
-        bookingCode: item.bookingCode || item.bookingId, // Fallback if missing
-        serviceType: item.serviceType || "booking",
-        serviceName: item.serviceName || "Service",
-        userId: item.userId,
-        userName: item.userName || "Guest",
-        userEmail: item.userEmail || "",
-        vendorName: item.vendorName || "Vendor",
-        originalAmount: item.originalAmount || item.amount || 0,
-        refundPercentage: 100, // Default
-        refundAmount: item.amount || 0,
-        penaltyAmount: 0,
-        requestDate: item.createdAt,
-        status: normalizeStatus(item.status),
-        cancellationReason: item.reason,
-        paymentMethod: item.paymentMethod || "WALLET", // Default
-        transactionId: item.transactionId || "",
-        processedBy: item.processedBy,
-        processedAt: item.processedAt,
-        rejectionReason: item.adminResponse || item.rejectionReason,
-      }));
-
-      return {
-        data: mappedItems,
-        totalItems: res.total
-      };
-
+      // Prefer explicit admin refund-requests endpoint; fallback to legacy wallet pending
+      let data;
+      try {
+        const bookings = await adminBookingApi.getRefundRequests();
+        data = { content: bookings };
+      } catch (innerErr: any) {
+        if (innerErr?.message === 'UNAUTHORIZED') {
+          toast.error(t('common.unauthorized', 'Bạn cần đăng nhập lại để xem hoàn tiền'));
+          return;
+        }
+        data = await adminWalletApi.getPendingRefunds({ page: 0, size: 100 });
+      }
+      // Map backend data (booking-driven) to frontend format
+      const mappedRefunds = data.content?.map((item: any) => {
+        const guestInfo = item.guestInfo || item.metadata?.contactInfo || {};
+        return {
+          id: item.transactionId || item.refundId || item.id,
+          bookingId: item.bookingId || item.id || '',
+          bookingCode: item.bookingCode || '',
+          serviceType: (item.serviceType || item.bookingType || 'hotel').toLowerCase(),
+          serviceName: item.serviceName || item.metadata?.serviceName || item.flightId || '',
+          userId: item.userId || '',
+          userName: item.userName || guestInfo.fullName || '',
+          userEmail: item.userEmail || guestInfo.email || '',
+          vendorName: item.vendorName || item.vendor?.name || '',
+          originalAmount: parseAmount(item.originalAmount ?? item.totalPrice ?? item.amount),
+          refundPercentage: item.refundPercentage || 100,
+          refundAmount: parseAmount(item.refundAmount ?? item.amount ?? item.totalPrice),
+          penaltyAmount: parseAmount(item.penaltyAmount),
+          requestDate: item.requestDate || item.createdAt || item.bookingDate || new Date().toISOString(),
+          status: normalizeStatus(item.status),
+          cancellationReason: item.reason || item.cancellationReason,
+          paymentMethod: item.paymentMethod || 'WALLET',
+          transactionId: item.transactionId || item.id,
+          processedBy: item.processedBy,
+          processedAt: item.processedAt,
+          rejectionReason: item.rejectionReason,
+          estimatedCompletionDate: item.estimatedCompletionDate,
+          vendorRefundApproved: item.vendorRefundApproved,
+        } as RefundRequest;
+      }) || [];
+      setRefundRequests(mappedRefunds);
     } catch (error) {
       console.error('Error loading refunds:', error);
       toast.error(t('admin.cannotLoadRefunds'));
-      return { data: [], totalItems: 0 };
+      // Keep using mock data if API fails
+    } finally {
+      setLoading(false);
     }
-  }, [searchQuery, activeTab, t]);
-
-  const {
-    currentItems: refundRequests,
-    isLoading: loading,
-    goToPage,
-    currentPage,
-    totalPages,
-    refresh: reloadRefunds
-  } = useSmartPagination({
-    fetchData,
-    initialPageSize: 10
-  });
-
-  // Re-trigger fetch when filters change
-  useEffect(() => {
-    goToPage(0);
-  }, [searchQuery, activeTab]);
-
-  // Fetch statistics
-  useEffect(() => {
-    const loadStats = async () => {
-      try {
-        const data = await adminRefundApi.getStats();
-        setRefundStats({
-          pending: data.pendingCount || 0,
-          approved: data.approvedCount || 0,
-          rejected: data.rejectedCount || 0,
-          totalAmount: data.totalRefundedAmount || 0
-        });
-      } catch (error) {
-        console.error("Failed to load refund stats:", error);
-      }
-    };
-    loadStats();
-  }, [searchQuery, activeTab]);
-
-  // Compatibility function for existing handlers
-  const loadRefunds = reloadRefunds;
-  // But handlers might call loadRefunds(). 
-  // We can alias it.
-
+  };
 
   const STATUS_CONFIG: Record<RefundStatus, { label: string; color: string; icon: any }> = {
     pending: {
@@ -236,32 +194,45 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
       activity: "🎫",
       visa: "📄"
     };
-    return icons[type] || "❓";
+    return icons[type] || "📦";
   };
 
+  // Filter refunds
+  const filteredRefunds = refundRequests.filter(refund => {
+    const matchStatus = activeTab === "all" || refund.status === activeTab;
+    const matchSearch = searchQuery === "" ||
+      refund.bookingCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      refund.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      refund.serviceName.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchStatus && matchSearch;
+  });
 
-  // Client side filtering removed in favor of backend search/filtering
-  const filteredRefunds = refundRequests;
-
-  // Calculate stats - USE REAL DATA FROM BACKEND
+  // Calculate stats
   const stats = [
     {
       label: t('admin.pendingApproval'),
-      value: refundStats.pending,
-      amount: 0,
+      value: refundRequests.filter(r => r.status === "pending").length,
+      amount: refundRequests.filter(r => r.status === "pending").reduce((sum, r) => sum + r.refundAmount, 0),
       icon: Clock,
       color: "text-yellow-600"
     },
     {
-      label: t('admin.approved'),
-      value: refundStats.approved,
-      amount: refundStats.totalAmount,
+      label: t('admin.processing'),
+      value: refundRequests.filter(r => r.status === "approved" || r.status === "processing").length,
+      amount: refundRequests.filter(r => r.status === "approved" || r.status === "processing").reduce((sum, r) => sum + r.refundAmount, 0),
+      icon: AlertCircle,
+      color: "text-blue-600"
+    },
+    {
+      label: t('admin.completed'),
+      value: refundRequests.filter(r => r.status === "completed").length,
+      amount: refundRequests.filter(r => r.status === "completed").reduce((sum, r) => sum + r.refundAmount, 0),
       icon: CheckCircle,
       color: "text-green-600"
     },
     {
       label: t('admin.rejected'),
-      value: refundStats.rejected,
+      value: refundRequests.filter(r => r.status === "rejected").length,
       amount: 0,
       icon: XCircle,
       color: "text-red-600"
@@ -286,7 +257,7 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
       await adminBookingApi.approveRefundRequest(selectedRefund.bookingId);
       toast.success(t('admin.refundApproved', { code: selectedRefund.bookingCode }));
       setIsApproveDialogOpen(false);
-      reloadRefunds(); // Reload data
+      loadRefunds(); // Reload data
     } catch (error) {
       console.error('Error approving refund:', error);
       toast.error(t('admin.cannotApproveRefund'));
@@ -310,7 +281,7 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
       await adminBookingApi.rejectRefundRequest(selectedRefund.bookingId, rejectionReason);
       toast.success(t('admin.refundRejected', { code: selectedRefund.bookingCode }));
       setIsRejectDialogOpen(false);
-      reloadRefunds(); // Reload data
+      loadRefunds(); // Reload data
     } catch (error) {
       console.error('Error rejecting refund:', error);
       toast.error(t('admin.cannotRejectRefund'));
@@ -512,15 +483,6 @@ export default function AdminRefundsPage({ onNavigate }: AdminRefundsPageProps) 
               </div>
             </TabsContent>
           </Tabs>
-          {refundRequests.length > 0 && (
-            <div className="mt-8 flex justify-center">
-              <PaginationUI
-                currentPage={currentPage + 1}
-                totalPages={totalPages}
-                onPageChange={(p) => goToPage(p - 1)}
-              />
-            </div>
-          )}
         </Card>
       </div>
 

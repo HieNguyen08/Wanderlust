@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wanderlust.api.dto.BookingDTO;
@@ -51,18 +49,10 @@ public class VendorRefundController {
         return userId;
     }
 
-    // ...
-
     @GetMapping
-    public ResponseEntity<Page<BookingDTO>> getVendorRefunds(
-            Authentication authentication,
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<BookingDTO>> getVendorRefunds(Authentication authentication) {
         String vendorId = getVendorIdFromAuthentication(authentication);
-        return new ResponseEntity<>(
-                bookingService.findVendorRefundRequestsPaginated(vendorId, search, status, page, size), HttpStatus.OK);
+        return new ResponseEntity<>(bookingService.findVendorRefundRequests(vendorId), HttpStatus.OK);
     }
 
     @PatchMapping("/{id}/approval")

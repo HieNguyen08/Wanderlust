@@ -11,10 +11,6 @@ import { Calendar as CalendarComponent } from "../../components/ui/calendar";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import type { PageType } from "../../MainApp";
-import { PaginationUI } from "../../components/ui/PaginationUI";
-import { useSmartPagination } from "../../hooks/useSmartPagination";
-import { useCallback } from "react";
-import type { PageType } from "../../MainApp";
 import { activityApi, locationApi } from "../../utils/api";
 
 // Activity Category Icons (using Lucide icons instead of imported images)
@@ -61,9 +57,8 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all", us
   const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState("");
-  // const [activities, setActivities] = useState<Activity[]>([]); // Hook manages data
-  const [loading, setLoading] = useState(true); // Keeping for initial location loading? Or just use hook loading.
-  // We can use hook loading for activities.
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Advanced Search States
@@ -116,101 +111,53 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all", us
     fetchLocations();
   }, []);
 
-  const fetchData = useCallback(async (page: number, size: number) => {
-    try {
-      const apiParams: any = {};
-
-      // Location
-      if (selectedLocation?.id) {
-        apiParams.locationId = selectedLocation.id;
-      } else if (searchParams?.locationId) {
-        apiParams.locationId = searchParams.locationId;
-      }
-
-      // Category
-      if (selectedCategory && selectedCategory !== "all") {
-        // Map frontend category to backend enum
-        let backendCategory = "";
-        switch (selectedCategory) {
-          case 'attractions': backendCategory = 'ATTRACTION'; break;
-          case 'tours': backendCategory = 'TOUR'; break;
-          case 'food': backendCategory = 'FOOD'; break;
-          case 'spa': backendCategory = 'RELAXATION'; break;
-          case 'music': backendCategory = 'ENTERTAINMENT'; break;
-        }
-        if (backendCategory) {
-          apiParams.categories = [backendCategory];
-        }
-      }
-
-      // Price
-      if (priceRange[0] > 0) apiParams.minPrice = priceRange[0];
-      if (priceRange[1] < 10000000) apiParams.maxPrice = priceRange[1];
-
-      const data = await activityApi.getAllActivities({
-        ...apiParams,
-        page,
-        size
-      });
-
-      // Map backend data to frontend format
-      const mapCategory = (backendCategory: string) => {
-        const cat = backendCategory?.toUpperCase();
-        switch (cat) {
-          case 'ATTRACTION': return 'attractions';
-          case 'TOUR': return 'tours';
-          case 'FOOD': return 'food';
-          case 'RELAXATION': return 'spa';
-          case 'ENTERTAINMENT': return 'music';
-          case 'ADVENTURE': return 'tours';
-          case 'CULTURE': return 'attractions';
-          default: return 'other';
-        }
-      };
-
-      const mappedActivities = (data.content || []).map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        image: item.images?.[0]?.url || "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&h=600&fit=crop",
-        price: item.price,
-        originalPrice: item.originalPrice,
-        category: mapCategory(item.category),
-        rating: item.averageRating || 0,
-        reviews: item.totalReviews || 0,
-        location: item.locationName || item.meetingPoint || "Vietnam",
-        locationId: item.locationId,
-        duration: item.duration,
-        description: item.description
-      }));
-
-      return {
-        data: mappedActivities,
-        totalItems: data.totalElements || 0
-      };
-
-    } catch (err: any) {
-      console.error("Error fetching activities:", err);
-      // setError("Failed to load activities"); // Set error state if needed
-      return { data: [], totalItems: 0 };
-    }
-  }, [selectedLocation, searchParams, selectedCategory, priceRange]); // depend on filters
-
-  const {
-    currentItems: activities,
-    totalPages,
-    currentPage,
-    goToPage,
-    isLoading: isActivitiesLoading
-  } = useSmartPagination({
-    fetchData,
-    pageSize: 9, // Grid 3x3
-    preloadRange: 1
-  });
-
-  // Reset page when filters change
   useEffect(() => {
-    goToPage(0);
-  }, [selectedCategory, selectedLocation, priceRange]);
+    const fetchActivities = async () => {
+      try {
+        setLoading(true);
+        const data = await activityApi.getAllActivities();
+
+        // Map backend data to frontend format
+        const mapCategory = (backendCategory: string) => {
+          const cat = backendCategory?.toUpperCase();
+          switch (cat) {
+            case 'ATTRACTION': return 'attractions';
+            case 'TOUR': return 'tours';
+            case 'FOOD': return 'food';
+            case 'RELAXATION': return 'spa';
+            case 'ENTERTAINMENT': return 'music';
+            case 'ADVENTURE': return 'tours';
+            case 'CULTURE': return 'attractions';
+            default: return 'other';
+          }
+        };
+
+        const mappedActivities = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          image: item.images?.[0]?.url || "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=800&h=600&fit=crop",
+          price: item.price,
+          originalPrice: item.originalPrice,
+          category: mapCategory(item.category),
+          rating: item.averageRating || 0,
+          reviews: item.totalReviews || 0,
+          location: item.meetingPoint || "Vietnam", // Use meeting point as location for now
+          locationId: item.locationId,
+          duration: item.duration,
+          description: item.description
+        }));
+
+        setActivities(mappedActivities);
+      } catch (err) {
+        console.error("Error fetching activities:", err);
+        setError("Failed to load activities");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, []);
 
   // Initialize from searchParams after locations loaded
   useEffect(() => {
@@ -235,32 +182,41 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all", us
     }
   }, [searchParams, locations]);
 
-  // Removed client-side filtered/sorted activities
-  // Just use 'activities' from hook (which are the current page items)
-  // If we need client-side text search (searchQuery), we can filter 'activities' here?
-  // But 'activities' is only 9 items. Search should happen on backend.
-  // Backend searchActivities DOES NOT support text search (name) yet!
-  // It supports locationId, category, price.
-  // Requirement gap: The page has a "name" search? No, only Location search bar + filters.
-  // Ah, line 196: matchesSearchText = activity.name.toLowerCase().includes(searchQuery)...
-  // 'searchQuery' state exists (line 59). But where is input?
-  // The advanced search bar has Location, Date, Guests. No Name input.
-  // Wait, line 417 "Search Button". OnClick?
-  // Search button just triggers..? It's inside a div.
-  // There is NO text input for name search in the UI code shown.
-  // So client-side text search was likely unused or implicit?
-  // Actually, 'searchQuery' state is unused except in 'filteredActivities'.
-  // And there's no input setting 'setSearchQuery'.
-  // So I can ignore text search for now.
+  // Filter logic
+  const filteredActivities = activities.filter((activity) => {
+    const matchesCategory = selectedCategory === "all" || activity.category === selectedCategory;
 
-  const sortedActivities = activities; // No sorting on client side for now, or sort the page items?
-  // 'sortBy' state exists (line 77). If I want to sort, I should pass sort to backend.
-  // Backend default sort?
-  // For now, I will just render 'activities' as is (backend order).
-  // If I want to support sort, I need to add 'sortBy' to api.ts and Backend.
-  // For MVP integration, I will skip sort parameter update.
+    // LocationId has priority; fall back to text search when no location chosen
+    let matchesLocation = true;
+    const targetLocationId = selectedLocation?.id || searchParams?.locationId;
+    if (targetLocationId) {
+      matchesLocation = activity.locationId === targetLocationId;
+    }
 
+    const matchesSearchText = activity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      activity.location.toLowerCase().includes(searchQuery.toLowerCase());
 
+    const matchesPriceRange = activity.price >= priceRange[0] && activity.price <= priceRange[1];
+    const matchesRating = activity.rating >= minRating;
+
+    return matchesCategory && matchesLocation && matchesPriceRange && matchesRating && (targetLocationId ? true : matchesSearchText);
+  });
+
+  // Sort activities
+  const sortedActivities = [...filteredActivities].sort((a, b) => {
+    switch (sortBy) {
+      case "price-low":
+        return a.price - b.price;
+      case "price-high":
+        return b.price - a.price;
+      case "rating":
+        return b.rating - a.rating;
+      case "reviews":
+        return b.reviews - a.reviews;
+      default:
+        return 0; // recommended
+    }
+  });
 
   const handleActivityClick = (activity: Activity) => {
     onNavigate("activity-detail", {
@@ -495,14 +451,12 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all", us
           <h3 className="text-2xl md:text-3xl text-gray-800 mb-2">
             {categories.find(c => c.id === selectedCategory)?.name || t('activitiesPage.allActivities')}
           </h3>
-          {/* 
           <p className="text-gray-600">
             {t('activitiesPage.found')} {filteredActivities.length} {t('activitiesPage.activities')}
-          </p> 
-          */}
+          </p>
         </div>
 
-        {isActivitiesLoading ? (
+        {loading ? (
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
@@ -580,21 +534,13 @@ export default function ActivitiesPage({ onNavigate, initialCategory = "all", us
           </div>
         )}
 
-        {!isActivitiesLoading && !error && sortedActivities.length === 0 && (
+        {!loading && !error && filteredActivities.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
               {t('activitiesPage.noActivitiesFound')}
             </p>
           </div>
         )}
-
-        <div className="mt-8 flex justify-center">
-          <PaginationUI
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={goToPage}
-          />
-        </div>
       </div>
 
       {/* Footer */}

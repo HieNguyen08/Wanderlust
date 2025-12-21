@@ -860,12 +860,6 @@ export const flightApi = {
     date: string; // format: YYYY-MM-DD
     directOnly?: boolean;
     airlines?: string[]; // array of airline codes: ['VN', 'VJ']
-    minPrice?: number;
-    maxPrice?: number;
-    cabinClass?: string;
-    departureTimeRange?: string; // e.g. "morning,afternoon"
-    page?: number;
-    size?: number;
   }) => {
     const searchParams = new URLSearchParams();
     searchParams.append('from', params.from);
@@ -881,14 +875,6 @@ export const flightApi = {
         searchParams.append('airlines', airline);
       });
     }
-
-    if (params.minPrice !== undefined) searchParams.append('minPrice', params.minPrice.toString());
-    if (params.maxPrice !== undefined) searchParams.append('maxPrice', params.maxPrice.toString());
-    if (params.cabinClass) searchParams.append('cabinClass', params.cabinClass);
-    if (params.departureTimeRange) searchParams.append('departureTimeRange', params.departureTimeRange);
-
-    if (params.page !== undefined) searchParams.append('page', params.page.toString());
-    if (params.size !== undefined) searchParams.append('size', params.size.toString());
 
     const response = await fetch(`${API_BASE_URL}/api/flights/search?${searchParams.toString()}`);
     if (!response.ok) {
@@ -939,16 +925,7 @@ export const hotelApi = {
     checkOutDate?: string; // format: YYYY-MM-DD
     guests?: number;
     minStar?: number;
-    maxStar?: number;
-    minPrice?: number;
     maxPrice?: number;
-    amenities?: string[];
-    hotelTypes?: string[]; // property types
-    minRating?: number;
-    featuredOnly?: boolean;
-    verifiedOnly?: boolean;
-    page?: number;
-    size?: number;
   }) => {
     const searchParams = new URLSearchParams();
 
@@ -967,36 +944,9 @@ export const hotelApi = {
     if (params?.minStar) {
       searchParams.append('minStar', params.minStar.toString());
     }
-    if (params?.maxStar) {
-      searchParams.append('maxStar', params.maxStar.toString());
-    }
-    if (params?.minPrice) {
-      searchParams.append('minPrice', params.minPrice.toString());
-    }
     if (params?.maxPrice) {
       searchParams.append('maxPrice', params.maxPrice.toString());
     }
-    if (params?.minRating) {
-      searchParams.append('minRating', params.minRating.toString());
-    }
-
-    if (params?.featuredOnly) {
-      searchParams.append('featuredOnly', 'true');
-    }
-    if (params?.verifiedOnly) {
-      searchParams.append('verifiedOnly', 'true');
-    }
-
-    if (params?.amenities && params.amenities.length > 0) {
-      params.amenities.forEach(a => searchParams.append('amenities', a));
-    }
-
-    if (params?.hotelTypes && params.hotelTypes.length > 0) {
-      params.hotelTypes.forEach(t => searchParams.append('hotelTypes', t));
-    }
-
-    if (params?.page !== undefined) searchParams.append('page', params.page.toString());
-    if (params?.size !== undefined) searchParams.append('size', params.size.toString());
 
     const url = searchParams.toString()
       ? `${API_BASE_URL}/api/hotels?${searchParams.toString()}`
@@ -1243,30 +1193,16 @@ export const carRentalApi = {
   getAllCars: async (params?: {
     locationId?: string;
     brand?: string;
-    types?: string[];
+    type?: string;
     minPrice?: number;
     maxPrice?: number;
-    minSeats?: number;
-    withDriver?: boolean;
-    page?: number;
-    size?: number;
   }) => {
     const queryParams = new URLSearchParams();
     if (params?.locationId) queryParams.append('locationId', params.locationId);
     if (params?.brand) queryParams.append('brand', params.brand);
-
-    if (params?.types && params.types.length > 0) {
-      params.types.forEach(t => queryParams.append('types', t));
-    }
-
+    if (params?.type) queryParams.append('type', params.type);
     if (params?.minPrice) queryParams.append('minPrice', params.minPrice.toString());
     if (params?.maxPrice) queryParams.append('maxPrice', params.maxPrice.toString());
-
-    if (params?.minSeats) queryParams.append('minSeats', params.minSeats.toString());
-    if (params?.withDriver !== undefined) queryParams.append('withDriver', params.withDriver.toString());
-
-    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
-    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
     const url = `${API_BASE_URL}/api/car-rentals${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     const response = await fetch(url);
@@ -1382,25 +1318,17 @@ export const activityApi = {
   // Get all activities with optional filters
   getAllActivities: async (params?: {
     locationId?: string;
-    categories?: string[];
+    category?: string;
     minPrice?: number;
     maxPrice?: number;
     startDate?: string;
-    page?: number;
-    size?: number;
   }) => {
     const queryParams = new URLSearchParams();
     if (params?.locationId) queryParams.append('locationId', params.locationId);
-
-    if (params?.categories && params.categories.length > 0) {
-      params.categories.forEach(c => queryParams.append('categories', c));
-    }
-
+    if (params?.category) queryParams.append('category', params.category);
     if (params?.minPrice) queryParams.append('minPrice', params.minPrice.toString());
     if (params?.maxPrice) queryParams.append('maxPrice', params.maxPrice.toString());
     if (params?.startDate) queryParams.append('startDate', params.startDate);
-    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
-    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
     const url = `${API_BASE_URL}/api/activities${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     const response = await fetch(url);
@@ -1965,9 +1893,9 @@ export const adminApi = {
 // Preview/Review API endpoints
 export const previewApi = {
   // Get reviews by target (hotel, activity, etc.)
-  getReviewsByTarget: async (targetType: string, targetId: string, page: number = 0, size: number = 10) => {
+  getReviewsByTarget: async (targetType: string, targetId: string) => {
     const response = await fetch(
-      `${API_BASE_URL}/api/reviews?targetType=${encodeURIComponent(targetType)}&targetId=${encodeURIComponent(targetId)}&page=${page}&size=${size}`
+      `${API_BASE_URL}/api/reviews?targetType=${encodeURIComponent(targetType)}&targetId=${encodeURIComponent(targetId)}`
     );
     if (!response.ok) {
       throw new Error('Failed to fetch reviews');
@@ -2029,8 +1957,8 @@ export const previewApi = {
   },
 
   // Get user's reviews
-  getMyReviews: async (page: number = 0, size: number = 10) => {
-    const response = await authenticatedFetch(`/api/reviews/my-reviews?page=${page}&size=${size}`);
+  getMyReviews: async () => {
+    const response = await authenticatedFetch('/api/reviews/my-reviews');
     if (!response.ok) {
       throw new Error('Failed to fetch your reviews');
     }
@@ -2099,20 +2027,8 @@ export const reviewApi = {
   },
 
   // Get all reviews (admin)
-  getAllReviewsForAdmin: async (params?: {
-    page?: number;
-    size?: number;
-    search?: string;
-    status?: string;
-  }) => {
-    const queryParams = new URLSearchParams();
-    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
-    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
-    if (params?.search) queryParams.append('search', params.search);
-    if (params?.status) queryParams.append('status', params.status);
-
-    const url = `/api/reviews/admin/all${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
-    const response = await authenticatedFetch(url);
+  getAllReviewsForAdmin: async () => {
+    const response = await authenticatedFetch('/api/reviews/admin/all');
     if (!response.ok) {
       throw new Error('Failed to fetch all reviews');
     }
@@ -2152,24 +2068,6 @@ export const reviewApi = {
   // Vote a review (helpful / not helpful)
   voteReview: async (reviewId: string, voteType: 'HELPFUL' | 'NOT_HELPFUL') => {
     return previewApi.voteReview(reviewId, voteType);
-  },
-
-  // Get admin review statistics
-  getAdminStats: async () => {
-    const response = await authenticatedFetch('/api/reviews/admin/stats');
-    if (!response.ok) {
-      throw new Error('Failed to fetch admin review stats');
-    }
-    return response.json();
-  },
-
-  // Get vendor review statistics
-  getVendorStats: async (vendorId: string) => {
-    const response = await authenticatedFetch(`/api/reviews/vendor/${vendorId}/stats`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch vendor review stats');
-    }
-    return response.json();
   },
 };
 
@@ -2336,14 +2234,12 @@ export const vendorApi = {
   getVendorBookings: async (params?: {
     page?: number;
     size?: number;
-    search?: string;
     status?: string;
   }) => {
     const queryParams = new URLSearchParams();
     if (params?.page !== undefined) queryParams.append('page', params.page.toString());
     if (params?.size !== undefined) queryParams.append('size', params.size.toString());
     if (params?.status) queryParams.append('status', params.status);
-    if (params?.search) queryParams.append('search', params.search);
 
     const url = `/api/vendor/bookings${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     const response = await authenticatedFetch(url);
@@ -2470,27 +2366,14 @@ export const vendorApi = {
     return response.text();
   },
 
-  // Get vendor reviews (paginated, with search/status filters)
-  getVendorReviews: async (
-    vendorId: string,
-    params?: { page?: number; size?: number; search?: string; status?: string }
-  ) => {
-    const query = new URLSearchParams();
-    if (params?.page !== undefined) query.append("page", params.page.toString());
-    if (params?.size !== undefined) query.append("size", params.size.toString());
-    if (params?.search) query.append("search", params.search);
-    if (params?.status) query.append("status", params.status);
-
-    const queryString = query.toString();
-    const response = await authenticatedFetch(
-      `/api/reviews/vendor/${vendorId}${queryString ? `?${queryString}` : ""}`
-    );
-
+  // Get vendor reviews
+  getVendorReviews: async (vendorId: string) => {
+    const response = await authenticatedFetch(`/api/reviews/vendor/${vendorId}`);
     if (response.status === 401 || response.status === 403) {
-      return { content: [], totalElements: 0, totalPages: 0 };
+      return [];
     }
     if (!response.ok) {
-      throw new Error("Failed to fetch vendor reviews");
+      throw new Error('Failed to fetch vendor reviews');
     }
     return response.json();
   },

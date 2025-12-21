@@ -22,14 +22,6 @@ import com.wanderlust.api.mapper.RoomMapper;
 import com.wanderlust.api.repository.HotelRepository;
 import com.wanderlust.api.repository.RoomRepository;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
@@ -41,7 +33,6 @@ public class HotelService {
     private final HotelMapper hotelMapper;
     private final RoomMapper roomMapper;
     private final com.wanderlust.api.repository.LocationRepository locationRepository;
-    private final MongoTemplate mongoTemplate;
 
     private boolean isApprovedActive(Hotel hotel) {
         return hotel.getApprovalStatus() == ApprovalStatus.APPROVED && hotel.getStatus() == HotelStatusType.ACTIVE;
@@ -93,7 +84,7 @@ public class HotelService {
     }
 
     // 1. Search Hotels (Location, filters)
-    public Page<HotelDTO> searchHotels(HotelSearchCriteria criteria, int page, int size) {
+    public List<HotelDTO> searchHotels(HotelSearchCriteria criteria) {
         List<Hotel> hotels;
 
         // Bước 1: Lọc theo location
@@ -110,7 +101,7 @@ public class HotelService {
         }
 
         // Bước 2: Áp dụng các bộ lọc nâng cao
-        List<HotelDTO> filtered = hotels.stream()
+        return hotels.stream()
                 // Lọc theo hạng sao
                 .filter(h -> {
                     if (criteria.getMinStar() != null && h.getStarRating() != null) {
@@ -137,8 +128,8 @@ public class HotelService {
                 })
                 // Lọc theo loại khách sạn
                 .filter(h -> {
-                    if (criteria.getHotelTypes() != null && !criteria.getHotelTypes().isEmpty()) {
-                        return criteria.getHotelTypes().contains(h.getHotelType());
+                    if (criteria.getHotelType() != null) {
+                        return criteria.getHotelType().equals(h.getHotelType());
                     }
                     return true;
                 })
@@ -177,18 +168,8 @@ public class HotelService {
                 })
                 // Chỉ trả về khách sạn đã duyệt & đang hoạt động
                 .filter(this::isApprovedActive)
-                .filter(this::isApprovedActive)
                 .map(this::toDTOWithDerived)
                 .collect(Collectors.toList());
-
-        // Manual Pagination
-        Pageable pageable = PageRequest.of(page, size);
-        int start = Math.min((int) pageable.getOffset(), filtered.size());
-        int end = Math.min((start + pageable.getPageSize()), filtered.size());
-
-        List<HotelDTO> pageContent = filtered.subList(start, end);
-
-        return new PageImpl<>(pageContent, pageable, filtered.size());
     }
 
     private List<RoomDTO> filterActiveApprovedRooms(List<RoomDTO> rooms) {
@@ -296,42 +277,6 @@ public class HotelService {
 
     public List<HotelDTO> findByVendorId(String vendorId) {
         return enrichHotelsWithRooms(hotelRepository.findByVendorId(vendorId));
-    }
-
-    public Page<HotelDTO> findByVendorId(String vendorId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Hotel> hotelPage = hotelRepository.findByVendorId(vendorId, pageable);
-
-        List<HotelDTO> dtos = enrichHotelsWithRooms(hotelPage.getContent());
-
-        return new PageImpl<>(dtos, pageable, hotelPage.getTotalElements());
-    }
-
-    public Page<HotelDTO> findByVendorId(String vendorId, String search, ApprovalStatus status, int page, int size) {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("vendorId").is(vendorId));
-
-        if (status != null) {
-            query.addCriteria(Criteria.where("approvalStatus").is(status));
-        }
-
-        if (search != null && !search.trim().isEmpty()) {
-            // Search by name or description (case insensitive)
-            String regex = ".*" + java.util.regex.Pattern.quote(search.trim()) + ".*";
-            query.addCriteria(new Criteria().orOperator(
-                    Criteria.where("name").regex(regex, "i"),
-                    Criteria.where("description").regex(regex, "i"),
-                    Criteria.where("city").regex(regex, "i")));
-        }
-
-        Pageable pageable = PageRequest.of(page, size);
-        long total = mongoTemplate.count(query, Hotel.class);
-        query.with(pageable);
-
-        List<Hotel> hotels = mongoTemplate.find(query, Hotel.class);
-        List<HotelDTO> dtos = enrichHotelsWithRooms(hotels);
-
-        return new PageImpl<>(dtos, pageable, total);
     }
 
     public List<HotelDTO> findByLocationId(String locationId) {

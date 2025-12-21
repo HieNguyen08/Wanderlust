@@ -4,14 +4,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.wanderlust.api.dto.reviewComment.ReviewCommentAdminUpdateDTO;
@@ -20,23 +18,23 @@ import com.wanderlust.api.dto.reviewComment.ReviewCommentDTO;
 import com.wanderlust.api.dto.reviewComment.ReviewCommentUpdateDTO;
 import com.wanderlust.api.dto.reviewComment.ReviewCommentVendorResponseDTO;
 import com.wanderlust.api.entity.Booking;
-import com.wanderlust.api.entity.Flight;
 import com.wanderlust.api.entity.ReviewComment;
-import com.wanderlust.api.entity.ReviewVote;
+import com.wanderlust.api.entity.Flight;
 import com.wanderlust.api.entity.User;
 import com.wanderlust.api.entity.types.BookingStatus;
 import com.wanderlust.api.entity.types.ReviewStatus;
 import com.wanderlust.api.entity.types.ReviewTargetType;
 import com.wanderlust.api.entity.types.Role;
+import com.wanderlust.api.entity.ReviewVote;
 import com.wanderlust.api.mapper.ReviewCommentMapper;
 import com.wanderlust.api.repository.ActivityRepository;
 import com.wanderlust.api.repository.BookingRepository;
-import com.wanderlust.api.repository.CarRentalRepository;
-import com.wanderlust.api.repository.FlightRepository;
 import com.wanderlust.api.repository.HotelRepository;
 import com.wanderlust.api.repository.ReviewCommentRepository;
 import com.wanderlust.api.repository.ReviewVoteRepository;
 import com.wanderlust.api.repository.UserRepository;
+import com.wanderlust.api.repository.CarRentalRepository;
+import com.wanderlust.api.repository.FlightRepository;
 
 import lombok.AllArgsConstructor;
 
@@ -53,7 +51,6 @@ public class ReviewCommentService {
     private final CarRentalRepository carRentalRepository;
     private final FlightRepository flightRepository;
     private final ReviewVoteRepository reviewVoteRepository;
-    private final org.springframework.data.mongodb.core.MongoTemplate mongoTemplate;
 
     // ==========================================
     // COMMON/PUBLIC METHODS
@@ -70,15 +67,10 @@ public class ReviewCommentService {
     /**
      * [PUBLIC] Lấy tất cả review ĐÃ DUYỆT cho một đối tượng (Hotel, Activity...)
      */
-    /**
-     * [PUBLIC] Lấy tất cả review ĐÃ DUYỆT cho một đối tượng (Hotel, Activity...)
-     */
-    public Page<ReviewCommentDTO> findAllApprovedByTarget(ReviewTargetType targetType, String targetId, int page,
-            int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<ReviewComment> reviews = reviewCommentRepository.findAllByTargetTypeAndTargetIdAndStatus(
-                targetType, targetId, ReviewStatus.APPROVED, pageable);
-        return reviews.map(this::toDTO);
+    public List<ReviewCommentDTO> findAllApprovedByTarget(ReviewTargetType targetType, String targetId) {
+        List<ReviewComment> reviews = reviewCommentRepository.findAllByTargetTypeAndTargetIdAndStatus(
+                targetType, targetId, ReviewStatus.APPROVED);
+        return toDTOs(reviews);
     }
 
     /**
@@ -86,33 +78,18 @@ public class ReviewCommentService {
      * targetId cụ thể
      * Sắp xếp theo rating từ cao đến thấp
      */
-    /**
-     * [PUBLIC] Lấy tất cả review ĐÃ DUYỆT theo loại (FLIGHT, HOTEL...) không cần
-     * targetId cụ thể
-     * Sắp xếp theo rating từ cao đến thấp
-     */
-    public Page<ReviewCommentDTO> findAllApprovedByType(ReviewTargetType targetType, int page, int size) {
-        // Note: Repository method currently doesn't sort by rating.
-        // We'd need to add Sort to Pageable or custom query.
-        // For now, let's just use PageRequest defaults (which effectively is unsorted
-        // unless we add Sort).
-        // To keep existing logic "sort by rating", we might need a Sort param.
-        // Let's rely on frontend or add Sort.by(Direction.DESC, "rating") if 'rating'
-        // field exists and is indexed.
-        // Assuming 'rating' field exists.
+    public List<ReviewCommentDTO> findAllApprovedByType(ReviewTargetType targetType) {
+        List<ReviewComment> reviews = reviewCommentRepository.findAllByTargetTypeAndStatus(
+                targetType, ReviewStatus.APPROVED);
 
-        // Pageable pageable = PageRequest.of(page, size,
-        // org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC,
-        // "rating"));
-        // But let's verify if column name is "rating". Yes, ReviewComment entity has
-        // rating.
-        // NOTE: Standard PageRequest sort operates on DB level.
+        // Sắp xếp theo rating từ cao đến thấp, null cuối cùng
+        reviews.sort((r1, r2) -> {
+            Double rating1 = r1.getRating() != null ? r1.getRating() : 0.0;
+            Double rating2 = r2.getRating() != null ? r2.getRating() : 0.0;
+            return rating2.compareTo(rating1); // Giảm dần
+        });
 
-        Pageable pageable = PageRequest.of(page, size); // Add sort here if needed
-        Page<ReviewComment> reviews = reviewCommentRepository.findAllByTargetTypeAndStatus(
-                targetType, ReviewStatus.APPROVED, pageable);
-
-        return reviews.map(this::toDTO);
+        return toDTOs(reviews);
     }
 
     // ==========================================
@@ -122,13 +99,9 @@ public class ReviewCommentService {
     /**
      * [USER] Lấy tất cả review của user đang đăng nhập
      */
-    /**
-     * [USER] Lấy tất cả review của user đang đăng nhập
-     */
-    public Page<ReviewCommentDTO> findAllByUserId(String userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<ReviewComment> reviews = reviewCommentRepository.findAllByUserId(userId, pageable);
-        return reviews.map(this::toDTO);
+    public List<ReviewCommentDTO> findAllByUserId(String userId) {
+        List<ReviewComment> reviews = reviewCommentRepository.findAllByUserId(userId);
+        return toDTOs(reviews);
     }
 
     /**
@@ -224,46 +197,17 @@ public class ReviewCommentService {
     /**
      * [ADMIN] Lấy tất cả review (không phân biệt trạng thái)
      */
-    /**
-     * [ADMIN] Lấy tất cả review (không phân biệt trạng thái)
-     */
-    public Page<ReviewCommentDTO> findAllForAdmin(String search, String status, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort
-                .by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
-        org.springframework.data.mongodb.core.query.Query query = new org.springframework.data.mongodb.core.query.Query()
-                .with(pageable);
-
-        if (status != null && !status.isEmpty() && !status.equalsIgnoreCase("all")) {
-            try {
-                ReviewStatus statusEnum = ReviewStatus.valueOf(status.toUpperCase());
-                query.addCriteria(org.springframework.data.mongodb.core.query.Criteria.where("status").is(statusEnum));
-            } catch (IllegalArgumentException e) {
-                // Invalid status, ignore or handle? Ignoring for now to treat as "all" or just
-                // non-matching
-            }
-        }
-
-        if (search != null && !search.trim().isEmpty()) {
-            String regex = ".*" + java.util.regex.Pattern.quote(search.trim()) + ".*";
-            query.addCriteria(org.springframework.data.mongodb.core.query.Criteria.where("content").regex(regex, "i"));
-        }
-
-        long total = mongoTemplate.count(query, ReviewComment.class);
-        List<ReviewComment> reviews = mongoTemplate.find(query, ReviewComment.class);
-
-        return new org.springframework.data.domain.PageImpl<>(toDTOs(reviews), pageable, total);
+    public List<ReviewCommentDTO> findAllForAdmin() {
+        List<ReviewComment> reviews = reviewCommentRepository.findAll();
+        return toDTOs(reviews);
     }
 
     /**
      * [ADMIN] Lấy tất cả review đang chờ duyệt
      */
-    /**
-     * [ADMIN] Lấy tất cả review đang chờ duyệt
-     */
-    public Page<ReviewCommentDTO> findAllPending(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<ReviewComment> reviews = reviewCommentRepository.findAllByStatus(ReviewStatus.PENDING, pageable);
-        return reviews.map(this::toDTO);
+    public List<ReviewCommentDTO> findAllPending() {
+        List<ReviewComment> reviews = reviewCommentRepository.findAllByStatus(ReviewStatus.PENDING);
+        return toDTOs(reviews);
     }
 
     /**
@@ -344,12 +288,7 @@ public class ReviewCommentService {
     /**
      * [VENDOR] Lấy tất cả review cho các dịch vụ của Vendor
      */
-    /**
-     * [VENDOR] Lấy tất cả review cho các dịch vụ của Vendor (Paginated, Search,
-     * Status)
-     */
-    public Page<ReviewCommentDTO> getReviewsByVendor(String vendorId, String search, String status, int page,
-            int size) {
+    public List<ReviewCommentDTO> getReviewsByVendor(String vendorId) {
         List<String> targetIds = new ArrayList<>();
 
         // Get Hotel IDs
@@ -361,58 +300,19 @@ public class ReviewCommentService {
         targetIds.addAll(
                 activities.stream().map(com.wanderlust.api.entity.Activity::getId).collect(Collectors.toList()));
 
-        // Get Car Rental IDs (Added as per plan)
-        List<com.wanderlust.api.entity.CarRental> cars = carRentalRepository.findByVendorId(vendorId);
-        targetIds.addAll(
-                cars.stream().map(com.wanderlust.api.entity.CarRental::getId).collect(Collectors.toList()));
-
         if (targetIds.isEmpty()) {
-            return Page.empty();
+            return Collections.emptyList();
         }
 
-        org.springframework.data.mongodb.core.query.Query query = new org.springframework.data.mongodb.core.query.Query();
-        query.addCriteria(org.springframework.data.mongodb.core.query.Criteria.where("targetId").in(targetIds));
-
-        // Filter by Status (Pending vs Responded)
-        // Frontend uses: "pending" (unanswered), "responded". Default "all".
-        if (status != null && !status.trim().isEmpty() && !status.equalsIgnoreCase("all")) {
-            if (status.equalsIgnoreCase("pending") || status.equalsIgnoreCase("unanswered")) {
-                // Not responded yet: vendorResponse is null or empty
-                query.addCriteria(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
-                        org.springframework.data.mongodb.core.query.Criteria.where("vendorResponse").is(null),
-                        org.springframework.data.mongodb.core.query.Criteria.where("vendorResponse").is("")));
-            } else if (status.equalsIgnoreCase("responded")) {
-                // Has response
-                query.addCriteria(
-                        org.springframework.data.mongodb.core.query.Criteria.where("vendorResponse").ne(null).ne(""));
-            }
-        }
-
-        // Search logic
-        if (search != null && !search.trim().isEmpty()) {
-            String regex = ".*" + java.util.regex.Pattern.quote(search.trim()) + ".*";
-            // Check review content or user? ReviewComment doesn't store userName directly
-            // usually?
-            // Wait, toDTO enriches user info. We CANNOT search by user name easily in the
-            // DB query unless we join or fetch users first.
-            // Let's search by 'content' (comment/title) for now.
-            query.addCriteria(org.springframework.data.mongodb.core.query.Criteria.where("content").regex(regex, "i"));
-        }
-
-        long total = mongoTemplate.count(query, ReviewComment.class);
-        Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort
-                .by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
-        query.with(pageable);
-
-        List<ReviewComment> reviews = mongoTemplate.find(query, ReviewComment.class);
-        return new org.springframework.data.domain.PageImpl<>(toDTOs(reviews), pageable, total);
+        List<ReviewComment> reviews = reviewCommentRepository.findByTargetIdIn(targetIds);
+        return toDTOs(reviews);
     }
 
     /**
      * [VENDOR] Alias method for getReviewsByVendor
      */
-    public Page<ReviewCommentDTO> findAllByVendorId(String vendorId, int page, int size) {
-        return getReviewsByVendor(vendorId, null, null, page, size);
+    public List<ReviewCommentDTO> findAllByVendorId(String vendorId) {
+        return getReviewsByVendor(vendorId);
     }
 
     /**
@@ -607,73 +507,4 @@ public class ReviewCommentService {
             review.setNotHelpfulCount(Math.max(0, current + delta));
         }
     }
-
-    // ==========================================
-    // STATISTICS METHODS
-    // ==========================================
-
-    public long countByStatus(ReviewStatus status) {
-        return reviewCommentRepository.countByStatus(status);
-    }
-
-    public java.util.Map<String, Long> getAdminReviewStats() {
-        java.util.Map<String, Long> stats = new java.util.HashMap<>();
-        stats.put("pending", countByStatus(ReviewStatus.PENDING));
-        stats.put("approved", countByStatus(ReviewStatus.APPROVED));
-        stats.put("rejected", countByStatus(ReviewStatus.REJECTED));
-        return stats;
-    }
-
-    public List<ReviewCommentDTO> findPendingReviews() {
-        List<ReviewComment> pendingReviews = reviewCommentRepository.findByStatus(ReviewStatus.PENDING);
-        return pendingReviews.stream()
-                .map(reviewCommentMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    public java.util.Map<String, Object> getVendorStats(String vendorId) {
-        List<String> targetIds = new ArrayList<>();
-        List<com.wanderlust.api.entity.Hotel> hotels = hotelRepository.findByVendorId(vendorId);
-        targetIds.addAll(hotels.stream().map(com.wanderlust.api.entity.Hotel::getHotelID).collect(Collectors.toList()));
-        List<com.wanderlust.api.entity.Activity> activities = activityRepository.findByVendorId(vendorId);
-        targetIds.addAll(
-                activities.stream().map(com.wanderlust.api.entity.Activity::getId).collect(Collectors.toList()));
-        List<com.wanderlust.api.entity.CarRental> cars = carRentalRepository.findByVendorId(vendorId);
-        targetIds.addAll(cars.stream().map(com.wanderlust.api.entity.CarRental::getId).collect(Collectors.toList()));
-        if (targetIds.isEmpty()) {
-            java.util.Map<String, Object> emptyStats = new java.util.HashMap<>();
-            emptyStats.put("totalReviews", 0L);
-            emptyStats.put("averageRating", 0.0);
-            emptyStats.put("unrespondedCount", 0L);
-            return emptyStats;
-        }
-        org.springframework.data.mongodb.core.query.Criteria targetCriteria = org.springframework.data.mongodb.core.query.Criteria
-                .where("targetId").in(targetIds);
-        long totalReviews = mongoTemplate.count(new org.springframework.data.mongodb.core.query.Query(targetCriteria),
-                ReviewComment.class);
-        org.springframework.data.mongodb.core.query.Criteria unrespondedCriteria = new org.springframework.data.mongodb.core.query.Criteria()
-                .andOperator(targetCriteria,
-                        new org.springframework.data.mongodb.core.query.Criteria().orOperator(
-                                org.springframework.data.mongodb.core.query.Criteria.where("vendorResponse").is(null),
-                                org.springframework.data.mongodb.core.query.Criteria.where("vendorResponse").is("")));
-        long unrespondedCount = mongoTemplate
-                .count(new org.springframework.data.mongodb.core.query.Query(unrespondedCriteria), ReviewComment.class);
-        org.springframework.data.mongodb.core.aggregation.Aggregation aggregation = org.springframework.data.mongodb.core.aggregation.Aggregation
-                .newAggregation(org.springframework.data.mongodb.core.aggregation.Aggregation.match(targetCriteria),
-                        org.springframework.data.mongodb.core.aggregation.Aggregation.group().avg("rating")
-                                .as("avgRating"));
-        org.springframework.data.mongodb.core.aggregation.AggregationResults<java.util.Map> results = mongoTemplate
-                .aggregate(aggregation, ReviewComment.class, java.util.Map.class);
-        double averageRating = 0.0;
-        java.util.Map<String, Object> result = results.getUniqueMappedResult();
-        if (result != null && result.get("avgRating") != null) {
-            averageRating = ((Number) result.get("avgRating")).doubleValue();
-        }
-        java.util.Map<String, Object> stats = new java.util.HashMap<>();
-        stats.put("totalReviews", totalReviews);
-        stats.put("averageRating", averageRating);
-        stats.put("unrespondedCount", unrespondedCount);
-        return stats;
-    }
-
 }

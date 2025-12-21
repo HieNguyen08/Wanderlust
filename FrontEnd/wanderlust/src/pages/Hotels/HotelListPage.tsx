@@ -1,6 +1,6 @@
 import { vi } from "date-fns/locale";
 import { Calendar as CalendarIcon, Check, ChevronDown, Hotel, Minus, Plus, Repeat, Search, Users } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { Footer } from "../../components/Footer";
@@ -15,8 +15,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/pop
 
 import { format, parse } from "date-fns";
 import { toast } from "sonner";
-import { PaginationUI } from "../../components/ui/PaginationUI";
-import { useSmartPagination } from "../../hooks/useSmartPagination";
 import type { PageType } from "../../MainApp";
 import { hotelApi, locationApi } from "../../utils/api";
 
@@ -88,15 +86,9 @@ export default function HotelListPage({
   );
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("popular");
-
-  // Filter state
-  const [activeFilters, setActiveFilters] = useState<any>({
-    priceRange: [0, 50000000],
-    freeCancellation: false, // Not fully supported by backend yet
-    amenities: [],
-    propertyTypes: [],
-    ratings: []
-  });
+  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [filteredHotels, setFilteredHotels] = useState<Hotel[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Search form states
   const [destinations, setDestinations] = useState<Destination[]>([]);
@@ -195,113 +187,172 @@ export default function HotelListPage({
     }
   }, [params]);
 
-  // useSmartPagination Hook
-  const fetchData = useCallback(async (page: number, size: number) => {
-    // Prepare search params from form/url state
-    const apiParams: any = {};
+  // Fetch hotels from backend when component mounts
+  useEffect(() => {
+    const fetchHotels = async () => {
+      try {
+        setIsLoading(true);
 
-    // 1. Location
-    if (destination?.id) {
-      apiParams.locationId = destination.id; // Backend expects string logic? searchHotels param is 'location'
-      // api.ts uses 'location' param. If I pass locationId, does backend handle it?
-      // HotelService logic: "hotels = hotelRepository.searchBasic(criteria.getLocation());"
-      // It searches by keyword. If I pass ID, it might fail if ID is UUID.
-      // But HotelController has getHotelsByLocation(id).
-      // SearchHotels takes criteria. criteria.location.
-      // If I want to search by ID in searchHotels, I should check if backend supports it.
-      // Current HotelService searches by keyword.
-      // But if I pass city name it works.
-      apiParams.location = destination.name;
-    } else if (params?.destination) {
-      apiParams.location = params.destination;
-    } else if (params?.city) {
-      apiParams.location = params.city;
-    }
+        // Prepare search params
+        const apiParams: any = {};
 
-    // 2. Dates
-    if (checkIn) apiParams.checkInDate = format(checkIn, "yyyy-MM-dd");
-    if (checkOut) apiParams.checkOutDate = format(checkOut, "yyyy-MM-dd");
+        // Prefer locationId first, then fall back to city string
+        if (destination?.id) {
+          apiParams.locationId = destination.id;
+        } else if (params?.destinationId) {
+          apiParams.locationId = params.destinationId;
+        } else if (destination?.name) {
+          apiParams.location = destination.name;
+        } else if (params?.city) {
+          apiParams.location = params.city;
+        } else if (params?.destination) {
+          apiParams.location = params.destination;
+        }
 
-    // 3. Guests
-    const totalGuests = adults + children;
-    apiParams.guests = totalGuests;
+        // Map check-in/check-out dates (convert from dd/MM/yyyy to yyyy-MM-dd)
+        const checkInParam = params?.checkIn || params?.bookingInfo?.checkIn;
+        if (checkInParam) {
+          try {
+            const checkInDate = parse(checkInParam, "dd/MM/yyyy", new Date());
+            apiParams.checkInDate = format(checkInDate, "yyyy-MM-dd");
+          } catch (err) {
+            console.error("Invalid checkIn date format:", checkInParam);
+          }
+        }
 
-    // 4. Filters from Sidebar
-    if (activeFilters.priceRange) {
-      apiParams.minPrice = activeFilters.priceRange[0];
-      apiParams.maxPrice = activeFilters.priceRange[1];
-    }
-    if (activeFilters.amenities && activeFilters.amenities.length > 0) {
-      apiParams.amenities = activeFilters.amenities;
-    }
-    if (activeFilters.propertyTypes && activeFilters.propertyTypes.length > 0) {
-      apiParams.hotelTypes = activeFilters.propertyTypes;
-    }
-    if (activeFilters.ratings && activeFilters.ratings.length > 0) {
-      // Map ratings array (strings) to minStar?
-      // E.g. ["4", "5"] -> minStar = 4?
-      const stars = activeFilters.ratings.map((r: string) => parseInt(r)).filter((n: number) => !isNaN(n));
-      if (stars.length > 0) {
-        apiParams.minStar = Math.min(...stars);
+        const checkOutParam = params?.checkOut || params?.bookingInfo?.checkOut;
+        if (checkOutParam) {
+          try {
+            const checkOutDate = parse(checkOutParam, "dd/MM/yyyy", new Date());
+            apiParams.checkOutDate = format(checkOutDate, "yyyy-MM-dd");
+          } catch (err) {
+            console.error("Invalid checkOut date format:", checkOutParam);
+          }
+        }
+
+        // Map guests (adults + children)
+        const guestParams = params?.guests || params?.bookingInfo?.guests;
+        if (guestParams) {
+          const totalGuests = guestParams.adults + guestParams.children;
+          apiParams.guests = totalGuests;
+        }
+
+        console.log("🔍 Fetching hotels with params:", apiParams);
+        let hotelsData = await hotelApi.searchHotels(apiParams);
+
+        // Fallback: if backend filters return nothing, fetch all then client-filter by city
+        if ((!hotelsData || hotelsData.length === 0) && (destination?.name || params?.city)) {
+          console.warn("⚠️ No hotels returned with location filter, retrying without filters for client-side match");
+          hotelsData = await hotelApi.searchHotels({});
+        }
+
+        console.log("✅ Fetched hotels:", hotelsData);
+
+        // Map backend HotelDTO to frontend Hotel interface
+        let mappedHotels: Hotel[] = hotelsData.map((hotel: any) => ({
+          id: hotel.hotelID || hotel.id,
+          name: hotel.name,
+          rating: hotel.starRating || hotel.averageRating || 0,
+          address: hotel.address,
+          image: hotel.images?.[0]?.url || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
+          price: hotel.lowestPrice || 0,
+          freeCancellation: hotel.policies?.cancellation !== "NO_REFUND",
+          amenities: hotel.amenities || [],
+          propertyType: hotel.hotelType || "HOTEL",
+          tags: [],
+          breakfast: hotel.amenities?.includes("Bữa sáng miễn phí"),
+          city: hotel.city,
+          country: hotel.country,
+          locationId: hotel.locationId,
+          description: hotel.description,
+          phone: hotel.phone,
+          email: hotel.email,
+        }));
+
+        // Client-side filtering by locationId (primary) then city string (fallback)
+        if (destination?.id) {
+          mappedHotels = mappedHotels.filter((hotel) => hotel.locationId === destination.id);
+        } else if (params?.destinationId) {
+          mappedHotels = mappedHotels.filter((hotel) => hotel.locationId === params.destinationId);
+        }
+
+        if (mappedHotels.length === 0) {
+          if (destination?.name) {
+            const cityLower = destination.name.toLowerCase();
+            mappedHotels = hotelsData.filter((hotel: any) => hotel.city?.toLowerCase() === cityLower);
+          } else if (params?.city) {
+            const cityLower = params.city.toLowerCase();
+            mappedHotels = hotelsData.filter((hotel: any) => hotel.city?.toLowerCase() === cityLower);
+          }
+        }
+
+        // If still nothing and we had a city string, try partial match (defensive)
+        if (mappedHotels.length === 0 && (destination?.name || params?.city)) {
+          const target = (destination?.name || params?.city || "").toLowerCase();
+          mappedHotels = hotelsData.filter((hotel: any) => (hotel.city || "").toLowerCase().includes(target));
+        }
+
+        setHotels(mappedHotels);
+        setFilteredHotels(mappedHotels);
+      } catch (error: any) {
+        console.error("❌ Error fetching hotels:", error);
+        toast.error(t('hotels.errorLoadingHotels'));
+        setHotels([]);
+        setFilteredHotels([]);
+      } finally {
+        setIsLoading(false);
       }
+    };
+
+    fetchHotels();
+  }, [params, destination?.name]);
+
+  // Apply filters
+  const handleFilterChange = (filters: any) => {
+    let filtered = [...hotels];
+
+    // Price range
+    filtered = filtered.filter(
+      (hotel) =>
+        hotel.price >= filters.priceRange[0] &&
+        hotel.price <= filters.priceRange[1]
+    );
+
+    // Free cancellation
+    if (filters.freeCancellation) {
+      filtered = filtered.filter((hotel) => hotel.freeCancellation);
     }
 
-    // Sort? Backend doesn't support sort param yet. We sort client-side on current page.
-
-    try {
-      const results = await hotelApi.searchHotels({
-        ...apiParams,
-        page,
-        size
-      });
-
-      // Map backend HotelDTO to frontend Hotel interface
-      const mappedHotels: Hotel[] = (results.content || []).map((hotel: any) => ({
-        id: hotel.hotelID || hotel.id,
-        name: hotel.name,
-        rating: hotel.starRating || hotel.averageRating || 0,
-        address: hotel.address,
-        image: hotel.images?.[0]?.url || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
-        price: hotel.lowestPrice || 0,
-        originalPrice: hotel.originalPrice || undefined,
-        freeCancellation: hotel.policies?.cancellation !== "NO_REFUND",
-        amenities: hotel.amenities || [],
-        propertyType: hotel.hotelType || "HOTEL",
-        tags: [],
-        breakfast: hotel.amenities?.includes("Bữa sáng miễn phí"),
-        city: hotel.city,
-        country: hotel.country,
-        locationId: hotel.locationId,
-        description: hotel.description,
-        phone: hotel.phone,
-        email: hotel.email,
-      }));
-
-      return {
-        data: mappedHotels,
-        totalItems: results.totalElements || 0
-      };
-    } catch (e) {
-      console.error("Error searching hotels", e);
-      return { data: [], totalItems: 0 };
+    // Amenities
+    if (filters.amenities.length > 0) {
+      filtered = filtered.filter((hotel) =>
+        filters.amenities.every((amenity: string) =>
+          hotel.amenities?.includes(amenity)
+        )
+      );
     }
-  }, [destination, params, checkIn, checkOut, adults, children, activeFilters]);
 
-  const {
-    currentItems: hotels, // We map this to 'hotels' variable used in render
-    totalPages,
-    currentPage,
-    goToPage,
-    isLoading
-  } = useSmartPagination({
-    fetchData,
-    pageSize: 9,
-    preloadRange: 1
-  });
+    // Property types
+    if (filters.propertyTypes.length > 0) {
+      filtered = filtered.filter((hotel) =>
+        filters.propertyTypes.includes(hotel.propertyType || "")
+      );
+    }
 
-  // Client-side sorting for current page
-  const filteredAndSortedHotels = useMemo(() => {
-    let sorted = [...hotels];
+    // Ratings
+    if (filters.ratings.length > 0) {
+      filtered = filtered.filter((hotel) =>
+        filters.ratings.includes(hotel.rating.toString())
+      );
+    }
+
+    setFilteredHotels(filtered);
+  };
+
+  // Apply sorting
+  useEffect(() => {
+    let sorted = [...filteredHotels];
+
     switch (sortBy) {
       case "price-low":
         sorted.sort((a, b) => a.price - b.price);
@@ -312,29 +363,14 @@ export default function HotelListPage({
       case "rating":
         sorted.sort((a, b) => b.rating - a.rating);
         break;
+      case "popular":
+      default:
+        // Keep original order
+        break;
     }
-    return sorted;
-  }, [hotels, sortBy]);
 
-  const handleFilterChange = (filters: any) => {
-    setActiveFilters(filters);
-    // useSmartPagination will automatically refetch when activeFilters (dependency) changes?
-    // Wait, useSmartPagination doesn't auto-refetch on dep change unless I force it.
-    // The hook in 'useSmartPagination' relies on 'fetchData' identity change if included in deps?
-    // Checking hook: useEffect calls `loadPage(currentPage)` when `currentPage` changes.
-    // DOES IT REACT TO FETCHDATA CHANGE?
-    // "useEffect(() => { loadPage(currentPage); ... }, [loadPage, currentPage, ...])"
-    // Yes. loadPage depends on fetchData. So if fetchData changes (deps change), loadPage changes.
-    // Ideally we should reset to page 0 when filters change.
-    // The hook internally doesn't reset page to 0.
-    // We might need to manually call goToPage(0) if filters change.
-    // For now let's reliance on the update flow.
-  };
-
-  // Reset page when filters change
-  useEffect(() => {
-    goToPage(0);
-  }, [activeFilters, destination, checkIn, checkOut, adults, children]);
+    setFilteredHotels(sorted);
+  }, [sortBy]);
 
   const handleHotelSelect = (hotel: Hotel) => {
     onNavigate("hotel-detail", hotel);
@@ -640,14 +676,14 @@ export default function HotelListPage({
           <HotelTopBar
             viewMode={viewMode}
             onViewModeChange={setViewMode}
-            totalResults={filteredAndSortedHotels.length}
+            totalResults={filteredHotels.length}
             sortBy={sortBy}
             onSortChange={setSortBy}
             destination={destination
               ? `${destination.name}, ${destination.country}`
               : params?.city
                 ? params.city
-                : params?.destination || filteredAndSortedHotels[0]?.city || hotels[0]?.city || "Tất cả địa điểm"}
+                : params?.destination || filteredHotels[0]?.city || "Tất cả địa điểm"}
           />
 
           {/* Hotel Cards */}
@@ -657,7 +693,7 @@ export default function HotelListPage({
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 <p className="text-gray-500 mt-4">{t('hotels.loadingHotels')}</p>
               </div>
-            ) : filteredAndSortedHotels.length === 0 ? (
+            ) : filteredHotels.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">
                   {t('hotels.noHotelsFound')}
@@ -665,7 +701,7 @@ export default function HotelListPage({
               </div>
             ) : viewMode === "grid" ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredAndSortedHotels.map((hotel) => (
+                {filteredHotels.map((hotel) => (
                   <HotelCardGrid
                     key={hotel.id}
                     hotel={hotel}
@@ -675,7 +711,7 @@ export default function HotelListPage({
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredAndSortedHotels.map((hotel) => (
+                {filteredHotels.map((hotel) => (
                   <HotelCardList
                     key={hotel.id}
                     hotel={hotel}
@@ -684,15 +720,6 @@ export default function HotelListPage({
                 ))}
               </div>
             )}
-
-            {/* Pagination Controls */}
-            <div className="mt-8 flex justify-center">
-              <PaginationUI
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={goToPage}
-              />
-            </div>
           </div>
         </div>
       </div>

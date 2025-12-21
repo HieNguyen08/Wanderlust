@@ -196,9 +196,45 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       return;
     }
 
-    // Navigate to FlightDetailPage with search params
-    setIsSearching(true);
     try {
+      // Show loading overlay
+      setIsSearching(true);
+
+      // Format date to yyyy-MM-dd for API
+      const formattedDate = format(departDate, "yyyy-MM-dd");
+
+      // Search flights via API
+      console.log("🔍 Searching flights:", {
+        from: fromAirport.code,
+        to: toAirport.code,
+        date: formattedDate,
+        directOnly: false
+      });
+
+      const outboundFlights = await flightApi.searchFlights({
+        from: fromAirport.code,
+        to: toAirport.code,
+        date: formattedDate,
+        directOnly: false,
+        cabinClass: cabinClass
+      });
+
+      console.log("✅ Found outbound flights:", outboundFlights);
+
+      let returnFlights = [];
+      if (tripType === "round-trip" && returnDate) {
+        const formattedReturnDate = format(returnDate, "yyyy-MM-dd");
+        returnFlights = await flightApi.searchFlights({
+          from: toAirport.code,
+          to: fromAirport.code,
+          date: formattedReturnDate,
+          directOnly: false,
+          cabinClass: cabinClass
+        });
+        console.log("✅ Found return flights:", returnFlights);
+      }
+
+      // Navigate to FlightDetailPage with results
       onNavigate("flight-detail", {
         tripType,
         from: fromAirport,
@@ -212,7 +248,8 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
           total: adults + children + infants
         },
         cabinClass,
-        // outboundFlights and returnFlights are now fetched in the detail page
+        outboundFlights,
+        returnFlights
       });
     } catch (error: any) {
       console.error("❌ Error searching flights:", error);
@@ -221,7 +258,6 @@ export default function FlightsPage({ onNavigate }: FlightsPageProps) {
       setIsSearching(false);
     }
   };
-
 
   const handlePopularFlightClick = (from: string, to: string) => {
     const fromAirportData = airports.find(a => a.city === from);

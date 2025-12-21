@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.data.domain.Page;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,9 +12,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +35,7 @@ public class HotelController {
     private final HotelService hotelService;
     private final HotelMapper hotelMapper;
 
+    @Autowired
     public HotelController(HotelService hotelService, HotelMapper hotelMapper) {
         this.hotelService = hotelService;
         this.hotelMapper = hotelMapper;
@@ -63,13 +64,10 @@ public class HotelController {
         return ResponseEntity.ok(hotelService.getUniqueLocations());
     }
 
-    // GET /api/hotels - Search (location, dates, etc) (With Pagination)
+    // GET /api/hotels - Search (location, dates, etc)
     @GetMapping("/hotels")
-    public ResponseEntity<Page<HotelDTO>> searchHotels(
-            @ModelAttribute HotelSearchCriteria criteria,
-            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
-            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(hotelService.searchHotels(criteria, page, size));
+    public ResponseEntity<List<HotelDTO>> searchHotels(@ModelAttribute HotelSearchCriteria criteria) {
+        return ResponseEntity.ok(hotelService.searchHotels(criteria));
     }
 
     // GET /api/hotels/featured
@@ -115,24 +113,13 @@ public class HotelController {
     // GET /api/vendor/hotels
     @GetMapping("/vendor/hotels")
     @PreAuthorize("hasAnyRole('ADMIN','VENDOR')")
-    public ResponseEntity<Page<HotelDTO>> getVendorHotels(
-            Authentication authentication,
-            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
-            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<HotelDTO>> getVendorHotels(Authentication authentication) {
         String userId = getUserIdFromAuthentication(authentication);
-        Page<HotelDTO> hotels;
-
+        List<HotelDTO> hotels;
         if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            // Admin sees all hotels (paginated)
-            // Note: HotelService.findAll() returns List, so we need a paginated version or
-            // manual pagination
-            // For now, let's use searchHotels logic with empty criteria or create
-            // findAll(Pageable)
-            // But strict requirement says use searchHotels for pagination usually.
-            // Let's use hotelService.searchHotels with empty criteria which returns Page
-            hotels = hotelService.searchHotels(new HotelSearchCriteria(), page, size);
+            hotels = hotelService.findAll();
         } else {
-            hotels = hotelService.findByVendorId(userId, page, size);
+            hotels = hotelService.findByVendorId(userId);
         }
 
         return ResponseEntity.ok(hotels);

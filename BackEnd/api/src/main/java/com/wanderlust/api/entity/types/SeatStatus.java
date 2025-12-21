@@ -5,8 +5,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum SeatStatus {
     AVAILABLE, // Có sẵn
-    RESERVED,  // Đang giữ chỗ
-    OCCUPIED;  // Đã bán/có người ngồi
+    RESERVED, // Đang giữ chỗ
+    BOOKED, // Đã đặt
+    OCCUPIED; // Đã bán/có người ngồi
 
     @JsonValue
     public String toValue() {

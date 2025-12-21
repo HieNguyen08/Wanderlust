@@ -38,9 +38,6 @@ import {
 import { VendorLayout } from "../../components/VendorLayout";
 import type { PageType } from "../../MainApp";
 import { tokenService, vendorPromotionApi } from "../../utils/api";
-import { useSmartPagination } from "../../hooks/useSmartPagination";
-import { PaginationUI } from "../../components/ui/PaginationUI";
-import { useCallback } from "react";
 
 interface CreateVendorVoucherDialogProps {
   open: boolean;
@@ -421,14 +418,25 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
     const manual = promo.isActive ?? promo.isActiveManual;
     return manual && startOk ? "ACTIVE" : "INACTIVE";
   };
+  const [vouchers, setVouchers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
 
-  const fetchData = useCallback(async (page: number, size: number) => {
+  useEffect(() => {
+    loadVouchers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, statusFilter, page]);
+
+  const loadVouchers = async () => {
     try {
+      setLoading(true);
       const res = await vendorPromotionApi.list({
         search: searchQuery,
         status: statusFilter !== "ALL" ? statusFilter : undefined,
         page,
-        size,
+        size: pageSize,
       });
       const content = res?.content || [];
       const mapped = content.map((promo: any) => {
@@ -459,53 +467,21 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
           isActiveManual: promo.isActiveManual,
         };
       });
-
-      return {
-        data: mapped,
-        totalItems: res?.totalElements || 0
-      };
+      setVouchers(mapped);
+      setTotal(res?.totalElements ?? mapped.length);
     } catch (error: any) {
       console.error("Failed to load vendor vouchers", error);
       toast.error(error?.message || t('vendor.cannotLoadVouchers'));
-      return { data: [], totalItems: 0 };
+    } finally {
+      setLoading(false);
     }
-  }, [searchQuery, statusFilter, t]);
-
-  const {
-    currentItems: vouchers,
-    isLoading: loading,
-    goToPage,
-    currentPage,
-    totalPages,
-    refresh: reloadVouchers
-  } = useSmartPagination({
-    fetchData,
-    initialPageSize: 10
-  });
-
-  // Reset page when filters change
-  useEffect(() => {
-    goToPage(0);
-  }, [searchQuery, statusFilter]);
-
-  // const [vouchers, setVouchers] = useState<any[]>([]);
-  // const [loading, setLoading] = useState(false);
-  // const [page, setPage] = useState(0);
-  // const [pageSize] = useState(10);
-  // const [total, setTotal] = useState(0);
-
-  // useEffect(() => {
-  //   loadVouchers();
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [searchQuery, statusFilter, page]);
-
-  // const loadVouchers = async () => { ... } // Replaced by fetchData
+  };
 
   const handleVoucherCreated = async (voucher: any) => {
     try {
       await vendorPromotionApi.create(voucher);
       toast.success(t('vendor.voucherCreated'));
-      await reloadVouchers();
+      await loadVouchers();
     } catch (error: any) {
       console.error('Failed to create voucher', error);
       toast.error(error?.message || t('vendor.cannotCreateVoucher'));
@@ -521,7 +497,7 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
     try {
       await vendorPromotionApi.toggle(voucherId, activate);
       toast.success(activate ? t('vendor.voucherActivated') : t('vendor.voucherPaused'));
-      await reloadVouchers();
+      await loadVouchers();
     } catch (error: any) {
       console.error('Failed to toggle voucher', error);
       toast.error(error?.message || t('vendor.cannotUpdateVoucher'));
@@ -532,14 +508,13 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
     try {
       await vendorPromotionApi.delete(voucherId);
       toast.success(t('vendor.voucherDeleted'));
-      await reloadVouchers();
+      await loadVouchers();
     } catch (error: any) {
       console.error('Failed to delete voucher', error);
       toast.error(error?.message || t('vendor.cannotDeleteVoucher'));
     }
   };
 
-  // Client-side filtering removed as backend handles it
   const filteredVouchers = vouchers;
   const pagedVouchers = vouchers;
 
@@ -760,12 +735,14 @@ export default function VendorVouchersPage({ onNavigate }: VendorVouchersPagePro
           </Table>
         </Card>
 
-        <div className="mt-8 flex justify-center">
-          <PaginationUI
-            currentPage={currentPage + 1}
-            totalPages={totalPages}
-            onPageChange={(p) => goToPage(p - 1)}
-          />
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-500">
+            {t('common.showing')} {filteredVouchers.length === 0 ? 0 : page * pageSize + 1}-{Math.min(total, (page + 1) * pageSize)} {t('common.of')} {total}
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" disabled={page === 0} onClick={() => setPage(Math.max(0, page - 1))}>{t('common.prev')}</Button>
+            <Button variant="outline" disabled={(page + 1) * pageSize >= total} onClick={() => setPage(page + 1)}>{t('common.next')}</Button>
+          </div>
         </div>
       </div>
 

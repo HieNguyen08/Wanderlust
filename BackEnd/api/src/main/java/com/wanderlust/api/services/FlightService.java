@@ -8,16 +8,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import com.wanderlust.api.entity.Flight;
 import com.wanderlust.api.entity.types.FlightStatus;
@@ -29,44 +20,11 @@ public class FlightService {
     @Autowired
     private FlightRepository flightRepository;
 
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
     /**
      * Lấy tất cả chuyến bay
      */
-    /**
-     * Lấy tất cả chuyến bay (có phân trang)
-     */
-    /**
-     * Lấy tất cả chuyến bay (có phân trang và tìm kiếm cho admin)
-     */
-    public Page<Flight> getAllFlights(String search, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "departureTime"));
-
-        Criteria criteria = new Criteria();
-
-        // FlightStatus status filtering logic if needed (e.g. not displaying
-        // cancelled?)
-        // For admin we usually want to see everything or maybe filter by query.
-
-        if (StringUtils.hasText(search)) {
-            String regex = search.trim();
-            Criteria searchCriteria = new Criteria().orOperator(
-                    Criteria.where("flightNumber").regex(regex, "i"),
-                    Criteria.where("airlineName").regex(regex, "i"),
-                    Criteria.where("departureCity").regex(regex, "i"),
-                    Criteria.where("arrivalCity").regex(regex, "i"),
-                    Criteria.where("departureAirportCode").regex(regex, "i"),
-                    Criteria.where("arrivalAirportCode").regex(regex, "i"));
-            criteria.andOperator(searchCriteria);
-        }
-
-        Query query = new Query(criteria).with(pageable);
-        List<Flight> flights = mongoTemplate.find(query, Flight.class);
-        long total = mongoTemplate.count(Query.of(query).limit(0).skip(0), Flight.class);
-
-        return new PageImpl<>(flights, pageable, total);
+    public List<Flight> getAllFlights() {
+        return flightRepository.findAll();
     }
 
     /**
@@ -99,165 +57,107 @@ public class FlightService {
      *                           "afternoon" (12-18h), "evening" (18-24h) (optional)
      * @return Danh sách chuyến bay phù hợp
      */
-    public Page<Flight> searchFlights(
+    public List<Flight> searchFlights(
             String from,
             String to,
             LocalDate date,
-            boolean directOnly,
+            Boolean directOnly,
             List<String> airlineCodes,
             java.math.BigDecimal minPrice,
             java.math.BigDecimal maxPrice,
             String cabinClass,
-            String departureTimeRange,
-            int page,
-            int size)
-    {
-
-        Pageable pageable = PageRequest.of(page, size);
-
+            String departureTimeRange) {
         // Tạo khoảng thời gian cho cả ngày
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
 
-        // Tìm chuyến bay theo tuyến và ngày (có phân trang tại database level)
-        Page<Flight> flightsPage = flightRepository.searchFlights(
+        // Tìm chuyến bay theo tuyến và ngày
+        List<Flight> flights = flightRepository.searchFlights(
                 from,
                 to,
                 startOfDay,
-                endOfDay,
-                pageable);
+                endOfDay);
 
-        // NOTE: Các bộ lọc bên dưới (airline, price, time...) được thực hiện in-memory
-        // sau khi query DB.
-        // Điều này SẼ LÀM SAI phân trang của Spring Data (trả về Page).
-        // Page returned từ Repository chỉ reflect query DB. Filter list sẽ làm giảm số
-        // lượng item.
-        // Để làm đúng, cần move toàn bộ filter vào Mongo Query (@Query hoặc Criteria).
-        // Tuy nhiên, với cấu trúc hiện tại và yêu cầu bài toán, ta sẽ thực hiện filter
-        // trên list kết quả
-        // VÀ chấp nhận rằng "Page" trả về có thể ít hơn "Size" dù còn page sau.
-        // HOẶC tốt hơn: Fetch all matching route/date, filter in memory, sau đó mới
-        // pagination thủ công.
-
-        // Cách tiếp cận an toàn nhất hiện tại mà không viết lại query phức tạp:
-        // 1. Fetch List (dùng method cũ/mới return List)
-        // 2. Filter list in memory
-        // 3. Convert List to Page thủ công.
-
-        // Re-using Repository method returning List (cần thêm method này vào repo hoặc
-        // cast)
-        // Nhưng repo đã sửa return Page. Ta cần 1 method return List hoặc dùng Page
-        // size lớn.
-        // Tạm thời để đơn giản và đúng logic filter:
-        // -> Sửa lại Repository thêm method searchFlightsList trả về List<Flight>
-        // -> Filter
-        // -> Manual Pagination logic
-
-        // Assuming we revert Repository change or add new method.
-        // Let's implement manual pagination logic here to keep filters working
-        // correctly.
-
-        // Sửa lại: Gọi findAll hoặc searchFlights không phân trang từ repo (cần thêm
-        // method hoặc sửa lại).
-        // Nhưng tôi đã lỡ sửa repo thành Page.
-        // Fix: Sử dụng Page size cực lớn để fetch all cho search này, hoặc thêm method
-        // mới vào repo.
-        // Tôi sẽ thêm method mới vào FlightService dùng Page request, nhưng vì logic
-        // filter phức tạp,
-        // tôi nên query tất cả (matching route+date) rồi filter, rồi paginate.
-
-        // Để không sửa repo nhiều lần, tôi sẽ dùng PageRequest.of(0, 1000) (như user
-        // request max 1000)
-        // vào hàm searchFlights của Repo. Sau đó filter và slice list.
-
-        Page<Flight> rawResult = flightRepository.searchFlights(from, to, startOfDay, endOfDay,
-                PageRequest.of(0, 1000));
-        List<Flight> filtered = rawResult.getContent();
-
-        // ... (Filter logic giữ nguyên) ...
-
-        // Filter directOnly
-        if (directOnly) {
-            filtered = filtered.stream()
+        // Lọc theo direct flight nếu cần
+        if (directOnly != null && directOnly) {
+            flights = flights.stream()
                     .filter(Flight::getIsDirect)
                     .collect(Collectors.toList());
         }
 
-        // ... (Other filters) ...
-
+        // Lọc theo hãng bay nếu có
         if (airlineCodes != null && !airlineCodes.isEmpty()) {
-            filtered = filtered.stream()
+            flights = flights.stream()
                     .filter(f -> airlineCodes.contains(f.getAirlineCode()))
                     .collect(Collectors.toList());
         }
 
+        // Lọc theo giá
         if (minPrice != null || maxPrice != null) {
-            filtered = filtered.stream()
+            flights = flights.stream()
                     .filter(f -> {
+                        // Lấy giá thấp nhất của cabin class được chọn (hoặc economy nếu không chọn)
                         String targetCabin = (cabinClass != null && !cabinClass.isEmpty()) ? cabinClass : "economy";
+
                         if (f.getCabinClasses() != null && f.getCabinClasses().containsKey(targetCabin)) {
                             Flight.CabinClassInfo cabinInfo = f.getCabinClasses().get(targetCabin);
                             if (cabinInfo != null && cabinInfo.getFromPrice() != null) {
                                 java.math.BigDecimal price = cabinInfo.getFromPrice();
-                                if (minPrice != null && price.compareTo(minPrice) < 0)
+
+                                // Kiểm tra khoảng giá
+                                if (minPrice != null && price.compareTo(minPrice) < 0) {
                                     return false;
-                                if (maxPrice != null && price.compareTo(maxPrice) > 0)
+                                }
+                                if (maxPrice != null && price.compareTo(maxPrice) > 0) {
                                     return false;
+                                }
                             }
                         }
                         return true;
-                    }).collect(Collectors.toList());
+                    })
+                    .collect(Collectors.toList());
         }
 
+        // Lọc theo khung giờ khởi hành
         if (departureTimeRange != null && !departureTimeRange.isEmpty()) {
-            final String[] ranges = departureTimeRange.toLowerCase().split(",");
-            filtered = filtered.stream()
+            flights = flights.stream()
                     .filter(f -> {
                         if (f.getDepartureTime() == null)
                             return true;
+
                         int hour = f.getDepartureTime().getHour();
-                        for (String range : ranges) {
-                            switch (range.trim()) {
-                                case "morning":
-                                case "early":
-                                    if (hour >= 0 && hour < 12)
-                                        return true;
-                                    break;
-                                case "afternoon":
-                                case "noon":
-                                    if (hour >= 12 && hour < 18)
-                                        return true;
-                                    break;
-                                case "evening":
-                                case "night":
-                                    if (hour >= 18 && hour < 24)
-                                        return true;
-                                    break;
-                            }
+
+                        switch (departureTimeRange.toLowerCase()) {
+                            case "morning":
+                            case "early":
+                                return hour >= 0 && hour < 12;
+                            case "afternoon":
+                            case "noon":
+                                return hour >= 12 && hour < 18;
+                            case "evening":
+                            case "night":
+                                return hour >= 18 && hour < 24;
+                            default:
+                                return true;
                         }
-                        return false;
-                    }).collect(Collectors.toList());
+                    })
+                    .collect(Collectors.toList());
         }
 
+        // Lọc theo cabin class availability
         if (cabinClass != null && !cabinClass.isEmpty()) {
-            filtered = filtered.stream()
+            flights = flights.stream()
                     .filter(f -> {
                         if (f.getCabinClasses() != null && f.getCabinClasses().containsKey(cabinClass)) {
                             Flight.CabinClassInfo cabinInfo = f.getCabinClasses().get(cabinClass);
                             return cabinInfo != null && cabinInfo.getAvailable() != null && cabinInfo.getAvailable();
                         }
                         return false;
-                    }).collect(Collectors.toList());
+                    })
+                    .collect(Collectors.toList());
         }
 
-        // Manual Pagination
-        int start = Math.min((int) pageable.getOffset(), filtered.size());
-        int end = Math.min((start + pageable.getPageSize()), filtered.size());
-
-        List<Flight> pageContent = filtered.subList(start, end);
-
-        return new org.springframework.data.domain.PageImpl<>(
-                pageContent, pageable, filtered.size());
+        return flights;
     }
 
     /**

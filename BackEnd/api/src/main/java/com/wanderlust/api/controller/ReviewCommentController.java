@@ -1,8 +1,8 @@
 package com.wanderlust.api.controller;
 
+import java.util.List;
 import java.util.Map;
 
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,8 +23,8 @@ import com.wanderlust.api.dto.reviewComment.ReviewCommentAdminUpdateDTO;
 import com.wanderlust.api.dto.reviewComment.ReviewCommentCreateDTO;
 import com.wanderlust.api.dto.reviewComment.ReviewCommentDTO;
 import com.wanderlust.api.dto.reviewComment.ReviewCommentUpdateDTO;
-import com.wanderlust.api.entity.ReviewVote;
 import com.wanderlust.api.entity.types.ReviewTargetType;
+import com.wanderlust.api.entity.ReviewVote;
 import com.wanderlust.api.services.CustomUserDetails;
 import com.wanderlust.api.services.ReviewCommentService;
 
@@ -77,20 +77,18 @@ public class ReviewCommentController {
      * targetId)
      */
     @GetMapping
-    public ResponseEntity<Page<ReviewCommentDTO>> getApprovedReviewsByTarget(
+    public ResponseEntity<List<ReviewCommentDTO>> getApprovedReviewsByTarget(
             @RequestParam ReviewTargetType targetType,
-            @RequestParam(required = false) String targetId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Page<ReviewCommentDTO> reviews;
+            @RequestParam(required = false) String targetId) {
+        List<ReviewCommentDTO> reviews;
 
         if (targetId == null || targetId.trim().isEmpty() ||
                 targetId.equalsIgnoreCase("ALL") || targetId.equalsIgnoreCase("ALL_FLIGHTS")) {
-            // Lấy tất cả reviews theo targetType
-            reviews = reviewCommentService.findAllApprovedByType(targetType, page, size);
+            // Lấy tất cả reviews theo targetType (sắp xếp theo rating cao -> thấp)
+            reviews = reviewCommentService.findAllApprovedByType(targetType);
         } else {
             // Lấy reviews cho targetId cụ thể
-            reviews = reviewCommentService.findAllApprovedByTarget(targetType, targetId, page, size);
+            reviews = reviewCommentService.findAllApprovedByTarget(targetType, targetId);
         }
 
         return ResponseEntity.ok(reviews);
@@ -120,11 +118,9 @@ public class ReviewCommentController {
      */
     @GetMapping("/my-reviews")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<ReviewCommentDTO>> getMyReviews(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<ReviewCommentDTO>> getMyReviews() {
         String userId = getCurrentUserId();
-        Page<ReviewCommentDTO> reviews = reviewCommentService.findAllByUserId(userId, page, size);
+        List<ReviewCommentDTO> reviews = reviewCommentService.findAllByUserId(userId);
         return ResponseEntity.ok(reviews);
     }
 
@@ -190,18 +186,12 @@ public class ReviewCommentController {
 
     /**
      * GET /api/reviews/vendor/{vendorId}
-     * [PARTNER] Lấy tất cả reviews về dịch vụ của vendor (Paginated, Search,
-     * Status)
+     * [PARTNER] Lấy tất cả reviews về dịch vụ của vendor
      */
     @GetMapping("/vendor/{vendorId}")
     @PreAuthorize("hasRole('VENDOR') or hasRole('ADMIN')")
-    public ResponseEntity<Page<ReviewCommentDTO>> getReviewsByVendor(
-            @PathVariable String vendorId,
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Page<ReviewCommentDTO> reviews = reviewCommentService.getReviewsByVendor(vendorId, search, status, page, size);
+    public ResponseEntity<List<ReviewCommentDTO>> getReviewsByVendor(@PathVariable String vendorId) {
+        List<ReviewCommentDTO> reviews = reviewCommentService.findAllByVendorId(vendorId);
         return ResponseEntity.ok(reviews);
     }
 
@@ -214,12 +204,8 @@ public class ReviewCommentController {
      */
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<ReviewCommentDTO>> getAllReviewsForAdmin(
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Page<ReviewCommentDTO> reviews = reviewCommentService.findAllForAdmin(search, status, page, size);
+    public ResponseEntity<List<ReviewCommentDTO>> getAllReviewsForAdmin() {
+        List<ReviewCommentDTO> reviews = reviewCommentService.findAllForAdmin();
         return ResponseEntity.ok(reviews);
     }
 
@@ -229,8 +215,8 @@ public class ReviewCommentController {
      */
     @GetMapping("/admin/pending")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<java.util.List<ReviewCommentDTO>> getPendingReviews() {
-        java.util.List<ReviewCommentDTO> reviews = reviewCommentService.findPendingReviews();
+    public ResponseEntity<List<ReviewCommentDTO>> getPendingReviews() {
+        List<ReviewCommentDTO> reviews = reviewCommentService.findAllPending();
         return ResponseEntity.ok(reviews);
     }
 
@@ -268,29 +254,5 @@ public class ReviewCommentController {
     public ResponseEntity<String> deleteAllReviewsByAdmin() {
         reviewCommentService.deleteAll();
         return ResponseEntity.ok("All reviews have been deleted.");
-    }
-
-    // ==========================================
-    // STATISTICS ENDPOINTS
-    // ==========================================
-
-    /**
-     * GET /api/reviews/admin/stats
-     * [ADMIN] Get review statistics for admin dashboard
-     */
-    @GetMapping("/admin/stats")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Long>> getAdminReviewStats() {
-        return ResponseEntity.ok(reviewCommentService.getAdminReviewStats());
-    }
-
-    /**
-     * GET /api/reviews/vendor/{vendorId}/stats
-     * [VENDOR] Get review statistics for vendor dashboard
-     */
-    @GetMapping("/vendor/{vendorId}/stats")
-    @PreAuthorize("hasRole('VENDOR') or hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> getVendorReviewStats(@PathVariable String vendorId) {
-        return ResponseEntity.ok(reviewCommentService.getVendorStats(vendorId));
     }
 }

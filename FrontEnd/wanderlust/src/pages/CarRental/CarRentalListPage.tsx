@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Calendar as CalendarIcon, Check, ChevronDown, Fuel, Heart, Settings, Star, Users } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { Footer } from "../../components/Footer";
@@ -17,10 +17,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/pop
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Slider } from "../../components/ui/slider";
 import { VoucherCarousel } from "../../components/VoucherCarousel";
-import { PaginationUI } from "../../components/ui/PaginationUI";
-import { useSmartPagination } from "../../hooks/useSmartPagination";
 import type { PageType } from "../../MainApp";
-import { carRentalApi, locationApi, promotionApi, tokenService, userVoucherApi } from "../../utils/api";
+import { carRentalApi, promotionApi, tokenService, userVoucherApi } from "../../utils/api";
 
 interface CarRentalListPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -50,11 +48,9 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedCapacities, setSelectedCapacities] = useState<string[]>([]);
   const [maxPrice, setMaxPrice] = useState(0);
-  const [priceCeiling, setPriceCeiling] = useState(2000000); // Default ceiling
-
-  // No manually managed currentPage state needed, hook handles it.
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const itemsPerPage = 6;
+  const [priceCeiling, setPriceCeiling] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   // Location and search states
   const [locations, setLocations] = useState<LocationItem[]>([]);
@@ -84,7 +80,7 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
   const [dropoffTimeOpen, setDropoffTimeOpen] = useState(false);
 
   // New states for backend integration
-  // const [allCars, setAllCars] = useState<any[]>([]); // Removed: hook manages data
+  const [allCars, setAllCars] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Ref for search section
@@ -134,158 +130,84 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
 
     fetchCarPromotions();
   }, []);
-  // Fetch locations explicitly (since we don't have all cars to derive from)
+  // Fetch cars from backend
   useEffect(() => {
-    const fetchLocations = async () => {
+    const fetchCars = async () => {
       try {
-        setLoadingLocations(true);
-        const response = await locationApi.getLocationsByType('CITY');
-        const locationsArray = Array.isArray(response) ? response : (response.content || []);
+        setIsLoading(true);
+        console.log("🔍 Fetching cars from backend...");
 
-        const mapped: LocationItem[] = locationsArray.map((loc: any) => ({
-          id: loc.id,
-          code: loc.code || loc.id,
-          name: loc.name,
-          airport: loc.metadata?.airport || "" // locationApi might not return airport but acceptable fallback
+        const carsData = await carRentalApi.getAllCars();
+        console.log("✅ Fetched cars:", carsData);
+
+        // Map backend data to frontend format
+        const mappedCars = carsData.map((car: any) => ({
+          id: car.id,
+          name: `${car.brand} ${car.model}`,
+          brand: car.brand,
+          model: car.model,
+          year: car.year,
+          type: car.type, // SPORT, SUV, SEDAN, MPV
+          image: car.images?.[0]?.url || "https://images.unsplash.com/photo-1742056024244-02a093dae0b5?w=800",
+          gasoline: `${car.fuelType || 'Gasoline'}`,
+          transmission: car.transmission, // MANUAL, AUTOMATIC
+          capacity: `${car.seats || 5} People`,
+          seats: car.seats,
+          doors: car.doors,
+          luggage: car.luggage,
+          color: car.color,
+          features: car.features || [],
+          price: car.pricePerDay ? parseFloat(car.pricePerDay) : 0,
+          pricePerHour: car.pricePerHour ? parseFloat(car.pricePerHour) : 0,
+          originalPrice: undefined,
+          liked: false,
+          rating: car.averageRating || (4.5 + Math.random() * 0.5),
+          totalTrips: car.totalTrips || 0,
+          city: car.city, // Add city from backend
+          createdAt: car.createdAt ? new Date(car.createdAt) : null,
+          withDriver: car.withDriver,
+          locationId: car.locationId,
+          insurance: car.insurance,
+          deposit: car.deposit ? parseFloat(car.deposit) : 0,
+          minRentalDays: car.minRentalDays,
+          deliveryAvailable: car.deliveryAvailable,
         }));
-        setLocations(mapped);
-      } catch (e) {
-        console.error("Error fetching locations", e);
+
+        setAllCars(mappedCars);
+
+        // Determine price ceiling (max price among cars) and initialize slider to that value
+        const maxDetectedPrice = mappedCars.reduce((acc, car) => Math.max(acc, car.price || 0), 0);
+        const ceiling = maxDetectedPrice > 0 ? maxDetectedPrice : 2_000_000;
+        setPriceCeiling(ceiling);
+        setMaxPrice(ceiling);
+
+        // Build location options from car locationId + city so dropdown aligns with backend IDs
+        const uniqueLocations = Array.from(
+          new Map(
+            mappedCars
+              .map((c) => ({
+                id: c.locationId || c.city || c.id,
+                code: c.locationId || c.city || c.id,
+                name: c.city || c.locationId || "Không rõ địa điểm",
+                airport: c.city || c.locationId || "",
+              }))
+              .filter((loc) => !!loc.id)
+              .map((loc) => [loc.id, loc])
+          ).values()
+        );
+        setLocations(uniqueLocations);
+        setLoadingLocations(false);
+      } catch (error: any) {
+        console.error("❌ Error fetching cars:", error);
+        toast.error("Không thể tải danh sách xe. Vui lòng thử lại.");
       } finally {
+        setIsLoading(false);
         setLoadingLocations(false);
       }
     };
-    fetchLocations();
+
+    fetchCars();
   }, []);
-
-  // useSmartPagination Hook
-  const fetchData = useCallback(async (page: number, size: number) => {
-    const apiParams: any = {};
-
-    // 1. Location
-    if (pickupLocation?.id) {
-      apiParams.locationId = pickupLocation.id;
-    }
-    // Note: If pickupLocation has no ID (e.g. city name string from URL), we might miss it if backend requires ID.
-    // Existing logic in CarRentalListPage used 'city' matching previously.
-    // But updated CarRentalService filters by 'locationId' (exact match).
-    // Be aware: existing locations might not map to Location entities perfectly if data is mixed.
-    // However, we are now sourcing locations from locationApi, so they should have IDs.
-
-    // 2. Types
-    if (selectedTypes.length > 0) {
-      apiParams.types = selectedTypes;
-    }
-
-    // 3. Price
-    if (maxPrice > 0) {
-      apiParams.maxPrice = maxPrice;
-    }
-
-    // 4. Seats
-    if (selectedCapacities.length > 0) {
-      // Map capacities string to minSeats number
-      // "2 Person" -> 2, "4 Person" -> 4, etc.
-      const seats = selectedCapacities.map(c => {
-        if (c.includes("2")) return 2;
-        if (c.includes("4")) return 4;
-        if (c.includes("6")) return 6;
-        if (c.includes("8")) return 8;
-        return 0;
-      }).filter(n => n > 0);
-
-      if (seats.length > 0) {
-        apiParams.minSeats = Math.min(...seats);
-      }
-    }
-
-    // 5. Driver
-    if (withDriver) {
-      apiParams.withDriver = true;
-    }
-
-    try {
-      const results = await carRentalApi.getAllCars({
-        ...apiParams,
-        page,
-        size
-      });
-
-      // Map backend data
-      const mappedCars = (results.content || []).map((car: any) => ({
-        id: car.id,
-        name: `${car.brand} ${car.model}`,
-        brand: car.brand,
-        model: car.model,
-        year: car.year,
-        type: car.type,
-        image: car.images?.[0]?.url || "https://images.unsplash.com/photo-1742056024244-02a093dae0b5?w=800",
-        gasoline: `${car.fuelType || 'Gasoline'}`,
-        transmission: car.transmission,
-        capacity: `${car.seats || 5} People`,
-        seats: car.seats,
-        doors: car.doors,
-        luggage: car.luggage,
-        color: car.color,
-        features: car.features || [],
-        price: car.pricePerDay ? parseFloat(car.pricePerDay) : 0,
-        pricePerHour: car.pricePerHour ? parseFloat(car.pricePerHour) : 0,
-        rating: car.averageRating || 0,
-        totalTrips: car.totalTrips || 0,
-        city: car.city,
-        createdAt: car.createdAt ? new Date(car.createdAt) : null,
-        withDriver: car.withDriver,
-        locationId: car.locationId,
-        insurance: car.insurance,
-        deposit: car.deposit ? parseFloat(car.deposit) : 0,
-        minRentalDays: car.minRentalDays,
-        deliveryAvailable: car.deliveryAvailable,
-      }));
-
-      return {
-        data: mappedCars,
-        totalItems: results.totalElements || 0
-      };
-    } catch (e) {
-      console.error("Error fetching cars", e);
-      return { data: [], totalItems: 0 };
-    }
-  }, [pickupLocation, selectedTypes, maxPrice, selectedCapacities, withDriver]);
-
-  const {
-    currentItems: cars, // map to 'cars' used in render? No, render used 'displayedCars' from 'sortedCars'.
-    totalPages,
-    currentPage,
-    goToPage,
-    isLoading: isCarsLoading
-  } = useSmartPagination({
-    fetchData,
-    pageSize: 6,
-    preloadRange: 1
-  });
-
-  // Client-side sorting for current page logic
-  const sortedCars = useMemo(() => {
-    const c = [...cars];
-    c.sort((a, b) => {
-      if (sortMode === "createdAt") {
-        const aDate = a.createdAt ? a.createdAt.getTime() : 0;
-        const bDate = b.createdAt ? b.createdAt.getTime() : 0;
-        return aDate - bDate;
-      }
-      const tripDiff = (b.totalTrips || 0) - (a.totalTrips || 0);
-      if (tripDiff !== 0) return tripDiff;
-      const aDate = a.createdAt ? a.createdAt.getTime() : 0;
-      const bDate = b.createdAt ? b.createdAt.getTime() : 0;
-      return aDate - bDate;
-    });
-    return c;
-  }, [cars, sortMode]);
-
-  // Handle page reset on filter change
-  useEffect(() => {
-    goToPage(0);
-  }, [selectedTypes, selectedCapacities, maxPrice, withDriver, pickupLocation]);
 
   // Apply incoming search params from landing page
   useEffect(() => {
@@ -345,17 +267,84 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
     setDropoffTime(tempTime);
   };
 
-  // Hardcoded available capacities if we can't derive from "allCars"
-  const availableCapacities = ["2 Person", "4 Person", "6 Person", "8 or More"];
+  // Get unique car types from actual data
+  const availableTypes = Array.from(new Set(allCars.map(car => car.type))).sort();
 
-  // Removed client-side filtered/sorted cars/pagination logic effects
-  // Using sortedCars (which is memoized from hooked 'cars')
-  // We need to define availableTypes too? 
-  // Ideally fetch available types from API or hardcode common ones. 
-  // Let's hardcode for now to avoid complexity of another API call.
-  // Or fetch distinct types? For now Hardcoded.
-  // Actually, we can just leave "availableTypes" defined above? No, I replaced it.
-  const availableTypes = ["SEDAN", "SUV", "MPV", "SPORT", "LUXURY", "COUPE", "HATCHBACK", "PICKUP"];
+  // Get unique capacity ranges from actual data
+  const getCapacityLabel = (seats: number) => {
+    if (seats === 2) return "2 Person";
+    if (seats >= 4 && seats <= 5) return "4 Person";
+    if (seats >= 6 && seats <= 7) return "6 Person";
+    if (seats >= 8) return "8 or More";
+    return "Other";
+  };
+
+  const availableCapacities = Array.from(
+    new Set(allCars.map(car => getCapacityLabel(car.seats)).filter(Boolean))
+  ).sort((a, b) => {
+    const order = ["2 Person", "4 Person", "6 Person", "8 or More"];
+    return order.indexOf(a) - order.indexOf(b);
+  });
+
+  // Filter cars based on selected criteria
+  const filteredCars = allCars.filter(car => {
+    const typeMatch = selectedTypes.length === 0 || selectedTypes.includes(car.type);
+
+    const locationQuery = (searchCity || pickupLocation?.name || "").trim().toLowerCase();
+
+    // Location ID filter takes priority
+    let locationMatch = true;
+    const locationIdFromState = pickupLocation?.id;
+    if (searchParams?.searchData?.pickupLocationId) {
+      locationMatch = car.locationId === searchParams.searchData.pickupLocationId;
+    } else if (locationIdFromState) {
+      locationMatch = car.locationId === locationIdFromState;
+    } else if (locationQuery) {
+      locationMatch = !!car.city && car.city.toLowerCase().includes(locationQuery);
+    }
+
+    // Capacity filter - match based on seat count
+    let capacityMatch = selectedCapacities.length === 0;
+    if (!capacityMatch && car.seats) {
+      capacityMatch = selectedCapacities.some(cap => {
+        if (cap === "2 Person") return car.seats === 2;
+        if (cap === "4 Person") return car.seats >= 4 && car.seats <= 5;
+        if (cap === "6 Person") return car.seats >= 6 && car.seats <= 7;
+        if (cap === "8 or More") return car.seats >= 8;
+        return false;
+      });
+    }
+
+    const priceMatch = maxPrice === 0 ? true : car.price <= maxPrice;
+
+    // Driver filter
+    let driverMatch = true;
+    if (withDriver === true) {
+      driverMatch = car.withDriver === true;
+    }
+
+    return typeMatch && capacityMatch && priceMatch && locationMatch && driverMatch;
+  });
+
+  const sortedCars = [...filteredCars].sort((a, b) => {
+    if (sortMode === "createdAt") {
+      const aDate = a.createdAt ? a.createdAt.getTime() : 0;
+      const bDate = b.createdAt ? b.createdAt.getTime() : 0;
+      return aDate - bDate; // oldest first
+    }
+    const tripDiff = (b.totalTrips || 0) - (a.totalTrips || 0);
+    if (tripDiff !== 0) return tripDiff;
+    const aDate = a.createdAt ? a.createdAt.getTime() : 0;
+    const bDate = b.createdAt ? b.createdAt.getTime() : 0;
+    return aDate - bDate;
+  });
+
+  const totalPages = Math.ceil(sortedCars.length / itemsPerPage);
+  const displayedCars = sortedCars.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedTypes, selectedCapacities, maxPrice, withDriver, searchCity, pickupLocation?.id, searchParams?.searchData?.pickupLocationId]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -392,7 +381,29 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
     onNavigate("car-list", newSearchParams);
   };
 
+  const Pagination = () => {
+    if (totalPages <= 1) return null;
 
+    return (
+      <div className="flex justify-center items-center gap-2 mt-8">
+        <Button
+          variant="outline"
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+        >
+          Trước
+        </Button>
+        <span className="text-sm font-medium">Trang {currentPage} / {totalPages}</span>
+        <Button
+          variant="outline"
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+        >
+          Sau
+        </Button>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -858,25 +869,19 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
 
           {/* Cars Grid */}
           <div className="lg:col-span-3">
-            {isCarsLoading ? (
+            {isLoading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 <p className="mt-4 text-gray-600">Đang tải danh sách xe...</p>
               </div>
-            ) : sortedCars.length === 0 ? (
+            ) : filteredCars.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-600">Không tìm thấy xe phù hợp</p>
               </div>
             ) : (
               <>
-                <div className="mb-6 flex justify-between items-center">
-                  <h2 className="text-xl font-bold text-gray-900">
-                    {sortedCars.length} Xe phù hợp
-                  </h2>
-                </div>
-
                 <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {sortedCars.map((car) => (
+                  {displayedCars.map((car) => (
                     <Card
                       key={car.id}
                       className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer"
@@ -943,13 +948,7 @@ export default function CarRentalListPage({ onNavigate, userRole, onLogout, sear
                   ))}
                 </div>
 
-                <div className="mt-8 flex justify-center">
-                  <PaginationUI
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={goToPage}
-                  />
-                </div>
+                <Pagination />
               </>
             )}
           </div>

@@ -2,8 +2,6 @@ package com.wanderlust.api.repository;
 
 import java.util.List;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -19,8 +17,6 @@ public interface HotelRepository extends MongoRepository<Hotel, String> {
     List<Hotel> searchBasic(String keyword);
 
     List<Hotel> findByVendorId(String vendorId);
-
-    Page<Hotel> findByVendorId(String vendorId, Pageable pageable);
 
     // Tìm kiếm nâng cao theo locationId
     List<Hotel> findByLocationId(String locationId);

@@ -12,7 +12,7 @@ import {
   PlaneTakeoff,
   Plus
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -28,8 +28,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/pop
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "../../components/ui/sheet";
-import { PaginationUI } from "../../components/ui/PaginationUI";
-import { useSmartPagination } from "../../hooks/useSmartPagination";
 import type { PageType } from "../../MainApp";
 import { flightApi, flightSeatApi } from "../../utils/api";
 
@@ -66,8 +64,8 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
   const { t } = useTranslation();
   const location = useLocation();
   const searchData = propsSearchData || location.state;
-  // Loading state (renamed to avoid conflict, though mostly unused now)
-  const [isOverlayLoading, setIsOverlayLoading] = useState(false);
+  // Loading state
+  const [isLoading, setIsLoading] = useState(false);
 
   // Search modification state
   const [showModifySearch, setShowModifySearch] = useState(false);
@@ -97,7 +95,7 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
   const [outboundFlight, setOutboundFlight] = useState<any>(searchData?.outboundFlight || null);
 
   // Backend data state
-  // const [flights, setFlights] = useState<any[]>(searchData?.outboundFlights || []); // Removed: useSmartPagination manages this
+  const [flights, setFlights] = useState<any[]>(searchData?.outboundFlights || []);
   const [dayPricesData, setDayPricesData] = useState<any[]>([]);
 
   // Seat selection state
@@ -111,46 +109,55 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
   const getCurrentTo = () => (tripType === 'one-way' || flightLeg === 'outbound') ? toAirport : fromAirport;
   const getCurrentBaseDate = () => (tripType === 'one-way' || flightLeg === 'outbound') ? departDate : returnDate;
 
-  // Smart Pagination
-  const fetchData = useCallback(async (page: number, size: number) => {
-    const currentFrom = getCurrentFrom();
-    const currentTo = getCurrentTo();
+  // Load initial flights from searchData if available
+  useEffect(() => {
+    if (searchData?.outboundFlights && flightLeg === 'outbound') {
+      setFlights(searchData.outboundFlights);
+      setIsLoading(false);
+    } else if (searchData?.returnFlights && flightLeg === 'inbound') {
+      setFlights(searchData.returnFlights);
+      setIsLoading(false);
+    }
+  }, [searchData, flightLeg]);
 
-    // Convert array filters to API params
-    const departureTimeParam = departureTime.length > 0 ? departureTime.join(',') : undefined;
+  // Fetch flights from backend when search params change
+  useEffect(() => {
+    // Skip if we already have data from initial search
+    if (searchData?.outboundFlights && flightLeg === 'outbound' &&
+      format(selectedDay, 'yyyy-MM-dd') === format(searchData.departDate, 'yyyy-MM-dd')) {
+      return;
+    }
+    if (searchData?.returnFlights && flightLeg === 'inbound' &&
+      format(selectedDay, 'yyyy-MM-dd') === format(searchData.returnDate, 'yyyy-MM-dd')) {
+      return;
+    }
 
-    // We unfortunately can't rely on existing 'airline' param in controller if it expects List.
-    // api.ts sends 'airlines' as repeated query param. Backend FlightController expects List<String>. This matches.
-
-    const results = await flightApi.searchFlights({
-      from: currentFrom.code,
-      to: currentTo.code,
-      date: format(selectedDay, 'yyyy-MM-dd'),
-      directOnly: flightType === 'direct',
-      airlines: selectedAirlines.length > 0 ? selectedAirlines : undefined,
-      cabinClass: cabinClass,
-      departureTimeRange: departureTimeParam,
-      page,
-      size
-    });
-
-    return {
-      data: results.content || [],
-      totalItems: results.totalElements || 0
+    const fetchFlights = async () => {
+      setIsLoading(true);
+      try {
+        const currentFrom = getCurrentFrom();
+        const currentTo = getCurrentTo();
+        const results = await flightApi.searchFlights({
+          from: currentFrom.code,
+          to: currentTo.code,
+          date: format(selectedDay, 'yyyy-MM-dd'),
+          directOnly: flightType === 'direct',
+          airlines: undefined, // selectedAirlines.length > 0 ? selectedAirlines : undefined, // Let client side handle airline filtering for now to ensure consistency with other filters
+          cabinClass: cabinClass,
+        });
+        setFlights(results);
+      } catch (error) {
+        console.error('Error fetching flights:', error);
+        toast.error(t('search.errorLoading'));
+        setFlights([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
-  }, [selectedDay, fromAirport, toAirport, flightLeg, selectedAirlines, flightType, cabinClass, departureTime]);
 
-  const {
-    currentItems: flights,
-    totalPages,
-    currentPage,
-    goToPage,
-    isLoading: isFlightsLoading
-  } = useSmartPagination({
-    fetchData,
-    pageSize: 9, // API default is 9
-    preloadRange: 1
-  });
+    fetchFlights();
+    fetchFlights();
+  }, [selectedDay, fromAirport, toAirport, flightLeg, selectedAirlines, flightType, cabinClass]);
 
   // Filter and Sort Flights
   const getFlightPrice = (flight: any) => {
@@ -158,15 +165,43 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
   };
 
   const filteredAndSortedFlights = flights.filter(flight => {
-    // Server-side filtering is now used for airlines & time interactively via API params.
-    // Client-side filtering check is redundant IF backend works perfectly, but harmless to keep for safety
-    // or if we want to support 'mixed' filtering (though ideally backend does all).
-    // HOWEVER, `flights` from hook contains CURRENT page. Filtering it reduces items on page.
-    // If backend filters, `flights` already respects filters.
-    // So we should REMOVE client-side filtering logic for things backend handles (Airlines, Time).
-    // But Sort logic remains until backend supports it.
+    // Filter by Departure Time
+    if (departureTime.length > 0) {
+      const hour = new Date(flight.departureTime).getHours();
+      const matches = departureTime.some(time => {
+        if (time === 'morning') return hour >= 0 && hour < 12; // 06:00 - 11:59 handled by UI label but backend/logic usually broad. Adjusting to match UI labels if strict:
+        // UI says: Morning 06-11, Afternoon 12-17, Evening 18-23, Night 00-05.
+        // Let's match the UI exactly.
+        if (time === 'morning') return hour >= 6 && hour < 12;
+        if (time === 'afternoon') return hour >= 12 && hour < 18;
+        if (time === 'evening') return hour >= 18 && hour <= 23;
+        if (time === 'night') return hour >= 0 && hour < 6;
+        return false;
+      });
+      if (!matches) return false;
+    }
 
-    return true; // Assume backend handles filtering
+    // Filter by Arrival Time
+    if (arrivalTime.length > 0) {
+      const hour = new Date(flight.arrivalTime).getHours();
+      const matches = arrivalTime.some(time => {
+        if (time === 'morning') return hour >= 6 && hour < 12;
+        if (time === 'afternoon') return hour >= 12 && hour < 18;
+        if (time === 'evening') return hour >= 18 && hour <= 23;
+        if (time === 'night') return hour >= 0 && hour < 6;
+        return false;
+      });
+      if (!matches) return false;
+    }
+
+    // Filter by Airlines
+    if (selectedAirlines.length > 0) {
+      if (!selectedAirlines.includes(flight.airlineCode)) {
+        return false;
+      }
+    }
+
+    return true;
   }).sort((a, b) => {
     switch (sortBy) {
       case 'price-low':
@@ -306,7 +341,7 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
 
       // Filter by cabin class and available status
       const filteredSeats = seats.filter((seat: any) =>
-        seat.cabinClass === targetCabinClass && seat.status === 'AVAILABLE'
+        seat.cabinClass === targetCabinClass
       );
 
       // Sort by row and position
@@ -399,7 +434,7 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
   const totalPassengers = adults + children + infants;
 
   return (
-    <div className="min-h-screen bg-gray-50">{isFlightsLoading && (
+    <div className="min-h-screen bg-gray-50">{isLoading && (
       <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg p-6 flex items-center gap-3">
           <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
@@ -585,7 +620,7 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
         <p className="text-sm text-gray-600 mb-4">{t('flights.flightsFound', { count: filteredAndSortedFlights.length })}</p>
 
-        {filteredAndSortedFlights.length === 0 && !isFlightsLoading && (
+        {filteredAndSortedFlights.length === 0 && !isLoading && (
           <Card className="p-12 text-center">
             <Plane className="w-16 h-16 mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">{t('flights.noFlightsFound')}</h3>
@@ -838,15 +873,6 @@ export default function FlightDetailPage({ onNavigate, searchData: propsSearchDa
               )}
             </Card>
           ))}
-        </div>
-
-        {/* Pagination Controls */}
-        <div className="mt-8 flex justify-center">
-          <PaginationUI
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={goToPage}
-          />
         </div>
       </div>
 

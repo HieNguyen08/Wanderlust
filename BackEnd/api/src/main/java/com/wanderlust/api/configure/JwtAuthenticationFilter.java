@@ -50,11 +50,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             // 3. Giải mã token để lấy email (bạn cần đảm bảo JwtService có hàm này)
             userEmail = jwtService.extractUsername(jwt); 
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            // Token hết hạn - trả về 401 và dừng request
+            // Log warning nhẹ nhàng (không stack trace)
+            System.out.println("JWT Expired: " + e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("JWT Token Expired");
+            return; // Dừng filter chain tại đây
         } catch (Exception e) {
-            // Token lỗi/hết hạn
+            // Token lỗi khác
             System.err.println("JWT processing error: " + e.getMessage());
-            e.printStackTrace();
-            filterChain.doFilter(request, response);
+            // e.printStackTrace(); // Tắt stack trace full để đỡ rối console
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 

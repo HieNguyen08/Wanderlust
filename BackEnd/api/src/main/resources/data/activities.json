@@ -62,7 +62,8 @@
     "totalReviews": 102,
     "totalBooked": 402,
     "createdAt": "2025-02-14T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hanoi_002",
@@ -127,7 +128,8 @@
     "totalReviews": 158,
     "totalBooked": 232,
     "createdAt": "2025-09-05T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hanoi_003",
@@ -192,7 +194,8 @@
     "totalReviews": 67,
     "totalBooked": 72,
     "createdAt": "2025-06-06T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hanoi_004",
@@ -257,7 +260,8 @@
     "totalReviews": 140,
     "totalBooked": 498,
     "createdAt": "2025-02-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hanoi_005",
@@ -322,7 +326,8 @@
     "totalReviews": 141,
     "totalBooked": 241,
     "createdAt": "2025-04-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hanoi_006",
@@ -387,7 +392,8 @@
     "totalReviews": 95,
     "totalBooked": 261,
     "createdAt": "2025-03-26T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hanoi_007",
@@ -452,7 +458,8 @@
     "totalReviews": 90,
     "totalBooked": 186,
     "createdAt": "2025-06-10T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hanoi_008",
@@ -517,7 +524,8 @@
     "totalReviews": 100,
     "totalBooked": 118,
     "createdAt": "2025-04-04T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hanoi_009",
@@ -582,7 +590,8 @@
     "totalReviews": 126,
     "totalBooked": 446,
     "createdAt": "2025-03-28T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hanoi_010",
@@ -647,7 +656,8 @@
     "totalReviews": 106,
     "totalBooked": 450,
     "createdAt": "2025-01-03T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ho-chi-minh-city_001",
@@ -712,7 +722,8 @@
     "totalReviews": 34,
     "totalBooked": 477,
     "createdAt": "2025-01-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ho-chi-minh-city_002",
@@ -777,7 +788,8 @@
     "totalReviews": 142,
     "totalBooked": 336,
     "createdAt": "2025-03-30T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ho-chi-minh-city_003",
@@ -842,7 +854,8 @@
     "totalReviews": 143,
     "totalBooked": 135,
     "createdAt": "2025-02-01T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ho-chi-minh-city_004",
@@ -907,7 +920,8 @@
     "totalReviews": 41,
     "totalBooked": 444,
     "createdAt": "2025-10-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ho-chi-minh-city_005",
@@ -972,7 +986,8 @@
     "totalReviews": 115,
     "totalBooked": 125,
     "createdAt": "2025-05-18T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ho-chi-minh-city_006",
@@ -1037,7 +1052,8 @@
     "totalReviews": 192,
     "totalBooked": 202,
     "createdAt": "2025-10-29T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ho-chi-minh-city_007",
@@ -1102,7 +1118,8 @@
     "totalReviews": 180,
     "totalBooked": 407,
     "createdAt": "2024-12-13T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ho-chi-minh-city_008",
@@ -1167,7 +1184,8 @@
     "totalReviews": 34,
     "totalBooked": 424,
     "createdAt": "2025-09-28T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ho-chi-minh-city_009",
@@ -1232,7 +1250,8 @@
     "totalReviews": 142,
     "totalBooked": 209,
     "createdAt": "2025-05-18T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ho-chi-minh-city_010",
@@ -1297,7 +1316,8 @@
     "totalReviews": 113,
     "totalBooked": 215,
     "createdAt": "2025-03-18T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-nang_001",
@@ -1362,7 +1382,8 @@
     "totalReviews": 64,
     "totalBooked": 85,
     "createdAt": "2025-07-01T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-nang_002",
@@ -1427,7 +1448,8 @@
     "totalReviews": 59,
     "totalBooked": 295,
     "createdAt": "2025-03-06T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-nang_003",
@@ -1492,7 +1514,8 @@
     "totalReviews": 196,
     "totalBooked": 276,
     "createdAt": "2025-05-09T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-nang_004",
@@ -1557,7 +1580,8 @@
     "totalReviews": 60,
     "totalBooked": 264,
     "createdAt": "2025-05-10T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-nang_005",
@@ -1622,7 +1646,8 @@
     "totalReviews": 68,
     "totalBooked": 137,
     "createdAt": "2025-08-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-nang_006",
@@ -1687,7 +1712,8 @@
     "totalReviews": 70,
     "totalBooked": 436,
     "createdAt": "2025-10-03T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-nang_007",
@@ -1752,7 +1778,8 @@
     "totalReviews": 95,
     "totalBooked": 222,
     "createdAt": "2025-04-28T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-nang_008",
@@ -1817,7 +1844,8 @@
     "totalReviews": 88,
     "totalBooked": 446,
     "createdAt": "2025-02-24T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-nang_009",
@@ -1882,7 +1910,8 @@
     "totalReviews": 48,
     "totalBooked": 285,
     "createdAt": "2025-05-17T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-nang_010",
@@ -1947,7 +1976,8 @@
     "totalReviews": 137,
     "totalBooked": 243,
     "createdAt": "2024-12-14T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-phong_001",
@@ -2012,7 +2042,8 @@
     "totalReviews": 161,
     "totalBooked": 165,
     "createdAt": "2025-07-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-phong_002",
@@ -2077,7 +2108,8 @@
     "totalReviews": 114,
     "totalBooked": 316,
     "createdAt": "2025-08-17T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-phong_003",
@@ -2142,7 +2174,8 @@
     "totalReviews": 180,
     "totalBooked": 157,
     "createdAt": "2025-02-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-phong_004",
@@ -2207,7 +2240,8 @@
     "totalReviews": 129,
     "totalBooked": 167,
     "createdAt": "2025-08-05T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-phong_005",
@@ -2272,7 +2306,8 @@
     "totalReviews": 181,
     "totalBooked": 167,
     "createdAt": "2025-01-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-phong_006",
@@ -2337,7 +2372,8 @@
     "totalReviews": 170,
     "totalBooked": 418,
     "createdAt": "2025-09-29T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-phong_007",
@@ -2402,7 +2438,8 @@
     "totalReviews": 136,
     "totalBooked": 187,
     "createdAt": "2025-02-02T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-phong_008",
@@ -2467,7 +2504,8 @@
     "totalReviews": 199,
     "totalBooked": 277,
     "createdAt": "2025-08-28T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-phong_009",
@@ -2532,7 +2570,8 @@
     "totalReviews": 120,
     "totalBooked": 110,
     "createdAt": "2025-03-12T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-phong_010",
@@ -2597,7 +2636,8 @@
     "totalReviews": 62,
     "totalBooked": 425,
     "createdAt": "2025-08-31T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_can-tho_001",
@@ -2662,7 +2702,8 @@
     "totalReviews": 57,
     "totalBooked": 57,
     "createdAt": "2025-09-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_can-tho_002",
@@ -2727,7 +2768,8 @@
     "totalReviews": 167,
     "totalBooked": 336,
     "createdAt": "2025-04-15T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_can-tho_003",
@@ -2792,7 +2834,8 @@
     "totalReviews": 140,
     "totalBooked": 231,
     "createdAt": "2025-02-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_can-tho_004",
@@ -2857,7 +2900,8 @@
     "totalReviews": 152,
     "totalBooked": 260,
     "createdAt": "2025-06-19T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_can-tho_005",
@@ -2922,7 +2966,8 @@
     "totalReviews": 124,
     "totalBooked": 267,
     "createdAt": "2025-07-19T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_can-tho_006",
@@ -2987,7 +3032,8 @@
     "totalReviews": 114,
     "totalBooked": 359,
     "createdAt": "2025-07-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_can-tho_007",
@@ -3052,7 +3098,8 @@
     "totalReviews": 68,
     "totalBooked": 450,
     "createdAt": "2025-08-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_can-tho_008",
@@ -3117,7 +3164,8 @@
     "totalReviews": 166,
     "totalBooked": 183,
     "createdAt": "2024-12-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_can-tho_009",
@@ -3182,7 +3230,8 @@
     "totalReviews": 46,
     "totalBooked": 462,
     "createdAt": "2025-03-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_can-tho_010",
@@ -3247,7 +3296,8 @@
     "totalReviews": 138,
     "totalBooked": 129,
     "createdAt": "2025-03-13T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoi-an_001",
@@ -3312,7 +3362,8 @@
     "totalReviews": 137,
     "totalBooked": 188,
     "createdAt": "2025-07-24T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoi-an_002",
@@ -3377,7 +3428,8 @@
     "totalReviews": 99,
     "totalBooked": 423,
     "createdAt": "2025-09-14T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoi-an_003",
@@ -3442,7 +3494,8 @@
     "totalReviews": 89,
     "totalBooked": 411,
     "createdAt": "2025-01-31T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoi-an_004",
@@ -3507,7 +3560,8 @@
     "totalReviews": 156,
     "totalBooked": 243,
     "createdAt": "2025-10-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoi-an_005",
@@ -3572,7 +3626,8 @@
     "totalReviews": 94,
     "totalBooked": 311,
     "createdAt": "2025-10-17T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoi-an_006",
@@ -3637,7 +3692,8 @@
     "totalReviews": 192,
     "totalBooked": 299,
     "createdAt": "2025-04-24T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoi-an_007",
@@ -3702,7 +3758,8 @@
     "totalReviews": 37,
     "totalBooked": 146,
     "createdAt": "2025-02-28T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoi-an_008",
@@ -3767,7 +3824,8 @@
     "totalReviews": 159,
     "totalBooked": 191,
     "createdAt": "2025-06-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoi-an_009",
@@ -3832,7 +3890,8 @@
     "totalReviews": 190,
     "totalBooked": 177,
     "createdAt": "2025-10-31T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoi-an_010",
@@ -3897,7 +3956,8 @@
     "totalReviews": 176,
     "totalBooked": 68,
     "createdAt": "2024-12-16T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nha-trang_001",
@@ -3962,7 +4022,8 @@
     "totalReviews": 94,
     "totalBooked": 148,
     "createdAt": "2025-09-19T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nha-trang_002",
@@ -4027,7 +4088,8 @@
     "totalReviews": 96,
     "totalBooked": 458,
     "createdAt": "2025-07-29T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nha-trang_003",
@@ -4092,7 +4154,8 @@
     "totalReviews": 161,
     "totalBooked": 281,
     "createdAt": "2025-10-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nha-trang_004",
@@ -4157,7 +4220,8 @@
     "totalReviews": 91,
     "totalBooked": 428,
     "createdAt": "2025-01-14T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nha-trang_005",
@@ -4222,7 +4286,8 @@
     "totalReviews": 30,
     "totalBooked": 482,
     "createdAt": "2025-07-09T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nha-trang_006",
@@ -4287,7 +4352,8 @@
     "totalReviews": 135,
     "totalBooked": 334,
     "createdAt": "2025-09-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nha-trang_007",
@@ -4352,7 +4418,8 @@
     "totalReviews": 138,
     "totalBooked": 139,
     "createdAt": "2025-03-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nha-trang_008",
@@ -4417,7 +4484,8 @@
     "totalReviews": 183,
     "totalBooked": 118,
     "createdAt": "2025-06-06T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nha-trang_009",
@@ -4482,7 +4550,8 @@
     "totalReviews": 152,
     "totalBooked": 104,
     "createdAt": "2025-03-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nha-trang_010",
@@ -4547,7 +4616,8 @@
     "totalReviews": 49,
     "totalBooked": 425,
     "createdAt": "2025-10-29T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phu-quoc_001",
@@ -4612,7 +4682,8 @@
     "totalReviews": 145,
     "totalBooked": 379,
     "createdAt": "2025-04-16T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phu-quoc_002",
@@ -4677,7 +4748,8 @@
     "totalReviews": 62,
     "totalBooked": 251,
     "createdAt": "2025-05-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phu-quoc_003",
@@ -4742,7 +4814,8 @@
     "totalReviews": 121,
     "totalBooked": 51,
     "createdAt": "2025-03-27T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phu-quoc_004",
@@ -4807,7 +4880,8 @@
     "totalReviews": 40,
     "totalBooked": 353,
     "createdAt": "2025-08-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phu-quoc_005",
@@ -4872,7 +4946,8 @@
     "totalReviews": 107,
     "totalBooked": 231,
     "createdAt": "2025-04-28T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phu-quoc_006",
@@ -4937,7 +5012,8 @@
     "totalReviews": 150,
     "totalBooked": 175,
     "createdAt": "2025-05-14T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phu-quoc_007",
@@ -5002,7 +5078,8 @@
     "totalReviews": 141,
     "totalBooked": 160,
     "createdAt": "2025-05-03T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phu-quoc_008",
@@ -5067,7 +5144,8 @@
     "totalReviews": 139,
     "totalBooked": 139,
     "createdAt": "2025-11-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phu-quoc_009",
@@ -5132,7 +5210,8 @@
     "totalReviews": 38,
     "totalBooked": 93,
     "createdAt": "2025-09-03T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phu-quoc_010",
@@ -5197,7 +5276,8 @@
     "totalReviews": 87,
     "totalBooked": 492,
     "createdAt": "2025-07-01T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hue_001",
@@ -5262,7 +5342,8 @@
     "totalReviews": 171,
     "totalBooked": 295,
     "createdAt": "2025-01-28T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hue_002",
@@ -5327,7 +5408,8 @@
     "totalReviews": 84,
     "totalBooked": 268,
     "createdAt": "2025-01-16T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hue_003",
@@ -5392,7 +5474,8 @@
     "totalReviews": 133,
     "totalBooked": 187,
     "createdAt": "2025-04-30T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hue_004",
@@ -5457,7 +5540,8 @@
     "totalReviews": 39,
     "totalBooked": 311,
     "createdAt": "2025-03-01T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hue_005",
@@ -5522,7 +5606,8 @@
     "totalReviews": 65,
     "totalBooked": 280,
     "createdAt": "2025-05-28T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hue_006",
@@ -5587,7 +5672,8 @@
     "totalReviews": 153,
     "totalBooked": 465,
     "createdAt": "2025-10-05T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hue_007",
@@ -5652,7 +5738,8 @@
     "totalReviews": 105,
     "totalBooked": 257,
     "createdAt": "2025-10-19T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hue_008",
@@ -5717,7 +5804,8 @@
     "totalReviews": 112,
     "totalBooked": 307,
     "createdAt": "2025-07-27T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hue_009",
@@ -5782,7 +5870,8 @@
     "totalReviews": 149,
     "totalBooked": 465,
     "createdAt": "2025-09-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hue_010",
@@ -5847,7 +5936,8 @@
     "totalReviews": 177,
     "totalBooked": 464,
     "createdAt": "2025-07-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-long_001",
@@ -5912,7 +6002,8 @@
     "totalReviews": 65,
     "totalBooked": 453,
     "createdAt": "2025-03-27T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-long_002",
@@ -5977,7 +6068,8 @@
     "totalReviews": 122,
     "totalBooked": 218,
     "createdAt": "2025-10-28T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-long_003",
@@ -6042,7 +6134,8 @@
     "totalReviews": 66,
     "totalBooked": 345,
     "createdAt": "2025-10-06T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-long_004",
@@ -6107,7 +6200,8 @@
     "totalReviews": 51,
     "totalBooked": 328,
     "createdAt": "2025-11-03T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-long_005",
@@ -6172,7 +6266,8 @@
     "totalReviews": 187,
     "totalBooked": 478,
     "createdAt": "2025-04-14T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-long_006",
@@ -6237,7 +6332,8 @@
     "totalReviews": 103,
     "totalBooked": 479,
     "createdAt": "2025-03-12T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-long_007",
@@ -6302,7 +6398,8 @@
     "totalReviews": 182,
     "totalBooked": 158,
     "createdAt": "2025-08-30T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-long_008",
@@ -6367,7 +6464,8 @@
     "totalReviews": 165,
     "totalBooked": 168,
     "createdAt": "2025-08-13T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-long_009",
@@ -6432,7 +6530,8 @@
     "totalReviews": 111,
     "totalBooked": 379,
     "createdAt": "2025-11-01T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-long_010",
@@ -6497,7 +6596,8 @@
     "totalReviews": 64,
     "totalBooked": 239,
     "createdAt": "2025-09-23T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-lat_001",
@@ -6562,7 +6662,8 @@
     "totalReviews": 75,
     "totalBooked": 462,
     "createdAt": "2025-01-16T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-lat_002",
@@ -6627,7 +6728,8 @@
     "totalReviews": 138,
     "totalBooked": 115,
     "createdAt": "2025-06-27T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-lat_003",
@@ -6692,7 +6794,8 @@
     "totalReviews": 138,
     "totalBooked": 90,
     "createdAt": "2025-04-19T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-lat_004",
@@ -6757,7 +6860,8 @@
     "totalReviews": 136,
     "totalBooked": 434,
     "createdAt": "2025-09-03T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-lat_005",
@@ -6822,7 +6926,8 @@
     "totalReviews": 73,
     "totalBooked": 323,
     "createdAt": "2024-12-24T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-lat_006",
@@ -6887,7 +6992,8 @@
     "totalReviews": 45,
     "totalBooked": 290,
     "createdAt": "2025-03-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-lat_007",
@@ -6952,7 +7058,8 @@
     "totalReviews": 46,
     "totalBooked": 213,
     "createdAt": "2025-01-06T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-lat_008",
@@ -7017,7 +7124,8 @@
     "totalReviews": 66,
     "totalBooked": 333,
     "createdAt": "2025-01-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-lat_009",
@@ -7082,7 +7190,8 @@
     "totalReviews": 75,
     "totalBooked": 432,
     "createdAt": "2025-09-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_da-lat_010",
@@ -7147,7 +7256,8 @@
     "totalReviews": 183,
     "totalBooked": 198,
     "createdAt": "2025-10-16T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vung-tau_001",
@@ -7212,7 +7322,8 @@
     "totalReviews": 83,
     "totalBooked": 393,
     "createdAt": "2025-09-13T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vung-tau_002",
@@ -7277,7 +7388,8 @@
     "totalReviews": 142,
     "totalBooked": 124,
     "createdAt": "2025-05-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vung-tau_003",
@@ -7342,7 +7454,8 @@
     "totalReviews": 153,
     "totalBooked": 183,
     "createdAt": "2025-09-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vung-tau_004",
@@ -7407,7 +7520,8 @@
     "totalReviews": 122,
     "totalBooked": 319,
     "createdAt": "2025-04-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vung-tau_005",
@@ -7472,7 +7586,8 @@
     "totalReviews": 123,
     "totalBooked": 135,
     "createdAt": "2025-07-20T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vung-tau_006",
@@ -7537,7 +7652,8 @@
     "totalReviews": 73,
     "totalBooked": 146,
     "createdAt": "2025-01-03T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vung-tau_007",
@@ -7602,7 +7718,8 @@
     "totalReviews": 177,
     "totalBooked": 425,
     "createdAt": "2025-09-20T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vung-tau_008",
@@ -7667,7 +7784,8 @@
     "totalReviews": 30,
     "totalBooked": 58,
     "createdAt": "2025-11-04T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vung-tau_009",
@@ -7732,7 +7850,8 @@
     "totalReviews": 189,
     "totalBooked": 200,
     "createdAt": "2025-09-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vung-tau_010",
@@ -7797,7 +7916,8 @@
     "totalReviews": 30,
     "totalBooked": 158,
     "createdAt": "2025-04-13T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_quy-nhon_001",
@@ -7862,7 +7982,8 @@
     "totalReviews": 112,
     "totalBooked": 429,
     "createdAt": "2025-03-19T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_quy-nhon_002",
@@ -7927,7 +8048,8 @@
     "totalReviews": 132,
     "totalBooked": 200,
     "createdAt": "2025-02-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_quy-nhon_003",
@@ -7992,7 +8114,8 @@
     "totalReviews": 170,
     "totalBooked": 168,
     "createdAt": "2025-05-15T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_quy-nhon_004",
@@ -8057,7 +8180,8 @@
     "totalReviews": 188,
     "totalBooked": 392,
     "createdAt": "2025-04-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_quy-nhon_005",
@@ -8122,7 +8246,8 @@
     "totalReviews": 64,
     "totalBooked": 62,
     "createdAt": "2025-09-18T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_quy-nhon_006",
@@ -8187,7 +8312,8 @@
     "totalReviews": 155,
     "totalBooked": 234,
     "createdAt": "2025-10-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_quy-nhon_007",
@@ -8252,7 +8378,8 @@
     "totalReviews": 42,
     "totalBooked": 213,
     "createdAt": "2024-12-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_quy-nhon_008",
@@ -8317,7 +8444,8 @@
     "totalReviews": 180,
     "totalBooked": 394,
     "createdAt": "2025-07-06T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_quy-nhon_009",
@@ -8382,7 +8510,8 @@
     "totalReviews": 139,
     "totalBooked": 102,
     "createdAt": "2025-10-12T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_quy-nhon_010",
@@ -8447,7 +8576,8 @@
     "totalReviews": 194,
     "totalBooked": 134,
     "createdAt": "2025-09-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phan-thiet_001",
@@ -8512,7 +8642,8 @@
     "totalReviews": 189,
     "totalBooked": 61,
     "createdAt": "2025-10-10T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phan-thiet_002",
@@ -8577,7 +8708,8 @@
     "totalReviews": 147,
     "totalBooked": 483,
     "createdAt": "2025-08-06T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phan-thiet_003",
@@ -8642,7 +8774,8 @@
     "totalReviews": 165,
     "totalBooked": 151,
     "createdAt": "2025-08-01T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phan-thiet_004",
@@ -8707,7 +8840,8 @@
     "totalReviews": 94,
     "totalBooked": 330,
     "createdAt": "2025-08-30T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phan-thiet_005",
@@ -8772,7 +8906,8 @@
     "totalReviews": 151,
     "totalBooked": 110,
     "createdAt": "2025-04-19T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phan-thiet_006",
@@ -8837,7 +8972,8 @@
     "totalReviews": 159,
     "totalBooked": 157,
     "createdAt": "2025-09-05T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phan-thiet_007",
@@ -8902,7 +9038,8 @@
     "totalReviews": 50,
     "totalBooked": 479,
     "createdAt": "2025-08-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phan-thiet_008",
@@ -8967,7 +9104,8 @@
     "totalReviews": 140,
     "totalBooked": 109,
     "createdAt": "2025-08-01T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phan-thiet_009",
@@ -9032,7 +9170,8 @@
     "totalReviews": 161,
     "totalBooked": 76,
     "createdAt": "2025-02-10T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_phan-thiet_010",
@@ -9097,7 +9236,8 @@
     "totalReviews": 158,
     "totalBooked": 273,
     "createdAt": "2025-04-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_buon-ma-thuot_001",
@@ -9162,7 +9302,8 @@
     "totalReviews": 161,
     "totalBooked": 339,
     "createdAt": "2025-07-13T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_buon-ma-thuot_002",
@@ -9227,7 +9368,8 @@
     "totalReviews": 41,
     "totalBooked": 455,
     "createdAt": "2025-09-27T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_buon-ma-thuot_003",
@@ -9292,7 +9434,8 @@
     "totalReviews": 65,
     "totalBooked": 370,
     "createdAt": "2025-10-17T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_buon-ma-thuot_004",
@@ -9357,7 +9500,8 @@
     "totalReviews": 60,
     "totalBooked": 474,
     "createdAt": "2025-10-14T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_buon-ma-thuot_005",
@@ -9422,7 +9566,8 @@
     "totalReviews": 197,
     "totalBooked": 113,
     "createdAt": "2025-10-27T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_buon-ma-thuot_006",
@@ -9487,7 +9632,8 @@
     "totalReviews": 74,
     "totalBooked": 310,
     "createdAt": "2025-09-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_buon-ma-thuot_007",
@@ -9552,7 +9698,8 @@
     "totalReviews": 70,
     "totalBooked": 253,
     "createdAt": "2025-04-19T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_buon-ma-thuot_008",
@@ -9617,7 +9764,8 @@
     "totalReviews": 150,
     "totalBooked": 50,
     "createdAt": "2025-10-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_buon-ma-thuot_009",
@@ -9682,7 +9830,8 @@
     "totalReviews": 160,
     "totalBooked": 279,
     "createdAt": "2025-02-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_buon-ma-thuot_010",
@@ -9747,7 +9896,8 @@
     "totalReviews": 120,
     "totalBooked": 155,
     "createdAt": "2025-03-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vinh_001",
@@ -9812,7 +9962,8 @@
     "totalReviews": 61,
     "totalBooked": 248,
     "createdAt": "2025-04-17T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vinh_002",
@@ -9877,7 +10028,8 @@
     "totalReviews": 89,
     "totalBooked": 343,
     "createdAt": "2025-01-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vinh_003",
@@ -9942,7 +10094,8 @@
     "totalReviews": 91,
     "totalBooked": 335,
     "createdAt": "2025-06-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vinh_004",
@@ -10007,7 +10160,8 @@
     "totalReviews": 129,
     "totalBooked": 430,
     "createdAt": "2025-07-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vinh_005",
@@ -10072,7 +10226,8 @@
     "totalReviews": 41,
     "totalBooked": 113,
     "createdAt": "2025-03-23T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vinh_006",
@@ -10137,7 +10292,8 @@
     "totalReviews": 197,
     "totalBooked": 99,
     "createdAt": "2025-05-28T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vinh_007",
@@ -10202,7 +10358,8 @@
     "totalReviews": 72,
     "totalBooked": 290,
     "createdAt": "2025-01-01T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vinh_008",
@@ -10267,7 +10424,8 @@
     "totalReviews": 144,
     "totalBooked": 153,
     "createdAt": "2025-07-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vinh_009",
@@ -10332,7 +10490,8 @@
     "totalReviews": 200,
     "totalBooked": 111,
     "createdAt": "2025-07-24T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_vinh_010",
@@ -10397,7 +10556,8 @@
     "totalReviews": 80,
     "totalBooked": 323,
     "createdAt": "2024-12-23T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thanh-hoa_001",
@@ -10462,7 +10622,8 @@
     "totalReviews": 103,
     "totalBooked": 388,
     "createdAt": "2025-08-10T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thanh-hoa_002",
@@ -10527,7 +10688,8 @@
     "totalReviews": 34,
     "totalBooked": 493,
     "createdAt": "2025-02-02T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thanh-hoa_003",
@@ -10592,7 +10754,8 @@
     "totalReviews": 170,
     "totalBooked": 154,
     "createdAt": "2025-01-09T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thanh-hoa_004",
@@ -10657,7 +10820,8 @@
     "totalReviews": 161,
     "totalBooked": 73,
     "createdAt": "2025-07-04T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thanh-hoa_005",
@@ -10722,7 +10886,8 @@
     "totalReviews": 82,
     "totalBooked": 246,
     "createdAt": "2025-06-23T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thanh-hoa_006",
@@ -10787,7 +10952,8 @@
     "totalReviews": 126,
     "totalBooked": 420,
     "createdAt": "2025-06-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thanh-hoa_007",
@@ -10852,7 +11018,8 @@
     "totalReviews": 77,
     "totalBooked": 226,
     "createdAt": "2025-10-27T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thanh-hoa_008",
@@ -10917,7 +11084,8 @@
     "totalReviews": 77,
     "totalBooked": 192,
     "createdAt": "2025-03-20T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thanh-hoa_009",
@@ -10982,7 +11150,8 @@
     "totalReviews": 147,
     "totalBooked": 390,
     "createdAt": "2025-04-03T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thanh-hoa_010",
@@ -11047,7 +11216,8 @@
     "totalReviews": 99,
     "totalBooked": 67,
     "createdAt": "2025-03-13T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-duong_001",
@@ -11112,7 +11282,8 @@
     "totalReviews": 113,
     "totalBooked": 135,
     "createdAt": "2025-04-14T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-duong_002",
@@ -11177,7 +11348,8 @@
     "totalReviews": 124,
     "totalBooked": 213,
     "createdAt": "2025-04-16T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-duong_003",
@@ -11242,7 +11414,8 @@
     "totalReviews": 148,
     "totalBooked": 282,
     "createdAt": "2025-03-05T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-duong_004",
@@ -11307,7 +11480,8 @@
     "totalReviews": 37,
     "totalBooked": 471,
     "createdAt": "2025-05-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-duong_005",
@@ -11372,7 +11546,8 @@
     "totalReviews": 194,
     "totalBooked": 92,
     "createdAt": "2025-05-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-duong_006",
@@ -11437,7 +11612,8 @@
     "totalReviews": 130,
     "totalBooked": 482,
     "createdAt": "2025-09-09T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-duong_007",
@@ -11502,7 +11678,8 @@
     "totalReviews": 156,
     "totalBooked": 51,
     "createdAt": "2025-02-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-duong_008",
@@ -11567,7 +11744,8 @@
     "totalReviews": 189,
     "totalBooked": 143,
     "createdAt": "2025-04-19T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-duong_009",
@@ -11632,7 +11810,8 @@
     "totalReviews": 141,
     "totalBooked": 51,
     "createdAt": "2025-03-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hai-duong_010",
@@ -11697,7 +11876,8 @@
     "totalReviews": 179,
     "totalBooked": 380,
     "createdAt": "2025-11-05T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nam-dinh_001",
@@ -11762,7 +11942,8 @@
     "totalReviews": 182,
     "totalBooked": 169,
     "createdAt": "2025-02-17T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nam-dinh_002",
@@ -11827,7 +12008,8 @@
     "totalReviews": 140,
     "totalBooked": 186,
     "createdAt": "2024-12-26T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nam-dinh_003",
@@ -11892,7 +12074,8 @@
     "totalReviews": 83,
     "totalBooked": 319,
     "createdAt": "2025-02-28T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nam-dinh_004",
@@ -11957,7 +12140,8 @@
     "totalReviews": 192,
     "totalBooked": 167,
     "createdAt": "2025-06-26T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nam-dinh_005",
@@ -12022,7 +12206,8 @@
     "totalReviews": 179,
     "totalBooked": 146,
     "createdAt": "2025-04-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nam-dinh_006",
@@ -12087,7 +12272,8 @@
     "totalReviews": 120,
     "totalBooked": 55,
     "createdAt": "2025-10-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nam-dinh_007",
@@ -12152,7 +12338,8 @@
     "totalReviews": 83,
     "totalBooked": 69,
     "createdAt": "2025-06-02T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nam-dinh_008",
@@ -12217,7 +12404,8 @@
     "totalReviews": 168,
     "totalBooked": 321,
     "createdAt": "2025-07-12T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nam-dinh_009",
@@ -12282,7 +12470,8 @@
     "totalReviews": 67,
     "totalBooked": 78,
     "createdAt": "2025-10-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_nam-dinh_010",
@@ -12347,7 +12536,8 @@
     "totalReviews": 47,
     "totalBooked": 182,
     "createdAt": "2025-05-29T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thai-nguyen_001",
@@ -12412,7 +12602,8 @@
     "totalReviews": 56,
     "totalBooked": 191,
     "createdAt": "2025-08-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thai-nguyen_002",
@@ -12477,7 +12668,8 @@
     "totalReviews": 75,
     "totalBooked": 111,
     "createdAt": "2025-08-18T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thai-nguyen_003",
@@ -12542,7 +12734,8 @@
     "totalReviews": 182,
     "totalBooked": 87,
     "createdAt": "2025-06-15T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thai-nguyen_004",
@@ -12607,7 +12800,8 @@
     "totalReviews": 79,
     "totalBooked": 308,
     "createdAt": "2025-09-26T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thai-nguyen_005",
@@ -12672,7 +12866,8 @@
     "totalReviews": 146,
     "totalBooked": 367,
     "createdAt": "2025-10-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thai-nguyen_006",
@@ -12737,7 +12932,8 @@
     "totalReviews": 167,
     "totalBooked": 426,
     "createdAt": "2025-08-27T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thai-nguyen_007",
@@ -12802,7 +12998,8 @@
     "totalReviews": 137,
     "totalBooked": 150,
     "createdAt": "2025-08-18T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thai-nguyen_008",
@@ -12867,7 +13064,8 @@
     "totalReviews": 99,
     "totalBooked": 266,
     "createdAt": "2025-05-20T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thai-nguyen_009",
@@ -12932,7 +13130,8 @@
     "totalReviews": 63,
     "totalBooked": 496,
     "createdAt": "2025-03-01T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_thai-nguyen_010",
@@ -12997,7 +13196,8 @@
     "totalReviews": 195,
     "totalBooked": 444,
     "createdAt": "2025-05-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_viet-tri_001",
@@ -13062,7 +13262,8 @@
     "totalReviews": 132,
     "totalBooked": 465,
     "createdAt": "2025-08-16T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_viet-tri_002",
@@ -13127,7 +13328,8 @@
     "totalReviews": 132,
     "totalBooked": 368,
     "createdAt": "2025-01-06T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_viet-tri_003",
@@ -13192,7 +13394,8 @@
     "totalReviews": 112,
     "totalBooked": 402,
     "createdAt": "2025-07-10T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_viet-tri_004",
@@ -13257,7 +13460,8 @@
     "totalReviews": 154,
     "totalBooked": 301,
     "createdAt": "2025-08-28T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_viet-tri_005",
@@ -13322,7 +13526,8 @@
     "totalReviews": 107,
     "totalBooked": 52,
     "createdAt": "2025-03-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_viet-tri_006",
@@ -13387,7 +13592,8 @@
     "totalReviews": 120,
     "totalBooked": 224,
     "createdAt": "2025-05-29T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_viet-tri_007",
@@ -13452,7 +13658,8 @@
     "totalReviews": 138,
     "totalBooked": 499,
     "createdAt": "2025-09-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_viet-tri_008",
@@ -13517,7 +13724,8 @@
     "totalReviews": 131,
     "totalBooked": 233,
     "createdAt": "2025-05-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_viet-tri_009",
@@ -13582,7 +13790,8 @@
     "totalReviews": 126,
     "totalBooked": 229,
     "createdAt": "2025-03-04T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_viet-tri_010",
@@ -13647,7 +13856,8 @@
     "totalReviews": 43,
     "totalBooked": 365,
     "createdAt": "2024-12-30T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-giang_001",
@@ -13712,7 +13922,8 @@
     "totalReviews": 138,
     "totalBooked": 170,
     "createdAt": "2024-12-12T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-giang_002",
@@ -13777,7 +13988,8 @@
     "totalReviews": 38,
     "totalBooked": 192,
     "createdAt": "2025-04-30T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-giang_003",
@@ -13842,7 +14054,8 @@
     "totalReviews": 171,
     "totalBooked": 58,
     "createdAt": "2025-08-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-giang_004",
@@ -13907,7 +14120,8 @@
     "totalReviews": 187,
     "totalBooked": 352,
     "createdAt": "2025-10-26T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-giang_005",
@@ -13972,7 +14186,8 @@
     "totalReviews": 103,
     "totalBooked": 222,
     "createdAt": "2025-05-16T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-giang_006",
@@ -14037,7 +14252,8 @@
     "totalReviews": 33,
     "totalBooked": 138,
     "createdAt": "2025-09-27T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-giang_007",
@@ -14102,7 +14318,8 @@
     "totalReviews": 84,
     "totalBooked": 448,
     "createdAt": "2025-04-24T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-giang_008",
@@ -14167,7 +14384,8 @@
     "totalReviews": 186,
     "totalBooked": 300,
     "createdAt": "2025-04-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-giang_009",
@@ -14232,7 +14450,8 @@
     "totalReviews": 131,
     "totalBooked": 233,
     "createdAt": "2025-08-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ha-giang_010",
@@ -14297,7 +14516,8 @@
     "totalReviews": 32,
     "totalBooked": 412,
     "createdAt": "2025-04-09T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_cao-bang_001",
@@ -14362,7 +14582,8 @@
     "totalReviews": 111,
     "totalBooked": 329,
     "createdAt": "2025-06-18T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_cao-bang_002",
@@ -14427,7 +14648,8 @@
     "totalReviews": 146,
     "totalBooked": 210,
     "createdAt": "2025-03-02T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_cao-bang_003",
@@ -14492,7 +14714,8 @@
     "totalReviews": 170,
     "totalBooked": 395,
     "createdAt": "2025-02-09T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_cao-bang_004",
@@ -14557,7 +14780,8 @@
     "totalReviews": 88,
     "totalBooked": 185,
     "createdAt": "2025-09-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_cao-bang_005",
@@ -14622,7 +14846,8 @@
     "totalReviews": 69,
     "totalBooked": 78,
     "createdAt": "2025-06-26T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_cao-bang_006",
@@ -14687,7 +14912,8 @@
     "totalReviews": 163,
     "totalBooked": 440,
     "createdAt": "2025-01-05T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_cao-bang_007",
@@ -14752,7 +14978,8 @@
     "totalReviews": 153,
     "totalBooked": 435,
     "createdAt": "2025-04-05T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_cao-bang_008",
@@ -14817,7 +15044,8 @@
     "totalReviews": 30,
     "totalBooked": 182,
     "createdAt": "2025-05-15T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_cao-bang_009",
@@ -14882,7 +15110,8 @@
     "totalReviews": 62,
     "totalBooked": 390,
     "createdAt": "2025-01-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_cao-bang_010",
@@ -14947,7 +15176,8 @@
     "totalReviews": 35,
     "totalBooked": 120,
     "createdAt": "2025-07-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lang-son_001",
@@ -15012,7 +15242,8 @@
     "totalReviews": 131,
     "totalBooked": 262,
     "createdAt": "2025-05-02T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lang-son_002",
@@ -15077,7 +15308,8 @@
     "totalReviews": 69,
     "totalBooked": 304,
     "createdAt": "2024-12-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lang-son_003",
@@ -15142,7 +15374,8 @@
     "totalReviews": 32,
     "totalBooked": 340,
     "createdAt": "2025-07-18T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lang-son_004",
@@ -15207,7 +15440,8 @@
     "totalReviews": 96,
     "totalBooked": 397,
     "createdAt": "2025-05-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lang-son_005",
@@ -15272,7 +15506,8 @@
     "totalReviews": 96,
     "totalBooked": 212,
     "createdAt": "2025-05-26T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lang-son_006",
@@ -15337,7 +15572,8 @@
     "totalReviews": 141,
     "totalBooked": 183,
     "createdAt": "2025-03-05T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lang-son_007",
@@ -15402,7 +15638,8 @@
     "totalReviews": 186,
     "totalBooked": 322,
     "createdAt": "2025-05-05T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lang-son_008",
@@ -15467,7 +15704,8 @@
     "totalReviews": 171,
     "totalBooked": 178,
     "createdAt": "2025-10-03T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lang-son_009",
@@ -15532,7 +15770,8 @@
     "totalReviews": 63,
     "totalBooked": 340,
     "createdAt": "2025-05-14T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lang-son_010",
@@ -15597,7 +15836,8 @@
     "totalReviews": 123,
     "totalBooked": 351,
     "createdAt": "2025-11-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lao-cai_001",
@@ -15662,7 +15902,8 @@
     "totalReviews": 175,
     "totalBooked": 388,
     "createdAt": "2025-04-20T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lao-cai_002",
@@ -15727,7 +15968,8 @@
     "totalReviews": 175,
     "totalBooked": 198,
     "createdAt": "2025-08-30T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lao-cai_003",
@@ -15792,7 +16034,8 @@
     "totalReviews": 66,
     "totalBooked": 131,
     "createdAt": "2025-10-24T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lao-cai_004",
@@ -15857,7 +16100,8 @@
     "totalReviews": 144,
     "totalBooked": 342,
     "createdAt": "2025-02-26T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lao-cai_005",
@@ -15922,7 +16166,8 @@
     "totalReviews": 197,
     "totalBooked": 243,
     "createdAt": "2025-09-19T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lao-cai_006",
@@ -15987,7 +16232,8 @@
     "totalReviews": 30,
     "totalBooked": 180,
     "createdAt": "2025-07-12T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lao-cai_007",
@@ -16052,7 +16298,8 @@
     "totalReviews": 115,
     "totalBooked": 370,
     "createdAt": "2025-09-13T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lao-cai_008",
@@ -16117,7 +16364,8 @@
     "totalReviews": 192,
     "totalBooked": 303,
     "createdAt": "2025-01-06T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lao-cai_009",
@@ -16182,7 +16430,8 @@
     "totalReviews": 99,
     "totalBooked": 400,
     "createdAt": "2025-10-09T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_lao-cai_010",
@@ -16247,7 +16496,8 @@
     "totalReviews": 190,
     "totalBooked": 50,
     "createdAt": "2025-05-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dien-bien-phu_001",
@@ -16312,7 +16562,8 @@
     "totalReviews": 89,
     "totalBooked": 257,
     "createdAt": "2025-02-20T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dien-bien-phu_002",
@@ -16377,7 +16628,8 @@
     "totalReviews": 173,
     "totalBooked": 112,
     "createdAt": "2025-05-09T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dien-bien-phu_003",
@@ -16442,7 +16694,8 @@
     "totalReviews": 138,
     "totalBooked": 209,
     "createdAt": "2025-09-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dien-bien-phu_004",
@@ -16507,7 +16760,8 @@
     "totalReviews": 89,
     "totalBooked": 453,
     "createdAt": "2025-10-31T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dien-bien-phu_005",
@@ -16572,7 +16826,8 @@
     "totalReviews": 63,
     "totalBooked": 109,
     "createdAt": "2025-07-13T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dien-bien-phu_006",
@@ -16637,7 +16892,8 @@
     "totalReviews": 55,
     "totalBooked": 395,
     "createdAt": "2025-04-29T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dien-bien-phu_007",
@@ -16702,7 +16958,8 @@
     "totalReviews": 194,
     "totalBooked": 125,
     "createdAt": "2025-10-14T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dien-bien-phu_008",
@@ -16767,7 +17024,8 @@
     "totalReviews": 108,
     "totalBooked": 87,
     "createdAt": "2025-07-01T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dien-bien-phu_009",
@@ -16832,7 +17090,8 @@
     "totalReviews": 131,
     "totalBooked": 119,
     "createdAt": "2025-01-30T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dien-bien-phu_010",
@@ -16897,7 +17156,8 @@
     "totalReviews": 100,
     "totalBooked": 422,
     "createdAt": "2025-01-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_son-la_001",
@@ -16962,7 +17222,8 @@
     "totalReviews": 38,
     "totalBooked": 231,
     "createdAt": "2025-10-01T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_son-la_002",
@@ -17027,7 +17288,8 @@
     "totalReviews": 126,
     "totalBooked": 358,
     "createdAt": "2025-07-24T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_son-la_003",
@@ -17092,7 +17354,8 @@
     "totalReviews": 114,
     "totalBooked": 416,
     "createdAt": "2025-06-15T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_son-la_004",
@@ -17157,7 +17420,8 @@
     "totalReviews": 58,
     "totalBooked": 201,
     "createdAt": "2025-10-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_son-la_005",
@@ -17222,7 +17486,8 @@
     "totalReviews": 77,
     "totalBooked": 110,
     "createdAt": "2025-07-15T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_son-la_006",
@@ -17287,7 +17552,8 @@
     "totalReviews": 188,
     "totalBooked": 171,
     "createdAt": "2025-02-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_son-la_007",
@@ -17352,7 +17618,8 @@
     "totalReviews": 152,
     "totalBooked": 444,
     "createdAt": "2025-10-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_son-la_008",
@@ -17417,7 +17684,8 @@
     "totalReviews": 181,
     "totalBooked": 194,
     "createdAt": "2025-09-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_son-la_009",
@@ -17482,7 +17750,8 @@
     "totalReviews": 190,
     "totalBooked": 472,
     "createdAt": "2025-06-14T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_son-la_010",
@@ -17547,7 +17816,8 @@
     "totalReviews": 140,
     "totalBooked": 322,
     "createdAt": "2025-11-04T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoa-binh_001",
@@ -17612,7 +17882,8 @@
     "totalReviews": 113,
     "totalBooked": 139,
     "createdAt": "2025-01-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoa-binh_002",
@@ -17677,7 +17948,8 @@
     "totalReviews": 140,
     "totalBooked": 74,
     "createdAt": "2025-06-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoa-binh_003",
@@ -17742,7 +18014,8 @@
     "totalReviews": 166,
     "totalBooked": 65,
     "createdAt": "2025-03-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoa-binh_004",
@@ -17807,7 +18080,8 @@
     "totalReviews": 97,
     "totalBooked": 310,
     "createdAt": "2025-06-12T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoa-binh_005",
@@ -17872,7 +18146,8 @@
     "totalReviews": 51,
     "totalBooked": 188,
     "createdAt": "2025-01-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoa-binh_006",
@@ -17937,7 +18212,8 @@
     "totalReviews": 200,
     "totalBooked": 420,
     "createdAt": "2025-11-05T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoa-binh_007",
@@ -18002,7 +18278,8 @@
     "totalReviews": 115,
     "totalBooked": 495,
     "createdAt": "2025-10-22T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoa-binh_008",
@@ -18067,7 +18344,8 @@
     "totalReviews": 154,
     "totalBooked": 212,
     "createdAt": "2025-04-19T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoa-binh_009",
@@ -18132,7 +18410,8 @@
     "totalReviews": 71,
     "totalBooked": 230,
     "createdAt": "2025-04-29T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_hoa-binh_010",
@@ -18197,7 +18476,8 @@
     "totalReviews": 139,
     "totalBooked": 85,
     "createdAt": "2025-02-19T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ninh-binh_001",
@@ -18262,7 +18542,8 @@
     "totalReviews": 105,
     "totalBooked": 443,
     "createdAt": "2025-07-20T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ninh-binh_002",
@@ -18327,7 +18608,8 @@
     "totalReviews": 70,
     "totalBooked": 153,
     "createdAt": "2024-12-23T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ninh-binh_003",
@@ -18392,7 +18674,8 @@
     "totalReviews": 73,
     "totalBooked": 284,
     "createdAt": "2025-06-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ninh-binh_004",
@@ -18457,7 +18740,8 @@
     "totalReviews": 75,
     "totalBooked": 384,
     "createdAt": "2025-01-13T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ninh-binh_005",
@@ -18522,7 +18806,8 @@
     "totalReviews": 145,
     "totalBooked": 481,
     "createdAt": "2025-10-02T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ninh-binh_006",
@@ -18587,7 +18872,8 @@
     "totalReviews": 89,
     "totalBooked": 360,
     "createdAt": "2024-12-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ninh-binh_007",
@@ -18652,7 +18938,8 @@
     "totalReviews": 104,
     "totalBooked": 137,
     "createdAt": "2025-07-06T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ninh-binh_008",
@@ -18717,7 +19004,8 @@
     "totalReviews": 71,
     "totalBooked": 283,
     "createdAt": "2025-02-24T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ninh-binh_009",
@@ -18782,7 +19070,8 @@
     "totalReviews": 49,
     "totalBooked": 367,
     "createdAt": "2024-12-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ninh-binh_010",
@@ -18847,7 +19136,8 @@
     "totalReviews": 83,
     "totalBooked": 427,
     "createdAt": "2025-02-06T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dong-hoi_001",
@@ -18912,7 +19202,8 @@
     "totalReviews": 171,
     "totalBooked": 484,
     "createdAt": "2024-12-24T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dong-hoi_002",
@@ -18977,7 +19268,8 @@
     "totalReviews": 172,
     "totalBooked": 357,
     "createdAt": "2025-07-18T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dong-hoi_003",
@@ -19042,7 +19334,8 @@
     "totalReviews": 156,
     "totalBooked": 79,
     "createdAt": "2025-05-05T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dong-hoi_004",
@@ -19107,7 +19400,8 @@
     "totalReviews": 123,
     "totalBooked": 416,
     "createdAt": "2025-05-10T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dong-hoi_005",
@@ -19172,7 +19466,8 @@
     "totalReviews": 88,
     "totalBooked": 256,
     "createdAt": "2025-04-18T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dong-hoi_006",
@@ -19237,7 +19532,8 @@
     "totalReviews": 176,
     "totalBooked": 469,
     "createdAt": "2025-06-17T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dong-hoi_007",
@@ -19302,7 +19598,8 @@
     "totalReviews": 128,
     "totalBooked": 143,
     "createdAt": "2025-03-31T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dong-hoi_008",
@@ -19367,7 +19664,8 @@
     "totalReviews": 94,
     "totalBooked": 158,
     "createdAt": "2024-12-23T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dong-hoi_009",
@@ -19432,7 +19730,8 @@
     "totalReviews": 103,
     "totalBooked": 166,
     "createdAt": "2025-10-01T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_dong-hoi_010",
@@ -19497,7 +19796,8 @@
     "totalReviews": 63,
     "totalBooked": 300,
     "createdAt": "2025-01-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_pleiku_001",
@@ -19562,7 +19862,8 @@
     "totalReviews": 171,
     "totalBooked": 500,
     "createdAt": "2025-02-28T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_pleiku_002",
@@ -19627,7 +19928,8 @@
     "totalReviews": 182,
     "totalBooked": 379,
     "createdAt": "2025-10-29T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_pleiku_003",
@@ -19692,7 +19994,8 @@
     "totalReviews": 53,
     "totalBooked": 313,
     "createdAt": "2025-08-26T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_pleiku_004",
@@ -19757,7 +20060,8 @@
     "totalReviews": 124,
     "totalBooked": 74,
     "createdAt": "2025-05-11T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_pleiku_005",
@@ -19822,7 +20126,8 @@
     "totalReviews": 81,
     "totalBooked": 491,
     "createdAt": "2025-05-15T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_pleiku_006",
@@ -19887,7 +20192,8 @@
     "totalReviews": 92,
     "totalBooked": 328,
     "createdAt": "2025-07-09T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_pleiku_007",
@@ -19952,7 +20258,8 @@
     "totalReviews": 45,
     "totalBooked": 457,
     "createdAt": "2024-12-08T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_pleiku_008",
@@ -20017,7 +20324,8 @@
     "totalReviews": 56,
     "totalBooked": 277,
     "createdAt": "2025-05-20T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_pleiku_009",
@@ -20082,7 +20390,8 @@
     "totalReviews": 99,
     "totalBooked": 79,
     "createdAt": "2025-04-29T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_pleiku_010",
@@ -20147,7 +20456,8 @@
     "totalReviews": 200,
     "totalBooked": 499,
     "createdAt": "2025-04-03T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_tuy-hoa_001",
@@ -20212,7 +20522,8 @@
     "totalReviews": 100,
     "totalBooked": 126,
     "createdAt": "2025-03-15T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_tuy-hoa_002",
@@ -20277,7 +20588,8 @@
     "totalReviews": 125,
     "totalBooked": 240,
     "createdAt": "2024-12-16T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_tuy-hoa_003",
@@ -20342,7 +20654,8 @@
     "totalReviews": 191,
     "totalBooked": 358,
     "createdAt": "2025-01-26T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_tuy-hoa_004",
@@ -20407,7 +20720,8 @@
     "totalReviews": 169,
     "totalBooked": 468,
     "createdAt": "2024-12-15T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_tuy-hoa_005",
@@ -20472,7 +20786,8 @@
     "totalReviews": 76,
     "totalBooked": 327,
     "createdAt": "2025-02-24T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_tuy-hoa_006",
@@ -20537,7 +20852,8 @@
     "totalReviews": 184,
     "totalBooked": 73,
     "createdAt": "2025-05-24T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_tuy-hoa_007",
@@ -20602,7 +20918,8 @@
     "totalReviews": 197,
     "totalBooked": 374,
     "createdAt": "2025-04-26T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_tuy-hoa_008",
@@ -20667,7 +20984,8 @@
     "totalReviews": 146,
     "totalBooked": 231,
     "createdAt": "2025-03-13T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_tuy-hoa_009",
@@ -20732,7 +21050,8 @@
     "totalReviews": 143,
     "totalBooked": 248,
     "createdAt": "2024-12-23T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_tuy-hoa_010",
@@ -20797,7 +21116,8 @@
     "totalReviews": 101,
     "totalBooked": 195,
     "createdAt": "2025-05-26T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ca-mau_001",
@@ -20862,7 +21182,8 @@
     "totalReviews": 120,
     "totalBooked": 316,
     "createdAt": "2025-07-17T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ca-mau_002",
@@ -20927,7 +21248,8 @@
     "totalReviews": 66,
     "totalBooked": 143,
     "createdAt": "2025-09-03T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ca-mau_003",
@@ -20992,7 +21314,8 @@
     "totalReviews": 147,
     "totalBooked": 372,
     "createdAt": "2025-10-07T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ca-mau_004",
@@ -21057,7 +21380,8 @@
     "totalReviews": 54,
     "totalBooked": 167,
     "createdAt": "2024-12-18T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ca-mau_005",
@@ -21122,7 +21446,8 @@
     "totalReviews": 62,
     "totalBooked": 172,
     "createdAt": "2025-03-19T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ca-mau_006",
@@ -21187,7 +21512,8 @@
     "totalReviews": 115,
     "totalBooked": 138,
     "createdAt": "2025-04-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ca-mau_007",
@@ -21252,7 +21578,8 @@
     "totalReviews": 123,
     "totalBooked": 187,
     "createdAt": "2025-06-25T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ca-mau_008",
@@ -21317,7 +21644,8 @@
     "totalReviews": 156,
     "totalBooked": 413,
     "createdAt": "2025-03-16T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ca-mau_009",
@@ -21382,7 +21710,8 @@
     "totalReviews": 40,
     "totalBooked": 149,
     "createdAt": "2025-06-02T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_ca-mau_010",
@@ -21447,7 +21776,8 @@
     "totalReviews": 60,
     "totalBooked": 429,
     "createdAt": "2025-01-23T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_soc-trang_001",
@@ -21512,7 +21842,8 @@
     "totalReviews": 70,
     "totalBooked": 180,
     "createdAt": "2025-04-26T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_soc-trang_002",
@@ -21577,7 +21908,8 @@
     "totalReviews": 56,
     "totalBooked": 239,
     "createdAt": "2025-10-15T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_soc-trang_003",
@@ -21642,7 +21974,8 @@
     "totalReviews": 168,
     "totalBooked": 241,
     "createdAt": "2025-08-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_soc-trang_004",
@@ -21707,7 +22040,8 @@
     "totalReviews": 171,
     "totalBooked": 115,
     "createdAt": "2025-02-15T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_soc-trang_005",
@@ -21772,7 +22106,8 @@
     "totalReviews": 50,
     "totalBooked": 446,
     "createdAt": "2025-01-06T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_soc-trang_006",
@@ -21837,7 +22172,8 @@
     "totalReviews": 67,
     "totalBooked": 399,
     "createdAt": "2025-08-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_soc-trang_007",
@@ -21902,7 +22238,8 @@
     "totalReviews": 71,
     "totalBooked": 451,
     "createdAt": "2025-05-21T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_soc-trang_008",
@@ -21967,7 +22304,8 @@
     "totalReviews": 82,
     "totalBooked": 241,
     "createdAt": "2025-01-15T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_soc-trang_009",
@@ -22032,7 +22370,8 @@
     "totalReviews": 147,
     "totalBooked": 389,
     "createdAt": "2025-10-29T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   },
   {
     "id": "activity_soc-trang_010",
@@ -22097,6 +22436,7 @@
     "totalReviews": 38,
     "totalBooked": 231,
     "createdAt": "2025-01-31T04:48:41Z",
-    "updatedAt": "2025-12-01T10:00:00Z"
+    "updatedAt": "2025-12-01T10:00:00Z",
+    "approvalStatus": "APPROVED"
   }
 ]

@@ -3,9 +3,6 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { vendorApi, type VendorRefund } from '../../api/vendorApi';
-import { useSmartPagination } from '../../hooks/useSmartPagination';
-import { PaginationUI } from '../../components/ui/PaginationUI';
-import { useCallback } from 'react';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
@@ -37,24 +34,17 @@ export default function VendorRefundsPage({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRefund, setSelectedRefund] = useState<VendorRefund | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [refundRequests, setRefundRequests] = useState<VendorRefund[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    loadRefunds();
+  }, []);
 
-
-  const fetchData = useCallback(async (page: number, size: number) => {
+  const loadRefunds = async () => {
     try {
-      const data = await vendorApi.getVendorRefunds({
-        page,
-        size,
-        search: searchQuery,
-        status: activeTab === 'all' ? undefined : activeTab
-      });
-
-      // Status Normalizer (moved inside for safety or kept here)
-      // Since mapping is partially done in API, we just need to ensure frontend status is correct
-      // But API returns status "pending" mostly. The page had normalizeStatus function locally.
-      // Let's rely on the API returning `rawStatus` which we can use or just trust the status logic.
-      // Actually, API returns "pending" hardcoded. We should fix API or rely on local normalization if rawStatus exists.
-      // Let's assume the API change passed `rawStatus` (I added it).
+      setLoading(true);
+      const data = await vendorApi.getVendorRefunds();
 
       const normalizeStatus = (status?: string): RefundStatus => {
         const lower = (status || '').toLowerCase();
@@ -63,41 +53,50 @@ export default function VendorRefundsPage({
         if (lower === 'refund_processing' || lower === 'processing') return 'processing';
         if (lower === 'refund_completed' || lower === 'completed') return 'completed';
         if (lower === 'refund_rejected' || lower === 'rejected') return 'rejected';
-        return 'pending'; // Default fallback
+        return 'pending';
       };
 
-      const mapped = data.content.map((item: any) => ({
-        ...item,
-        status: normalizeStatus(item.rawStatus || item.status)
-      }));
-
-      return {
-        data: mapped,
-        totalItems: data.totalElements
+      const toNumber = (value: any) => {
+        const num = Number(value);
+        return Number.isFinite(num) ? num : 0;
       };
+
+      const mapped = data.map((item: any) => {
+        const guestInfo = item.guestInfo || item.metadata?.contactInfo || {};
+        return {
+          id: item.transactionId || item.refundId || item.id,
+          bookingId: item.bookingId || item.id,
+          bookingCode: item.bookingCode || '',
+          serviceType: (item.serviceType || item.bookingType || 'HOTEL').toUpperCase(),
+          serviceName: item.serviceName || item.metadata?.serviceName || item.flightId || '',
+          userId: item.userId || '',
+          userName: item.userName || guestInfo.fullName || '',
+          userEmail: item.userEmail || guestInfo.email || '',
+          vendorName: item.vendorName || item.vendor?.name || '',
+          originalAmount: toNumber(item.originalAmount ?? item.totalPrice ?? item.amount),
+          refundPercentage: item.refundPercentage || 100,
+          refundAmount: toNumber(item.refundAmount ?? item.amount ?? item.totalPrice),
+          penaltyAmount: toNumber(item.penaltyAmount),
+          requestDate: item.requestDate || item.createdAt || item.bookingDate || new Date().toISOString(),
+          status: normalizeStatus(item.status),
+          reason: item.reason || item.cancellationReason || '',
+          paymentMethod: item.paymentMethod || 'WALLET',
+          transactionId: item.transactionId || item.id,
+          processedBy: item.processedBy,
+          processedAt: item.processedAt,
+          rejectionReason: item.rejectionReason,
+          vendorRefundApproved: item.vendorRefundApproved,
+        } as VendorRefund;
+      });
+
+      setRefundRequests(mapped);
     } catch (error) {
       console.error("Failed to load refunds:", error);
       toast.error(t('vendor.cannotLoadRefunds', 'Không thể tải danh sách hoàn tiền'));
-      return { data: [], totalItems: 0 };
+    } finally {
+      setLoading(false);
     }
-  }, [activeTab, searchQuery, t]);
-
-  const {
-    currentItems: refundRequests,
-    isLoading: loading,
-    goToPage,
-    currentPage,
-    totalPages,
-    refresh: reloadRefunds
-  } = useSmartPagination({
-    fetchData,
-    initialPageSize: 10
-  });
-
-  // Reset to first page when parameters change
-  useEffect(() => {
-    goToPage(0);
-  }, [activeTab, searchQuery]);
+  };
 
   const STATUS_CONFIG: Record<RefundStatus, { label: string; color: string; icon: any }> = {
     pending: {
@@ -138,8 +137,14 @@ export default function VendorRefundsPage({
   };
 
   // Filter refunds
-  // Filter refunds - already done by API
-  const filteredRefunds = refundRequests;
+  const filteredRefunds = refundRequests.filter(refund => {
+    const matchStatus = activeTab === "all" || refund.status === activeTab;
+    const matchSearch = searchQuery === "" ||
+      refund.bookingCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      refund.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      refund.serviceName.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchStatus && matchSearch;
+  });
 
   // Calculate stats
   const stats = [
@@ -190,7 +195,7 @@ export default function VendorRefundsPage({
       );
       setIsDetailDialogOpen(false);
       setSelectedRefund(null);
-      await reloadRefunds();
+      await loadRefunds();
     } catch (error) {
       toast.error(t('vendor.cannotApproveRefund', 'Không thể cập nhật quyết định hoàn tiền'));
     }
@@ -361,13 +366,6 @@ export default function VendorRefundsPage({
               </table>
             </div>
           )}
-          <div className="mt-8 flex justify-center">
-            <PaginationUI
-              currentPage={currentPage + 1}
-              totalPages={totalPages}
-              onPageChange={(p) => goToPage(p - 1)}
-            />
-          </div>
         </Card>
       </div>
 

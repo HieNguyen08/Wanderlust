@@ -34,7 +34,6 @@ public class FlightSeatController {
 
     // Get all flight seats
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<FlightSeat>> getAllFlightSeats() {
         List<FlightSeat> allFlightSeats = flightSeatService.findAll();
         return new ResponseEntity<>(allFlightSeats, HttpStatus.OK);
@@ -42,7 +41,6 @@ public class FlightSeatController {
 
     // Patch seat status (user-level, only requires authentication)
     @PatchMapping("/{id}/status")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> patchSeatStatus(
             @PathVariable String id,
             @RequestParam String status) {
@@ -143,6 +141,7 @@ public class FlightSeatController {
             List<FlightSeat> seats = flightSeatService.getSeatsForFlight(flightId);
             return new ResponseEntity<>(seats, HttpStatus.OK);
         } catch (Exception e) {
+            e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -47,23 +47,17 @@ export interface VendorRefund {
 
 export const vendorApi = {
   // Get vendor bookings
-  getVendorBookings: async (params?: {
-    page?: number;
-    size?: number;
-    search?: string;
-    status?: string;
-  }) => {
-    const queryParams = new URLSearchParams();
-    if (params?.page !== undefined) queryParams.append("page", params.page.toString());
-    if (params?.size !== undefined) queryParams.append("size", params.size.toString());
-    if (params?.search) queryParams.append("search", params.search);
-    if (params?.status) queryParams.append("status", params.status);
-
-    const response = await authenticatedFetch(`/api/vendor/bookings?${queryParams.toString()}`);
+  getVendorBookings: async (): Promise<VendorBooking[]> => {
+    const response = await authenticatedFetch("/api/vendor/bookings");
     if (!response.ok) {
       throw new Error("Failed to fetch vendor bookings");
     }
-    return response.json();
+    const data = await response.json();
+    if (!Array.isArray(data)) return [];
+    return data.map((item) => ({
+      ...item,
+      amount: typeof item.amount === "string" ? Number(item.amount) : item.amount,
+    }));
   },
 
   // Confirm booking
@@ -103,37 +97,18 @@ export const vendorApi = {
     };
   },
 
-  // Get vendor refund requests (paginated)
-  getVendorRefunds: async (params?: {
-    page?: number;
-    size?: number;
-    search?: string;
-    status?: string;
-  }): Promise<{ content: VendorRefund[]; totalElements: number; totalPages: number }> => {
-    const queryParams = new URLSearchParams();
-    if (params?.page !== undefined) queryParams.append("page", params.page.toString());
-    if (params?.size !== undefined) queryParams.append("size", params.size.toString());
-    if (params?.search) queryParams.append("search", params.search);
-    if (params?.status) queryParams.append("status", params.status);
-
-    const url = `/api/vendor/refunds${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
-    const response = await authenticatedFetch(url);
-
+  // Get vendor refund requests (only bookings of this vendor with payment completed & refund requested)
+  getVendorRefunds: async (): Promise<VendorRefund[]> => {
+    const response = await authenticatedFetch("/api/vendor/refunds");
     if (!response.ok) {
       throw new Error("Failed to fetch vendor refunds");
     }
+    const raw = await response.json();
+    if (!Array.isArray(raw)) return [];
 
-    const data = await response.json();
-    // Support both Page response and List response (fallback)
-    const rawItems = data.content || (Array.isArray(data) ? data : []);
-    const totalElements = data.totalElements || rawItems.length;
-    const totalPages = data.totalPages || 1;
-
-    const mappedItems = rawItems.map((item: any) => {
+    return raw.map((item) => {
       const amount = Number(item.totalPrice ?? item.refundAmount ?? 0);
       const serviceName = item.serviceName || item.metadata?.serviceName || item.bookingType || "";
-      const guestInfo = item.guestInfo || item.metadata?.contactInfo || {};
-
       return {
         id: item.id,
         bookingId: item.id,
@@ -141,36 +116,21 @@ export const vendorApi = {
         serviceType: (item.bookingType || "").toString().toUpperCase(),
         serviceName,
         userId: item.userId,
-        userName: guestInfo.fullName || "",
-        userEmail: guestInfo.email || "",
+        userName: item.guestInfo?.fullName || item.metadata?.contactInfo?.fullName || "",
+        userEmail: item.guestInfo?.email || item.metadata?.contactInfo?.email || "",
         vendorName: item.vendorName || "",
         originalAmount: amount,
         refundPercentage: 100,
         refundAmount: amount,
         penaltyAmount: 0,
         requestDate: item.bookingDate || item.createdAt || new Date().toISOString(),
-        status: "pending", // Default, will be overridden by component logic or we can map it here if needed.
-        // Actually the component ignores api-status and calculates it? 
-        // No, component uses `normalizeStatus`.
-        // Let's pass the status through if available.
-        // Actually, let's map status correctly if possible.
-        // Backend booking status: REFUND_REQUESTED, CANCELLED, etc.
-        // We can map backend status to frontend status string here to be safe.
-        // But for now, let's keep it minimal and let component handle it or pass rough status.
+        status: "pending",
         reason: item.cancellationReason || "",
         paymentMethod: item.paymentMethod || "",
         transactionId: item.transactionId,
         vendorRefundApproved: item.vendorRefundApproved,
-        // Pass original status so component can normalize
-        rawStatus: item.status
       } as VendorRefund;
     });
-
-    return {
-      content: mappedItems,
-      totalElements,
-      totalPages
-    };
   },
 
   // Vendor records refund decision

@@ -1,13 +1,14 @@
 package com.wanderlust.api.services;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import com.wanderlust.api.dto.ActivityRequestDTO;
+import com.wanderlust.api.entity.Activity;
+import com.wanderlust.api.entity.types.ActivityCategory;
+import com.wanderlust.api.entity.types.ActivityStatus;
+import com.wanderlust.api.entity.types.ApprovalStatus;
+import com.wanderlust.api.mapper.ActivityMapper;
+import com.wanderlust.api.repository.ActivityRepository;
+import com.wanderlust.api.services.CustomUserDetails;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -16,15 +17,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.wanderlust.api.dto.ActivityRequestDTO;
-import com.wanderlust.api.entity.Activity;
-import com.wanderlust.api.entity.types.ActivityCategory;
-import com.wanderlust.api.entity.types.ActivityStatus;
-import com.wanderlust.api.entity.types.ApprovalStatus;
-import com.wanderlust.api.mapper.ActivityMapper;
-import com.wanderlust.api.repository.ActivityRepository;
-
-import lombok.RequiredArgsConstructor;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -59,15 +54,15 @@ public class ActivityService {
 
     // --- Public Get Methods ---
 
-    public Page<Activity> searchActivities(String locationId, List<ActivityCategory> categories, BigDecimal minPrice,
-            BigDecimal maxPrice, String keyword, ApprovalStatus status, int page, int size) {
+    public List<Activity> searchActivities(String locationId, ActivityCategory category, BigDecimal minPrice,
+            BigDecimal maxPrice) {
         Query query = new Query();
 
         if (locationId != null && !locationId.isEmpty()) {
             query.addCriteria(Criteria.where("locationId").is(locationId));
         }
-        if (categories != null && !categories.isEmpty()) {
-            query.addCriteria(Criteria.where("category").in(categories));
+        if (category != null) {
+            query.addCriteria(Criteria.where("category").is(category));
         }
         if (minPrice != null && maxPrice != null) {
             query.addCriteria(Criteria.where("price").gte(minPrice).lte(maxPrice));
@@ -75,13 +70,6 @@ public class ActivityService {
             query.addCriteria(Criteria.where("price").gte(minPrice));
         } else if (maxPrice != null) {
             query.addCriteria(Criteria.where("price").lte(maxPrice));
-        }
-
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            String regex = ".*" + java.util.regex.Pattern.quote(keyword.trim()) + ".*";
-            query.addCriteria(new Criteria().orOperator(
-                    Criteria.where("name").regex(regex, "i"),
-                    Criteria.where("description").regex(regex, "i")));
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -94,16 +82,9 @@ public class ActivityService {
 
         if (isAdmin) {
             // Admin can see all activities regardless of approval/status
-            if (status != null) {
-                query.addCriteria(Criteria.where("approvalStatus").is(status));
-            }
         } else if (isVendor) {
-            // Vendors/partners see only their own submissions
+            // Vendors/partners see only their own submissions (any status)
             query.addCriteria(Criteria.where("vendorId").is(getCurrentUserId()));
-            // Vendor can filter by status
-            if (status != null) {
-                query.addCriteria(Criteria.where("approvalStatus").is(status));
-            }
         } else {
             // Public users only see approved + active activities
             query.addCriteria(new Criteria().andOperator(
@@ -111,14 +92,7 @@ public class ActivityService {
                     Criteria.where("status").is(ActivityStatus.ACTIVE)));
         }
 
-        long total = mongoTemplate.count(query, Activity.class);
-
-        Pageable pageable = PageRequest.of(page, size);
-        query.with(pageable);
-
-        List<Activity> activities = mongoTemplate.find(query, Activity.class);
-
-        return new PageImpl<>(activities, pageable, total);
+        return mongoTemplate.find(query, Activity.class);
     }
 
     public List<Activity> getFeatured() {
@@ -281,10 +255,5 @@ public class ActivityService {
 
     public void deleteAll() {
         activityRepository.deleteAll();
-    }
-
-    public Page<Activity> findByVendorId(String vendorId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return activityRepository.findByVendorId(vendorId, pageable);
     }
 }

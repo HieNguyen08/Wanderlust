@@ -9,12 +9,7 @@ import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { ReplyReviewDialog } from "../../components/vendor/ReplyReviewDialog";
-import { replyReviewDialog } from "../../components/vendor/ReplyReviewDialog"; // Import might be wrong case, let's keep original if valid, or fix it.
-// Actually just adding useSmartPagination
-import { useSmartPagination } from "../../hooks/useSmartPagination";
-import { PaginationUI } from "../../components/ui/PaginationUI";
 import { reviewApi, tokenService, vendorApi } from "../../utils/api";
-import { useCallback } from "react";
 
 interface VendorReviewsPageProps {
   onNavigate: (page: PageType, data?: any) => void;
@@ -42,98 +37,53 @@ export default function VendorReviewsPage({
   const [activeTab, setActiveTab] = useState("all");
   const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
-  // const [loading, setLoading] = useState(true); // Handled by hook
-  // const [reviews, setReviews] = useState<Review[]>([]); // Handled by hook
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Statistics state
-  const [vendorStats, setVendorStats] = useState({
-    totalReviews: 0,
-    unanswered: 0,
-    averageRating: "0.0"
-  });
-
-  const fetchData = useCallback(async (page: number, size: number) => {
-    const vendorId = tokenService.getUserData()?.id;
-    if (!vendorId) return { items: [], total: 0 };
-
-    try {
-      const data = await vendorApi.getVendorReviews(vendorId, {
-        page,
-        size,
-        search: searchQuery,
-        status: activeTab === 'all' ? undefined : activeTab
-      });
-
-      // Backend returns Page<ReviewCommentDTO> or mapped equivalent from api.ts
-      // api.ts returns response.json(). 
-      // Wait, I updated api.ts to return { content, totalElements, totalPages }?
-      // NO, I updated `api.ts` for REVIEWS to return `response.json()` directly from `ResponseEntity<Page>`.
-      // So data structure is { content: [...], totalElements: ..., ... }
-
-      const mapped = (data.content || []).map((r: any) => ({
-        id: r.id,
-        customer: r.userFullName || r.user || "Ẩn danh",
-        service: r.targetName || `${r.targetType || ''} ${r.targetId || ''}`,
-        rating: r.rating || 0,
-        comment: r.content || r.comment || r.title || "", // Backend DTO likely uses 'content' not 'comment'
-        date: r.createdAt || r.updatedAt || "",
-        response: r.vendorResponse,
-        responseDate: r.vendorRespondedAt,
-        hasResponse: Boolean(r.vendorResponse),
-      }));
-
-      return {
-        data: mapped,
-        totalItems: data.totalElements || 0
-      };
-    } catch (error) {
-      console.error(error);
-      toast.error(t('vendor.cannotLoadReviews'));
-      return { data: [], totalItems: 0 };
-    }
-  }, [searchQuery, activeTab, t]);
-
-  const {
-    currentItems: reviews,
-    isLoading: loading,
-    goToPage,
-    currentPage,
-    totalPages,
-    refresh: reloadReviews
-  } = useSmartPagination({
-    fetchData,
-    initialPageSize: 10
-  });
-
-  // Reset page on filter change
   useEffect(() => {
-    goToPage(0);
-  }, [searchQuery, activeTab]);
-
-  // Fetch vendor review statistics
-  useEffect(() => {
-    const loadVendorStats = async () => {
-      const vendorId = tokenService.getUserData()?.id;
-      if (!vendorId) return;
-
+    const loadReviews = async () => {
       try {
-        const data = await reviewApi.getVendorStats(vendorId);
-        setVendorStats({
-          totalReviews: data.totalReviews || 0,
-          unanswered: data.unrespondedCount || 0,
-          averageRating: Number(data.averageRating || 0).toFixed(1)
-        });
+        setLoading(true);
+        const vendorId = tokenService.getUserData()?.id;
+        if (!vendorId) {
+          setReviews([]);
+          setLoading(false);
+          return;
+        }
+        const data = await vendorApi.getVendorReviews(vendorId);
+        const mapped = (Array.isArray(data) ? data : []).map((r: any) => ({
+          id: r.id,
+          customer: r.userFullName || r.user || "Ẩn danh",
+          service: r.targetName || `${r.targetType || ''} ${r.targetId || ''}`,
+          rating: r.rating || 0,
+          comment: r.comment || r.title || "",
+          date: r.createdAt || r.updatedAt || "",
+          response: r.vendorResponse,
+          responseDate: r.vendorRespondedAt,
+          hasResponse: Boolean(r.vendorResponse),
+        }));
+        setReviews(mapped);
       } catch (error) {
-        console.error("Failed to load vendor stats:", error);
+        console.error(error);
+        toast.error(t('vendor.cannotLoadReviews'));
+      } finally {
+        setLoading(false);
       }
     };
-    loadVendorStats();
-  }, []);
+
+    loadReviews();
+  }, [t]);
+
+  const unansweredCount = reviews.filter((r) => !r.hasResponse).length;
+  const averageRating = reviews.length
+    ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+    : "0.0";
 
   const stats = [
-    { label: t('vendor.totalReviews'), value: vendorStats.totalReviews.toString(), color: "blue" },
-    { label: t('vendor.unanswered'), value: vendorStats.unanswered.toString(), color: "yellow" },
-    { label: t('vendor.averageRating'), value: `${vendorStats.averageRating}★`, color: "yellow" },
+    { label: t('vendor.totalReviews'), value: reviews.length.toString(), color: "blue" },
+    { label: t('vendor.unanswered'), value: unansweredCount.toString(), color: "yellow" },
+    { label: t('vendor.averageRating'), value: `${averageRating}★`, color: "yellow" },
+    { label: t('vendor.thisMonth'), value: "+", color: "green" },
   ];
 
   const ratingDistribution = [1, 2, 3, 4, 5].map((stars) => {
@@ -142,8 +92,15 @@ export default function VendorReviewsPage({
     return { stars, count, percentage };
   }).reverse();
 
-  // Client-side filtering removed
-  const filteredReviews = reviews;
+  const filteredReviews = reviews.filter(review => {
+    const matchesSearch = review.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      review.comment.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTab =
+      activeTab === "all" ||
+      (activeTab === "pending" && !review.hasResponse) ||
+      (activeTab === "responded" && review.hasResponse);
+    return matchesSearch && matchesTab;
+  });
 
   const handleReply = (review: Review) => {
     setSelectedReview(review);
@@ -154,7 +111,7 @@ export default function VendorReviewsPage({
     try {
       await reviewApi.respondToReview(reviewId, reply);
       toast.success(`${t('vendor.replySent')} ${reviewId}`);
-      reloadReviews();
+      setReviews((prev) => prev.map((r) => r.id === reviewId ? { ...r, hasResponse: true, response: reply, responseDate: new Date().toISOString() } : r));
     } catch (error) {
       toast.error(t('vendor.cannotSendReply'));
     }
@@ -224,10 +181,10 @@ export default function VendorReviewsPage({
                 <TabsList>
                   <TabsTrigger value="all">{t('common.all')} ({reviews.length})</TabsTrigger>
                   <TabsTrigger value="pending">
-                    {t('vendor.unanswered')} ({vendorStats.unanswered})
+                    {t('vendor.unanswered')} ({unansweredCount})
                   </TabsTrigger>
                   <TabsTrigger value="responded">
-                    {t('vendor.responded')} ({vendorStats.totalReviews - vendorStats.unanswered})
+                    {t('vendor.responded')} ({reviews.length - unansweredCount})
                   </TabsTrigger>
                 </TabsList>
 
@@ -249,8 +206,8 @@ export default function VendorReviewsPage({
                               <Star
                                 key={i}
                                 className={`w-4 h-4 ${i < review.rating
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "text-gray-300"
+                                    ? "fill-yellow-400 text-yellow-400"
+                                    : "text-gray-300"
                                   }`}
                               />
                             ))}
@@ -280,14 +237,6 @@ export default function VendorReviewsPage({
                   </div>
                 </TabsContent>
               </Tabs>
-
-              <div className="mt-8 flex justify-center">
-                <PaginationUI
-                  currentPage={currentPage + 1}
-                  totalPages={totalPages}
-                  onPageChange={(p) => goToPage(p - 1)}
-                />
-              </div>
             </Card>
           </div>
         </div>

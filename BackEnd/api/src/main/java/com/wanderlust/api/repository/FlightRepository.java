@@ -10,9 +10,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 @Repository
 public interface FlightRepository extends MongoRepository<Flight, String> {
 
@@ -63,12 +60,11 @@ public interface FlightRepository extends MongoRepository<Flight, String> {
                         "'departureTime': { $gte: ?2, $lt: ?3 }, " +
                         "'availableSeats': { $gt: 0 }, " +
                         "'status': 'SCHEDULED' }")
-        Page<Flight> searchFlights(
+        List<Flight> searchFlights(
                         String from,
                         String to,
                         LocalDateTime startOfDay,
-                        LocalDateTime endOfDay,
-                        Pageable pageable);
+                        LocalDateTime endOfDay);
 
         // Tìm chuyến bay sắp tới
         List<Flight> findByDepartureTimeAfterOrderByDepartureTimeAsc(LocalDateTime time);

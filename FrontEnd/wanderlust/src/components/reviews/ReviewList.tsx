@@ -12,8 +12,6 @@ import { ImageWithFallback } from "../figma/ImageWithFallback";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
-import { useSmartPagination } from "../../hooks/useSmartPagination";
-import { PaginationUI } from "../ui/PaginationUI";
 
 export type ReviewTargetType = "HOTEL" | "CAR_RENTAL" | "CAR" | "ACTIVITY" | "FLIGHT" | "WEBSITE" | "ALL";
 export type VoteType = "HELPFUL" | "NOT_HELPFUL";
@@ -63,60 +61,42 @@ const formatDate = (value?: string) => {
 };
 
 export function ReviewList({ targetType, targetId, title, limit, showViewAllButton = false, sortByRating = false }: ReviewListProps) {
-  // const [reviews, setReviews] = useState<ReviewItem[]>([]);
-  // const [loading, setLoading] = useState(false);
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userVotes, setUserVotes] = useState<Record<string, VoteType | null>>({});
-  // const [showAllReviews, setShowAllReviews] = useState(false);
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const reviewsPerPage = 10;
+  const [showAllReviews, setShowAllReviews] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const reviewsPerPage = 10;
 
-  const fetchData = async (page: number, size: number) => {
-    if (!targetId) return { data: [], totalItems: 0 };
+  const fetchReviews = async () => {
+    if (!targetId) return;
     try {
-      const data = await reviewApi.getReviewsByTarget(targetType, targetId, page, size);
-      let reviewsData: ReviewItem[] = [];
+      setLoading(true);
+      setError(null);
+      const data = await reviewApi.getReviewsByTarget(targetType, targetId);
+      let reviewsData = Array.isArray(data) ? data : [];
 
-      if (data && Array.isArray(data.content)) {
-        reviewsData = data.content;
-      } else if (Array.isArray(data)) {
-        reviewsData = data;
-      }
-
-      // Sort by rating if requested (client side sort if backend doesn't support)
-      // Ideally backend should support sort. For now we sort the page.
+      // Sort by rating if requested
       if (sortByRating) {
         reviewsData = reviewsData.sort((a, b) => (b.rating || 0) - (a.rating || 0));
       }
 
-      return {
-        data: reviewsData,
-        totalItems: data.totalElements || reviewsData.length
-      };
+      setReviews(reviewsData);
     } catch (err: any) {
       console.error('Failed to fetch reviews:', err);
       setError(err?.message || "Không thể tải đánh giá");
-      return { data: [], totalItems: 0 };
+    } finally {
+      setLoading(false);
     }
   };
 
-  const {
-    currentItems: reviews,
-    totalPages,
-    currentPage,
-    goToPage,
-    isLoading: loading,
-    totalItems
-  } = useSmartPagination({
-    fetchData,
-    pageSize: limit || 5, // Default review limit per page
-    preloadRange: 1
-  });
+  useEffect(() => {
+    fetchReviews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetId, targetType]);
 
   const averageRating = useMemo(() => {
-    // Note: This average rating is only based on CURRENT PAGE reviews if we don't have total stats.
-    // Ideally we should get avg rating from hotel details or a separate stats endpoint.
-    // For now, if reviews is empty, return 0. 
     if (reviews.length === 0) return 0;
     const total = reviews.reduce((sum, r) => sum + (r.rating || 0), 0);
     return Number((total / reviews.length).toFixed(1));
@@ -129,14 +109,17 @@ export function ReviewList({ targetType, targetId, title, limit, showViewAllButt
     }
     try {
       const updated = await reviewApi.voteReview(reviewId, voteType);
-      // We can't easily update 'reviews' state directly as it's managed by hook.
-      // But we can force refresh or just update local vote state visually if needed.
-      // However, hook re-fetch might overwrite. 
-      // For now, let's just update local vote state map.
-      // To update the counters in UI, we might need a way to mutate the list in hook or refetch.
-      // Simpler: Just refresh the page data.
-      goToPage(currentPage);
-
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id === reviewId
+            ? {
+              ...r,
+              helpfulCount: updated?.helpfulCount ?? r.helpfulCount ?? 0,
+              notHelpfulCount: updated?.notHelpfulCount ?? r.notHelpfulCount ?? 0,
+            }
+            : r
+        )
+      );
       setUserVotes((prev) => ({
         ...prev,
         [reviewId]: prev[reviewId] === voteType ? null : voteType,
@@ -154,12 +137,16 @@ export function ReviewList({ targetType, targetId, title, limit, showViewAllButt
     return null;
   }
 
-  // If using 'limit' prop (e.g. preview 3 reviews), we might want to hide pagination?
-  // But typically ReviewList is full list. If it is a preview, we pass limit.
-  // If limit is passed and showViewAllButton is true, maybe we behave differently?
-  // Current logic: useSmartPagination uses 'limit' as pageSize. 
-  // If showViewAllButton is true, maybe we want to show only first page and a button?
-  // But refactoring completely to full pagination means users can verify everything.
+  const visibleReviews = useMemo(() => {
+    if (showAllReviews) {
+      const startIndex = (currentPage - 1) * reviewsPerPage;
+      const endIndex = startIndex + reviewsPerPage;
+      return reviews.slice(startIndex, endIndex);
+    }
+    return limit ? reviews.slice(0, limit) : reviews;
+  }, [reviews, limit, showAllReviews, currentPage]);
+
+  const totalPages = Math.ceil(reviews.length / reviewsPerPage);
 
   return (
     <Card className="p-6 border border-gray-100 shadow-sm space-y-6">
@@ -168,7 +155,7 @@ export function ReviewList({ targetType, targetId, title, limit, showViewAllButt
           <h2 className="text-xl font-semibold text-gray-900">
             {title || "Đánh giá từ khách"}
           </h2>
-          <p className="text-sm text-gray-500">{totalItems} đánh giá đã duyệt</p>
+          <p className="text-sm text-gray-500">{reviews.length} đánh giá đã duyệt</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1">
@@ -183,7 +170,7 @@ export function ReviewList({ targetType, targetId, title, limit, showViewAllButt
         </div>
       </div>
 
-      {loading && reviews.length === 0 && (
+      {loading && (
         <p className="text-sm text-gray-500">Đang tải đánh giá...</p>
       )}
       {error && (
@@ -194,7 +181,7 @@ export function ReviewList({ targetType, targetId, title, limit, showViewAllButt
       )}
 
       <div className="space-y-4">
-        {reviews.map((review) => (
+        {visibleReviews.map((review) => (
           <Card key={review.id} className="p-4 border border-gray-100">
             <div className="flex items-start gap-4 mb-3">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
@@ -291,13 +278,84 @@ export function ReviewList({ targetType, targetId, title, limit, showViewAllButt
         ))}
       </div>
 
-      <div className="flex justify-center mt-6">
-        <PaginationUI
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={goToPage}
-        />
-      </div>
+      {/* View All Button and Pagination */}
+      {showViewAllButton && !showAllReviews && reviews.length > (limit || 0) && (
+        <div className="flex justify-center mt-6">
+          <Button
+            onClick={() => setShowAllReviews(true)}
+            variant="outline"
+            size="lg"
+            className="border-blue-500 text-blue-600 hover:bg-blue-50"
+          >
+            Xem tất cả {reviews.length} đánh giá
+          </Button>
+        </div>
+      )}
+
+      {/* Pagination Controls with Page Numbers */}
+      {showAllReviews && totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-6">
+          <Button
+            onClick={() => setCurrentPage(1)}
+            disabled={currentPage === 1}
+            variant="outline"
+            size="sm"
+          >
+            ««
+          </Button>
+          <Button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            variant="outline"
+            size="sm"
+          >
+            «
+          </Button>
+
+          {/* Page Numbers */}
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            let pageNum;
+            if (totalPages <= 5) {
+              pageNum = i + 1;
+            } else if (currentPage <= 3) {
+              pageNum = i + 1;
+            } else if (currentPage >= totalPages - 2) {
+              pageNum = totalPages - 4 + i;
+            } else {
+              pageNum = currentPage - 2 + i;
+            }
+
+            return (
+              <Button
+                key={pageNum}
+                onClick={() => setCurrentPage(pageNum)}
+                variant={currentPage === pageNum ? "default" : "outline"}
+                size="sm"
+                className={currentPage === pageNum ? "bg-blue-600" : ""}
+              >
+                {pageNum}
+              </Button>
+            );
+          })}
+
+          <Button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            variant="outline"
+            size="sm"
+          >
+            »
+          </Button>
+          <Button
+            onClick={() => setCurrentPage(totalPages)}
+            disabled={currentPage === totalPages}
+            variant="outline"
+            size="sm"
+          >
+            »»
+          </Button>
+        </div>
+      )}
     </Card>
   );
 }

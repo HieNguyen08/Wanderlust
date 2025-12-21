@@ -39,21 +39,22 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                
+
                 // === PHÂN QUYỀN HTTP REQUEST (Chiến lược "Default-Deny") ===
                 .authorizeHttpRequests(auth -> {
-                    
+
                     // 1. CÁC ENDPOINT LUÔN PUBLIC (Không cần token)
-                    //-----------------------------------------------------
-                    
+                    // -----------------------------------------------------
+
                     // A. Xác thực (Đăng nhập, Đăng ký, OAuth)
                     auth.requestMatchers("/api/auth/**").permitAll();
                     auth.requestMatchers("/login/oauth2/**", "/oauth2/**").permitAll();
-                    
+
                     // B. Webhooks & Callbacks (Từ hệ thống bên ngoài)
                     auth.requestMatchers(HttpMethod.POST, "/api/payments/callback/**").permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/payments/webhook/**").permitAll(); // Stripe Webhook
-                    auth.requestMatchers(HttpMethod.GET, "/api/payments/webhook/stripe/test").permitAll(); // Test endpoint
+                    auth.requestMatchers(HttpMethod.GET, "/api/payments/webhook/stripe/test").permitAll(); // Test
+                                                                                                           // endpoint
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/wallet/topup/callback").permitAll();
 
                     // C. Tracking quảng cáo (Public)
@@ -63,33 +64,32 @@ public class SecurityConfig {
                     // D. API GET Public (Cho phép khách xem/tìm kiếm)
                     // Sử dụng @PreAuthorize("permitAll()") ở controller để kiểm soát chi tiết
                     auth.requestMatchers(HttpMethod.GET,
-                        "/api/activities/**",
-                        "/api/car-rentals/**",
-                        "/api/flights/**",
-                        "/api/hotels/**",
-                        "/api/locations/**",
-                        "/api/promotions/**",
-                        "/api/reviews/**",
-                        "/api/rooms/**",
-                        "/api/travelguides/**",
-                        "/api/visa-articles/**"
-                    ).permitAll();
-                    
-                    //-----------------------------------------------------
+                            "/api/activities/**",
+                            "/api/car-rentals/**",
+                            "/api/flights/**",
+                            "/api/flight-seats/**",
+                            "/api/hotels/**",
+                            "/api/locations/**",
+                            "/api/promotions/**",
+                            "/api/reviews/**",
+                            "/api/rooms/**",
+                            "/api/travelguides/**",
+                            "/api/visa-articles/**").permitAll();
+
+                    // -----------------------------------------------------
                     // 2. TẤT CẢ CÁC REQUEST KHÁC
-                    //-----------------------------------------------------
+                    // -----------------------------------------------------
                     // Bất kỳ request nào còn lại (bao gồm GET /api/v1/wallet, GET /api/v1/users/me,
                     // GET /api/admin/**, POST /api/bookings, v.v.)
                     // đều BẮT BUỘC phải được xác thực (có token).
                     auth.anyRequest().authenticated();
                 })
                 // ==========================================================
-                
+
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exceptions -> exceptions
                         // Trả về 401 thay vì redirect sang trang login
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                )
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2 -> oauth2

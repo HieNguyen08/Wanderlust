@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum CabinClass {
     ECONOMY,
     BUSINESS,
-    FIRST;
+    FIRST_CLASS;
 
     @JsonValue
     public String toValue() {

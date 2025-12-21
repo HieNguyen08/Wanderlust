@@ -56,9 +56,6 @@ public class ReviewCommentDTO {
     private String airlineName;
     private String airlineLogo;
 
-    // Admin display
-    private String targetName;
-
     // Inner DTO cho Image
     @Data
     @NoArgsConstructor

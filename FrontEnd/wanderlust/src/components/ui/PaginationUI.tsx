@@ -1,133 +1,119 @@
-import React from 'react';
-import { Button } from './button';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "./pagination";
 
 interface PaginationUIProps {
-    currentPage: number; // 0-indexed
-    totalPages: number;
-    onPageChange: (page: number) => void;
-    isLoading?: boolean;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
-export const PaginationUI: React.FC<PaginationUIProps> = ({
-    currentPage,
-    totalPages,
-    onPageChange,
-    isLoading = false,
-}) => {
-    if (totalPages <= 1) return null;
-
-    const renderPageNumbers = () => {
-        const pages = [];
-        const maxVisiblePages = 5;
-
-        let startPage = Math.max(0, currentPage - 2);
-        let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
-
-        if (endPage - startPage < maxVisiblePages - 1) {
-            startPage = Math.max(0, endPage - maxVisiblePages + 1);
-        }
-
-        // First page
-        if (startPage > 0) {
-            pages.push(
-                <Button
-                    key="page-first"
-                    variant="outline"
-                    size="icon"
-                    className="w-9 h-9"
-                    onClick={() => onPageChange(0)}
-                    disabled={isLoading}
-                >
-                    1
-                </Button>
-            );
-            if (startPage > 1) {
-                pages.push(<span key="start-ellipsis" className="px-2 py-1">...</span>);
-            }
-        }
-
-        // Middle pages
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(
-                <Button
-                    key={i}
-                    variant={i === currentPage ? "default" : "outline"}
-                    size="icon"
-                    className="w-9 h-9"
-                    onClick={() => onPageChange(i)}
-                    disabled={isLoading}
-                >
-                    {i + 1}
-                </Button>
+export function PaginationUI({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: PaginationUIProps) {
+  const renderPages = () => {
+    const items = [];
+    
+    // Simple logic: if fewer than 7 pages, show all.
+    if (totalPages <= 7) {
+        for (let i = 1; i <= totalPages; i++) {
+             items.push(
+                <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      isActive={i === currentPage}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onPageChange(i);
+                      }}
+                    >
+                      {i}
+                    </PaginationLink>
+                </PaginationItem>
             );
         }
-
-        // Last page
-        if (endPage < totalPages - 1) {
-            if (endPage < totalPages - 2) {
-                pages.push(<span key="end-ellipsis" className="px-2 py-1">...</span>);
-            }
-            pages.push(
-                <Button
-                    key={totalPages - 1}
-                    variant="outline"
-                    size="icon"
-                    className="w-9 h-9"
-                    onClick={() => onPageChange(totalPages - 1)}
-                    disabled={isLoading}
-                >
-                    {totalPages}
-                </Button>
-            );
-        }
-
-        return pages;
-    };
-
-    return (
-        <div className="flex items-center justify-center space-x-2 py-4">
-            <Button
-                variant="outline"
-                size="icon"
-                className="w-9 h-9"
-                onClick={() => onPageChange(0)}
-                disabled={currentPage === 0 || isLoading}
-            >
-                <ChevronsLeft className="h-4 w-4" />
-            </Button>
-
-            <Button
-                variant="outline"
-                size="icon"
-                className="w-9 h-9"
-                onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage === 0 || isLoading}
-            >
-                <ChevronLeft className="h-4 w-4" />
-            </Button>
-
-            {renderPageNumbers()}
-
-            <Button
-                variant="outline"
-                size="icon"
-                className="w-9 h-9"
-                onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage === totalPages - 1 || isLoading}
-            >
-                <ChevronRight className="h-4 w-4" />
-            </Button>
-
-            <Button
-                variant="outline"
-                size="icon"
-                className="w-9 h-9"
-                onClick={() => onPageChange(totalPages - 1)}
-                disabled={currentPage === totalPages - 1 || isLoading}
-            >
-                <ChevronsRight className="h-4 w-4" />
-            </Button>
-        </div>
+        return items;
+    }
+    
+    // Complex logic with ellipsis
+    // Show 1, ellipsis, current-1, current, current+1, ellipsis, total
+    
+    items.push(
+        <PaginationItem key={1}>
+            <PaginationLink href="#" isActive={currentPage === 1} onClick={(e) => { e.preventDefault(); onPageChange(1); }}>1</PaginationLink>
+        </PaginationItem>
     );
-};
+    
+    if (currentPage > 4) {
+        items.push(<PaginationItem key="start-ellipsis"><PaginationEllipsis /></PaginationItem>);
+    }
+    
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+    
+    // Ensure we don't duplicate 1 or totalPages
+    // Actually simplicity is key.
+    // If we are at 1, start is 2. End is 2 (if total is large)
+    
+    for (let i = start; i <= end; i++) {
+         items.push(
+            <PaginationItem key={i}>
+                <PaginationLink href="#" isActive={i === currentPage} onClick={(e) => { e.preventDefault(); onPageChange(i); }}>{i}</PaginationLink>
+            </PaginationItem>
+        );
+    }
+
+    if (currentPage < totalPages - 3) {
+         items.push(<PaginationItem key="end-ellipsis"><PaginationEllipsis /></PaginationItem>);
+    }
+    
+    items.push(
+        <PaginationItem key={totalPages}>
+            <PaginationLink href="#" isActive={currentPage === totalPages} onClick={(e) => { e.preventDefault(); onPageChange(totalPages); }}>{totalPages}</PaginationLink>
+        </PaginationItem>
+    );
+    
+    return items;
+  };
+  
+
+  return (
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              if (currentPage > 1) onPageChange(currentPage - 1);
+            }}
+            aria-disabled={currentPage <= 1}
+            className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+          />
+        </PaginationItem>
+
+        {renderPages()}
+
+        <PaginationItem>
+          <PaginationNext
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              if (currentPage < totalPages) onPageChange(currentPage + 1);
+            }}
+            aria-disabled={currentPage >= totalPages}
+            className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
+}

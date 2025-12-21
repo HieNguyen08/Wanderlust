@@ -7,14 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import com.wanderlust.api.dto.BookingDTO;
@@ -56,8 +49,6 @@ public class BookingService {
     private final CarRentalService carRentalService;
     private final MoneyTransferService moneyTransferService;
 
-    private final MongoTemplate mongoTemplate;
-
     private final Sort defaultSort = Sort.by(Sort.Direction.DESC, "createdAt");
 
     // ... (các hàm findAll, findByUserId, findByVendorId không đổi) ...
@@ -75,59 +66,6 @@ public class BookingService {
         return bookingMapper.toDTOs(bookings);
     }
 
-    public Page<VendorBookingResponse> findVendorBookingsView(String vendorId, String search, String status, int page,
-            int size) {
-
-        // 1. Get all product IDs owned by this vendor
-        List<String> hotelIds = hotelRepository.findByVendorId(vendorId).stream().map(Hotel::getHotelID).toList();
-        List<String> carIds = carRentalRepository.findByVendorId(vendorId).stream().map(CarRental::getId).toList();
-        List<String> activityIds = activityRepository.findByVendorId(vendorId).stream().map(Activity::getId).toList();
-
-        Query query = new Query();
-
-        // 2. Build Criteria: Match vendorId OR match any of the product IDs
-        Criteria vendorCriteria = new Criteria().orOperator(
-                Criteria.where("vendorId").is(vendorId),
-                Criteria.where("hotelId").in(hotelIds),
-                Criteria.where("carRentalId").in(carIds),
-                Criteria.where("activityId").in(activityIds));
-        query.addCriteria(vendorCriteria);
-
-        if (search != null && !search.trim().isEmpty()) {
-            String regex = ".*" + java.util.regex.Pattern.quote(search.trim()) + ".*";
-            query.addCriteria(new Criteria().orOperator(
-                    Criteria.where("bookingCode").regex(regex, "i"),
-                    Criteria.where("guestInfo.fullName").regex(regex, "i"),
-                    Criteria.where("guestInfo.email").regex(regex, "i")));
-        }
-
-        if (status != null && !status.trim().isEmpty() && !status.equalsIgnoreCase("all")) {
-            try {
-                BookingStatus bookingStatus = BookingStatus.valueOf(status.toUpperCase());
-                query.addCriteria(Criteria.where("status").is(bookingStatus));
-            } catch (IllegalArgumentException e) {
-                // Ignore invalid status
-            }
-        }
-
-        long total = mongoTemplate.count(query, Booking.class);
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        query.with(pageable);
-
-        List<Booking> bookings = mongoTemplate.find(query, Booking.class);
-        List<VendorBookingResponse> content = bookings.stream()
-                .map(this::toVendorBookingResponse)
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(content, pageable, total);
-    }
-
-    // Deprecated or overload for non-paginated usage if needed, but we typically
-    // replace it.
-    // Keeping this for backward compatibility if other parts use it, otherwise
-    // strictly strictly replace.
-    // The interface in Implementation Plan suggests replacement.
     public List<VendorBookingResponse> findVendorBookingsView(String vendorId) {
         List<Booking> bookings = bookingRepository.findByVendorId(vendorId, defaultSort);
         return bookings.stream()
@@ -163,69 +101,11 @@ public class BookingService {
         return bookingMapper.toDTOs(bookings);
     }
 
-    public Page<BookingDTO> findVendorRefundRequestsPaginated(String vendorId, String search, String status, int page,
-            int size) {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("vendorId").is(vendorId));
-
-        // Search logic
-        if (search != null && !search.trim().isEmpty()) {
-            String regex = ".*" + java.util.regex.Pattern.quote(search.trim()) + ".*";
-            query.addCriteria(new Criteria().orOperator(
-                    Criteria.where("bookingCode").regex(regex, "i"),
-                    Criteria.where("guestInfo.fullName").regex(regex, "i"),
-                    Criteria.where("guestInfo.email").regex(regex, "i")));
-        }
-
-        // Status filter logic
-        if (status != null && !status.trim().isEmpty() && !status.equalsIgnoreCase("all")) {
-            String s = status.toLowerCase();
-            if (s.equals("pending")) {
-                // Pending means REFUND_REQUESTED
-                query.addCriteria(Criteria.where("status").is(BookingStatus.REFUND_REQUESTED));
-            } else if (s.equals("approved")) {
-                // Vendor approved the refund
-                query.addCriteria(Criteria.where("vendorRefundApproved").is(true));
-            } else if (s.equals("rejected")) {
-                // Vendor rejected the refund
-                query.addCriteria(Criteria.where("vendorRefundApproved").is(false));
-            } else if (s.equals("completed")) {
-                // Completed refunds (status CANCELLED usually implies refund done if approved)
-                query.addCriteria(Criteria.where("status").is(BookingStatus.CANCELLED));
-                query.addCriteria(Criteria.where("paymentStatus").is(PaymentStatus.REFUNDED));
-            }
-        } else {
-            // If "all", we typically want anything that touched the refund workflow?
-            // Or just return everything for that vendor?
-            // Usually "Refunds Page" should only show refund-related stuff.
-            // Let's filter for anything where status is REFUND_REQUESTED OR
-            // vendorRefundApproved exists
-            query.addCriteria(new Criteria().orOperator(
-                    Criteria.where("status").is(BookingStatus.REFUND_REQUESTED),
-                    Criteria.where("vendorRefundApproved").exists(true),
-                    Criteria.where("status").is(BookingStatus.CANCELLED) // Maybe too broad?
-            ));
-        }
-
-        long total = mongoTemplate.count(query, Booking.class);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        query.with(pageable);
-
-        List<Booking> bookings = mongoTemplate.find(query, Booking.class);
-        return new PageImpl<>(bookingMapper.toDTOs(bookings), pageable, total);
-    }
-
-    // Deprecated non-paginated version
     public List<BookingDTO> findVendorRefundRequests(String vendorId) {
         List<Booking> bookings = bookingRepository.findByVendorId(vendorId, defaultSort)
                 .stream()
                 .filter(b -> b.getStatus() == BookingStatus.REFUND_REQUESTED
-                        || (b.getVendorRefundApproved() != null)
-                        || (b.getStatus() == BookingStatus.CANCELLED && b.getCancellationReason() != null)) // Broaden a
-                                                                                                            // bit to
-                                                                                                            // catch
-                                                                                                            // processed
-                                                                                                            // refunds
+                        && b.getPaymentStatus() == PaymentStatus.COMPLETED)
                 .toList();
         return bookingMapper.toDTOs(bookings);
     }
