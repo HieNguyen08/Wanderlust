@@ -7,6 +7,8 @@ import java.util.List;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.wanderlust.api.entity.types.ApprovalStatus;
@@ -17,7 +19,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Document(collection = "hotel")
+@Document(collection = "hotels")
+@CompoundIndexes({
+    @CompoundIndex(name = "location_search_idx", 
+                   def = "{'locationId': 1, 'status': 1, 'approvalStatus': 1, 'starRating': -1, 'lowestPrice': 1}"),
+    @CompoundIndex(name = "vendor_hotels_idx", 
+                   def = "{'vendorId': 1, 'status': 1, 'approvalStatus': 1}"),
+    @CompoundIndex(name = "featured_idx", 
+                   def = "{'featured': 1, 'verified': 1, 'averageRating': -1}"),
+    @CompoundIndex(name = "rating_price_idx", 
+                   def = "{'starRating': 1, 'lowestPrice': 1}")
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

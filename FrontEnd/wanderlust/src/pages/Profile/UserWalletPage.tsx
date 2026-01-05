@@ -70,8 +70,18 @@ export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserW
           setTotalRefund(walletData.totalRefund ?? 0);
         } catch (walletError: any) {
           if (walletError.message === "UNAUTHORIZED") {
-            tokenService.clearAuth();
-            onNavigate("login");
+            // Check if token exists before logging out
+            const token = tokenService.getToken();
+            if (token) {
+              // Token exists but server rejected it - truly expired
+              toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
+              tokenService.clearAuth();
+              onNavigate("login");
+            } else {
+              // Token missing - redirect without clearing (already cleared)
+              toast.error("Vui lòng đăng nhập để xem trang này");
+              onNavigate("login");
+            }
             return;
           }
           console.warn("Wallet API not available, using default values");
@@ -129,9 +139,18 @@ export default function UserWalletPage({ onNavigate, userRole, onLogout }: UserW
           }
         } catch (txnError: any) {
           if (txnError.message === "UNAUTHORIZED") {
-            toast.error("Phiên đăng nhập đã hết hạn");
-            tokenService.clearAuth();
-            onNavigate("login");
+            // Check if token exists before logging out
+            const token = tokenService.getToken();
+            if (token) {
+              // Token exists but server rejected it - truly expired
+              toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
+              tokenService.clearAuth();
+              onNavigate("login");
+            } else {
+              // Token missing - redirect without clearing (already cleared)
+              toast.error("Vui lòng đăng nhập để xem trang này");
+              onNavigate("login");
+            }
             return;
           }
           console.warn("Transaction API not available, showing empty list");

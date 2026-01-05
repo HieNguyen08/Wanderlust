@@ -4,7 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.wanderlust.api.controller.dto.BulkFlightSeatRequest;
 import com.wanderlust.api.entity.FlightSeat;
@@ -41,7 +45,16 @@ public class FlightSeatService implements BaseServices<FlightSeat> {
         return flightSeatRepository.save(updatedFlightSeat);
     }
 
-    // Update only status (for PATCH endpoint)
+    /**
+     * Update seat status with optimistic locking + retry
+     * This prevents double-booking under concurrent load
+     */
+    @Retryable(
+        value = OptimisticLockingFailureException.class,
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 100)
+    )
+    @Transactional
     public FlightSeat updateStatus(String id, String status) {
         FlightSeat seat = flightSeatRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("FlightSeat not found with id " + id));
@@ -54,6 +67,28 @@ public class FlightSeatService implements BaseServices<FlightSeat> {
         }
 
         seat.setStatus(newStatus);
+        return flightSeatRepository.save(seat);
+    }
+    
+    /**
+     * Book a seat with optimistic locking protection
+     * Prevents double-booking race conditions
+     */
+    @Retryable(
+        value = OptimisticLockingFailureException.class,
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 100)
+    )
+    @Transactional
+    public FlightSeat bookSeat(String seatId) {
+        FlightSeat seat = flightSeatRepository.findById(seatId)
+                .orElseThrow(() -> new RuntimeException("Seat not found"));
+        
+        if (seat.getStatus() != SeatStatus.AVAILABLE) {
+            throw new IllegalStateException("Seat is not available for booking");
+        }
+        
+        seat.setStatus(SeatStatus.BOOKED);
         return flightSeatRepository.save(seat);
     }
 

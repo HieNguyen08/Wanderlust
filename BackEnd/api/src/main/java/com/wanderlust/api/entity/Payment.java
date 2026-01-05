@@ -7,6 +7,8 @@ import java.util.Map;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -18,6 +20,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Document(collection = "payment")
+@CompoundIndexes({
+    @CompoundIndex(name = "booking_payment_idx", 
+                   def = "{'bookingId': 1, 'status': 1}"),
+    @CompoundIndex(name = "user_payments_idx", 
+                   def = "{'userId': 1, 'createdAt': -1}"),
+    @CompoundIndex(name = "status_tracking_idx", 
+                   def = "{'status': 1, 'paymentMethod': 1, 'createdAt': -1}"),
+    @CompoundIndex(name = "gateway_ref_idx", 
+                   def = "{'gatewayTransactionId': 1}")
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

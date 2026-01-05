@@ -152,7 +152,7 @@ export function Header({ currentPage, onNavigate, userRole, onLogout }: HeaderPr
 
   // Determine active page category
   const getActiveSection = (): string => {
-    if (currentPage === "flights" || currentPage === "search" || currentPage === "booking" || currentPage === "confirmation" || currentPage === "offers") {
+    if (currentPage === "flights" || currentPage === "booking" || currentPage === "confirmation" || currentPage === "offers") {
       return "flights";
     }
     if (currentPage === "hotel" || currentPage === "hotel-list" || currentPage === "hotel-detail") {

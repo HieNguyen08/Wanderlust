@@ -246,7 +246,6 @@ export default function AdminPendingServicesPage({ onNavigate }: AdminPendingSer
         luggage: item.luggage,
         color: item.color,
         licensePlate: item.licensePlate,
-        fuelPolicy: item.fuelPolicy,
         city: item.city,
         country: item.country,
       };

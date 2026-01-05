@@ -12,11 +12,23 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.wanderlust.api.entity.types.FlightStatus;
 
 @Document(collection = "flights")
+@CompoundIndexes({
+    @CompoundIndex(name = "route_date_status_idx", 
+                   def = "{'departureAirportCode': 1, 'arrivalAirportCode': 1, 'departureTime': 1, 'status': 1}"),
+    @CompoundIndex(name = "airline_departure_idx", 
+                   def = "{'airlineCode': 1, 'departureTime': 1}"),
+    @CompoundIndex(name = "route_direct_idx", 
+                   def = "{'departureAirportCode': 1, 'arrivalAirportCode': 1, 'isDirect': 1, 'departureTime': 1}"),
+    @CompoundIndex(name = "status_time_idx", 
+                   def = "{'status': 1, 'departureTime': 1}")
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

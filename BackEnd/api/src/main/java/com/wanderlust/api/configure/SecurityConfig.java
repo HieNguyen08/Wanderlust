@@ -61,6 +61,9 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.POST, "/api/advertisements/*/track-impression").permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/advertisements/*/track-click").permitAll();
 
+                    // C.1 AI Enrichment endpoints (for testing & admin operations)
+                    auth.requestMatchers("/api/v1/ai/admin/enrichment/**").permitAll();
+
                     // D. API GET Public (Cho phép khách xem/tìm kiếm)
                     // Sử dụng @PreAuthorize("permitAll()") ở controller để kiểm soát chi tiết
                     auth.requestMatchers(HttpMethod.GET,

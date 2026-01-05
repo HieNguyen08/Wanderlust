@@ -64,7 +64,6 @@ export interface EditingService {
   ageRestriction?: string;
   minParticipants?: number | string;
   maxParticipants?: number | string;
-  cancellationPolicy?: string;
   featured?: boolean;
   brand?: string;
   model?: string;

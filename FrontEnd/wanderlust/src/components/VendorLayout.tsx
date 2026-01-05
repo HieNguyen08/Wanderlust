@@ -91,7 +91,7 @@ export function VendorLayout({
 
   // Handle logout
   const handleLogout = () => {
-    tokenService.clearToken();
+    tokenService.clearAuth();
     if (onLogout) {
       onLogout();
     } else {

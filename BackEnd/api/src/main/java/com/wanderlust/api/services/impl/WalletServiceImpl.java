@@ -5,6 +5,9 @@ import java.time.LocalDateTime;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -262,8 +265,15 @@ public class WalletServiceImpl implements WalletService {
         updateBalance(wallet.getWalletId(), refundRequest.getAmount(), TransactionType.REFUND);
     }
 
-    // ... (Các hàm updateBalance, requestWithdraw giữ nguyên) ...
+    /**
+     * ✅ SAFE: Atomic balance update with optimistic locking + retry
+     */
     @Override
+    @Retryable(
+        value = OptimisticLockingFailureException.class,
+        maxAttempts = 5,  // Higher retries for financial operations
+        backoff = @Backoff(delay = 50, multiplier = 2)
+    )
     @Transactional
     public void updateBalance(String walletId, BigDecimal amount, TransactionType type) {
         // (Giữ nguyên logic từ file gốc)

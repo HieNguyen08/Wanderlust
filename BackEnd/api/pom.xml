@@ -135,6 +135,16 @@
             <artifactId>stripe-java</artifactId>
             <version>24.1.0</version>
         </dependency>
+        
+        <!-- Spring Retry for Optimistic Locking -->
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

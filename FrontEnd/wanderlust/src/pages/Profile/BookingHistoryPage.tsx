@@ -316,9 +316,18 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
 
         // Handle authentication error
         if (error.message === 'UNAUTHORIZED') {
-          toast.error('Phiên đăng nhập đã hết hạn');
-          tokenService.clearAuth();
-          onNavigate('login');
+          // Check if token exists before logging out
+          const token = tokenService.getToken();
+          if (token) {
+            // Token exists but server rejected it - truly expired
+            toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
+            tokenService.clearAuth();
+            onNavigate('login');
+          } else {
+            // Token missing - redirect without clearing (already cleared)
+            toast.error('Vui lòng đăng nhập để xem trang này');
+            onNavigate('login');
+          }
           return;
         }
 
@@ -665,7 +674,16 @@ export default function BookingHistoryPage({ onNavigate, userRole, onLogout }: B
     } catch (error: any) {
       console.error('Submit review failed', error);
       if (error?.message === 'UNAUTHORIZED') {
-        toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để gửi đánh giá.');
+        // Check if token exists before showing expired message
+        const token = tokenService.getToken();
+        if (token) {
+          toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để gửi đánh giá.');
+          tokenService.clearAuth();
+          onNavigate('login');
+        } else {
+          toast.error('Vui lòng đăng nhập để gửi đánh giá.');
+          onNavigate('login');
+        }
       } else {
         toast.error(error?.message || 'Không thể gửi đánh giá');
       }

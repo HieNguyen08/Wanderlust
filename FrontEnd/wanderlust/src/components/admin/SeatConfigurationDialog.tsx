@@ -213,7 +213,7 @@ export default function SeatConfigurationDialog({
                             <Input
                                 id="newColumn"
                                 placeholder="Nhập cột mới (A, B, C, ...)"
-                                maxLength="1"
+                                maxLength={1}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         const input = e.currentTarget;

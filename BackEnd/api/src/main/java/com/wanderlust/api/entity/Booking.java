@@ -9,6 +9,8 @@ import java.util.Map;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -21,7 +23,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Document(collection = "booking")
+@Document(collection = "bookings")
+@CompoundIndexes({
+    @CompoundIndex(name = "user_bookings_idx", 
+                   def = "{'userId': 1, 'bookingDate': -1, 'status': 1}"),
+    @CompoundIndex(name = "vendor_bookings_idx", 
+                   def = "{'vendorId': 1, 'startDate': -1, 'status': 1}"),
+    @CompoundIndex(name = "availability_idx", 
+                   def = "{'carRentalId': 1, 'status': 1, 'startDate': 1, 'endDate': 1}"),
+    @CompoundIndex(name = "admin_filter_idx", 
+                   def = "{'status': 1, 'paymentStatus': 1, 'bookingDate': -1}"),
+    @CompoundIndex(name = "type_date_idx", 
+                   def = "{'bookingType': 1, 'bookingDate': -1}")
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

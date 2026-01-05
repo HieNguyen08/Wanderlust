@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.wanderlust.api.entity.types.AuthProvider;
@@ -17,6 +20,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Document(collection = "users")
+@CompoundIndexes({
+    @CompoundIndex(name = "email_unique_idx", 
+                   def = "{'email': 1}", unique = true),
+    @CompoundIndex(name = "role_status_idx", 
+                   def = "{'role': 1, 'isBlocked': 1}"),
+    @CompoundIndex(name = "membership_points_idx", 
+                   def = "{'membershipLevel': 1, 'loyaltyPoints': -1}"),
+    @CompoundIndex(name = "vendor_request_idx", 
+                   def = "{'vendorRequestStatus': 1, 'createdAt': -1}")
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,6 +43,8 @@ public class User {
     private String lastName;
     private String avatar;
     private Gender gender;
+    
+    @Indexed(unique = true)
     private String email;
     private AuthProvider provider;
     private String providerId;

@@ -500,7 +500,7 @@ export function ServiceDetailDialog({
               <Edit className="w-4 h-4" />
               Chỉnh sửa
             </Button>
-            {(service.status === "needs_revision" || service.status === "rejected") && (
+            {(service.status === "PENDING_REVIEW" || service.status === "REJECTED") && (
               <Button
                 className="flex-1 gap-2"
                 onClick={() => {
