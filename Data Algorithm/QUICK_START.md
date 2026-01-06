@@ -1,5 +1,19 @@
 # 📌 TÓM TẮT NHANH - MODULE AI ASSISTANT
 
+## 💰 QUYẾT ĐỊNH QUAN TRỌNG: 100% FREE DATA!
+
+**Thay đổi chiến lược do budget constraints:**
+- ❌ ~~Google Places API~~ ($5/1000 requests) → ✅ **OpenStreetMap** (FREE)
+- ❌ ~~TripAdvisor API~~ (Enterprise) → ✅ **Wikipedia + Web Scraping** (FREE)
+- ✅ **OSRM Routing** (FREE)
+- ✅ **OpenWeatherMap** (FREE tier 1M calls/month)
+
+**💰 Tiết kiệm: ~$600/month → $0/month!**
+
+📖 Chi tiết: [FREE_DATA_SOURCES_STRATEGY.md](FREE_DATA_SOURCES_STRATEGY.md)
+
+---
+
 ## ✅ ĐÃ HOÀN THÀNH
 
 ### 1. Phân tích bài báo khoa học
@@ -258,17 +272,56 @@ Data Algorithm/
 
 ---
 
+## � NEXT STEPS - ZERO COST IMPLEMENTATION
+
+### Week 2 Actions:
+
+1. **🗺️ Test OSM Crawler** (Day 1)
+   ```bash
+   cd "Data Algorithm/crawler"
+   python osm_crawler.py
+   # NO API KEY NEEDED!
+   ```
+
+2. **🧪 Test MongoDB Setup** (Day 2)
+   ```bash
+   cd "Data Algorithm/schema"
+   python setup_mongodb.py
+   ```
+
+3. **🕷️ Run Initial Crawl** (Day 3-4)
+   - Crawl Hà Nội + Đà Nẵng từ OpenStreetMap
+   - Expected: 20,000+ POIs
+   - Time: ~2-3 hours
+
+4. **📚 Enhance Wikipedia** (Day 5)
+   - Add descriptions từ Wikipedia
+   - Target: 60-70% coverage
+
+5. **📊 Calculate Distances** (Day 6-7)
+   - OSRM distance matrices
+   - Precompute travel times
+
+---
+
 ## 💡 KHUYẾN NGHỊ
 
-1. **Start small:** Bắt đầu với 5 destinations phổ biến nhất
-2. **Iterate fast:** Launch MVP nhanh, cải tiến dần
-3. **User feedback:** Test với user thật càng sớm càng tốt
-4. **Data quality >> quantity:** 500 POIs chất lượng tốt hơn 1000 POIs sai
-5. **Cache everything:** Pre-compute recommendations để tăng tốc
+1. **100% FREE first:** Dùng OSM + Wikipedia trước, scraping sau
+2. **Start small:** Bắt đầu với 2-3 provinces
+3. **Iterate fast:** Launch MVP nhanh, cải tiến dần
+4. **User feedback:** Test với user thật càng sớm càng tốt
+5. **Data quality >> quantity:** 500 POIs chất lượng tốt hơn 1000 POIs sai
+6. **Cache everything:** Pre-compute recommendations để tăng tốc
 
 ---
 
 ## 📞 CONTACTS & RESOURCES
+
+### FREE Data Sources:
+- [OpenStreetMap Vietnam](https://www.openstreetmap.org/#map=6/16.642/107.007)
+- [Overpass Turbo](https://overpass-turbo.eu/) - Query builder
+- [Wikipedia Vietnam](https://vi.wikipedia.org/)
+- [OSRM Demo](http://map.project-osrm.org/)
 
 ### Bài báo khoa học:
 - [Bài báo 3 (MDPI)](https://www.mdpi.com/2076-3417/14/20/9271) - Đã phân tích
