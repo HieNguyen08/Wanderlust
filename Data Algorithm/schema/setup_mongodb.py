@@ -477,7 +477,7 @@ def main():
     
     # Connect to MongoDB
     db = connect_to_mongodb()
-    if not db:
+    if db is None:
         return
     
     # Setup collections

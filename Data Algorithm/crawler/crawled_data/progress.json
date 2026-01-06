@@ -1,0 +1,18 @@
+{
+  "completed_regions": [
+    "Hồ Chí Minh",
+    "Hà Nội",
+    "Quảng Ninh",
+    "Đà Nẵng",
+    "Khánh Hòa",
+    "Hải Phòng",
+    "Lào Cai",
+    "Thừa Thiên Huế",
+    "Lâm Đồng",
+    "Kiên Giang"
+  ],
+  "failed_regions": [],
+  "total_pois_collected": 14386,
+  "last_updated": "2026-01-06T09:00:58.111319",
+  "start_time": "2026-01-06T08:59:06.949674"
+}
