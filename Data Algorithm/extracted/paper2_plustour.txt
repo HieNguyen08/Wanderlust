@@ -1,0 +1,1984 @@
+
+
+--- Page 1 ---
+
++Tour: Recommending Personalized Itineraries for Smart Tourism
+Jo˜ ao Paulo Espera, Luciano de S. Fragab, Aline C. Vianac, Kleber Vieira Cardosob, Sand Luz Correab
+aComputer Science Department (DCC), Federal University of Minas Gerais (UFMG),
+Belo Horizonte, Brazil - 31270-901
+bInstitute of Informatics (INF), Federal University of Goi´ as (UFG), Goiˆ ania, Brazil - 74690-900
+cInria Saclay ˆIle-De-France, 1 Rue Honor´ e d’Estienne d’Orves, Palaiseau, France - 91120
+Abstract
+Next-generation touristic services will rely on the advanced mobile networks’ high bandwidth and low latency and
+the Multi-access Edge Computing (MEC) paradigm to provide fully immersive mobile experiences. As an integral
+part of travel planning systems, recommendation algorithms devise personalized tour itineraries for individual users
+considering the popularity of a city’s Points of Interest (POIs) as well as the tourist preferences and constraints. However,
+in the context of next-generation touristic services, recommendation algorithms should also consider the applications
+(e.g., social network, mobile video streaming, mobile augmented reality) the tourist will consume in the POIs and the
+quality in which the MEC infrastructure will deliver such applications. In this paper, we address the joint problem of
+recommending personalized tour itineraries for tourists and efficiently allocating MEC resources for advanced touristic
+applications. We formulate an optimization problem that maximizes the itinerary of individual tourists while optimizing
+the resource allocation at the network edge. We then propose an exact algorithm that quickly solves the problem
+optimally, considering instances of realistic size. Using a real-world location-based photo-sharing database, we conduct
+and present an exploratory analysis to understand preferences and users’ visiting patterns. Using this understanding, we
+propose a methodology to identify user interest in applications. Finally, we evaluate our algorithm using this dataset.
+Results show that our algorithm outperforms a modified version of a state-of-the-art solution for personalized tour
+itinerary recommendation, demonstrating gains up to 11% for resource allocation efficiency and 40% for user experience.
+In addition, our algorithm performs similarly to the modified state-of-the-art solution regarding traditional itinerary
+recommendation metrics.
+Keywords:
+Travel itinerary recommendation, Next-generation touristic services, Multi-access edge computing, Advanced mobile
+networks.
+1. Introduction
+Tourism plays a fundamental role in the economy of
+many countries. Currently, the massive size of the tourism
+industry requires Information and Communication Tech-
+nology (ICT) to make services more intelligent, enhance
+user (tourist) experience, and improve user engagement.
+Thus, the last decades have witnessed an explosion of dig-
+ital services to build Smart Tourism [1], where users ac-
+tively participate in their trips. Similarly, the prevalence
+of mobile devices and advancements in wireless communi-
+cation allowed the emergence of location-based social net-
+works (LBSNs) [2], constituting a rich source of spatial-
+temporal datasets describing social network users’ mobil-
+ity and interest information. These datasets have been
+commonly leveraged in the last few years by itinerary rec-
+ommendation systems aiming to offer more personalized
+services [3, 4, 5, 6].
+∗Corresponding author.
+Email address: joaopauloesper@dcc.ufmg.br (Jo˜ ao Paulo
+Esper)Personalized Tour Itinerary Recommendation (PTIR)
+systems are another important component of Smart Tourism.
+Given the set of Point-of-Interests (POIs) of a city, the
+time availability for the tour visit, and the user’s prefer-
+ences, the mission of PTIR systems is to identify a tour
+itinerary (i.e., a sequence of ordered POIs) that maximizes
+the user’s experience while adhering to her time availabil-
+ity constraint. Previously proposed PTIR systems assume
+that trip experience depends on POI popularity [7], user’s
+interest in the POI category (e.g., Shopping, Entertain-
+ment, etc.) [8, 9, 10], or other user’s preferences mined
+from LBSNs [11, 12].
+With the deployment of 5G networks worldwide and
+the future Beyond 5G extension, a new trend in Smart
+Tourism is Mobile Augmented Reality (MAR) technolo-
+gies, which allow users to project computer-generated aug-
+mentations on top of real-world images using mobile de-
+vices (e.g., smartphones or wearables). This task, how-
+ever, involves processing-hungry computer vision and ren-
+dering algorithms, which are hard to fulfill by resource-
+constrained mobile devices. Thus, realizing MAR requires
+Preprint submitted to Computer Networks February 26, 2025arXiv:2502.17345v2  [cs.NI]  25 Feb 2025
+
+--- Page 2 ---
+
+a compromise between mobility, battery life, and perfor-
+mance. One way to achieve this compromise is to exploit
+the processing capabilities of Multi-access Edge Comput-
+ing (MEC) and offload the MAR computation to the wire-
+less network edge [13, 14]. Edge computation offloading
+results in enhanced user experience and smaller footprints
+of the bandwidth-demanding media traffic to the wire-
+less network [15]. Consequently, as advanced mobile net-
+works become prevalent and MAR applications use more
+sophisticated video formats and resolutions, the user ex-
+perience when visiting a POI will also depend on the ap-
+plications (e.g., social network, Mobile Video Streaming
+(MVS), MAR) she will consume, and the quality that the
+ICT infrastructure will deliver such applications.
+In the above context, neglecting to account for the edge
+resources when recommending a tour itinerary can cre-
+ate a frustrating experience for users once they seek an
+advanced, combined physical and virtual visit experience.
+Thus, the coupling between MEC resource allocation and
+PTIR systems is the primary motivation for this work.
+Consider, for example, a Metropolitan Tourism Centre
+(MTC) that provides smart tourism services. The MTC
+leases network and computing resources from a network
+operator as a network slice. The network slice comprises
+mobile wireless coverage in each POI, MEC server capabil-
+ities near the POIs, and remote cloud computing resources
+accessed through the Internet, as illustrated in Figure 1.
+The MTC also offers a PTIR system to help users build
+their tour itineraries according to their preferences and the
+applications they consume. However, instead of issuing
+recommendations for itineraries that rank as the top most
+relevant according to individual preferences, the PTIR sys-
+tem proposes an itinerary to individual users that is still
+attractive according to their preferences but, at the same
+time, optimizes the MEC resource allocation when run-
+ning the selected applications. Although such recommen-
+dations can slightly affect the recommended POIs, they
+aim at higher MEC resource allocation efficiency and, thus,
+a better global (multi-users) physical and virtual experi-
+ence.
+This work advances the state-of-the-art recommenda-
+tion of personalized tour itineraries by considering new
+preferences that will be available with the prevalence of
+advanced mobile networks and MAR applications. In this
+context, we jointly approach the design of PTIR algo-
+rithms and the resource allocation at the network edge,
+making the following contributions:
+•We formulate an optimization problem for recom-
+mending personalized tour itineraries for users con-
+sidering their preferences, the applications they will
+consume during the tour, and the corresponding re-
+source allocation required at the network edge. The
+objective is to find a single itinerary for each user so
+that the set of chosen itineraries maximizes the sum
+of the profits perceived by all the users, prioritiz-
+ing the MEC resource allocation while satisfying theusers and the infrastructure constraints. This paper
+significantly extends our previous paper [16], which,
+to the best of our knowledge, was the first work to
+formulate and evaluate this problem (cf. Section 2).
+•We devise the next-generation of Touristic services
+(+Tour), an algorithm that efficiently solves the above
+problem using Dynamic Programming and Mixed In-
+teger Linear Programming [17].
+•We then infer the potential interest of users in types
+of applications or services. For this, we automati-
+cally extract POI popularity and user preferences on
+POIs from a real-world location-based photo-sharing
+application (Flickr). The resulting dataset describes
+users’ visits in 13 tourist cities on four continents.
+We then conduct and present an exploratory anal-
+ysis of this dataset to understand preferences and
+users’ visiting patterns. We then propose a method-
+ology to identify user interest in applications based
+on such investigations.
+•We introduce two new metrics, namely, Allocation
+Efficiency (AE) and User Experience (UE) to
+assess the performance of the algorithms on allocat-
+ing resources in the network edge and on the over-
+all user experience provided by the recommended
+itinerary.
+•We provide a dataset based on real-world POI visita-
+tion history from 13 cities spread across 4 continents.
+This dataset includes 20461 valid tour sequences gen-
+erated by 8407 users who visited 401 POIs divided
+across 20 unique categories.
+•Using the collected dataset, we evaluate the effec-
+tiveness of +Tour in three different resource utiliza-
+tion scenarios. In addition, we compare the results
+obtained by +Tour with those produced by a modi-
+fied version of PersTour [10], a state-of-the-art solu-
+tion for recommending personalized tour itineraries.
++Tour outperforms the modified version of PersTour
+in all scenarios, showing gains up to 11% for resource
+allocation efficiency and 40% for user experience. In
+addition, +Tour performs similarly to a modified
+version of PersTour in traditional metrics for evalu-
+ating PTIR systems. We also show that +Tour can
+optimally solve the problem for instances of realistic
+size (250 users per instance in an environment with
+the scale outlined in Table 3) in a reasonable amount
+of time (Figure 13).
+•We make the +Tour source code and the processed
+dataset publicly available.
+•Finally, we highlight that our proposal induces the
+users to cooperate by strategically recommending
+each tourist itinerary using information from a group
+of tourists that may compete for resources. An MTC
+2
+
+--- Page 3 ---
+
+POI
+Augmented 
+reality 
+Access 
+network Internet 
+Cloud 
+ Cloud 
+MEC MEC 
+POI
+ POI
+Video 
+streaming 
+Figure 1: User spots with advanced mobile networks ICT infrastruc-
+ture.
+adopting +Tour would benefit from this induced co-
+operative behavior, which could improve the users’
+experience and, consequently, retain current clients
+and attract new ones. Even in other contexts, coop-
+erative behavior is generally desired. For example,
+the authors of [18] show how a transport company
+can improve resilience and security by using a coop-
+erative intelligent transportation system. In [19], the
+authors investigate the impact of cooperative behav-
+ior between social organizations during the COVID-
+19 pandemic outbreak in Shanghai and find con-
+sistent advantages of cooperative multi-organization
+management. While it is well-known that coopera-
+tion among regional departments plays an important
+role in facilitating the equitable disposal of construc-
+tion waste across regions, through modeling and sim-
+ulation, the authors of [20] are able to identify cross-
+regional cooperation strategies for recycling enter-
+prises, enhancing the efficiency of construction waste
+treatment and fostering the coordinated development
+of urban areas.
+The rest of this paper is organized as follows. Sec-
+tion 2 discusses the related work. Section 3 introduces the
+system model. The problem formulation is formalized in
+Section 4, while +Tour is detailed and analyzed in Sec-
+tion 5. Data characterization is presented in Section 6,
+and the experimental evaluation is detailed in Section 7.
+Section 8 concludes the paper and outlines future work.
+2. Related Work
+As illustrated in Figure 2, the literature related to tour
+itinerary generation is broadly divided into two categories:Tourist Trip Design Problem (TTDP) and Data-driven
+Recommendation [3]. Next, we discuss relevant works in
+both categories.
+2.1. TTDP
+Indeed, the problem of recommending personalized tour
+itineraries has its roots in the Operational Research com-
+munity as the Tourist Trip Design Problem. The authors
+in [21] defined the generic TTDP as an extension of the
+Orienteering Problem (OP) [22], where the objective is
+to schedule an optimal path (i.e., the path that maximizes
+the collected profit) for the user, given the set of candidate
+POIs, the travel time among them (e.g., identified by the
+transport mode), the profit of each POI (e.g., identified by
+the POI popularity), the visiting duration at a POI, start-
+ing/ending points for the tour, and the user time budget.
+The TTDP can be further specialized depending on the
+number of users involved (i.e., a single traveler or group of
+tourists) and the number of routes to be generated (i.e.,
+one-day or multiple-day tours). A comprehensive survey
+on using OP to model multiple variants of the TTDP was
+presented in [23]. An important characteristic of works on
+TTDP is the lack of individual preferences associated with
+individual users. Consequently, every user providing the
+same starting/ending points and time budget as input will
+be recommended for the same tour itinerary.
+2.2. Data-driven Recommendation
+With the popularity of smartphones and LBSNs, sev-
+eral works have focused on data-driven approaches to bet-
+ter model user preferences when recommending POIs or
+itineraries. The primary goal of these works is to ex-
+ploit the tourism content available on the Web to enable
+a deeper understanding of user preferences and to issue
+personalized recommendations. As illustrated in Figure 2,
+the literature on data-driven recommendation can be di-
+vided into three groups: next POI recommendation, top-k
+POI recommendation, and personalized tour itinerary rec-
+ommendation (PTIR). Works on next POI recommenda-
+tion [24, 25, 26, 27] aims to identify the next location a
+tourist will likely visit based on her previous trajectories,
+while studies on top-k location [28, 29, 30] recommend
+multiple POIs as part of a ranked list. Different from
+those works but closely related, works on PTIR recom-
+mend multiple POIs as a connected path, taking the same
+considerations as the TTDP but with the additional chal-
+lenge of planning an itinerary that appeals to the user’s
+interest. Next, we detail existing works on PTIR and dif-
+ferentiate them from our proposal.
+2.2.1. Existing PTIR solutions.
+Aiming to recommend personalized tour itineraries for
+a single tourist, the authors in [7] are one of the first to
+combine an optimization solution for an OP variant with
+the mining of users’ past trajectories based on geo-tagged
+3
+
+--- Page 4 ---
+
+Tour-related Research 
+ Tourist Trip Design 
+Problem  Data-driven 
+Recommendation 
+ PTIR  Next 
+POI Top-k 
+POI
+ Tradicional 
+PTIR  Advanced 
+PTIR 
+Group/In
+dividual One/Multi
+ple Days Time 
+Constraints Transport 
+Modes POI
+Popularity User 
+Preferences ICT
+Resources Application 
+Demands Considerations Figure 2: Tree of classification for tour-related research. Adapted from [3]. Yellow boxes indicate the topic of interest.
+photos extracted from Flickr1. Their approach maximizes
+POI popularity while keeping the user’s total time budget.
+To achieve this goal, transit time between POI and POI
+visiting time duration are computed as the median and the
+seventy-fifth percentile of all users, respectively.
+The work of [7] was further refined in [8, 9, 10] by as-
+signing categories to POIs and using them to determine
+the user interests. Particularly, in [8] and [9], the user in-
+terest is computed based on the frequency the user visits
+a POI of a particular category. This approach is usually
+referenced in the literature as frequency-based user inter-
+est. In [10], the authors presented PersTour, which ad-
+vanced the state-of-the-art by introducing the concept of
+time-based user interest. In this concept, the user’s level
+of interest in a POI category is based on her time spent
+at such POIs relative to the average user. PersTour also
+innovated by personalizing POI visit duration using this
+time-based user interest. The authors showed that time-
+based user interest and personalized visit durations reflect
+users’ real-life tours more accurately than frequency-based
+tourist interest solutions and average visit duration. Thus,
+PersTour has been recognized as the state-of-the-art one-
+day, single-traveler PTIR exact solution by many works
+(e.g., [31, 6]).
+Different from [7, 8, 9, 10] that focus on recommending
+a one-day tour, in [32] and [33], the focus is on the multiple-
+day case. Particularly, the authors in [32] extended the OP
+and proposed a PTIR algorithm for the multiple-day case
+where the objective is to optimize for the value of the worst
+1https://www.flickr.com/tour. User interest is mined from a private Google dataset
+containing historical visits to tourist attractions; the du-
+ration of a POI visit is set to the median time spent at the
+POI among all visits; and the transportation mode allows
+multiple options, using the quickest available one. The au-
+thors in [33] addressed the challenge of recommending per-
+sonalized multi-day tours by considering the time windows
+of each POI and the different transportation modes to visit
+them. The proposed problem is modeled as a multi-day
+TTDP with time windows using data from Chongqing, a
+popular city in Southwest China.
+The PTIR problem was also studied in the context of
+a group of tourists. In this setting, the objective is to
+recommend a one-day ([34, 35]) or multiple-day([36]) tour
+itinerary considering the group members’ heterogeneous
+preferences. Next, we discuss the novelty of our work.
+2.2.2. +Tour positioning.
+Our work focuses on an optimization approach for rec-
+ommending personalized itineraries for an individual user
+considering a one-day tour. Hence, it is conceptually closer
+to the investigations performed in [7, 8, 9, 10]. However,
++Tour differs distinctly from existing PTIR works by con-
+sidering not only POI popularity and POI category as user
+preferences but also new applications that will be avail-
+able with advanced mobile networks. In particular, we
+consider the user’s physical and virtual visit experience.
+As illustrated in Figure 2, this distinct view requires addi-
+tional considerations on ICT resource allocation and ser-
+vice application demands. In addition, as ICT resources
+are shared among tourists during their tours, to issue per-
+4
+
+--- Page 5 ---
+
+sonalized itineraries for each user, our PTIR solution must
+take into account a multi-user perspective. Thus, we pro-
+pose a new formulation to the PTIR problem that cap-
+tures the joint problem of recommending personalized tour
+itineraries for multiple individual users while efficiently al-
+locating MEC resources to enable advanced user service
+applications. Table 1 summarizes the main characteristics
+of the existing PTIR works for a single traveler and how
+our work differs from them.
+In [16], we introduced n5GTour, a preliminary version
+of this work presented in a conference paper. The present
+work extends [16] in many ways. First, as with many
+existing PTIR solutions, n5GTour assumes that the rec-
+ommended itinerary contains a minimum of three POIs.
++Tour extends n5GTour by relaxing this constraint, rec-
+ommending itineraries with one or more POIs. As we will
+show in Section 6, this relaxation is reasonable since a
+significant number of itineraries in the real world include
+less than three POIs, and the literature usually neglects
+the visiting patterns of these itineraries. Second, different
+from [16], we present a complete description of +Tour and
+analyze its computational complexity. Third, we challenge
+our solution with a more prominent and representative
+dataset of 13 cities distributed among 4 continents. In con-
+trast, in [16], only 4 cities in the same continent were con-
+sidered. Fourth, we add a data characterization to extract
+the user visiting patterns of the new dataset. Supported
+by our data characterization, we propose a more realistic
+methodology to infer the applications more likely to be
+used by tourists based on their visit durations. In [16], the
+applications used by tourists are randomly chosen. Finally,
+we comprehensively evaluate our solution considering mul-
+tiple cities and different resource utilization scenarios.
+3. System Model
+Our tour recommendation problem takes place in a spe-
+cific city with a set of POIs, the set of applications offered
+by the MTC to be consumed during the tour, the ICT in-
+frastructure to support the tourist virtual experience, and
+a set of tourists. In the next subsections, we describe the
+system model, which is depicted by Figure 3, in detail.
+Table 3 summarizes the notations and definitions used in
+this work.
+3.1. Main elements of the model
+3.1.1. POIs
+For a city with nPOIs, we consider a complete non-
+oriented graph G= (V,E), withV={v0,vn+1}∪{v1,...,v n}
+being the set of vertices representing the POIs and E=
+{(vi,vj)|vi,vj∈V} is the set of edges connecting the
+nodes.v0∈V andvn+1∈V are virtual POIs represent-
+ing, respectively, the starting and ending location of the
+users’ tours. Each edge ( vi,vj)∈E is associated with a
+costci,jrepresenting the travel time between vertex vito
+vertexvj, employing a given mode of transportation. Since
+POIs
+Tourists
+Complete graph, popularity ,
+average visting time, distances
+Available r esour cesBudget, inter est,
+starting and ending points
+Services / Applications
+Personalized Tour Itinerary
+Recommendation S ystem
+Exactly one itinerary per  touristFigure 3: System model.
+v0andvn+1are virtual POIs, we model c0,j=ci,n+1= 0
+∀i= 0,...,n and∀j= 1,...,n + 1.
+Each POIvi∈V\{v0,vn+1}is characterized by the
+following attributes: the popularity of the POI, denoted
+bypop(vi)∈Z; the expected time one should spend in
+the POI to enjoy what it has to offer (i.e., expected POI
+visiting time), denoted by dur(vi)∈R; the category rep-
+resenting its nature, denoted by cat(vi); and the loca-
+tion expressed in terms of latitude and longitude, denoted
+bylat(vi) andlong(vi) respectively. We denote by C=
+{1,...,C}as the set of all POI categories so that cat(vi)∈
+C,∀vi∈V\{v0,vn+1}.
+3.1.2. Service Applications
+The MTC offers a set A={1,...,A}of applications to
+enrich the touristic experience in every POI. Each appli-
+cationa∈Ahas specific requirements in terms of network
+and computing resources, expressed as:
+•λmin
+aandλmax
+a: the minimum and maximum net-
+work demand (i.e., demanded traffic volume) mea-
+sured in bps, respectively;
+•ψmin
+aandψmax
+a: the minimum and maximum com-
+puting demand (i.e., demanded processing load) mea-
+sured in reference core (RC)2, respectively.
+3.1.3. Advanced mobile networks ICT Infrastruc-
+ture
+In each POI vi∈V\{v0,vn+1}, the network resources
+are provided through a set of wireless base stations, e.g.,
+2Unit of measure that represents the processing capacity of a ref-
+erence CPU core.
+5
+
+--- Page 6 ---
+
+Table 1: Comparison of our work with relevant literature on PTIR for a single traveler. Time constraints and POI popularity are omitted
+from the table since they are considered in all PTIR works.
+Considerations
+Paper Dataset Routing Transport User ICT Application
+Mode Preferences Resources Demands
+[7] Flickr one-day - POI popularity - -
+[8] Flickr one-day walking POI category (frequency-based) - -
+[9] Jie Pang city one-day walking POI category (frequency-based) - -
+[10] Flickr one-day walking POI category (time-based) - -
+[32] Google’s multiple-day multiple modes POI popularity - -
+[33] Chongqing city multiple-day multiple modes POI popularity - -
+our work Flickr one-day walking POI category (time-based) ✓ ✓
+and applications
+gNBs (gNodeBs) in a 5G network. To keep the model
+generic, we decide to represent network resources simply
+by the capacity, i.e., not considering the wireless channel
+aspects. The whole model’s complexity and the time scale
+of the problem also suggest that this simplification is a rea-
+sonable approach. We denote by λ(vi) the total network
+resource available at POI vi∈V\{v0,vn+1}.
+The computing resources are provided by MEC hosts
+that are reachable from the access network, as shown in
+Figure 1. We assume that a POI vi∈V\{v0,vn+1}can be
+served by any MEC host. Let M={1,...,M}denote the
+set of MEC hosts. We represent by ψmthe total computing
+capacity available at MEC host m∈M .
+Applications should run on MEC hosts whenever pos-
+sible since this results in shorter response times and im-
+proved virtual experience. When no resource is available
+on the edge, applications run in the remote cloud with
+degraded performance regarding communication delay. In
+traditional offload literature, the user device can also run
+the applications completely. We assume this is not the
+case in our context because the MTC does not want to
+deal with issues such as regular updates in the software
+of the user devices, hardware incompatibility, and security
+breaches, among others. These issues can be minimized or
+solved by keeping the client software minimalist while the
+rest of the application runs remotely on the edge or in the
+cloud. We argue that this approach is reasonable for an
+enterprise scenario such as the one of the MTC.
+3.1.4. Tourists
+We consider a set U={1,...,U}of users (tourists)
+where each user u∈U is described by the following at-
+tributes: the user’s interest in each POI category c∈C,
+denoted by intu(c)∈R; the preferred day for the tour,
+denoted by du; and the time budget to complete the tour,
+i.e., the maximum available time for visits, represented by
+bu∈R. The user is also characterized by the set Au∈2A,
+representing the applications she is willing to use during
+the tour, where 2Ais the power set of A. The setAu
+determines the minimum and maximum demand for net-
+work and computing resources required to run the user
+applications during the tour. We represent this demandas described in the following:
+•λmin
+u=/summationtext
+a∈Auλmin
+a: the minimum network demand,
+in bps, required by user uduring a tour;
+•λmax
+u=/summationtext
+a∈Auλmax
+a: the maximum network demand,
+in bps, required by user uduring a tour;
+•ψmin
+u =/summationtext
+a∈Auψmin
+a: the minimum computing de-
+mand, in reference core (RC), required by user u
+during a tour;
+•ψmax
+u =/summationtext
+a∈Auψmax
+a: the maximum computing de-
+mand, in reference core (RC), required by user u
+during a tour.
+Finally, by modeling the starting and ending location
+of all users’ tour itineraries as virtual POIs, we allow an
+itinerary to involve one or more real-world POIs.
+3.2. Visiting-related elements of the Model
+Similar to [7, 8, 10], we define POI popularity, ex-
+pected POI visiting time, and user’s interest based on
+users’ past travel histories extracted from LBSNs. Given
+the useru∈ U who has visited rPOIs in a city, we
+define her travel history as an ordered sequence Su=
+((v1,ta
+v1,td
+v1),..., (vr,ta
+vr,td
+vr)), where each triple ( vl,ta
+vl,td
+vl),
+l= 1,...,r , represents a visit at POI vl, the arrival time
+ta
+vlat POIvl, and the departure time td
+vlfrom POIvl,
+vl∈V\{v0,vn+1}. The user’s visit duration at a POI
+vl∈V\{v0,vn+1}is computed as td
+vl−ta
+vl.
+Given a setSof all travel histories in a city, i.e., S=/uniontext
+u∈USu, the popularity of a POI vi∈V\{v0,vn+1}is
+defined based on the number of times vihas been visited:
+pop(vi) =/summationdisplay
+Su∈S/summationdisplay
+vx∈Suδ(vx,vi), (1)
+whereδ(vx,vi) = 1 ifvx=viorδ(vx,vi) = 0 otherwise.
+The expected (average) visiting time of a POI vi∈
+V\{v0,vn+1}is defined as follows:
+dur(vi) =/summationtext
+Su∈S/summationtext
+vx∈Su(td
+vx−ta
+vx)δ(vx,vi)
+pop(vi), (2)
+6
+
+--- Page 7 ---
+
+Table 2: Notations and definitions used in the system model, problem
+formulation, and solution.
+Symbol DescriptionSetsV Set of POIs (in a city)
+E Set of edges connecting vertices
+C Set of all POI categories
+U Set of users (tourists)
+Ud Set of users whose tours are scheduled to the
+dayd
+M Set of MEC hosts
+A Set of applications offered by the MTC
+Au Set of applications user uis willing to use
+S Set of all travel histories
+Su Travel history of user uItemsn Number of POIs in a city
+v0 Virtual POI where every itinerary begins
+vn+1 Virtual POI where every itinerary ends
+vi A POI in V
+u A user in U
+τ Index of the time slot where MEC infrastruc-
+ture resources are allocatedPOI/MEC inputci,j Travel time between POI vito POIvj
+pop(vi) Popularity of POI vi
+dur(vi) Expected visiting time of POI vi
+cat(vi) Category of POI vi
+lat(vi) Latitude of POI vi
+long(vi) Longitude of POI vi
+λ(vi) Total network resource available at POI vi
+ψm Total computing resource available at MEC mApplication inputλmin
+a Minimum network demand, in bps, of applica-
+tiona∈ A
+λmax
+a Maximum network demand, in bps, of appli-
+cationa∈ A
+ψmin
+a Minimum computing demand, in reference
+cores, of application a∈ A
+ψmax
+a Maximum computing demand, in reference
+cores, of application a∈ AUser inputintu(c) Interest of user uin the POI category c
+bu Time budget of user uto complete the tour
+du Date when the tour of user uwill take place
+λmin
+u Minimum network demand of user uduring a
+tour
+λmax
+u Maximum network demand of user uduring a
+tour
+ψmin
+u Minimum computing demand of user uduring
+a tour
+ψmax
+u Maximum computing demand of user uduring
+a tour
+Similar to [10], we assume a time-based user interest
+approach where the user’s interest in a certain category c
+is based on the time she spent at a POI of that category
+relative to the expected visiting time at that POI. The in-
+tuition is to determine the user’s interest level in a certain
+category by computing the time she spent at POIs of that
+category compared to other users. Thus, we define the
+interest level of a user u∈Uin a category c∈Cas:
+intu(c) =/summationdisplay
+vx∈Su(td
+vx−ta
+vx)
+dur(vx)γ(cat(vx),c), (3)
+whereγ(cat(vx),c) = 1 ifcat(vx) =c, orγ(cat(vx),c) = 0
+ifcat(vx)̸=c.3.3. Cost element associated with a POI visit of the Model
+The capability of computing the user’s interest based
+on the time-based approach using past travel histories ren-
+ders an effective solution to personalize the recommended
+time for a tourist to spend at a certain POI. Formally,
+given a POI vi∈V\{v0,vn+1}of category cat(vi)∈C, we
+can recommend user uto spend the following time at POI
+vi:intu(cat(vi))dur(vi). This time is based on the user’s
+interest level in category cat(vi) multiplied by the average
+time spent at POI vi. The rationale for this equation is
+that the greater the user’s interest in the category cat(vi),
+the more time she will spend on POI vicompared to the
+average user.
+We define the profit perceived by user uwhen physi-
+cally visiting a POI vi∈V\{v0,vn+1}as:
+Prof u(vi) =αint u(cat(vi)) + (1−α)pop(vi), (4)
+Equation (4) depends on the POI popularity and the
+user’s interest in the POI category. It also depends on
+theα∈[0,1] value, which can be chosen to emphasize
+the user’s interest or the POI popularity. We also define
+Prof u(v0) =Prof u(vn+1) = 0.
+Traveling from POI vito POIvjand visiting vjcon-
+sumes the user’s budget. Thus, we can define a cost func-
+tion associated with a POI visit as:
+Cost u(vi,vj) =ci,j+intu(cat(vj))dur(vj),
+i= 0,...,n ;j= 1,...,n.(5)
+We also define Cost u(vi,vn+1) = 0,∀i= 0,...,n .
+4. Problem Formulation
+Given the graph G= (V,E) representing the POIs of
+the city, the set of users willing to visit the city in a spe-
+cific day (Ud={u∈U|du=d}), the users’ preferences
+(intu(c),∀c∈C,∀u∈Ud), the users’ time constraints
+(bu,∀u∈Ud), and the applications the users will consume
+during the tour ( Au∈2A,∀u∈Ud), our objective is to
+find a single itinerary Iu∗= (v0,...,v n+1), starting at v0
+and ending at vn+1, for each user u∈Udso that the set
+of chosen itineraries, denoted by I∗, maximizes the sum
+of the profits perceived by all the users while prioritizing
+the MEC resource allocation and satisfying the users and
+the infrastructure constraints. We named such a problem
+the MEC-aware Personalized Tour Itinerary Recommenda-
+tion (MEC-PTIR) problem. Indeed, the MEC-PTIR prob-
+lem adds the availability of ICT resources and the demand
+for the chosen applications to the classical PTIR problem.
+Therefore, the MEC-PTIR problem is more complex than
+the PTIR one. Since the PTIR problem is NP-hard [23],
+we formulate the MEC-PTIR problem as a two-stage op-
+timization problem to address the complexity efficiently.
+7
+
+--- Page 8 ---
+
+4.1. MEC-PTIR problem - First stage
+We define the first stage of the MEC-PTIR problem
+as a multi-objective orienteering problem and its integer
+problem formulation. Formally, for each itinerary Iu=
+(v0,...,v n+1),u∈Ud, let a decision variable xi,j∈{0,1}
+indicates whether POI vi∈Vand POIvj∈Vare visited
+in sequence in Iuor not. The objective of the first stage
+of the MEC-PTIR problem is to obtain, for each u∈Ud,
+the setIu∗={I1
+u∗,...,Ik
+u∗}of itineraries such that the
+returned physical profit is maximized while the travel cost
+is minimized, i.e.:
+Stage 1 (MEC-PTIR problem): ∀u∈Ud
+maximizen/summationdisplay
+i=0n+1/summationdisplay
+j=1xi,jProf u(vi) (6)
+minimizen/summationdisplay
+i=0n+1/summationdisplay
+j=1xi,jCost u(vi,vj) (7)
+subject to:
+0<n/summationdisplay
+i=0n+1/summationdisplay
+j=1Cost u(vi,vj)xi,j≤bu, (8)
+n+1/summationdisplay
+j=1x0,j=n/summationdisplay
+i=0xi,n+1= 1, (9)
+n/summationdisplay
+i=0xi,r=n+1/summationdisplay
+j=1xr,j≤1,∀r= 1,...,n, (10)
+2≤pos(vi)≤n+ 1,∀i= 1,...,n + 1, (11)
+pos(vi)−pos(vj) + 1≤n(1−xi,j),
+∀i,j= 1,...,n + 1. (12)
+Equation (6) aims to maximize the total collected profit
+of useruwhile Equation (7) minimizes the travel cost ad-
+hering to the user’s budget (Constraint (8)). The other
+constraints ensure the proper construction of the itinerary.
+Constraint (9) ensures that the path starts at POI v0and
+ends at POI vn+1; Constraint (10) ensures that the path is
+connected and no POI is visited more than once. Assum-
+ing thatpos(vi) is the position of POI vi∈Vin itinerary
+Iu, Constraints (11) and (12) ensure that there are no sub-
+tours.
+For a user u∈ Ud, the setIu∗contains all Pareto-
+efficient itineraries that start at vertex v0, end at vertex
+vn+1, and do not violate the user’s time constraint. A
+solutionIk
+u∗∈ Iu∗is called a Pareto-efficient (or non-
+dominated) if there is no feasible solution Ik′
+u∗that domi-
+natesIk
+u∗, i.e., that is at least equally as good as Ik
+u∗con-
+cerning all objective functions, and better than Ik
+u∗con-
+cerning at least one objective function. The set Iu∗is
+called the Pareto front.4.2. MEC-PTIR problem - Second stage
+The result of the first stage of the MEC-PTIR problem
+is the set of Pareto fronts I=/uniontext
+u∈UdIu∗, i.e., the set
+of all non-dominated itineraries that do not violate the
+user’s time constraint for all users in Ud. Each itinerary
+Ik
+u∗∈Iu∗,∀Iu∗⊂I, has a physical profit given by:
+Prof (Ik
+u∗) =/summationdisplay
+vi∈Ik
+u∗\{v0,vn+1}Prof u(vi). (13)
+Given the setI, the objective of the second stage of
+the MEC-PTIR is to find a set I∗that maximizes the
+sum of the profits perceived by the users while prioritizing
+the resource allocation at the network edge. In addition,
+I∗must contain exactly one itinerary for each user u∈
+Ud. To achieve this goal, we formulate the second stage of
+the MEC-PTIR as a Mixed Integer Linear Programming
+problem.
+Let the indicator function ϕ(Ik
+u∗,vi)∈{0,1}represents
+POI visit in an itinerary, with ϕ(Ik
+u∗,vi) = 1 if itinerary
+Ik
+u∗∈Ivisits POIvi∈V\{v0,vn+1}, andϕ(Ij
+u∗,vi) = 0
+otherwise.
+Assume that every itinerary in Istarts and ends within
+a period of time Tand that the computing and network
+resources for these itineraries are allocated in discrete time
+slots of size ∆ t. The time slots are indexed by τ∈Zsuch
+that 1≤τ≤T. Given an itinerary Ik
+u∗∈Iu∗, a POI
+vi∈V\{v0,vn+1}, and a time index τ, we define the indi-
+cator function ρ(Ik
+u∗,vi,τ)∈{0,1}, withρ(Ik
+u∗,vi,τ) = 1 if
+itineraryIk
+u∗is visiting POI viduringτ, andρ(Ik
+u∗,vi,τ) = 0
+otherwise.
+Let the set of decision variables y(Ik
+u∗)∈{0,1}rep-
+resents itinerary choices so that y(Ik
+u∗) = 1 if itinerary
+Ik
+u∗∈Iu∗composes the solution, and y(Ik
+u∗) = 0 other-
+wise. A MEC host should provide computing resources
+for each POI visit for each user. We define the decision
+variablez(Ik
+u∗,vi,m)∈{0,1}for representing MEC host
+association so that z(Ik
+u∗,vi,m) = 1 if MEC host m∈M
+is responsible for providing computing resources during a
+visit to POI vi∈V\{v0,vn+1}in itinerary Ik
+u∗∈Iu∗, and
+z(Ik
+u∗,vi,m) = 0 otherwise.
+Let the decision variables p(Ik
+u∗,vi)∈Randq(Ik
+u∗,vi,m)∈
+Rrepresent, respectively, the amount of network and the
+amount of computing resources (at MEC host m∈M ) al-
+located during a visit to POI vi∈V\{v0,vn+1}in itinerary
+Ik
+u∗∈Iu∗. Assuming Norm (value ) as a generic function
+that normalizes a value, we define the objective function
+of the second stage of the MEC-PTIR problem as:
+8
+
+--- Page 9 ---
+
+Stage 2 (MEC-PTIR):
+maximize/summationdisplay
+Iu∗⊂I/summationdisplay
+Iku∗∈Iu∗y(Ik
+u∗)Norm (Prof (Ik
+u∗)) +
+/summationdisplay
+Iu∗⊂I/summationdisplay
+Iku∗∈Iu∗/summationdisplay
+vi∈V\{ v0,vn+1}Norm (p(Ik
+u∗,vi))
+2|Iku∗\{v0,vn+1}|+
+/summationdisplay
+Iu∗⊂I/summationdisplay
+Iku∗∈Iu∗/summationdisplay
+vi∈V\{ v0,vn+1}/summationdisplay
+m∈MNorm (q(Ik
+u∗,vi,m))
+2|Iku∗\{v0,vn+1}|.
+(14)
+Equation (14) aims to maximize simultaneously two
+objectives: (i) the aggregated total collected physical profit
+of all users inUd; and (ii) the aggregated total collected
+virtual profit of all users in Udgiven by the sum of the
+amount of allocated network resources and the amount of
+allocated computing resources at the network edge. To-
+gether, these objectives ensure that the generated set of
+itineraries maximizes the sum of the physical profits per-
+ceived by the users while prioritizing the resource allo-
+cation at the network edge. The Norm (value ) function
+ensures that both objectives stay in the same interval of
+values. The aggregated physical profit and the aggregated
+virtual profit have equal weights. Thus, Equation (14) may
+choose itineraries that do not have the highest individual
+physical profit but provide the best balance with the re-
+source allocation, resulting in an improved experience for
+the set of users as a whole. The objective function rep-
+resented by Equation (14) is subject to the following con-
+straints.
+Itinerary choice constraints – For each user u∈Ud,
+exactly one itinerary Ik
+u∗∈Iu∗must be selected, i.e.:
+/summationdisplay
+Iku∗∈Iu∗y(Ik
+u∗) = 1,∀Iu∗⊂I. (15)
+If an itinerary Ik
+u∗∈Iu∗is selected to compose a solu-
+tion for a user u∈Ud, we also need to allocate one MEC
+host to each POI visited in the itinerary, i.e.:
+/summationdisplay
+m∈Mz(Ik
+u∗,vi,m) =y(Ik
+u∗)ϕ(Ik
+u∗,vi),
+∀Ik
+u∗∈Iu∗,∀Iu∗⊂I,∀vi∈V\{v0,vn+1}.(16)
+Service demand constraints – For each user u∈Ud
+and selected itinerary Ik
+u∗∈Iu∗, we also need to select at
+least the minimum of resources required to run the appli-
+cations selected by user u, avoiding allocating more than
+is needed, i.e.:
+p(Ik
+u∗,vi)≥λmin
+uy(Ik
+u∗)ϕ(Ik
+u∗,vi)∧
+p(Ik
+u∗,vi)≤λmax
+uy(Ik
+u∗)ϕ(Ik
+u∗,vi),
+∀Ik
+u∗∈Iu∗,∀Iu∗⊂I,∀vi∈V\{v0,vn+1}.(17)
+Similarly, we ensure proper allocation of computing re-
+sources at the network edge with the following constraint:q(Ik
+u∗,vi,m)≥ψmin
+uz(Ik
+u∗,vi,m)ϕ(Ik
+u∗,vi)∧
+q(Ik
+u∗,vi,m)≤ψmax
+uz(Ik
+u∗,vi,m)ϕ(Ik
+u∗,vi),
+∀Ik
+u∗∈Iu∗,∀Iu∗⊂I,∀vi∈V\{v0,vn+1},∀m∈M.
+(18)
+Resource capacity constraints – Finally, we assure
+that the performed allocations do not exceed the amount
+of available network and computing resources, at any given
+time slot:
+/summationdisplay
+Iku∗∈Iu∗ρ(Ik
+u∗,vi,τ)p(Ik
+u∗,vi)≤λvi,
+∀vi∈V\{v0,vn+1},1≤τ≤T.(19)
+/summationdisplay
+Iku∗∈Iu∗/summationdisplay
+vi∈V\{ v0,vn+1}ρ(Ik
+u∗,vi,τ)q(Ik
+u∗,vi,m)≤ψm,
+∀m∈M,1≤τ≤T.(20)
+We describe our proposed solution in the next section.
+5. +Tour Algorithm
+To solve the MEC-PTIR problem, we propose the next-
+generation of Touristic services assisted by modern mo-
+bile networks (+Tour) algorithm described in Algorithm 1.
+As described in Section 4.1, the first stage of the MEC-
+PTIR problem is a multi-objective orienteering problem
+with two conflicting objectives: maximizing the total col-
+lected profit and minimizing the travel cost. This problem
+belongs to the class of NP-hard problems [37]. To solve this
+part of the problem optimally and efficiently, +Tour uses a
+variant of the Shortest Path Problem with Resource Con-
+straints (SPPRC) [38], summarized in Algorithm 2. The
+second stage of the MEC-PTIR problem is a Mixed Inte-
+ger Linear Programming problem, which can be obtained
+straightforwardly from a linear optimization solver such as
+Gurobi, IBM ILOG CPLEX, or SCIP [39]. In the follow-
+ing, Section 5.1 describes how we use the SPPRC variant
+to solve the MEC-PTIR problem’s first stage, while Sec-
+tion 5.2 provides a complexity analysis of +Tour.
+5.1. Solution for the first stage
+The SPPRC finds the shortest path among all paths
+that start from a source node, end at a destination node,
+and satisfy a set of constraints defined over a set of re-
+sources. In this context, a resource corresponds to a quan-
+tity, for example, time or money, which varies along a path
+according to resource extension functions. A resource ex-
+tension function is defined for every edge in the graph and
+every resource involved in the problem. Each function pro-
+vides a lower bound on its corresponding resource related
+to the next vertex, given the value accumulated in the
+9
+
+--- Page 10 ---
+
+Algorithm 1: The +Tour Algorithm
+Input :G= (V,E);Ud,α; andintu(c),bu,Au∈2A,
+∀c∈C,∀u∈Ud; and
+pop(vi),dur(vi),cat(vi)∀vi∈V\{v0,vn+1}
+Output:I∗
+1I←∅
+2forallu∈Uddo
+// Stage 1
+3Iu∗←Algorithm 2 (G= (V,E);α;
+(pop(vi),dur(vi),cat(vi))∀vi∈V\{v0,vn+1};
+((intu(c)∀c∈C),bu))
+4I←I∪I u∗
+// Stage 2
+5FindI∗by solving Stage 2 (MEC-PTIR) using Ias
+input
+6returnI∗
+present vertex. The resource constraints are given as in-
+tervals, also known as resource windows, which limit the
+values that can be taken by the resources at every vertex
+along a path. These constraints are defined for every ver-
+tex and every considered resource. If multiple resources
+are involved in the problem, as in the first stage of MEC-
+PTIR, the SPPRC becomes very close to a multi-criteria
+problem [38] since the paths may not be comparable for
+different resources. In this context, by solving the SPPRC,
+we obtain a set of optimal solutions, i.e., a Pareto front.
+Indeed, due to the constraint represented by Equa-
+tion (10), to solve the first stage of the MEC-PTIR, +Tour
+employs the Elementary SPPRC (ESPPRC), a variant of
+the SPPRC algorithm that finds only elementary paths,
+i.e., paths in which no vertex is visited more than once.
+We use two types of resources: constrained (i.e., time) and
+unconstrained (i.e., profit). We use a dynamic program-
+ming methodology to map the first stage of MEC-PTIR
+into the ESPPRC framework.
+ESPPRC procedure. For a given itinerary or path
+P= (v0,v1,...,v p−1,vp), letres(P) =vpbe the resident
+vertex ofP(i.e., the last vertex of P) and (v0,v1,...,v p−1)
+be an example of prefix path of P. For the sake of effi-
+ciency, itineraries (or paths) in dynamic programming al-
+gorithms are represented through labels. Thus, associated
+with every itinerary Pthere is a label R. A label stores
+multiple information, for example, its resident vertex, its
+predecessor edge, its predecessor label, and its current vec-
+tor of resource values. For the first stage of MEC-PTIR,
+two resources are critical to be stored in the labels:
+•Spent (R)∈R: constrained resource that represents
+the amount of time spent along the itinerary P. Time
+is consumed whenever the user visits a POI or moves
+from one POI to another. As described in Section 3.3,
+for every user u∈Ud, the time consumed moving
+from POIvito POIvjand visiting vjis represented
+by Equation 5.•Profit (R)∈R: unconstrained resource that repre-
+sents the profit of the itinerary P. As described in
+Section 3.3, for every user u∈Ud, each POI vi∈P
+has a physical profit given by Equation 4.
+In Algorithm 2, function getLabel obtains a label from
+a path while function getPath obtains a path from a label.
+Algorithm 2 operates over two main sets: P, the set of
+useful paths, and Q, the set of unprocessed paths, i.e.,
+paths that have not yet been extended. The useful paths
+P∈Phave already been processed, and they are Pareto-
+optimal paths or prefixes of Pareto-optimal paths. The set
+Pis initially empty (line 1), while the set Qis initiated
+with the trivial path ( v0) (line 2). In summary, the main
+loop (line 3) consists of: 1)selecting and removing a path
+Q∈Q (line 4), 2)making all feasible extensions from Q
+(lines 5-10), 3)addingQtoP(line 11), and 4)identifying
+and removing dominated paths from P∪Q (lines 12-17).
+The algorithm obtains the set of non-dominated paths (or
+itineraries) that end in vertex vn+1(line 18), discarding
+eventual prefixes contained in P.
+Algorithm 2: Dynamic programming ESPPRC
+– MEC-PTIR Stage 1
+Input :G= (V,E);α; (pop(vi),dur(vi),cat(vi))
+∀vi∈V\{v0,vn+1}; (intu(c)∀c∈C,bu)
+Output: setIu∗for a useru∈Ud
+1P←∅
+2Q←{ (v0)}
+3whileQ̸=∅do
+4 Choose a path Q∈Q and remove QfromQ
+5 forallvj∈V| (vj̸=res(Q)andvj/∈Q)do
+6R←getLabel(Q)
+7feasible,R′←Algorithm 3
+(R,vj,α,pop (vj),dur(vj),intu(cat(vj)),bu)
+8 iffeasible =truethen
+9 Q′←getPath(R′)
+10 Add the path Q′toQ
+11 Add the path QtoP
+12 forall pair of paths (P1,P2)∈P∪Q and
+res(P1) =res(P2)do
+13R1←getLabel(P1)
+14R2←getLabel(P2)
+15dominates←Algorithm 4 (R1,R2)
+16 ifdominates =truethen
+17 Remove the path P2
+18FilterPsuch thatres(P) =vn+1∀P∈P
+19returnP
+Let Ξ be the set of all solutions of the ESPPRC, where
+each elementX∈Ξ is a set of Pareto-optimal paths, such
+that:
+∃X∈ Ξ|X⊆{ (Q,P)|Q∈Q,P∈Z(Q)}∪P,(23)
+whereZ(Q) ={P|(Q,P)∈F(vi,vj))∩G} represents
+the set of all feasible extensions. The set F(vi,vj) has all
+10
+
+--- Page 11 ---
+
+resource-feasible paths from vertex vito vertexvj.
+The condition described by Equation (23) is held for
+the initialization of Algorithm 2 (lines 1-2), since vi=v0
+andvj=res(P) =∅. For every vertex vj∈V(line 5), the
+condition described by Equation (23) is verified (line 8) be-
+fore adding the extended path Q′toQ(line 10). This de-
+pends on Algorithm 3 (called in line 7) described latter in
+this section. In addition, to be efficient, Algorithm 2 must
+avoid making extensions over dominated prefix paths, i.e.,
+paths not part of the Pareto front. Thus, after processing
+every path Q∈Q (lines 4-11), the algorithm takes every
+pair of paths ( P1,P2)∈P∪Q whereres(P1) =res(P2)
+(line 12), verifies if P1dominatesP2(line 16) and, if this
+is true, removes the path P2(line 17). This procedure de-
+pends on Algorithm 4 (called in line 15) described latter
+in this section.
+Extension procedure. The goal of Algorithm 3 is to
+verify if path P(described by label R) can be extended
+to vertexvj. After identifying the path Passociated with
+labelR(line 1) and the resident vertex vi=res(P) of
+this path (line 2), the algorithm includes into label R′
+(associated with the extended path P′) the information
+about the time consumed for traveling from vitovjand
+for visiting the vertex (or POI) vj(lines 3-4). The algo-
+rithm also includes into label R′the information about
+the profit of the path P′(line 5). Finally, the algorithm
+verifies if the constrained resource Spend (R′) is inside its
+resource window (line 6), which can be seen as the interval
+[0,bu−Cost u(vi,vj)]. The algorithm returns true , if the
+extension is feasible (line 7), or false (line 9), otherwise.
+Algorithm 3: Extension procedure
+Input : R (label),vj(vertex for path extension),
+α,pop(vj),dur(vj),intu(cat(vj)),bu
+Output: true orfalse to indicate the feasibility or
+not of the extension, R’(label of the path
+extension)
+1P←getPath(R)
+2vi←res(P)
+3ifvj=vn+1then
+4Cost u(vi,vj)←0
+5else
+6Cost u(vi,vj)←ci,j+dur(vj)intu(cat(vj))
+7Spent (R′)←Spent (R) +Cost u(vi,vj)
+8Profit (R′)←Profit (R) +Prof u(vj)
+9ifSpent (R′)≤buthen
+10 return (true,R’)
+11else
+12 return (false ,R’)
+Dominance procedure. In general terms, dominance
+rules identify non-useful paths by comparing the resource
+vectorT(Q) and the set of all feasible extensions Z(Q)
+with the corresponding T(P) andZ(P), such that res(P) =
+res(Q). In the context of the first stage of MEC-PTIR,as described by Algorithm 4, this comparison consists of
+verifying if label R1(corresponding to path P1) provides
+a higher or equal profit and consumes less or equal time
+than labelR2(that corresponds to path P2) (line 1). The
+algorithm returns true if the condition is satisfied (line 2)
+orfalse (line 4), otherwise. When the condition is true,
+pathP2must be removed since it was identified as equal
+to or worse than P1.
+Algorithm 4: Dominance procedure
+Input : R 1(label), R2(label)
+Output: true ifR1dominates R2,false otherwise
+1ifProfit (R1)≥Profit (R2)and
+Spent (R1)≤Spent (R2)then
+2 return true
+3else
+4 return false
+5.2. Complexity Analysis of +Tour Algorithm
+In this Section, we analyze the complexity of +Tour,
+represented by Algorithm 1, which is composed of Algo-
+rithm 2 (A2), Algorithm 3 ( A3), Algorithm 4 ( A4), and
+Stage 2 (S2). In the worst case, the complexity of Al-
+gorithm 1 isO/parenleftbig
+|Ud|O(A2)/parenrightbig
++O(S2), i.e., the iteration
+through all users in Ud(line 2) times the complexity of
+Algorithm 2 (line 3), plus the complexity of Stage 2 (line
+5). The complexity of Algorithm 2 is O/parenleftig
+|Q|/parenleftbig
+|V|O(A3) +
+|P∪Q| (|P∪Q|− 1)
+2O(A4)/parenrightbig/parenrightig
++O(|P|), i.e., the iteration through
+all paths inQ(line 3), times the iteration through all POIs
+inV(line 5) times the complexity of Algorithm 3 (line
+7), plus the combination of path pairs in P∪Q (line 12)
+times the complexity of Algorithm 4 (line 15), plus the it-
+eration through the paths in P(line 18). In line 12, since
+P∩Q =∅, in the worst case, |P|,|Q|and|P∪Q| are
+all equal to/summationtextn
+k=1n!
+(n−k)!wheren=|V|andkrepresent
+the number of extensions. Finally, Algorithms 3 and 4 are
+constant, i.e., their complexity is O(1).
+6. Data Characterization
+We extract data from Flickr1, a real-world location-
+based photo-sharing application, to derive user travel his-
+tories and visiting-related statistics. The purpose of using
+real-world data is three-fold: (i) to show how real data
+can feed our model of POI information and user prefer-
+ences; (ii) to characterize real-world visiting patterns; and
+(iii) to achieve a more realistic evaluation of the +Tour.
+With this goal in mind, we collect data from thirteen cities
+across four different continents, namely Asia (New Delhi
+and Osaka), Europe (Athens, Barcelona, Budapest, Ed-
+inburgh, Glasgow, London, Madrid, and Vienna), North
+America (Toronto), and Oceania (Perth and Melbourne).
+11
+
+--- Page 12 ---
+
+These cities are important from a tourist point of view and
+guarantee variety and diversity in our evaluation. Next, we
+first describe our methodology for data extraction. Then,
+we present an exploratory analysis of our dataset.
+6.1. Data extraction methodology
+We use the Google Places API3to obtain the list of
+POIs of the cities. Each city identifies each POI by ID,
+name, latitude, and longitude, as well as the category to
+which it belongs. The cost ci,jof an edge connecting two
+POIsviandvjin the same list is computed using the
+Google Matrix Distance API4in the walking mode.
+We use the Flickr API5to extract geo-tagged photos
+and derive user travel histories for each city, except for
+Melbourne whose data is provided by [40]. Each Flickr
+photo is tagged with the user ID of the photo owner, times-
+tamp, and coordinates (latitude and longitude).
+For each city, we combine its photo dataset with its
+POI list to generate the set Sof travel histories in the
+city. First, we match each photo to the corresponding
+POI using the geo-coordinates of the photo and the POI.
+A photo is mapped to a POI if its geo-coordinates differ
+by less than 100 meters according to the Haversine for-
+mula. If this condition holds for more than one POI, the
+photo is associated with the nearest POI, so each photo
+is mapped to a single POI. Then, we construct the travel
+historySufor each user, sorting the photos by user ID
+and timestamp and grouping consecutive POI visits in the
+same travel sequence if the travel sequence duration does
+not exceed 8 hours. Then, for each POI viin a travel se-
+quence, we take the time of the first and the last photo
+taken by user uatvias the arrival ( ta
+vi) and departure
+(td
+vi) time in that POI, respectively. Finally, we discard
+travel sequences with cycles (repeated POI visits), with
+POIs with less than five visits, or with only one photo
+(since they result in a sequence duration of zero seconds).
+Table 3 details our resulting dataset, which is also publicly
+available in a GitHub repository6.
+6.2. Data analysis
+Using our dataset, we compute the visiting-related statis-
+tics, i.e., POI popularity, expected POI visiting time, and
+user’s interests in a given category for each city. Next, we
+analyze our dataset’s most relevant visiting-related statis-
+tics and patterns. Due to space limitations, we present
+results only for the five cities with the most distinguished
+patterns, namely London, Melbourne, Osaka, Perth, and
+Toronto. The complete data analysis is available at the
+GitHub repository6.
+Figure 4 shows the Probability Density Function (PDF)
+(blue bars) and the Cumulative Distribution Function (CDF)
+3https://developers.google.com/places/web-service/intro
+4https://developers.google.com/maps/documentation/
+distance-matrix/start
+5https://www.flickr.com/services/developer/api/
+6https://github.com/LABORA-INF-UFG/plusTour(red line) of the POI Popularity for each analyzed city.
+POI popularity exhibits similar patterns among most cities,
+with more than 50% of the visits being concentrated in
+usually 5 POIs, while most POIs are rarely visited. POI
+popularity is slightly different in London and Melbourne,
+where a single POI (the Trafalgar Square in London and
+the City Square in Melbourne) holds the majority of the
+visits.
+Figure 5 shows the relation between POI popularity
+(blue bars) and the number of photos taken in the POI
+(red bar). POIs are sorted by popularity, and the top 3
+POIs in the number of photos are highlighted with a star.
+Usually, the top 3 POIs in the number of photos appear
+among the top 10 POIs in popularity, showing that popu-
+larity does not always correlate to the number of photos.
+Perth presents a greater imbalance between popularity and
+number of photos per POI.
+Figure 6 shows the CDF of the expected (average) POI
+visiting time. In all analyzed cities, the expected POI
+visiting time is short, with 50% lasting less than 50 minutes
+and 90% lasting less than 1 hour. Melbourne presents the
+distribution with the shortest expected POI visiting time,
+with 50% lasting less than 30 minutes. Figure 7 shows a
+complementary analysis of the CDF of the expected POI
+visiting time, but here, the CDF is presented considering
+all POIs in all cities in our dataset. The figure shows three
+POI groups: Quick-visited (QV,≤30 minutes, in red),
+Normal-visited (NV,>30 minutes and≤60 minutes, in
+green), and Long-visited (LV,>60 minutes, in blue).
+The result shows that more than 80% of the POIs are
+either in the Quick-visited group or the Normal-visited
+group, and few POIs go beyond the 1-hour visiting time,
+confirming the result presented in Figure 6. Figure 8 an-
+alyzes the POI popularity (in terms of number of visits)
+in each group illustrated in Figure 7. The Quick-visited
+group contains 168 POIs and a total of 10848 visits; the
+group Normal-visited contains 159 POIs and 12306 visits;
+and the Long-visited group is composed of the remaining
+74 POIs with 5516 visits. This result shows that the most
+popular POIs do not present the highest expected visiting
+times.
+The last visiting-related statistic analyzed in our dataset
+is the distribution of the user’s interest in the POI cate-
+gories, illustrated in Figure 9. The figure shows that the
+distribution is quite different in the cities. In London and
+Perth, the user’s interest is concentrated in a few categories
+(e.g., Entertainment, Museum, and Shopping in London
+and Entertainment and Amusement in Perth). In other
+cities, it is more evenly distributed. Melbourne is the city
+where users have visited the most different POI categories.
+To better understand the visiting patterns in our dataset,
+we analyze the user travel sequences, i.e., Su⊂S,∀u∈U.
+Figure 10 shows the CDF of the travel sequence duration,
+computed as the time difference between the last photo of
+the last POI and the first photo of the first POI. The dura-
+tion of the travel sequences is also short, with 50% lasting
+less than 50 minutes in all cities except for Melbourne. In-
+12
+
+--- Page 13 ---
+
+Table 3: Dataset summary.
+City Country Continent Photos Users Sequences Valid sequences POIs POI categories
+Athens Greece Europe 5026 291 516 509 24 5
+Barcelona Spain Europe 13654 782 1654 1634 29 8
+Budapest Hungary Europe 8090 573 2361 1058 36 6
+Edinburgh Scotland Europe 20620 879 5028 2405 25 6
+Glasgow Scotland Europe 8172 367 2227 969 25 7
+London England Europe 48519 2198 5018 4949 30 10
+Madrid Spain Europe 20881 577 1396 1382 30 8
+Melbourne Australia Oceania 15255 626 5106 2096 84 9
+New Delhi India Asia 2961 186 489 278 19 6
+Osaka Japan Asia 5306 279 1115 540 23 4
+Perth Australia Oceania 2503 99 716 307 19 7
+Toronto Canada North America 30267 846 6057 2721 29 6
+Vienna Italy Europe 22432 704 3193 1613 28 8
+13 cities 10 countries 4 continents 203686 8407 34876 20461 401 20 (unique)
+1 10 20 30
+POI0.00.20.40.60.81.0 Popularity PDFLondon
+0.00.20.40.60.81.0
+Popularity CDF
+1 20 40 60 84
+POI0.00.20.40.60.81.0 Popularity PDFMelbourne
+0.00.20.40.60.81.0
+Popularity CDF
+1 10 2023
+POI0.00.20.40.60.81.0 Popularity PDFOsaka
+0.00.20.40.60.81.0
+Popularity CDF
+1 10 19
+POI0.00.20.40.60.81.0 Popularity PDFPerth
+0.00.20.40.60.81.0
+Popularity CDF
+1 10 20 29
+POI0.00.20.40.60.81.0 Popularity PDFToronto
+0.00.20.40.60.81.0
+Popularity CDF
+Figure 4: POI popularity Distribution. PDF is presented in blue, and CDF is shown in red. Values have been normalized so that the
+popularity of the most popular POI equals 1.
+1 10 20 30
+POI100101102103104105106Amount (log scale)London
+Popularity
+Number of photos (NPs)
+Top 3 POIs in NPs
+1 20 40 60 84
+POI100101102103104105106Amount (log scale)Melbourne
+1 10 2023
+POI100101102103104105106Amount (log scale)Osaka
+1 10 19
+POI100101102103104105106Amount (log scale)Perth
+1 10 20 29
+POI100101102103104105106Amount (log scale)Toronto
+Figure 5: POI Popularity (in blue) and number of photos taken in each POI (in red). POI popularity is given in the number of POI visits.
+The top 3 POIs in the number of photos are marked with stars.
+deed, the travel sequence duration throughout the cities
+presents a similar behavior, with most sequences having
+a duration shorter than 2 hours and few travel sequences
+reaching the 8-hour duration.
+We also analyze the travel sequence length, i.e., the
+number of POIs composing a travel sequence. Figure 11
+shows the CDF of the travel sequence length. In all ana-
+lyzed cities, 80% of the travel sequences are composed of
+two or fewer POI, evidencing that, in the Flickr dataset,
+most of the travel sequences are composed of few visits.
+Indeed, in London, almost 90% of the travel sequences
+have a single POI visit. Melbourne stands out for having
+few sequences with 14 POIs, showing some users with a
+high exploratory behavior. On the other hand, no tourist
+in Osaka visited more than 5 POIs in a day.
+7. Experimental Evaluation
+In this section, we evaluate the performance of +Tour
+using our dataset. First, we describe the baseline used for
+comparison (Section 7.1). Then, we describe the evalu-
+ation methodology (Section 7.2). Finally, we discuss and
+draw conclusions based on the obtained results (Section 7.3).7.1. Baseline algorithm
+Since currently, PersTour [10] is the state-of-the-art for
+PTIR exact solutions targeting the one-day, single-traveler
+case, we compare +Tour against PersTour. However, Per-
+sTour does not consider MEC resources and service ap-
+plication demands while generating the itinerary. Thus,
+to use it to solve the MEC-PTIR problem, we adapt the
+algorithm as follows:
+•Since PersTour is designed for a single tourist to pro-
+duce itineraries for every user u∈Ud, we run|Ud|
+independent instances of PersTour, i.e., one instance
+per user.
+•We then use the single itinerary generated by Pers-
+Tour for each tourist as input to our implementation
+that solves the second stage of the MEC-PTIR prob-
+lem. This approach may lead to infeasible solutions
+since PersTour generates a single itinerary for each
+tourist instead of a Pareto-front as the first stage of
++Tour. When this happens, we solve the problem
+by relaxing the constraints of minimum allocation
+for service applications. Consequently, in terms of
+13
+
+--- Page 14 ---
+
+0 50 100 150 200 250
+Duration (in minutes)0.00.20.40.60.81.0 CDFLondon
+Expected POI
+visiting time
+050100 150 200 250
+Duration (in minutes)0.00.20.40.60.81.0 CDFMelbourne
+0 50 100 150 200 250
+Duration (in minutes)0.00.20.40.60.81.0 CDFOsaka
+050100 150 200 250
+Duration (in minutes)0.00.20.40.60.81.0 CDFPerth
+0 50 100 150 200 250
+Duration (in minutes)0.00.20.40.60.81.0 CDFTorontoFigure 6: CDF of the expected POI visiting time.
+0 30 60 90 120 150 180 210 240
+Expected POI visiting time (min)0.00.20.40.60.81.0 CDF QV:  30 min
+NV: > 30 min and  60 min
+LV: > 60 min
+Figure 7: Expected POI visiting time clustering.
+Quick-visited Normal-visited Long-visited100101102103104105Amount (log scale)Number of POIs Popularity
+Figure 8: Number of POIs vs. POI Popularity.
+Building
+Entertainment
+Historical
+Museum
+Palace
+Parks and spaces
+Precinct
+Shopping
+Transport
+Zoo
+Entertainment
+Institutions
+Parks and spaces
+Precinct
+Public galleries
+Shopping
+Sport
+Structures
+Transport
+Amusement
+Entertainment
+Historical
+Parks and spaces
+Cultural
+Entertainment
+Parks and spaces
+Precinct
+Sport
+Structures
+Transport
+Amusement
+Beach
+Cultural
+Shopping
+Sport
+Structures
+POI category0.00.10.20.30.4Tourist interestLondon
+MelbournePerth
+OsakaToronto
+Figure 9: Distribution of the tourists’ interest in the POI categories.
+user experience, the effective performance of Pers-
+Tour is even worse than the one shown in the fol-
+lowing subsections. In the next sections, we refer to
+this modified version of PersTour as Resource-aware
+PersTour (RA-PersTour).
+7.2. Evaluation methodology
+In our evaluation, we consider that the MTC offers two
+applications for tourists: MAR and MVS, i.e.,A={MAR,MVS}. The requirements of an MAR ap-
+plication are taken from [41], while the requirements of
+a MVS application are based on the Netflix stream ser-
+vice website7. Table 4 shows the network and processing
+requirements for both applications.
+We assume three scenarios for the ICT Infrastructure,
+as illustrated in Table 5. Aligned with experimental evi-
+dence in [42], we define the high network overload scenario,
+where the amount of network resources available at each
+POI is 75 Mbps. We also define the medium and low net-
+work overload scenarios containing double and triple the
+amount of network resources at each POI. For the com-
+puting resources, we consider two MEC hosts ( |M| = 2),
+each one with 37.5 Reference Cores (RCs), i.e., ψm= 37.5
+RC, for all scenarios. Based on [41], we assume that one
+RC is equivalent to an Intel Haswell i7-4770 @3.40GHz
+processing power.
+For each city, we use the set of travel histories ( S) to
+generate a set with 250 users, i.e., for each city, we consider
+|Ud|=250. We then provide the set of POIs ( G= (V,E)),
+the ICT infrastructure scenario (Table 5), and the set of
+users (Ud) and their interests (extracted from S) as in-
+put to +Tour and RA-PersTour. We evaluate both al-
+gorithms using leave-one-out cross-validation [43], i.e., for
+each useru∈Ud, we use all travel sequences Suofuto
+build her user’s interest ( intu(c),∀c∈ C), except the
+one we want to test. We also use the duration of the
+testing travel sequence to define, respectively, the user’s
+budget (bu) and the set of applications that she will con-
+sume during the tour ( Au). The latter is defined based
+on our analysis presented in Figure 7 as follows. If the
+testing travel sequence belongs to the Quick-visited group,
+we randomly assign one of the following options to Au:
+{none}or{MVS}. Otherwise, we randomly choose one of
+the following options to Au:{MVS},{MAR}, or{MVS,
+MAR}. The rationality behind this approach is that users
+with short budgets will be willing to watch no application
+or fast MVS. Table 6 along with Tables 4 and 5 summarize
+the main parameters and values employed in our evalua-
+tion.
+We use Recall ,Precision , and F-score to evaluate
++Tour and RA-PersTour. We also introduce two new
+metrics, namely, Allocation Efficiency (AE) and User
+Experience (UE) to assess the performance of the algo-
+rithms on allocating resources in the network edge and on
+7https://help.netflix.com/en/node/306
+14
+
+--- Page 15 ---
+
+0100 200 300 400 500
+Duration (in minutes)0.00.20.40.60.81.0 CDFLondon
+Sequence
+duration
+0100 200 300 400 500
+Duration (in minutes)0.00.20.40.60.81.0 CDFMelbourne
+0100 200 300 400 500
+Duration (in minutes)0.00.20.40.60.81.0 CDFOsaka
+0100 200 300 400 500
+Duration (in minutes)0.00.20.40.60.81.0 CDFPerth
+0100 200 300 400 500
+Duration (in minutes)0.00.20.40.60.81.0 CDFTorontoFigure 10: CDF of the travel sequence duration.
+13 6 9 12 15
+Sequence length0.00.20.40.60.81.0 CDFLondon
+13 6 9 12 15
+Sequence length0.00.20.40.60.81.0 CDFMelbourne
+13 6 9 12 15
+Sequence length0.00.20.40.60.81.0 CDFOsaka
+13 6 9 12 15
+Sequence length0.00.20.40.60.81.0 CDFPerth
+13 6 9 12 15
+Sequence length0.00.20.40.60.81.0 CDFToronto
+Figure 11: CDF of the travel sequence length.
+Table 4: Requirements of the applications, taken from [41] and
+Netflix stream service website7.
+Application λmin
+aλmax
+aψmin
+aψmax
+a
+MAR 1 Mbps 10 Mbps 0.1 RC 1 RC
+MVS 1.5 Mbps 25 Mbps 0 (None) 0 (None)Table 5: Evaluation scenarios.
+Scenario λ(vi)ψm
+High network overload 75 Mbps 37.5 RCs
+Medium network overload 150 Mbps 37.5 RCs
+Low network overload 300 Mbps 37.5 RCs
+Table 6: Model parameters.
+Parameter Value
+|Ud| 250
+|V| 19 - 84
+|M| 2
+α 0.5
+∆t 1 minute
+T 480 minutes
+the overall user experience provided by the recommended
+itinerary. Assuming that Suis the real-world testing travel
+sequence and Ik
+u∗is the generated itinerary, these metrics
+are defined as follows.
+•Recall : the fraction of POIs from the real-world
+testing travel sequence that also exists in the gener-
+ated itinerary.
+•Precision : the fraction of POIs from the generated
+itinerary that also exists in the real-world testing
+travel sequence.
+•F-score : the model accuracy represented by the har-
+monic mean of Recall andPrecision .
+•Allocation Efficiency : the amount of computing
+and network resource allocated to the generated itinerary,
+relative to the maximum amount demanded by the
+set of chosen applications, i.e.:
+AE(Ik
+u∗) =/summationdisplay
+vi∈V\{ v0,vn+1}p(Ik
+u∗,vi)
+2|Iku∗\{v0,vn+1}|λmaxu+
+/summationdisplay
+vi∈V\{ v0,vn+1}/summationdisplay
+m∈Mq(Ik
+u∗,vi,m)
+2|Iku∗\{v0,vn+1}|ψmaxu.(24)•User Experience : determines the relation between
+the allocation efficiency associated with the gener-
+ated itinerary (virtual experience) and the profit as
+perceived by the user for this itinerary (physical ex-
+perience), i.e.:
+UE(Ik
+u∗) =AE(Ik
+u∗)Norm (Prof (Ik
+u∗)).(25)
+7.3. Results and discussions
+We run all experiments in a virtual machine (VM) that
+runs Debian 11 GNU/Linux and is configured with 4 vC-
+PUs, 32 GB RAM, and 136 GB of virtual disk. The VM
+is hosted on a 2 Intel Xeon Silver 4114 @2.20GHz server.
+The first stage of +Tour is implemented using C++. The
+second stage uses Python 3.8.2, docplex 2.23.222, and IBM
+ILOG CPLEX 20.1.0 (as the solver). The RA-PersTour al-
+gorithm is also implemented using Python 3.8.2, docplex
+2.23.222, and IBM CPLEX 20.1.0.
+Table 7 shows the gain obtained by +Tour (+T) over
+RA-PersTour (RA) when comparing both algorithms in
+terms of AEandUEfor all scenarios (London - LO, Mel-
+bourne - ME, Osaka - OS, Perth - PE and Toronto - TO).
+We observe that +Tour outperforms RA-PersTour in all
+scenarios when considering all sequence lengths, especially
+the high network overload, showing gains up to 11% for
+AE and 40% for UE. Considering only itineraries with
+more than 3 POIs, the gains for AEandUE are even
+greater, reaching, respectively, 74% and 65%. The CDF
+for each metric, including recall, precision, and F-score, is
+presented in Figure 12.
+Figure 12 shows a CDF for all evaluated metrics to
+better illustrate the results’ distribution. As can be seen
+in the AE andUE corresponding rows (3 and 4), our
+15
+
+--- Page 16 ---
+
+Table 7: Tour gain compared to RA-PersTour.
+All sequences lengths
+High overload Medium overload Low overload
+LO ME OS PE TO LO ME OS PE TO LO ME OS PE TO
++T AE 0.653 0.794 0.584 0.514 0.672 0.746 0.911 0.687 0.602 0.797 0.872 0.942 0.798 0.718 0.874
+RA AE 0.649 0.731 0.552 0.461 0.657 0.744 0.852 0.665 0.579 0.793 0.869 0.885 0.791 0.704 0.870
+Gain AE 0.67% 8.64% 5.67% 11.47% 2.29% 0.32% 6.95% 3.24% 3.88% 0.49% 0.27% 6.41% 0.80% 2.03% 0.53%
++T UE 0.106 0.119 0.106 0.135 0.134 0.114 0.131 0.121 0.153 0.152 0.125 0.135 0.138 0.176 0.165
+RA UE 0.103 0.085 0.084 0.099 0.123 0.112 0.097 0.108 0.137 0.151 0.124 0.101 0.132 0.171 0.163
+Gain UE 2.25% 40.6% 25.7% 35.6% 8.85% 1.19% 35.5% 12.2% 11.2% 0.84% 1.08% 33.7% 4.42% 2.81% 0.94%
+Sequences greater than 3
++T AE 0.904 0.863 0.843 0.840 0.845 0.937 0.952 0.917 0.901 0.932 0.941 0.990 0.952 0.949 0.982
+RA AE 0.868 0.642 0.603 0.482 0.756 0.917 0.749 0.751 0.756 0.908 0.921 0.796 0.906 0.914 0.954
+Gain AE 4.15% 34.3% 39.7% 74.2% 11.8% 2.18% 27.1% 22.2% 19.2% 2.57% 2.17% 24.4% 5.05% 3.77% 2.91%
++T UE 0.538 0.355 0.419 0.640 0.565 0.555 0.379 0.472 0.726 0.625 0.560 0.389 0.480 0.789 0.654
+RA UE 0.519 0.231 0.254 0.389 0.500 0.544 0.261 0.357 0.619 0.617 0.549 0.273 0.441 0.775 0.645
+Gain UE 3.70% 53.4% 65.1% 64.2% 12.9% 2.04% 45.2% 32.2% 17.3% 1.22% 2.02% 42.8% 8.90% 1.80% 1.41%
+0.0 0.2 0.4 0.6 0.8 1.0
+Itinerary Metrics0.00.20.40.60.81.0 CDFLondon
+Recall
+Precision
+F-Score  RA-PersTour
+  n5GTour
+0.0 0.2 0.4 0.6 0.8 1.0
+Itinerary Metrics0.00.20.40.60.81.0 CDFMelbourne
+0.0 0.2 0.4 0.6 0.8 1.0
+Itinerary Metrics0.00.20.40.60.81.0 CDFOsaka
+0.0 0.2 0.4 0.6 0.8 1.0
+Itinerary Metrics0.00.20.40.60.81.0 CDFPerth
+0.0 0.2 0.4 0.6 0.8 1.0
+Itinerary Metrics0.00.20.40.60.81.0 CDFToronto
+0.0 0.2 0.4 0.6 0.8 1.0
+Itinerary Metrics0.00.20.40.60.81.0 CDFLondon
+0.0 0.2 0.4 0.6 0.8 1.0
+Itinerary Metrics0.00.20.40.60.81.0 CDFMelbourne
+0.0 0.2 0.4 0.6 0.8 1.0
+Itinerary Metrics0.00.20.40.60.81.0 CDFOsaka
+0.0 0.2 0.4 0.6 0.8 1.0
+Itinerary Metrics0.00.20.40.60.81.0 CDFPerth
+0.0 0.2 0.4 0.6 0.8 1.0
+Itinerary Metrics0.00.20.40.60.81.0 CDFToronto
+0.0 0.2 0.4 0.6 0.8 1.0
+Allocation0.00.20.40.60.81.0 CDFLondon
+  Seq.  3
+  Seq. > 3
+n5GTour
+RA-PersTour
+0.0 0.2 0.4 0.6 0.8 1.0
+Allocation0.00.20.40.60.81.0 CDFMelbourne
+0.0 0.2 0.4 0.6 0.8 1.0
+Allocation0.00.20.40.60.81.0 CDFOsaka
+0.0 0.2 0.4 0.6 0.8 1.0
+Allocation0.00.20.40.60.81.0 CDFPerth
+0.0 0.2 0.4 0.6 0.8 1.0
+Allocation0.00.20.40.60.81.0 CDFToronto
+0.0 0.2 0.4 0.6 0.8 1.0
+User Experience0.00.20.40.60.81.0 CDFLondon
+  Seq.  3
+  Seq. > 3
+n5GTour
+RA-PersTour
+0.0 0.2 0.4 0.6 0.8 1.0
+User Experience0.00.20.40.60.81.0 CDFMelbourne
+0.0 0.2 0.4 0.6 0.8 1.0
+User Experience0.00.20.40.60.81.0 CDFOsaka
+0.0 0.2 0.4 0.6 0.8 1.0
+User Experience0.00.20.40.60.81.0 CDFPerth
+0.0 0.2 0.4 0.6 0.8 1.0
+User Experience0.00.20.40.60.81.0 CDFToronto
+Figure 12: CDF with the distribution of results for high overload scenario, relative to the itinerary metrics (first two rows), and the allocation
+and user experience metrics (last two rows). In itinerary metrics, the first line represents results for sequence lengths greater than 3. The
+second line represents results for sequences smaller or equal to 3.
+solution never presents results inferior to RA-PersTour, at
+most equaling the results for sequences less than or equal
+to 3, when there is no flexibility in choosing an itinerary
+from the Pareto front. For Recall ,Precision , and F-
+score (rows 1 and 2), we can see that +Tour has similar
+accuracy to RA-PersTour with lower accuracy at certain
+points. This loss is justified by the gain observed in AEandUEfor sequences greater than 3.
+Figure 13 shows the resolution time for +Tour’s first
+and second phases. For all cities, except Melbourne, the
+total resolution time was less than 20 seconds. In Mel-
+bourne, the number of POIs is much higher than in all
+other cities. Therefore, it takes longer in phase 1, where
+the Pareto front of candidate itineraries is generated. In
+16
+
+--- Page 17 ---
+
+fact, for Melbourne, the first phase took approximately
+656 seconds, while phase 2 reached 44, 47, and 69 seconds
+in the high, medium, and low scenarios, respectively. In-
+deed, our approach to solving the first stage of the problem
+using a dynamic programming version of the ESPPRC has
+proven to be very efficient, taking less than 11 minutes for
+Melbourne and less than 15 seconds for the other cities.
+This is an important result since the databases of other
+cities may demand scalability similar to the one observed
+in Melbourne.
+London
+Melbourne
+Osaka
+Perth
+Toronto100101102103Time in seconds (log scale)High overload
+1st
+ phase
+2nd
+ phase
+London
+Melbourne
+Osaka
+Perth
+Toronto100101102103Time in seconds (log scale)Medium overload
+London
+Melbourne
+Osaka
+Perth
+Toronto100101102103Time in seconds (log scale)Low overload
+Figure 13: Time of solving the two phases of +Tour.
+In general, based on the experiments carried out, our
+solution presents superior results regarding the allocation
+of resources, which improves the user experience when us-
+ing the applications offered in the POIs. We observed
+gains of up to 74% and 65% in terms of resource alloca-
+tion and user experience, respectively, while the accuracy
+of the itineraries remained similar to RA-PersTour. Fi-
+nally, +Tour makes itinerary recommendations, consider-
+ing realistically sized instances in a reasonable amount of
+time.
+8. Conclusions and Future Work
+In this work, we propose +Tour, a two-stage solution to
+the resource-constrained itinerary recommendation prob-
+lem. Our approach simultaneously maximizes profit and
+resource allocation while minimizing travel costs. We pro-
+vide an extensive data characterization based on real-world
+POI visitation history from 13 cities spread across 4 conti-
+nents. This dataset includes 20461 valid tour sequences
+generated by 8407 users who visited 401 POIs divided
+across 20 unique categories, which allows us to evaluate
++Tour in realistic size scenarios. We also compare our so-
+lution to the state-of-the-art RA-PersTour, demonstrating
+that our approach achieves up to 74.2% improvement in
+Allocation Efficiency and 65.1% in User Experience while
+maintaining competitive performance in traditional met-
+rics such as Recall, Precision, and F-Score. +Tour induces
+cooperative behavior in the tourists, which may benefit the
+users and the touristic service provider. In practice, we are
+aware that the tourists may not follow the recommenda-
+tions, degrading the estimated performance. However, this
+issue negatively affects any recommendation system.In future work, we intend to use graph neural net-
+works (GNN) to solve the problem of jointly designing
+personalized tour itinerary recommendations and resource
+allocation. Among the methods for modeling preferences
+based on historical data, the most promising ones are ma-
+chine learning techniques, especially those that consider
+the problem’s structural characteristics. Most data in rec-
+ommendation systems naturally have a graph structure.
+GNN takes advantage of this to learn the representation
+of a given POI based on all POIs visited previously and
+subsequently in a tour. For this reason, applying GNN has
+proven beneficial in recommendation problems to allow the
+extraction of user trends based on their preferences.
+We also intend to broaden the scope to include other
+types of immersive applications with stringent requirements
+anticipated with the advancements of 5G and beyond, such
+as the metaverse. Additionally, we plan to evaluate the
+impact of non-cooperative users, i.e., tourists who do not
+follow the recommendations, in combination with other
+real-world aspects such as the need for waiting in lines at
+busy POIs and the availability of different types of trans-
+portation with different costs. A promising approach to
+be explored in the context of non-cooperative users is the
+Probabilistic Orienteering Problem [44], a variant of the
+OP Problem where tourists may visit a POI according to
+a certain probability. Finally, once developing a GNN ver-
+sion of the MEC-PTIR problem as well as the version that
+accounts for non-cooperative users, we intend to expand
+our evaluation using more baseline algorithms.
+Acknowledgment
+The authors thank Dante Campos for his contributions
+to the optimization model. This work was supported by
+CAPES, the Brasil 6G project under Grant 01245.020548/2021-
+07, and LaMCAD/UFG.
+References
+[1] European Commission, European Capitals of Smart Tourism,
+https://smart-tourism-capital.ec.europa.eu/index_en ,
+[Last access: Mar-26-2023] (2023).
+[2] T. H. Silva, A. C. Viana, F. Benevenuto, L. Villas, J. Salles,
+A. Loureiro, D. Quercia, Urban Computing Leveraging
+Location-Based Social Network Data: A Survey, ACM Com-
+put. Surv. 52 (1) (2019).
+[3] K. H. Lim, J. Chan, S. Karunasekera, C. Leckie, Tour recom-
+mendation and trip planning using location-based social media:
+a survey, Knowledge and Information Systems 60 (3) (2018)
+1247–1275.
+[4] S. Renjith, A. Sreekumar, M. Jathavedan, An extensive study
+on the evolution of context-aware personalized travel recom-
+mender systems, Information Processing & Management 57 (1)
+(2020) 102078.
+[5] P. Yochum, L. Chang, T. Gu, M. Zhu, Linked Open Data in
+Location-Based Recommendation System on Tourism Domain:
+A Survey, IEEE Access 8 (2020) 16409–16439.
+[6] S. Halder, K. H. Lim, J. Chan, X. Zhang, A survey on person-
+alized itinerary recommendation: From optimisation to deep
+learning, Applied Soft Computing 152 (2024).
+[7] M. De Choudhury, M. Feldman, S. Amer-Yahia, N. Golbandi,
+R. Lempel, C. Yu, Automatic Construction of Travel Itineraries
+Using Social Breadcrumbs, in: Proceedings of the 21st ACM
+Conference on Hypertext and Hypermedia, 2010, p. 35–44.
+17
+
+--- Page 18 ---
+
+[8] I. Brilhante, J. A. Macedo, F. M. Nardini, R. Perego, C. Renso,
+Where Shall We Go Today?: Planning Touristic Tours with
+Tripbuilder, in: Proceedings of the 22Nd ACM International
+Conference on Information & Knowledge Management, 2013,
+pp. 757–762.
+[9] Z. Yu, H. Xu, Z. Yang, B. Guo, Personalized Travel Pack-
+age With Multi-Point-of-Interest Recommendation Based on
+Crowdsourced User Footprints, IEEE Transactions on Human-
+Machine Systems 46 (1) (2016) 151–158.
+[10] K. H. Lim, J. Chan, C. Leckie, S. Karunasekera, Personalized
+trip recommendation for tourists based on user interests, points
+of interest, visit durations and visit recency, Knowledge and
+Information Systems 54 (2) (2018) 375–406.
+[11] L. Chen, L. Zhang, S. Cao, Z. Wu, J. Cao, Personalized itinerary
+recommendation: Deep and collaborative learning with tex-
+tual information, Expert Systems with Applications 144 (2020)
+113070.
+[12] L. Chen, J. Cao, H. Tao, J. Wu, Trip Reinforcement Recom-
+mendation with Graph-Based Representation Learning, ACM
+Trans. Knowl. Discov. Data 17 (4) (2023).
+[13] Z. Chen, W. Hu, J. Wang, S. Zhao, B. Amos, G. Wu, K. Ha,
+K. Elgazzar, P. Pillai, R. Klatzky, D. Siewiorek, M. Satya-
+narayanan, An Empirical Study of Latency in an Emerging
+Class of Edge Computing Applications for Wearable Cognitive
+Assistance, in: Proceedings of the Second ACM/IEEE Sympo-
+sium on Edge Computing, 2017, pp. 1–14.
+[14] P. Y. Zhou, S. Fu, B. Finley, X. Li, S. Tarkoma, J. Kangasharju,
+M. Ammar, P. Hui, 5G MEC Computation Handoff for Mobile
+Augmented Reality, in: 2024 IEEE International Conference
+on Metaverse Computing, Networking, and Applications (Meta-
+Com), 2024, pp. 129–136.
+[15] Y. Siriwardhana, P. Porambage, M. Liyanage, M. Ylianttila, A
+Survey on Mobile Augmented Reality With 5G Mobile Edge
+Computing: Architectures, Applications, and Technical As-
+pects, IEEE Communications Surveys & Tutorials 23 (2) (2021)
+1160–1192.
+[16] F. F. Fonseca, L. Mamatas, A. C. Viana, S. L. Correa, K. V.
+Cardoso, Personalized Travel Itineraries with Multi-Access Edge
+Computing Touristic Services, in: 2019 IEEE Global Commu-
+nications Conference (GLOBECOM), 2019, p. 1–6.
+[17] F. S. Hillier, G. J. Lieberman, Introduction to operations re-
+search, McGraw-Hill, 2015.
+[18] A. Rehman, K. Haseeb, T. Saba, J. Lloret, Z. Ahmed, To-
+wards Resilient and Secure Cooperative Behavior of Intelligent
+Transportation System Using Sensor Technologies, IEEE Sen-
+sors Journal 22 (7) (2022) 7352–7360.
+[19] W. Fang, C. Qin, D. Zhou, J. Yin, Z. Liu, X. Guan, The Im-
+pact of Cooperative Behavior between Social Organizations dur-
+ing the COVID-19 Pandemic Outbreak in Shanghai: A Simu-
+lation Approach, International Journal of Environmental Re-
+search and Public Health 20 (2) (2023).
+[20] M. Li, C. Han, Z. Shao, L. Meng, Exploring the evolution-
+ary mechanism of the cross-regional cooperation of construction
+waste recycling enterprises: A perspective of complex network
+evolutionary game, Journal of Cleaner Production 434 (2024)
+139972.
+[21] P. Vansteenwegen, D. Van Oudheusden, The Mobile Tourist
+Guide: An OR Opportunity, OR Insight 20 (3) (2007) 21–27.
+[22] P. Vansteenwegen, W. Souffriau, D. V. Oudheusden, The ori-
+enteering problem: A survey, European Journal of Operational
+Research 209 (1) (2011) 1–10.
+[23] D. Gavalas, C. Konstantopoulos, K. Mastakas, G. Pantziou, A
+survey on algorithmic approaches for solving tourist trip design
+problems, Journal of Heuristics 20 (2014) 291–328.
+[24] N. C. Chen, W. Xie, R. E. Welsch, K. Larson, J. Xie, Com-
+prehensive predictions of tourists’ next visit location based on
+call detail records using machine learning and deep learning
+methods, in: 2017 IEEE International Congress on Big Data
+(BigData Congress), 2017, pp. 1–6.
+[25] J. Liao, T. Liu, M. Liu, J. Wang, Y. Wang, H. Sun, Multi-
+Context Integrated Deep Neural Network Model for Next Lo-cation Prediction, IEEE Access 6 (2018) 21980–21990.
+[26] X. Fan, L. Guo, N. Han, Y. Wang, J. Shi, Y. Yuan, A Deep
+Learning Approach for Next Location Prediction, in: 2018 IEEE
+22nd International Conference on Computer Supported Coop-
+erative Work in Design ((CSCWD)), 2018, pp. 69–74.
+[27] A. Sassi, M. Brahimi, W. Bechkit, A. Bachir, Location Embed-
+ding and Deep Convolutional Neural Networks for Next Lo-
+cation Prediction, in: 2019 IEEE 44th LCN Symposium on
+Emerging Topics in Networking (LCN Symposium), 2019, pp.
+149–157.
+[28] L. Ravi, V. Subramaniyaswamy, V. Vijayakumar, S. Chen,
+A. Karmel, M. Devarajan, Hybrid Location-based Recom-
+mender System for Mobility and Travel Planning, Mobile Net-
+works and Applications 24 (4) (2019) 1226–1239.
+[29] F. Zhou, R. Yin, K. Zhang, G. Trajcevski, T. Zhong, J. Wu,
+Adversarial Point-of-Interest Recommendation, in: The World
+Wide Web Conference, WWW ’19, Association for Computing
+Machinery, 2019, p. 3462–34618.
+[30] H. A. Rahmani, M. Aliannejadi, M. Baratchi, F. Crestani, Joint
+Geographical and Temporal Modeling Based on Matrix Factor-
+ization for Point-of-Interest Recommendation, in: Advances in
+Information Retrieval, Springer International Publishing, 2020,
+pp. 205–219.
+[31] J. Zhang, M. Ma, X. Gao, G. Chen, Encoder-Decoder Based
+Route Generation Model for Flexible Travel Recommendation,
+IEEE Transactions on Services Computing 17 (3) (2024) 905–
+920.
+[32] Z. Friggstad, S. Gollapudi, K. Kollias, T. Sarlos, C. Swamy,
+A. Tomkins, Orienteering Algorithms for Generating Travel
+Itineraries, in: Proceedings of the Eleventh ACM International
+Conference on Web Search and Data Mining, 2018, pp. 180–188.
+[33] J. Zhong, X. Wang, L. Li, Optimization for the Multiday Ur-
+ban Personalized Trip Design Problem With Time Windows
+and Transportation Mode Recommendations, Transportation
+Research Record 2677 (5) (2023) 1349–1366.
+[34] K. H. Lim, J. Chan, C. Leckie, S. Karunasekera, Towards Next
+Generation Touring: Personalized Group Tours, Proceedings
+of the International Conference on Automated Planning and
+Scheduling 26 (1) (2016) 412–420.
+[35] Y. Yin, J. Xia, Y. Li, y. xu, W. Xu, L. Yu, Group-Wise Itinerary
+Planning in Temporary Mobile Social Network, IEEE Access 7
+(2019) 83682–83693.
+[36] M. Kargar, Z. Lin, A socially motivating and environmentally
+friendly tour recommendation framework for tourist groups, Ex-
+pert Systems with Applications 180 (2021) 115083.
+[37] D. Feillet, P. Dejax, M. Gendreau, Traveling Salesman Problems
+with Profits, Transportation Science 39 (2) (2005) 188–205.
+[38] S. Irnich, G. Desaulniers, Shortest Path Problems with Resource
+Constraints, Springer US, Boston, MA, 2005, Ch. 2, pp. 33–65.
+[39] B. Meindl, M. Templ, Analysis of commercial and free and
+open source solvers for linear optimization problems, Eurostat
+and Statistics Netherlands within the project ESSnet on com-
+mon tools and harmonised methodology for SDC in the ESS 20
+(2012) 64.
+[40] K. Dongwoo, et al., Melbourne data set, https://github.com/
+dongwookim-ml/flickr-photo , accessed: 2022-01-05 (2017).
+[41] A. Garcia-Saavedra, G. Iosifidis, X. Costa-Perez, D. J. Leith,
+Joint optimization of edge computing architectures and radio
+access networks, IEEE Journal on Selected Areas in Communi-
+cations 36 (11) (2018) 2433–2443.
+[42] F. Malandrino, C. F. Chiasserini, G. Avino, M. Malinverno,
+S. Kirkpatrick, From Megabits to CPU Ticks: Enriching a De-
+mand Trace in the Age of MEC, IEEE Transactions on Big Data
+(2018).
+[43] R. Kohavi, A study of cross-validation and bootstrap for accu-
+racy estimation and model selection, in: Ijcai, Vol. 14, Montreal,
+Canada, 1995, pp. 1137–1145.
+[44] E. Angelelli, C. Archetti, C. Filippi, M. Vindigni, The proba-
+bilistic orienteering problem, Computers & Operations Research
+81 (2017) 269–281.
+18
