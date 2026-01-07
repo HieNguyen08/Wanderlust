@@ -1,0 +1,26 @@
+{
+  "total_requests": 77,
+  "total_venues": 3833,
+  "by_country": {
+    "Vietnam": 500,
+    "Thailand": 400,
+    "Singapore": 200,
+    "Malaysia": 250,
+    "Indonesia": 300,
+    "Philippines": 200,
+    "Cambodia": 150,
+    "Laos": 150,
+    "Myanmar": 150,
+    "Japan": 383,
+    "South Korea": 250,
+    "China": 400,
+    "Taiwan": 200,
+    "India": 300
+  },
+  "by_category": {},
+  "verified_venues": 0,
+  "open_venues": 3833,
+  "closed_venues": 0,
+  "with_photos": 0,
+  "errors": 0
+}
